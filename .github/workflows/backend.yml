@@ -1,0 +1,68 @@
+name: Deploy Backend to Aliyun Server
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+env:
+  # 镜像名称
+  IMAGE_NAME: dream-log/backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend # 指定后端代码目录为构建上下文
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            set -e
+            echo "=== 登录到 GHCR... ==="
+            echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+            echo "=== 拉取最新的后端镜像... ==="
+            cd ${{ secrets.PROJECT_PATH }}
+            sudo docker compose pull backend worker_default beat
+
+            echo "=== 重启后端相关服务... ==="
+            sudo docker compose up -d --remove-orphans backend worker_default beat
+
+            echo "=== 清理无用镜像... ==="
+            sudo docker image prune -f
+
+            echo "=== 后端部署成功！===" 

@@ -1,0 +1,117 @@
+---
+alwaysApply: true
+---
+
+# Dream Log 项目开发规则
+
+## 1. 概览
+
+这是一个前后端分离的 Monorepo 项目，旨在记录、分析和解析梦境。
+
+- **`backend/`**: Django 后端服务。
+- **`frontend/`**: React 前端应用。
+- **`docker-compose.yml`**: 用于本地开发和生产环境的容器编排。
+- **`nginx/`**: Nginx 反向代理配置。
+
+---
+
+## 2. 后端 (Backend - Django)
+
+### 核心技术栈
+- **框架**: Django 4.2, Django REST Framework (DRF)
+- **语言**: Python 3.9
+- **异步任务**: Celery
+
+### 文件结构与开发模式
+
+- **数据模型 (Models)**:
+  - 所有数据模型统一定义在 `dream/models.py`。
+  - **示例**: `User`, `Dream`, `DreamCategory` 模型均在该文件中。
+  - **操作**: 数据库变更必须通过 `python manage.py makemigrations` 和 `python manage.py migrate` 生成和应用迁移文件。
+
+- **API 接口 (Views & Serializers)**:
+  - **视图 (Views)**: 业务逻辑层，位于 `dream/views/` 目录下，按功能模块拆分文件。
+    - **示例**: 梦境相关的视图逻辑请参考 `dream/views/dream.py`。
+  - **序列化器 (Serializers)**: 用于 API 的数据校验和格式化，位于 `dream/serializers/` 目录。
+    - **示例**: 梦境相关的序列化器请参考 `dream/serializers/dream_serializers.py`。
+  - **路由 (URLs)**: API 路由在 `dream/urls.py` 中定义，并由主 `backend/urls.py` 包含。
+
+- **异步任务 (Celery)**:
+  - 耗时或后台任务应使用 Celery 处理，任务定义在 `dream/tasks/` 目录下。
+  - **示例**: 图片处理任务见 `dream/tasks/image_tasks.py`，邮件发送任务见 `dream/tasks/email_tasks.py`。
+
+- **实时通信 (WebSocket)**:
+  - 使用 Django Channels 实现 WebSocket 功能。
+  - **消费者 (Consumers)**: 位于 `dream/websocket/consumers/`，例如 `dream/websocket/consumers/dream_images.py`。
+  - **路由 (Routing)**: WebSocket 路由配置在 `dream/websocket/routing/urls.py`。
+
+---
+
+## 3. 前端 (Frontend - React)
+
+### 核心技术栈
+- **框架/构建**: React, Vite
+- **语言**: JavaScript (JSX)
+- **UI 组件库**: `shadcn/ui`
+- **状态管理**: React Context API
+- **路由**: React Router
+
+### 组件开发规范
+
+- **UI 基础组件**:
+  - **位置**: `src/components/ui/`
+  - **原则**: 优先复用或扩展 `shadcn/ui` 提供的组件。在添加新组件前，请先检查该目录中是否存在可复用的组件。
+  - **示例**: 按钮请使用 `src/components/ui/button.jsx`。
+
+- **业务/功能组件**:
+  - **位置**: 按功能划分，存放在 `src/features/` 目录下。
+  - **示例**: 认证相关组件（如登录、注册表单）位于 `src/features/auth/components/`，例如 `src/features/auth/components/DualLoginForm.jsx`。
+
+### 样式管理
+
+- **全局样式**: `src/styles/global/main.css` 用于定义基础和全局样式。
+- **组件样式**: 组件的特定样式应与其文件并置，以提高内聚性。
+  - **示例**: `Navbar` 组件的样式位于 `src/components/layout/Navbar.css`。
+
+### 状态管理
+
+- **全局状态**: 使用 React Context API 进行管理，Context 定义在 `src/contexts/` 目录。
+  - **示例**: 用户认证状态由 `src/contexts/AuthContext.jsx` 管理。梦境数据由 `src/contexts/DreamsContext.jsx` 管理。
+- **自定义 Hooks**: 封装可复用的逻辑，尤其是与 Context 或特定功能相关的逻辑。
+  - **示例**: `src/features/auth/hooks/useAuth.jsx` 提供了访问认证上下文的便捷方式。
+
+### API 通信
+
+- **Axios 实例**: 统一的 `axios` 客户端在 `src/services/api/client.js` 中配置。
+- **拦截器**: 认证 Token 的注入和响应错误处理在 `src/services/api/interceptors.js` 中实现。
+- **服务层**: API 请求应封装在 `src/services/` 目录下的函数中，按资源进行组织。
+  - **示例**: 所有认证相关的 API 调用（登录、注册、重置密码）都定义在 `src/services/auth/` 目录下的文件中。
+
+## 部署
+- 项目使用 Docker 和 `docker-compose.yml` 进行容器化部署。`Dockerfile` 分别位于 `backend/` 和 `nginx/` 目录中。
+
+# 项目通用开发规范
+## 1. 项目结构规范
+目录结构组织原则
+- 保持项目结构清晰，遵循模块化原则
+- 相关功能应放在同一目录下
+- 使用具描述性的目录命名，准确反映内容
+
+## 2.代码规范
+代码质量原则
+- 遵循 SOLID 设计原则
+- 避免重复代码（DRY 原则）
+- 保持代码简洁、清晰、易读
+- 注重可维护性与可扩展性
+
+异常处理
+- 合理使用异常处理机制
+- 提供清晰的错误信息
+- 记录必要的错误日志
+- 优雅处理边界情况
+
+依赖管理
+- 使用官方包管理工具（如 npm, yarn, pip 等）
+- 锁定依赖版本，确保构建一致性
+- 定期更新依赖，修复安全隐患
+- 优先使用稳定库，避免重复造轮子

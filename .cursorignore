@@ -1,0 +1,9 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+Dream_Log/.vscode
+Dream_Log/.idea
+Dream_Log/backend/_pycache__
+Dream_Log/backend/.venv
+Dream_Log/backend/.idea
+Dream_Log/frontend/.idea
+Dream_Log/frontend/dist
+Dream_Log/frontend/node_modules
