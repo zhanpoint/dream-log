@@ -8,16 +8,27 @@ on:
       - '.github/workflows/backend.yml'
 
 env:
-  # 镜像名称
-  IMAGE_NAME: dream-log/backend
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/dream-log/backend
 
 jobs:
-  build-and-deploy:
+  lint:
+    name: Lint Dockerfile
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: backend/Dockerfile
+
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: lint
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,16 +44,27 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-          
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+            
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: backend # 指定后端代码目录为构建上下文
+          context: backend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ github.workflow }}
+          cache-to: type=gha,scope=${{ github.workflow }},mode=max
 
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -52,17 +74,17 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             set -e
-            echo "=== 登录到 GHCR... ==="
+            echo "=== Logging in to GHCR... ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            echo "=== 拉取最新的后端镜像... ==="
+            echo "=== Pulling latest backend images... ==="
             cd ${{ secrets.PROJECT_PATH }}
             sudo docker compose pull backend worker_default beat
 
-            echo "=== 重启后端相关服务... ==="
+            echo "=== Restarting backend services... ==="
             sudo docker compose up -d --remove-orphans backend worker_default beat
 
-            echo "=== 清理无用镜像... ==="
+            echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
 
-            echo "=== 后端部署成功！===" 
+            echo "=== Backend deployed successfully! ===" 

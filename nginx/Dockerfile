@@ -1,5 +1,5 @@
 # --- 第一阶段：构建React应用 ---
-FROM node:18 as build
+FROM node:18 AS build
 
 WORKDIR /app
 
