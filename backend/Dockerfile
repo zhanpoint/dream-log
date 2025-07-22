@@ -6,8 +6,8 @@ FROM python:3.9-slim as builder
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# 安装构建依赖
-RUN pip install --no-cache-dir --upgrade pip
+# 安装并固定构建工具的版本，确保构建环境的一致性
+RUN pip install --no-cache-dir --upgrade pip==24.0 setuptools==69.5.1 wheel==0.43.0
 
 # 将依赖需求文件复制到构建器中
 COPY requirements_deploy.txt /app/
