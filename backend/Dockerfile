@@ -7,13 +7,14 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # 安装构建依赖
-RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 # 将依赖需求文件复制到构建器中
 COPY requirements_deploy.txt /app/
 WORKDIR /app
 
 # 安装所有依赖到一个特定的目录 /install 中
+# 使用 requirements_deploy.txt 确保版本固定，提高可重现性
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --target=/install -r requirements_deploy.txt
 
 
