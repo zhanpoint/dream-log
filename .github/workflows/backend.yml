@@ -13,7 +13,7 @@ env:
 jobs:
   lint:
     name: Lint Dockerfile
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
 
   build:
     name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
     permissions:
       contents: read
@@ -64,7 +64,7 @@ jobs:
 
   deploy:
     name: Deploy to Server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
@@ -85,7 +85,7 @@ jobs:
             sudo docker compose pull backend worker_default beat
 
             echo "=== Restarting backend services... ==="
-            sudo docker compose up -d --remove-orphans backend worker_default beat
+            sudo docker compose up -d --no-build --force-recreate --remove-orphans backend worker_default beat
 
             echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
