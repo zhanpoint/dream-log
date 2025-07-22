@@ -6,7 +6,6 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
-      - 'docker-compose.yml'
 
 env:
   ACR_IMAGE_NAME: ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend

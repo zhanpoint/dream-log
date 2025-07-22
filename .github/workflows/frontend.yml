@@ -5,9 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'frontend/**'
-      - 'nginx/**'
       - '.github/workflows/frontend.yml'
-      - 'docker-compose.yml'
 
 env:
   ACR_IMAGE_NAME: ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend
@@ -22,7 +20,7 @@ jobs:
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: nginx/Dockerfile
+          dockerfile: frontend/Dockerfile
 
   build:
     name: Build and Push Docker Image
@@ -58,8 +56,8 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: nginx/Dockerfile
+          context: frontend
+          file: frontend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

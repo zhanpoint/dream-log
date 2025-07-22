@@ -1,16 +1,37 @@
-# 使用官方的Python 3.9 slim版本作为基础镜像
-FROM python:3.9-slim
+# ---- Builder Stage ----
+# 在这个阶段，我们安装所有依赖，包括那些需要编译的包。
+FROM python:3.9-slim as builder
 
-# 设置环境变量，防止生成.pyc文件并使输出直接可见
+# 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
+# 安装构建依赖
+RUN pip install --upgrade pip
+
+# 将依赖需求文件复制到构建器中
+COPY requirements_deploy.txt /app/
+WORKDIR /app
+
+# 安装所有依赖到一个特定的目录 /install 中
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --target=/install -r requirements_deploy.txt
+
+
+# ---- Final Stage ----
+# 在这个阶段，我们只从构建器中拷贝必要的产物。
+FROM python:3.9-slim
+
+# 设置环境变量
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PATH="/install/bin:${PATH}" # 将安装目录的bin加入PATH
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制依赖文件并安装
-COPY requirements_deploy.txt .
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements_deploy.txt
+# 从构建器阶段拷贝已安装的依赖
+COPY --from=builder /install /install
 
 # 复制项目所有文件到工作目录
+# 由于 .dockerignore 的存在，这不会拷贝不必要的文件
 COPY . . 
