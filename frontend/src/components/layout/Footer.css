@@ -1,0 +1,177 @@
+/* 页脚整体样式 */
+.site-footer {
+    background-color: var(--background);
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+    padding-top: 3rem;
+    padding-bottom: 1.5rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* 主要内容区域 */
+.footer-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3rem;
+    margin-bottom: 2.5rem;
+}
+
+/* 品牌信息区域 */
+.footer-brand {
+    max-width: 300px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.footer-logo-image {
+    height: 32px;
+    width: 32px;
+}
+
+.footer-logo-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.footer-description {
+    color: var(--muted-foreground);
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+/* 链接区域 */
+.footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.footer-link-group h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+}
+
+.footer-link-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-link-group ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-link-group ul li a {
+    color: var(--muted-foreground);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+}
+
+.footer-link-group ul li a:hover {
+    color: var(--foreground);
+}
+
+/* 底部区域 */
+.footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+}
+
+.footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-copyright p {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* 备案信息样式 */
+.footer-beian {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.beian-link {
+    color: var(--muted-foreground);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.beian-link:hover {
+    color: var(--foreground);
+}
+
+.beian-police-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.beian-police {
+    display: flex;
+    align-items: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .footer-links {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .footer-bottom-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .footer-beian {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-container {
+        padding: 0 1rem;
+    }
+
+    .site-footer {
+        padding-top: 2rem;
+        padding-bottom: 1rem;
+    }
+
+    .footer-content {
+        margin-bottom: 2rem;
+    }
+}

@@ -1,0 +1,191 @@
+/* 图片上传组件样式 */
+.image-upload-container {
+    width: 100%;
+}
+
+.image-upload-area {
+    position: relative;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: #fafafa;
+}
+
+.image-upload-area:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
+.image-upload-area.drag-over {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.image-upload-area.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.image-upload-area.error {
+    border-color: #ef4444;
+}
+
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.upload-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: #f1f5f9;
+    border-radius: 50%;
+}
+
+.upload-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.upload-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-button:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* 上传进度样式 */
+.uploading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.uploading-text {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.progress-bar {
+    width: 100%;
+    max-width: 320px;
+    height: 8px;
+    background-color: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #3b82f6;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.cancel-button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background-color: white;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* 预览图片样式 */
+.preview-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+.preview-image {
+    max-height: 128px;
+    max-width: 128px;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 错误提示样式 */
+.error-alert {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #dc2626;
+    font-size: 14px;
+}
+
+/* 使用提示样式 */
+.usage-hint {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+    .image-upload-area {
+        padding: 16px;
+    }
+
+    .upload-icon-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    .upload-text {
+        font-size: 13px;
+    }
+
+    .upload-hint {
+        font-size: 11px;
+    }
+}

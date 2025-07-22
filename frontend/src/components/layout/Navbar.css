@@ -1,0 +1,235 @@
+/* 导航栏整体样式 */
+.dream-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    border-bottom: 1px solid hsl(var(--border));
+    background-color: hsla(var(--background), 0.95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px hsla(var(--foreground), 0.05);
+}
+
+.dark .dream-navbar {
+    background-color: hsla(var(--background), 0.75);
+}
+
+.navbar-container {
+    display: flex;
+    height: 60px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 1rem;
+}
+
+/* Logo 样式 */
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.navbar-logo img {
+    height: 32px;
+    width: 32px;
+}
+
+.navbar-logo-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+/* 桌面端导航菜单 */
+.navbar-menu {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    max-width: 600px;
+}
+
+/* 链接样式 */
+.nav-link {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: var(--muted);
+    color: var(--accent-foreground);
+}
+
+/* 下拉菜单触发器 */
+.nav-menu-trigger {
+    font-weight: 600;
+}
+
+/* 下拉菜单内容 */
+.nav-menu-content {
+    width: 500px;
+    padding: 1rem;
+}
+
+.nav-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.nav-menu-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.nav-menu-item:hover {
+    background-color: var(--muted);
+}
+
+.nav-menu-item-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.nav-menu-item-desc {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* 工具栏样式 */
+.navbar-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* 用户操作区域 */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* 认证按钮 */
+.auth-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* 登录按钮 */
+.login-btn {
+    color: rgb(147, 51, 234);
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+    background: rgba(147, 51, 234, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(147, 51, 234, 0.1);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* 注册按钮 */
+.register-btn {
+    color: #fff;
+    background: rgb(147, 51, 234);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.register-btn:hover {
+    background: rgb(126, 34, 206);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(147, 51, 234, 0.2);
+}
+
+.register-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* 我的梦境按钮 */
+.my-dreams-btn {
+    color: var(--muted-foreground);
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.my-dreams-btn::before,
+.create-post-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    margin: -1.5px;
+    border-radius: inherit;
+    background: linear-gradient(110deg, hsl(var(--primary) / 0.8), hsl(var(--accent) / 0.8), hsl(var(--primary) / 0.8));
+    transition: background 0.3s ease-in-out;
+}
+
+.my-dreams-btn:hover {
+    color: var(--foreground);
+    background-color: var(--accent);
+}
+
+/* 创建梦境按钮 */
+.create-post-btn {
+    color: var(--primary-foreground);
+    background-color: var(--primary);
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.create-post-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsla(var(--primary), 0.2);
+}
+
+.create-post-btn:hover::before {
+    background: linear-gradient(110deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+}
+
+/* 隐藏移动端菜单 */
+.mobile-menu {
+    display: none;
+}

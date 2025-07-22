@@ -1,0 +1,194 @@
+/* 主题切换按钮样式 */
+.theme-toggle-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+            rgba(147, 197, 253, 0.1) 0%,
+            rgba(196, 181, 253, 0.1) 50%,
+            rgba(251, 191, 36, 0.1) 100%);
+    border: 1px solid rgba(147, 197, 253, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.theme-toggle-btn:hover {
+    background: linear-gradient(135deg,
+            rgba(147, 197, 253, 0.2) 0%,
+            rgba(196, 181, 253, 0.2) 50%,
+            rgba(251, 191, 36, 0.2) 100%);
+    border-color: rgba(147, 197, 253, 0.3);
+    box-shadow: 0 4px 20px rgba(147, 197, 253, 0.15);
+    transform: translateY(-1px);
+}
+
+.theme-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(147, 197, 253, 0.1);
+}
+
+/* 深色模式下的按钮样式 */
+.dark .theme-toggle-btn {
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.15) 0%,
+            rgba(139, 92, 246, 0.15) 50%,
+            rgba(59, 130, 246, 0.15) 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .theme-toggle-btn:hover {
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.25) 0%,
+            rgba(139, 92, 246, 0.25) 50%,
+            rgba(59, 130, 246, 0.25) 100%);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+}
+
+/* 图标容器 */
+.theme-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-btn:hover .theme-icon-container {
+    transform: scale(1.1);
+}
+
+/* 下拉菜单样式 */
+.theme-dropdown-content {
+    min-width: 200px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(147, 197, 253, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    animation: theme-dropdown-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .theme-dropdown-content {
+    background: rgba(20, 20, 20, 0.95);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes theme-dropdown-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* 主题选项样式 */
+.theme-option {
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 4px;
+}
+
+.theme-option:last-child {
+    margin-bottom: 0;
+}
+
+.theme-option:hover {
+    background: linear-gradient(135deg,
+            rgba(147, 197, 253, 0.1) 0%,
+            rgba(196, 181, 253, 0.1) 100%);
+}
+
+.dark .theme-option:hover {
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.15) 0%,
+            rgba(139, 92, 246, 0.15) 100%);
+}
+
+.theme-option.active {
+    background: linear-gradient(135deg,
+            rgba(147, 197, 253, 0.15) 0%,
+            rgba(196, 181, 253, 0.15) 100%);
+    border: 1px solid rgba(147, 197, 253, 0.3);
+}
+
+.dark .theme-option.active {
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.2) 0%,
+            rgba(139, 92, 246, 0.2) 100%);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* 主题选项内容 */
+.theme-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.theme-option-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.theme-option-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+    flex: 1;
+}
+
+.theme-option-description {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    margin: 0;
+    margin-left: 24px;
+    opacity: 0.8;
+}
+
+/* 激活状态指示器 */
+.theme-option-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+            rgba(147, 197, 253, 1) 0%,
+            rgba(99, 102, 241, 1) 100%);
+    box-shadow: 0 0 8px rgba(147, 197, 253, 0.5);
+    animation: theme-indicator-pulse 2s infinite;
+}
+
+.dark .theme-option-indicator {
+    background: linear-gradient(135deg,
+            rgba(99, 102, 241, 1) 0%,
+            rgba(139, 92, 246, 1) 100%);
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+}
+
+@keyframes theme-indicator-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.2);
+    }
+}

@@ -1,0 +1,504 @@
+/* 梦境主题认证表单样式 */
+
+/* 卡片容器样式 */
+.card {
+    background: linear-gradient(135deg,
+            hsl(var(--card) / 0.95) 0%,
+            hsl(var(--card) / 0.9) 100%);
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+        0 8px 32px hsl(var(--primary) / 0.15),
+        0 0 0 1px hsl(var(--border) / 0.5);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.6), transparent);
+    z-index: 1;
+}
+
+/* 卡片标题样式 */
+.card-title {
+    background: linear-gradient(135deg,
+            hsl(var(--primary)),
+            hsl(var(--primary) / 0.8),
+            hsl(var(--primary)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Tab列表样式 */
+.tabs-list {
+    background: rgba(20, 20, 40, 0.8);
+    border: 1px solid rgba(147, 51, 234, 0.2);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+}
+
+/* Tab触发器样式 */
+.tabs-list [data-state="active"] {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    box-shadow:
+        0 4px 12px rgba(147, 51, 234, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tabs-list [data-state="inactive"] {
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tabs-list [data-state="inactive"]:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(147, 51, 234, 0.1);
+}
+
+/* 表单字段样式 */
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 14px;
+}
+
+/* 输入容器样式 */
+.input-container {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: rgba(147, 51, 234, 0.7);
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+/* 输入框样式 */
+.input {
+    background: rgba(20, 20, 40, 0.9);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 16px 12px 40px;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #a855f7;
+    box-shadow:
+        0 0 0 3px rgba(168, 85, 247, 0.1),
+        0 0 20px rgba(147, 51, 234, 0.3);
+    background: rgba(30, 30, 60, 0.9);
+}
+
+.input:focus+.input-icon {
+    color: #a855f7;
+}
+
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* 验证码容器样式 */
+.verification-container {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.verification-input {
+    flex: 1;
+    background: rgba(20, 20, 40, 0.9);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 16px 12px 40px;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.verification-input:focus {
+    border-color: #a855f7;
+    box-shadow:
+        0 0 0 3px rgba(168, 85, 247, 0.1),
+        0 0 20px rgba(147, 51, 234, 0.3);
+    background: rgba(30, 30, 60, 0.9);
+}
+
+.verification-input:focus+.input-icon {
+    color: #a855f7;
+}
+
+.verification-button {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.verification-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 8px 25px rgba(147, 51, 234, 0.4),
+        0 0 20px rgba(147, 51, 234, 0.3);
+}
+
+.verification-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 密码切换按钮 */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(147, 51, 234, 0.7);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: #a855f7;
+    background: rgba(147, 51, 234, 0.1);
+}
+
+/* 主要按钮样式 */
+.btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #a855f7, #ec4899);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.025em;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-primary:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+        0 10px 30px rgba(147, 51, 234, 0.4),
+        0 0 30px rgba(147, 51, 234, 0.3);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 错误消息样式 */
+.error-message {
+    color: #ff6b9d;
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.error-message::before {
+    content: '⚠';
+    font-size: 14px;
+}
+
+/* 链接样式 */
+.login-link {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    width: 100%;
+}
+
+.login-link .text-primary {
+    color: #a855f7;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.login-link .text-primary::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    transition: width 0.3s ease;
+}
+
+.login-link .text-primary:hover::after {
+    width: 100%;
+}
+
+.login-link .text-primary:hover {
+    color: #ec4899;
+    text-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+    .card {
+        margin: 16px;
+        border-radius: 16px;
+    }
+
+    .verification-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .verification-button {
+        padding: 10px 16px;
+    }
+
+    .tabs-list {
+        font-size: 14px;
+    }
+}
+
+/* 动画效果 */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes glow {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.card {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Tab内容过渡效果 */
+.tabs-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 聚焦环效果 */
+.input:focus-visible,
+.verification-input:focus-visible,
+.btn-primary:focus-visible {
+    outline: 2px solid #a855f7;
+    outline-offset: 2px;
+}
+
+/* 加载状态 */
+.btn-primary:disabled {
+    position: relative;
+    color: transparent;
+}
+
+.btn-primary:disabled::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* 验证码按钮加载状态 - 只在真正加载时显示加载圈 */
+.verification-button.is-loading {
+    position: relative;
+    color: transparent;
+}
+
+.verification-button.is-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* 梦境主题链接样式 */
+.dream-link {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    background: rgba(139, 92, 246, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.dream-link:hover {
+    color: #ec4899;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(219, 39, 119, 0.1));
+    border-color: rgba(219, 39, 119, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.dream-link:hover svg {
+    color: #ec4899;
+    transform: scale(1.1);
+}
+
+.login-link {
+    position: relative;
+}
+
+.login-link .text-primary {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.login-link .text-primary::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    transition: width 0.3s ease;
+    border-radius: 1px;
+}
+
+.login-link .text-primary:hover::after {
+    width: 100%;
+}
+
+.login-link .text-primary:hover {
+    transform: translateY(-1px);
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+}

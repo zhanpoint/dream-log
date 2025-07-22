@@ -1,0 +1,60 @@
+/* 打字机光标样式 */
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.typewriter-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.2em;
+    background-color: currentColor;
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+}
+
+/* 文本段落样式 */
+.typewriter-paragraph {
+    text-align: center;
+    width: 100%;
+}
+
+.typewriter-paragraph:not(:first-child) {
+    margin-top: 1rem;
+}
+
+/* 容器样式 */
+.typewriter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* 标题样式 */
+.typewriter-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+}
+
+/* 描述文本样式 */
+.typewriter-description {
+    font-size: 1.125rem;
+    color: #6b7280;
+    max-width: 42rem;
+    line-height: 1.5;
+    margin: 0 auto;
+    text-align: center;
+}

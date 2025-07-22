@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon-star">
+  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="#4F46E5" stroke="#4F46E5"/>
+  <path d="M19 3v4" stroke="#F59E0B"/>
+  <path d="M21 5h-4" stroke="#F59E0B"/>
+  <circle cx="9" cy="8" r="1" fill="#FFFFFF"/>
+  <circle cx="6" cy="11" r="0.5" fill="#FFFFFF"/>
+  <circle cx="15" cy="9" r="0.75" fill="#FFFFFF"/>
+</svg> 
