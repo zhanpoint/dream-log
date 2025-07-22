@@ -25,7 +25,7 @@ FROM python:3.9-slim
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ENV PATH="/install/bin:${PATH}" # 将安装目录的bin加入PATH
+ENV PATH="/install/bin:${PATH}"
 
 # 设置工作目录
 WORKDIR /app
