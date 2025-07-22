@@ -41,7 +41,7 @@ services:
   # 4. 后端应用服务器 (Django with Daphne)
   # -------------------------------------
   backend:
-    image: ghcr.io/zhanpoint/dream-log/backend:latest
+    image: ${BACKEND_IMAGE_URI:-ghcr.io/zhanpoint/dream-log/backend:latest}
     container_name: dream_log_backend_daphne
     command: sh -c "python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"
     volumes:
@@ -60,7 +60,7 @@ services:
 
   # 5a. 默认任务处理器 (处理 'default' 队列)
   worker_default:
-    image: ghcr.io/zhanpoint/dream-log/backend:latest
+    image: ${BACKEND_IMAGE_URI:-ghcr.io/zhanpoint/dream-log/backend:latest}
     container_name: dream_log_worker_default
     command: celery -A config worker -l info -Q default -n default_worker@%h
     env_file: ./.env
@@ -74,7 +74,7 @@ services:
 
   # 新增: 5b. Celery Beat 定时任务调度器
   beat:
-    image: ghcr.io/zhanpoint/dream-log/backend:latest
+    image: ${BACKEND_IMAGE_URI:-ghcr.io/zhanpoint/dream-log/backend:latest}
     container_name: dream_log_beat
     # 使用 django-celery-beat 调度器，它将从数据库读取任务计划
     command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
@@ -90,7 +90,7 @@ services:
   # 6. 前端/反向代理 (Nginx)
   # -------------------------------------
   frontend-nginx:
-    image: ghcr.io/zhanpoint/dream-log/frontend:latest
+    image: ${FRONTEND_IMAGE_URI:-ghcr.io/zhanpoint/dream-log/frontend:latest}
     container_name: dream_log_nginx
     ports:
       - "80:80"
