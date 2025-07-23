@@ -22,13 +22,11 @@ jobs:
         with:
           dockerfile: backend/Dockerfile
 
-  build:
-    name: Build and Push Docker Image
+  build-and-deploy:
+    name: Build, Push, and Deploy
     runs-on: ubuntu-22.04
     needs: lint
-    permissions:
-      contents: read
-      packages: write
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,7 +49,7 @@ jobs:
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            
+          
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -62,12 +60,6 @@ jobs:
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
 
-  deploy:
-    name: Deploy to Server
-    runs-on: ubuntu-22.04
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -77,13 +69,13 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             set -e
-            echo "=== Logging in to ACR... ==="
+            echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-            echo "=== Setting environment variables for deployment... ==="
+            echo "=== Setting environment variables for deployment ==="
             export BACKEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest"
             
-            echo "=== Pulling latest backend images from ACR... ==="
+            echo "=== Pulling latest backend images from ACR ==="
             cd ${{ secrets.PROJECT_PATH }}
             sudo docker compose pull backend worker_default beat
 
