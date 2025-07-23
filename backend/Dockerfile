@@ -38,9 +38,6 @@ COPY --from=builder /install /install
 # 1. 复制整个scripts目录 (更可靠的方法)
 COPY ./scripts /app/scripts
 
-# 调试：确认文件结构和内容
-RUN ls -la /app/scripts/ && echo "=== start.sh content ===" && cat /app/scripts/start.sh | head -5
-
 # 2. 复制应用代码和项目管理文件
 COPY ./apps /app/apps
 COPY ./config /app/config
