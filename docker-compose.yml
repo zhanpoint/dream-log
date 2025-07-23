@@ -43,7 +43,7 @@ services:
   backend:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_backend_daphne
-    command: sh -c "python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    command: /app/scripts/start.sh
     volumes:
       - static_volume:/app/staticfiles_collected
       - media_volume:/app/media

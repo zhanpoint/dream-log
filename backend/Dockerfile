@@ -26,6 +26,7 @@ FROM python:3.9-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/install/bin:${PATH}"
+ENV PYTHONPATH="/install"
 
 # 设置工作目录
 WORKDIR /app
@@ -36,3 +37,6 @@ COPY --from=builder /install /install
 # 复制项目所有文件到工作目录
 # 由于 .dockerignore 的存在，这不会拷贝不必要的文件
 COPY . . 
+
+# 赋予启动脚本执行权限
+RUN chmod +x /app/scripts/start.sh 
