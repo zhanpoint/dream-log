@@ -35,8 +35,11 @@ WORKDIR /app
 COPY --from=builder /install /install
 
 # 分步复制项目文件，以获得更好的明确性和缓存效果
-# 1. 复制启动脚本 (确保它总是被复制，不受.dockerignore影响)
-COPY ./scripts/start.sh /app/scripts/start.sh
+# 1. 复制整个scripts目录 (更可靠的方法)
+COPY ./scripts /app/scripts
+
+# 调试：确认文件结构和内容
+RUN ls -la /app/scripts/ && echo "=== start.sh content ===" && cat /app/scripts/start.sh | head -5
 
 # 2. 复制应用代码和项目管理文件
 COPY ./apps /app/apps
