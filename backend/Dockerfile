@@ -44,4 +44,7 @@ COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
 # 赋予启动脚本执行权限
-RUN chmod +x /app/scripts/start.sh 
+RUN chmod +x /app/scripts/start.sh
+
+# 确保脚本文件使用Unix(LF)换行符，而不是Windows(CRLF)
+RUN sed -i 's/\r$//g' /app/scripts/start.sh 
