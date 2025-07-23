@@ -63,7 +63,7 @@ jobs:
             set -e
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
-            
+
             echo "=== Updating deployment environment file (.env.deployment) ==="
             cd ${{ secrets.PROJECT_PATH }}
             
