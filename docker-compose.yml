@@ -47,6 +47,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles_collected
       - media_volume:/app/media
+      - ./backend/logs:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
@@ -63,6 +64,8 @@ services:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_worker_default
     command: celery -A config worker -l info -Q default -n default_worker@%h
+    volumes:
+      - ./backend/logs:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
@@ -78,6 +81,8 @@ services:
     container_name: dream_log_beat
     # 使用 django-celery-beat 调度器，它将从数据库读取任务计划
     command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./backend/logs:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod

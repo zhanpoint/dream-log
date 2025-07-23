@@ -41,8 +41,8 @@ WORKDIR /app
 COPY --from=builder /install /install
 
 # 分步复制项目文件，以获得更好的明确性和缓存效果
-# 1. 首先创建必要的目录结构
-RUN mkdir -p /app/scripts
+# 1. 首先创建必要的目录结构 (包括日志目录)
+RUN mkdir -p /app/scripts /app/logs
 
 # 2. 复制启动脚本 (确保它总是被复制，不受.dockerignore影响)
 COPY ./scripts/start.sh /app/scripts/start.sh
