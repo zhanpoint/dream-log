@@ -63,29 +63,21 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-            echo "=== Setting up environment for backend deployment ==="
+            echo "=== Updating deployment environment file (.env.deployment) ==="
             cd ${{ secrets.PROJECT_PATH }}
             
-            # Create/update deployment environment file
-            echo "# Auto-generated deployment environment - $(date)" > .env.deploy
-            echo "BACKEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" >> .env.deploy
-            
-            # Preserve current frontend image or use default
-            if sudo docker compose config --quiet 2>/dev/null; then
-              CURRENT_FRONTEND=$(sudo docker compose config 2>/dev/null | grep -A1 "frontend-nginx:" | grep "image:" | awk '{print $2}' | head -1 || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend:latest")
-            else
-              CURRENT_FRONTEND="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend:latest"
-            fi
-            echo "FRONTEND_IMAGE_URI=$CURRENT_FRONTEND" >> .env.deploy
-            
-            echo "=== Pulling latest backend images from ACR ==="
-            sudo docker compose --env-file .env.deploy pull backend worker_default beat
+            # Preserve current frontend image from .env.deployment or use a default
+            CURRENT_FRONTEND=$(grep '^FRONTEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2- || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend:latest")
 
-            echo "=== Restarting backend services ==="
-            sudo docker compose --env-file .env.deploy up -d --no-build --force-recreate --remove-orphans backend worker_default beat
+            # Create the .env.deployment file with the new backend image and preserved frontend image
+            echo "BACKEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" > .env.deployment
+            echo "FRONTEND_IMAGE_URI=$CURRENT_FRONTEND" >> .env.deployment
+            
+            echo "=== Applying changes to the stack (Backend Update) ==="
+            # Explicitly use .env.deployment for image URIs, docker-compose will still load the default .env for service secrets
+            sudo docker compose --env-file .env.deployment up -d --no-build --remove-orphans
 
-            echo "=== Cleaning up ==="
+            echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
-            rm -f .env.deploy
 
             echo "=== Backend deployed successfully! ===" 

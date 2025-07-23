@@ -64,29 +64,21 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            echo "=== Setting up environment for frontend deployment ==="
+            echo "=== Updating deployment environment file (.env.deployment) ==="
             cd ${{ secrets.PROJECT_PATH }}
             
-            # Create/update deployment environment file
-            echo "# Auto-generated deployment environment - $(date)" > .env.deploy
-            echo "FRONTEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" >> .env.deploy
+            # Preserve current backend image from .env.deployment or use a default
+            CURRENT_BACKEND=$(grep '^BACKEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2- || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend:latest")
+
+            # Create the .env.deployment file with the new frontend image and preserved backend image
+            echo "FRONTEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" > .env.deployment
+            echo "BACKEND_IMAGE_URI=$CURRENT_BACKEND" >> .env.deployment
             
-            # Preserve current backend image or use default
-            if sudo docker compose config --quiet 2>/dev/null; then
-              CURRENT_BACKEND=$(sudo docker compose config 2>/dev/null | grep -A1 "backend:" | grep "image:" | awk '{print $2}' | head -1 || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend:latest")
-            else
-              CURRENT_BACKEND="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend:latest"
-            fi
-            echo "BACKEND_IMAGE_URI=$CURRENT_BACKEND" >> .env.deploy
+            echo "=== Applying changes to the stack (Frontend Update) ==="
+            # Explicitly use .env.deployment for image URIs, docker-compose will still load the default .env for service secrets
+            sudo docker compose --env-file .env.deployment up -d --no-build --remove-orphans
             
-            echo "=== Pulling latest frontend image from ACR ==="
-            sudo docker compose --env-file .env.deploy pull frontend-nginx
-            
-            echo "=== Restarting frontend services ==="
-            sudo docker compose --env-file .env.deploy up -d --no-build --force-recreate --remove-orphans frontend-nginx
-            
-            echo "=== Cleaning up ==="
+            echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
-            rm -f .env.deploy
             
             echo "=== Frontend deployed successfully! ===" 
