@@ -51,17 +51,6 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-            echo "=== Explicitly pulling the latest backend image to bust cache ==="
-            sudo docker pull ${{ env.ACR_IMAGE_NAME }}:latest
-
-            echo "===================================================================="
-            echo "=== ULTIMATE DIAGNOSTIC: VERIFYING IMAGE CONTENTS ON SERVER... ==="
-            echo "===================================================================="
-            sudo docker run --rm ${{ env.ACR_IMAGE_NAME }}:latest ls -laR /app
-            echo "===================================================================="
-            echo "=== END OF DIAGNOSTIC. Check the output above. ==="
-            echo "===================================================================="
-
             echo "=== Updating deployment environment file (.env.deployment) ==="
             cd ${{ secrets.PROJECT_PATH }}
             
@@ -73,8 +62,8 @@ jobs:
             echo "FRONTEND_IMAGE_URI=$CURRENT_FRONTEND" >> .env.deployment
             
             echo "=== Applying changes to the stack (Backend Update) ==="
-            # Explicitly load BOTH .env and .env.deployment, and force container recreation
-            sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate --remove-orphans
+            # Explicitly load BOTH .env (for secrets) and .env.deployment (for image URIs)
+            sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --remove-orphans
 
             echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f

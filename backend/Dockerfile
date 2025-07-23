@@ -15,7 +15,9 @@ WORKDIR /app
 
 # 安装所有依赖到一个特定的目录 /install 中
 # 使用 requirements_deploy.txt 确保版本固定，提高可重现性
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --target=/install -r requirements_deploy.txt
+# 强制升级 importlib-metadata 以解决 celery 启动时可能的依赖冲突
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --target=/install -r requirements_deploy.txt && \
+    pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --target=/install --upgrade importlib-metadata==7.1.0
 
 
 # ---- Final Stage ----
