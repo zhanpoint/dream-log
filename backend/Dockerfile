@@ -26,8 +26,13 @@ FROM python:3.9-slim AS final
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies including dos2unix to fix line endings
-RUN apt-get update && apt-get install -y --no-install-recommends dos2unix && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install system dependencies with pinned versions for reproducibility
+# dos2unix is needed to fix Windows/Unix line ending issues
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        dos2unix=7.4.4-1 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
@@ -47,13 +52,11 @@ COPY ./apps /app/apps
 COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
-# --- FIX LINE ENDINGS ---
+# Fix line endings and set permissions in a single RUN instruction
 # Convert start.sh from DOS/Windows format (CRLF) to Unix format (LF)
 # This is crucial for cross-platform compatibility.
-RUN dos2unix /app/scripts/start.sh
-
-# Grant execution permissions to the startup script
-RUN chmod +x /app/scripts/start.sh
+RUN dos2unix /app/scripts/start.sh && \
+    chmod +x /app/scripts/start.sh
 
 # Set environment variables for runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
