@@ -34,9 +34,14 @@ WORKDIR /app
 # 从构建器阶段拷贝已安装的依赖
 COPY --from=builder /install /install
 
-# 复制项目所有文件到工作目录
-# 由于 .dockerignore 的存在，这不会拷贝不必要的文件
-COPY . . 
+# 分步复制项目文件，以获得更好的明确性和缓存效果
+# 1. 复制启动脚本 (确保它总是被复制，不受.dockerignore影响)
+COPY ./scripts/start.sh /app/scripts/start.sh
+
+# 2. 复制应用代码和项目管理文件
+COPY ./apps /app/apps
+COPY ./config /app/config
+COPY ./manage.py /app/manage.py
 
 # 赋予启动脚本执行权限
 RUN chmod +x /app/scripts/start.sh 
