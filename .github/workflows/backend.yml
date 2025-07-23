@@ -63,15 +63,29 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-            echo "=== Setting up environment and pulling latest backend images from ACR ==="
+            echo "=== Setting up environment for backend deployment ==="
             cd ${{ secrets.PROJECT_PATH }}
-            export BACKEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest"
-            sudo -E docker compose pull backend worker_default beat
+            
+            # Create/update deployment environment file
+            echo "# Auto-generated deployment environment - $(date)" > .env.deploy
+            echo "BACKEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" >> .env.deploy
+            
+            # Preserve current frontend image or use default
+            if sudo docker compose config --quiet 2>/dev/null; then
+              CURRENT_FRONTEND=$(sudo docker compose config 2>/dev/null | grep -A1 "frontend-nginx:" | grep "image:" | awk '{print $2}' | head -1 || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend:latest")
+            else
+              CURRENT_FRONTEND="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-frontend:latest"
+            fi
+            echo "FRONTEND_IMAGE_URI=$CURRENT_FRONTEND" >> .env.deploy
+            
+            echo "=== Pulling latest backend images from ACR ==="
+            sudo docker compose --env-file .env.deploy pull backend worker_default beat
 
-            echo "=== Restarting backend services... ==="
-            sudo -E docker compose up -d --no-build --force-recreate --remove-orphans backend worker_default beat
+            echo "=== Restarting backend services ==="
+            sudo docker compose --env-file .env.deploy up -d --no-build --force-recreate --remove-orphans backend worker_default beat
 
-            echo "=== Cleaning up unused images... ==="
+            echo "=== Cleaning up ==="
             sudo docker image prune -f
+            rm -f .env.deploy
 
             echo "=== Backend deployed successfully! ===" 

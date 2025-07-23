@@ -64,15 +64,29 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            echo "=== Setting up environment and pulling latest frontend image from ACR... ==="
+            echo "=== Setting up environment for frontend deployment ==="
             cd ${{ secrets.PROJECT_PATH }}
-            export FRONTEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest"
-            sudo -E docker compose pull frontend-nginx
             
-            echo "=== Restarting frontend services... ==="
-            sudo -E docker compose up -d --no-build --force-recreate --remove-orphans frontend-nginx
+            # Create/update deployment environment file
+            echo "# Auto-generated deployment environment - $(date)" > .env.deploy
+            echo "FRONTEND_IMAGE_URI=${{ env.ACR_IMAGE_NAME }}:latest" >> .env.deploy
             
-            echo "=== Cleaning up unused images... ==="
+            # Preserve current backend image or use default
+            if sudo docker compose config --quiet 2>/dev/null; then
+              CURRENT_BACKEND=$(sudo docker compose config 2>/dev/null | grep -A1 "backend:" | grep "image:" | awk '{print $2}' | head -1 || echo "${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend:latest")
+            else
+              CURRENT_BACKEND="${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/dream-log-backend:latest"
+            fi
+            echo "BACKEND_IMAGE_URI=$CURRENT_BACKEND" >> .env.deploy
+            
+            echo "=== Pulling latest frontend image from ACR ==="
+            sudo docker compose --env-file .env.deploy pull frontend-nginx
+            
+            echo "=== Restarting frontend services ==="
+            sudo docker compose --env-file .env.deploy up -d --no-build --force-recreate --remove-orphans frontend-nginx
+            
+            echo "=== Cleaning up ==="
             sudo docker image prune -f
+            rm -f .env.deploy
             
             echo "=== Frontend deployed successfully! ===" 
