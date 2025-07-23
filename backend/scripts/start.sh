@@ -3,6 +3,28 @@
 # 遇到任何错误则终止脚本
 set -e
 
+# --- 最佳实践：等待数据库服务完全就绪 ---
+echo "Waiting for database to be ready..."
+python -c "
+import sys
+import time
+from django.db import connections
+from django.db.utils import OperationalError
+
+db_conn = None
+# 循环尝试连接，直到成功
+while not db_conn:
+    try:
+        # 使用Django默认的数据库连接配置
+        connections['default'].cursor()
+        db_conn = True
+    except OperationalError:
+        print('Database unavailable, waiting 1 second...')
+        time.sleep(1)
+"
+echo "Database is up and running!"
+
+
 # --- 数据库和应用初始化 ---
 echo "Running database migrations..."
 python manage.py migrate
