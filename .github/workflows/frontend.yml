@@ -75,8 +75,8 @@ jobs:
             echo "BACKEND_IMAGE_URI=$CURRENT_BACKEND" >> .env.deployment
             
             echo "=== Applying changes to the stack (Frontend Update) ==="
-            # Explicitly use .env.deployment for image URIs, docker-compose will still load the default .env for service secrets
-            sudo docker compose --env-file .env.deployment up -d --no-build --remove-orphans
+            # Explicitly load BOTH .env (for secrets) and .env.deployment (for image URIs)
+            sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --remove-orphans
             
             echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
