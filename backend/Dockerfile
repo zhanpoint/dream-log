@@ -26,13 +26,13 @@ FROM python:3.9-slim AS final
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies with pinned versions for reproducibility
-# dos2unix is needed to fix Windows/Unix line ending issues
+# Install system dependencies.
+# dos2unix is needed to fix Windows/Unix line ending issues.
+# We don't pin the version here to ensure compatibility with the base image's repository.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        dos2unix=7.4.4-1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends dos2unix && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
