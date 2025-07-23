@@ -46,5 +46,9 @@ COPY ./apps /app/apps
 COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
+# --- 诊断步骤 ---
+# 在构建日志中打印出/app目录的详细内容，以供调试
+RUN echo "--- Debugging file list in /app ---" && ls -laR /app
+
 # 赋予启动脚本执行权限
 RUN chmod +x /app/scripts/start.sh 
