@@ -20,13 +20,14 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --tar
 
 # ---- Final Stage ----
 # 在这个阶段，我们只从构建器中拷贝必要的产物。
-FROM python:3.9-slim
+FROM python:3.9-slim AS final
 
-# 设置环境变量
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PATH="/install/bin:${PATH}"
-ENV PYTHONPATH="/install"
+# Best practice: Use key=value format for ENV
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies including dos2unix to fix line endings
+RUN apt-get update && apt-get install -y --no-install-recommends dos2unix && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
@@ -46,9 +47,24 @@ COPY ./apps /app/apps
 COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
-# --- 诊断步骤 ---
-# 在构建日志中打印出/app目录的详细内容，以供调试
-RUN echo "--- Debugging file list in /app ---" && ls -laR /app
+# --- FIX LINE ENDINGS ---
+# Convert start.sh from DOS/Windows format (CRLF) to Unix format (LF)
+# This is crucial for cross-platform compatibility.
+RUN dos2unix /app/scripts/start.sh
 
-# 赋予启动脚本执行权限
-RUN chmod +x /app/scripts/start.sh 
+# Grant execution permissions to the startup script
+RUN chmod +x /app/scripts/start.sh
+
+# Set environment variables for runtime
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/install/bin:$PATH \
+    PYTHONPATH=/app:/install \
+    DJANGO_SETTINGS_MODULE=config.settings.prod
+
+# Expose the port daphne will run on
+EXPOSE 8000
+
+# The command to run when the container starts.
+# This should be the last instruction in the Dockerfile.
+CMD ["/app/scripts/start.sh"] 
