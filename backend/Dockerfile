@@ -35,15 +35,16 @@ WORKDIR /app
 COPY --from=builder /install /install
 
 # 分步复制项目文件，以获得更好的明确性和缓存效果
-# 1. 复制整个scripts目录 (更可靠的方法)
-COPY ./scripts /app/scripts
+# 1. 首先创建必要的目录结构
+RUN mkdir -p /app/scripts
 
-# 2. 复制应用代码和项目管理文件
+# 2. 复制启动脚本 (确保它总是被复制，不受.dockerignore影响)
+COPY ./scripts/start.sh /app/scripts/start.sh
+
+# 3. 复制应用代码和项目管理文件
 COPY ./apps /app/apps
 COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
-# 赋予启动脚本执行权限并确保使用Unix换行符
-# 将连续的RUN指令合并以减少镜像层数并提高构建效率
-RUN chmod +x /app/scripts/start.sh && \
-    sed -i 's/\r$//g' /app/scripts/start.sh 
+# 赋予启动脚本执行权限
+RUN chmod +x /app/scripts/start.sh 
