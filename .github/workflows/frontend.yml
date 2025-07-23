@@ -74,15 +74,12 @@ jobs:
             echo "=== Logging in to ACR on Server ==="
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ secrets.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            echo "=== Setting environment variables for deployment... ==="
-            export FRONTEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest"
-
             echo "=== Pulling latest frontend image from ACR... ==="
             cd ${{ secrets.PROJECT_PATH }}
-            sudo docker compose pull frontend-nginx
+            FRONTEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest" sudo docker compose pull frontend-nginx
             
             echo "=== Restarting frontend services... ==="
-            sudo docker compose up -d --no-build --force-recreate --remove-orphans frontend-nginx
+            FRONTEND_IMAGE_URI="${{ env.ACR_IMAGE_NAME }}:latest" sudo docker compose up -d --no-build --force-recreate --remove-orphans frontend-nginx
             
             echo "=== Cleaning up unused images... ==="
             sudo docker image prune -f
