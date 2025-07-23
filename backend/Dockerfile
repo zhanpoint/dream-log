@@ -43,8 +43,7 @@ COPY ./apps /app/apps
 COPY ./config /app/config
 COPY ./manage.py /app/manage.py
 
-# 赋予启动脚本执行权限
-RUN chmod +x /app/scripts/start.sh
-
-# 确保脚本文件使用Unix(LF)换行符，而不是Windows(CRLF)
-RUN sed -i 's/\r$//g' /app/scripts/start.sh 
+# 赋予启动脚本执行权限并确保使用Unix换行符
+# 将连续的RUN指令合并以减少镜像层数并提高构建效率
+RUN chmod +x /app/scripts/start.sh && \
+    sed -i 's/\r$//g' /app/scripts/start.sh 
