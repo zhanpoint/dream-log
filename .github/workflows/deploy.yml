@@ -1,0 +1,222 @@
+# 智能 Monorepo CI/CD 部署工作流
+# 此工作流取代了原有的 backend.yml 和 frontend.yml 分离式工作流
+# 实现了智能变更检测和针对性部署，提高效率并减少资源浪费
+
+name: Smart CI/CD Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
+
+env:
+  REGISTRY: ${{ secrets.ACR_REGISTRY }}
+  NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+
+jobs:
+  # 变更检测作业
+  detect-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      backend-changed: ${{ steps.changes.outputs.backend }}
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
+      docker-changed: ${{ steps.changes.outputs.docker }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            docker:
+              - 'docker-compose.yml'
+              - '.github/workflows/deploy.yml'
+
+  # 后端构建作业
+  build-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-22.04
+    outputs:
+      image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+          platforms: linux/amd64
+
+  # 前端构建作业
+  build-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend-changed == 'true'
+    runs-on: ubuntu-22.04
+    outputs:
+      image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: frontend/Dockerfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+          platforms: linux/amd64
+
+  # 智能部署作业
+  deploy:
+    needs: [detect-changes, build-backend, build-frontend]
+    if: |
+      always() && 
+      github.ref == 'refs/heads/main' && 
+      github.event_name == 'push' &&
+      (
+        (needs.detect-changes.outputs.backend-changed == 'true' && needs.build-backend.result == 'success') ||
+        (needs.detect-changes.outputs.frontend-changed == 'true' && needs.build-frontend.result == 'success') ||
+        (needs.detect-changes.outputs.docker-changed == 'true')
+      )
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            set -e
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # 登录容器注册表
+            echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+            
+            # 从构建作业获取新的镜像 URI，如果未构建则为空
+            BUILT_BACKEND_URI="${{ needs.build-backend.outputs.image-uri || '' }}"
+            BUILT_FRONTEND_URI="${{ needs.build-frontend.outputs.image-uri || '' }}"
+            
+            # 从服务器上的 .env.deployment 文件读取上一次部署的 URI
+            LAST_BACKEND_URI=$(grep '^BACKEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2-)
+            LAST_FRONTEND_URI=$(grep '^FRONTEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2-)
+            
+            # 决定本次部署使用的最终 URI：优先使用新构建的，否则沿用上一次的
+            FINAL_BACKEND_URI="${BUILT_BACKEND_URI:-$LAST_BACKEND_URI}"
+            FINAL_FRONTEND_URI="${BUILT_FRONTEND_URI:-$LAST_FRONTEND_URI}"
+            
+            echo "✅ Backend image: $FINAL_BACKEND_URI"
+            echo "✅ Frontend image: $FINAL_FRONTEND_URI"
+            
+            # 生成新的部署环境文件
+            cat > .env.deployment << EOF
+            BACKEND_IMAGE_URI=${FINAL_BACKEND_URI}
+            FRONTEND_IMAGE_URI=${FINAL_FRONTEND_URI}
+            EOF
+            
+            echo "📋 当前部署配置:"
+            cat .env.deployment
+            
+            # 智能拉取镜像（仅当有新镜像时才拉取）
+            if [ -n "$BUILT_BACKEND_URI" ]; then
+              sudo docker pull "$FINAL_BACKEND_URI"
+            fi
+            if [ -n "$BUILT_FRONTEND_URI" ]; then
+              sudo docker pull "$FINAL_FRONTEND_URI"
+            fi
+            
+            # 智能重新部署（仅重启变更的服务）
+            SERVICES_TO_RESTART=""
+            if [ "${{ needs.detect-changes.outputs.backend-changed }}" = "true" ]; then
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_default beat"
+            fi
+            if [ "${{ needs.detect-changes.outputs.frontend-changed }}" = "true" ]; then
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend-nginx"
+            fi
+            
+            if [ -n "$SERVICES_TO_RESTART" ]; then
+              echo "🔄 重启受影响的服务: $SERVICES_TO_RESTART"
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate $SERVICES_TO_RESTART
+            else
+              echo "📝 配置更新，重启所有服务"
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
+            fi
+            
+            # 清理未使用的镜像
+            sudo docker image prune -f
+            
+            echo "🎉 部署完成！" 
