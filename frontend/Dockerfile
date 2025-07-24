@@ -10,8 +10,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安装依赖，使用缓存挂载加速构建
+# 在构建阶段需要安装开发依赖（如 vite），因此移除 --only=production 标志
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production --legacy-peer-deps
+    npm ci --legacy-peer-deps
 
 # 拷贝源代码
 COPY . .
