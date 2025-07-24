@@ -10,8 +10,8 @@ services:
       - mysql_data:/var/lib/mysql
     env_file: ./.env
     restart: unless-stopped
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306" 
 
   # 2. 缓存/Celery结果后端 (Redis)
   # -------------------------------------
@@ -21,8 +21,8 @@ services:
     command: redis-server --requirepass ${REDIS_PASSWORD}
     env_file: ./.env
     restart: unless-stopped
-    expose:
-      - "6379"
+    ports:
+      - "6379:6379"
 
   # 3. 消息代理 (RabbitMQ)
   # -------------------------------------
