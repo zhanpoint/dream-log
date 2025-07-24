@@ -43,10 +43,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # Install system dependencies.
-# dos2unix is needed to fix Windows/Unix line ending issues.
-# We don't pin the version here to ensure compatibility with the base image's repository.
+# dos2unix 用于修复脚本换行符问题。
+# libmariadb3 是 mysqlclient 在运行时必需的共享库。
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends dos2unix && \
+    apt-get install -y --no-install-recommends dos2unix libmariadb3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
