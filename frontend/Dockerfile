@@ -22,18 +22,16 @@ RUN npm run build
 # --- 第二阶段：生产环境 ---
 FROM nginx:1.25-alpine AS production
 
-# 创建 nginx 用户和必要目录
-RUN addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+# 官方 nginx 镜像已预设 'nginx' 用户和组，我们直接使用以遵循最佳实践，无需手动创建，避免冲突
 
 # 从构建阶段拷贝静态文件
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# 设置适当的权限
+# 为静态文件设置正确的属主（使用镜像内置的 nginx 用户）
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# 使用非 root 用户运行
+# 切换到镜像预设的非 root 用户运行，增强安全性
 USER nginx
 
 # 暴露端口
