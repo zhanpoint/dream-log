@@ -11,7 +11,7 @@ services:
     env_file: ./.env
     restart: unless-stopped
     ports:
-      - "3307:3306" 
+      - "3306:3306" 
 
   # 2. 缓存/Celery结果后端 (Redis)
   # -------------------------------------
