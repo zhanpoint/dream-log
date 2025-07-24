@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # --- 第一阶段：构建React应用 ---
 # 使用官方Node.js 18作为基础镜像
 FROM node:18 AS build
@@ -5,14 +7,15 @@ FROM node:18 AS build
 # 设置工作目录
 WORKDIR /app
 
-# 拷贝 package.json 和 package-lock.json (或 yarn.lock)
-# 这样可以利用Docker的层缓存，只有在依赖更新时才重新安装
+# 拷贝 package.json 和 package-lock.json
 COPY package.json ./
-# 注意：如果 package-lock.json 引发问题，可以暂时注释掉
+# 如果您使用 lock 文件，请取消下面的注释
 # COPY package-lock.json ./
 
-# 安装依赖
-RUN npm install --legacy-peer-deps
+# 安装依赖，并使用缓存挂载来加速
+# --mount=type=cache,target=/root/.npm 会持久化npm的缓存目录
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --legacy-peer-deps
 
 # 拷贝所有前端代码并构建
 COPY . .
