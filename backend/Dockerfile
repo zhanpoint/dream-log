@@ -2,6 +2,16 @@
 # 在这个阶段，我们安装所有依赖，包括那些需要编译的包。
 FROM python:3.9-slim as builder
 
+# --- 安装系统依赖 ---
+# 为 mysqlclient 和其他可能需要编译的库安装构建工具和开发头文件
+# libmariadb-dev 是 mysqlclient 的关键依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libmariadb-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

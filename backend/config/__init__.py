@@ -1,8 +1,3 @@
-import pymysql
-
-# mysqlDB不支持python3.5之后版本。使用pymysql代替，
-pymysql.install_as_MySQLdb()
-
 # 确保在 Django 启动时，Celery 应用总能被导入，
 from .celery import app as celery_app
 
