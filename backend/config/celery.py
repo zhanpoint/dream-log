@@ -14,6 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
 app = Celery('config')
 
 # 告诉 Celery 从 Django 的配置文件中加载配置（django.conf.settings中以 CELERY_ 开头的配置项）
+# 导入 Django 的全局配置对象 settings，用于获取当前激活的配置内容（通常是你指定的 DJANGO_SETTINGS_MODULE 指向的模块，比如 config.settings.dev）
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # 自动从所有已注册的 Django app 中查找并加载 tasks.py 文件中的任务函数

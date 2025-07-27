@@ -6,6 +6,7 @@
 from pathlib import Path
 from datetime import timedelta
 import environ
+import os
 
 # 对需要进行类型转换的环境变量中进行初始化，
 env = environ.Env(
@@ -24,16 +25,18 @@ env = environ.Env(
     EMAIL_SERVICE_ENABLED=(bool, True),
 )
 
-# 读取项目最外层的.env文件
-# 获取当前文件的路径，向上一级到达backend根目录
-if env('DEBUG'):
+# 使用在 celery.py 中已经存在的 APP_ENV 变量来判断环境，更加可靠
+app_env = os.environ.get('APP_ENV', 'dev')
+
+# 根据开发环境读取.env文件
+if app_env == 'dev':
     project_root = Path(__file__).resolve().parent.parent
 else:
     project_root = Path(__file__).resolve().parent.parent.parent
 env_path = project_root / '.env'
 
-# # 加载.env文件
-environ.Env.read_env(env_path)
+# 加载.env文件, 并强制覆盖已存在的环境变量
+environ.Env.read_env(env_path, overwrite=True)
 
 # Django基础配置
 DEBUG = env('DEBUG')

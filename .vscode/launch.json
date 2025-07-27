@@ -1,0 +1,119 @@
+{
+    "version": "0.2.0", // VS Code 调试配置文件版本
+    "configurations": [
+        {
+            "name": "Backend: Daphne",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            "module": "daphne",
+            "args": [
+                "-b",
+                "0.0.0.0",
+                "-p",
+                "8000",
+                "config.asgi:application"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "env": {
+                "PYTHONUNBUFFERED": "1",
+                "DJANGO_SETTINGS_MODULE": "config.settings.dev",
+                "APP_ENV": "dev"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Backend: Celery Worker",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            "module": "celery",
+            "args": [
+                "-A",
+                "config.celery",
+                "worker",
+                "-l",
+                "info",
+                "-Q",
+                "default",
+                "-c",
+                "8",
+                "--prefetch-multiplier=4",
+                "-P",
+                "threads",
+                "-n",
+                "default_worker@%h"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "env": {
+                "PYTHONUNBUFFERED": "1",
+                "DJANGO_SETTINGS_MODULE": "config.settings.dev",
+                "APP_ENV": "dev"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Backend: Celery Beat",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            "module": "celery",
+            "args": [
+                "-A",
+                "config.celery",
+                "beat",
+                "-l",
+                "info",
+                "--scheduler",
+                "django_celery_beat.schedulers:DatabaseScheduler"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "env": {
+                "PYTHONUNBUFFERED": "1",
+                "DJANGO_SETTINGS_MODULE": "config.settings.dev",
+                "APP_ENV": "dev"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Frontend: Vite",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "cwd": "${workspaceFolder}/frontend",
+            "console": "integratedTerminal",
+            "windows": {
+                "runtimeExecutable": "npm.cmd"
+            },
+            "serverReadyAction": {
+                "pattern": "Local:.*(https?://localhost:[0-9]+)",
+                "uriFormat": "%s",
+                "action": "openExternally"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run: Django + React",
+            "configurations": [
+                "Backend: Daphne",
+                "Frontend: Vite"
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "Run: Full Stack",
+            "configurations": [
+                "Backend: Daphne",
+                "Backend: Celery Worker",
+                "Backend: Celery Beat",
+                "Frontend: Vite"
+            ],
+            "stopAll": true
+        }
+    ]
+}
