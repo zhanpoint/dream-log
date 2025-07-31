@@ -28,19 +28,23 @@ jobs:
   detect-changes:
     runs-on: ubuntu-22.04
     outputs:
-      backend-changed: ${{ steps.changes.outputs.backend }}
-      frontend-changed: ${{ steps.changes.outputs.frontend }}
-      docker-changed: ${{ steps.changes.outputs.docker }}
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      docker: ${{ steps.changes.outputs.docker }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # fetch-depth: 0 获取所有历史记录，确保能够找到正确的比较基准
           fetch-depth: 0
 
       - name: Detect changed paths
         uses: dorny/paths-filter@v3
         id: changes
         with:
+          # 显式指定比较基准为 push 事件前一个 commit
+          # 这是修复变更检测不准确问题的核心
+          base: ${{ github.event.before }}
           filters: |
             backend:
               - 'backend/**'
@@ -53,7 +57,7 @@ jobs:
   # 后端构建作业
   build-backend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend-changed == 'true'
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-22.04
     outputs:
       image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${{ steps.short-sha.outputs.sha }}
@@ -88,7 +92,7 @@ jobs:
   # 前端构建作业
   build-frontend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-changed == 'true'
+    if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-22.04
     outputs:
       image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
@@ -127,15 +131,17 @@ jobs:
 
   # 部署作业
   deploy:
+    # 确保此作业在变更检测和所有构建作业之后运行
     needs: [detect-changes, build-backend, build-frontend]
+    # 仅在主分支 push 事件时运行
     if: |
       always() && 
       github.ref == 'refs/heads/main' && 
       github.event_name == 'push' &&
       (
-        (needs.detect-changes.outputs.backend-changed == 'true' && needs.build-backend.result == 'success') ||
-        (needs.detect-changes.outputs.frontend-changed == 'true' && needs.build-frontend.result == 'success') ||
-        (needs.detect-changes.outputs.docker-changed == 'true')
+        needs.build-backend.result == 'success' ||
+        needs.build-frontend.result == 'success' ||
+        (needs.detect-changes.outputs.docker == 'true')
       )
     runs-on: ubuntu-22.04
     environment: production
@@ -168,7 +174,7 @@ jobs:
             
             # 验证镜像 URI 不为空
             if [ -z "$FINAL_BACKEND_URI" ] || [ -z "$FINAL_FRONTEND_URI" ]; then
-              echo "错误: 缺少必要的镜像 URI"
+              echo "错误: 缺少必要的镜像 URI，请检查上一次部署是否存在 .env.deployment 文件"
               exit 1
             fi
             
@@ -178,28 +184,29 @@ jobs:
             FRONTEND_IMAGE_URI=${FINAL_FRONTEND_URI}
             EOF
             
-            # 拉取新镜像
+            # 定义需要重启的服务变量
+            SERVICES_TO_RESTART=""
+            
+            # 如果后端镜像被构建，则拉取新镜像并标记相关服务需要重启
             if [ -n "$BUILT_BACKEND_URI" ]; then
               sudo docker pull "$FINAL_BACKEND_URI"
-            fi
-            if [ -n "$BUILT_FRONTEND_URI" ]; then
-              sudo docker pull "$FINAL_FRONTEND_URI"
-            fi
-            
-            # 确定需要重启的服务
-            SERVICES_TO_RESTART=""
-            if [ "${{ needs.detect-changes.outputs.backend-changed }}" = "true" ]; then
               SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_default beat"
             fi
-            if [ "${{ needs.detect-changes.outputs.frontend-changed }}" = "true" ]; then
+            
+            # 如果前端镜像被构建，则拉取新镜像并标记相关服务需要重启
+            if [ -n "$BUILT_FRONTEND_URI" ]; then
+              sudo docker pull "$FINAL_FRONTEND_URI"
               SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend-nginx"
             fi
             
-            # 执行部署
-            if [ -n "$SERVICES_TO_RESTART" ]; then
+            # 如果仅仅是 docker-compose.yml 等文件变更，也需要重启
+            if [ "${{ needs.detect-changes.outputs.docker }}" = "true" ] && [ -z "$SERVICES_TO_RESTART" ]; then
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
+            elif [ -n "$SERVICES_TO_RESTART" ]; then
+              # 精确重启已变更的服务
               sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate $SERVICES_TO_RESTART
             else
-              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
+              echo "没有检测到任何需要部署的变更。"
             fi
             
             # 清理未使用的镜像
