@@ -72,7 +72,7 @@ jobs:
     if: needs.detect-changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_backend == 'true'
     runs-on: ubuntu-22.04
     outputs:
-      image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${{ steps.short-sha.outputs.sha }}
+      image-tag: ${{ steps.short-sha.outputs.sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -107,7 +107,7 @@ jobs:
     if: needs.detect-changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_frontend == 'true'
     runs-on: ubuntu-22.04
     outputs:
-      image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
+      image-tag: ${{ steps.short-sha.outputs.sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -177,34 +177,32 @@ jobs:
             # 只有在后端镜像被成功构建时，才执行相关操作
             if [ "${{ needs.build-backend.result }}" = "success" ]; then
               echo "后端镜像已构建，准备拉取并部署..."
-              # 从构建作业的输出中获取镜像 URI
-              BACKEND_IMAGE_URI="${{ needs.build-backend.outputs.image-uri }}"
+              # 从构建作业的输出中获取镜像标签，并在脚本内部重构完整的 URI
+              IMAGE_TAG="${{ needs.build-backend.outputs.image-tag }}"
+              BACKEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${IMAGE_TAG}"
               
-              # 更新环境变量文件
+              echo "后端镜像 URI: $BACKEND_IMAGE_URI"
+              
               # 使用 sed 命令安全地更新或添加后端镜像 URI
               grep -q '^BACKEND_IMAGE_URI=' .env.deployment && sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" >> .env.deployment
               
-              # 拉取新镜像
               sudo docker pull "$BACKEND_IMAGE_URI"
-              
-              # 重启后端服务
               sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate backend worker_default beat
             fi
             
             # 只有在前端镜像被成功构建时，才执行相关操作
             if [ "${{ needs.build-frontend.result }}" = "success" ]; then
               echo "前端镜像已构建，准备拉取并部署..."
-              # 从构建作业的输出中获取镜像 URI
-              FRONTEND_IMAGE_URI="${{ needs.build-frontend.outputs.image-uri }}"
+              # 从构建作业的输出中获取镜像标签，并在脚本内部重构完整的 URI
+              IMAGE_TAG="${{ needs.build-frontend.outputs.image-tag }}"
+              FRONTEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${IMAGE_TAG}"
               
-              # 更新环境变量文件
+              echo "前端镜像 URI: $FRONTEND_IMAGE_URI"
+              
               # 使用 sed 命令安全地更新或添加前端镜像 URI
               grep -q '^FRONTEND_IMAGE_URI=' .env.deployment && sed -i "s|^FRONTEND_IMAGE_URI=.*|FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}|" .env.deployment || echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}" >> .env.deployment
               
-              # 拉取新镜像
               sudo docker pull "$FRONTEND_IMAGE_URI"
-              
-              # 重启前端服务
               sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate frontend-nginx
             fi
 
