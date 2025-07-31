@@ -18,6 +18,18 @@ on:
       - 'frontend/**'
       - 'docker-compose.yml'
       - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      force_rebuild_backend:
+        description: '强制重新构建后端镜像'
+        required: false
+        default: false
+        type: boolean
+      force_rebuild_frontend:
+        description: '强制重新构建前端镜像'
+        required: false
+        default: false
+        type: boolean
 
 env:
   REGISTRY: ${{ secrets.ACR_REGISTRY }}
@@ -57,7 +69,7 @@ jobs:
   # 后端构建作业
   build-backend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    if: needs.detect-changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_backend == 'true'
     runs-on: ubuntu-22.04
     outputs:
       image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${{ steps.short-sha.outputs.sha }}
@@ -92,7 +104,7 @@ jobs:
   # 前端构建作业
   build-frontend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    if: needs.detect-changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_frontend == 'true'
     runs-on: ubuntu-22.04
     outputs:
       image-uri: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
@@ -157,57 +169,50 @@ jobs:
             set -e
             cd ${{ secrets.PROJECT_PATH }}
             
-            # 登录容器注册表
+            echo "登录容器注册表..."
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
-            # 获取新构建的镜像 URI
-            BUILT_BACKEND_URI="${{ needs.build-backend.outputs.image-uri || '' }}"
-            BUILT_FRONTEND_URI="${{ needs.build-frontend.outputs.image-uri || '' }}"
-            
-            # 从 .env.deployment 读取上次部署的镜像 URI
-            LAST_BACKEND_URI=$(grep '^BACKEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2- || echo "")
-            LAST_FRONTEND_URI=$(grep '^FRONTEND_IMAGE_URI=' .env.deployment 2>/dev/null | cut -d '=' -f2- || echo "")
-            
-            # 确定最终使用的镜像 URI
-            FINAL_BACKEND_URI="${BUILT_BACKEND_URI:-$LAST_BACKEND_URI}"
-            FINAL_FRONTEND_URI="${BUILT_FRONTEND_URI:-$LAST_FRONTEND_URI}"
-            
-            # 验证镜像 URI 不为空
-            if [ -z "$FINAL_BACKEND_URI" ] || [ -z "$FINAL_FRONTEND_URI" ]; then
-              echo "错误: 缺少必要的镜像 URI，请检查上一次部署是否存在 .env.deployment 文件"
-              exit 1
+            # 只有在后端镜像被成功构建时，才执行相关操作
+            if [ "${{ needs.build-backend.result }}" = "success" ]; then
+              echo "后端镜像已构建，准备拉取并部署..."
+              # 从构建作业的输出中获取镜像 URI
+              BACKEND_IMAGE_URI="${{ needs.build-backend.outputs.image-uri }}"
+              
+              # 更新环境变量文件
+              # 使用 sed 命令安全地更新或添加后端镜像 URI
+              grep -q '^BACKEND_IMAGE_URI=' .env.deployment && sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" >> .env.deployment
+              
+              # 拉取新镜像
+              sudo docker pull "$BACKEND_IMAGE_URI"
+              
+              # 重启后端服务
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate backend worker_default beat
             fi
             
-            # 更新部署配置文件
-            cat > .env.deployment << EOF
-            BACKEND_IMAGE_URI=${FINAL_BACKEND_URI}
-            FRONTEND_IMAGE_URI=${FINAL_FRONTEND_URI}
-            EOF
-            
-            # 定义需要重启的服务变量
-            SERVICES_TO_RESTART=""
-            
-            # 如果后端镜像被构建，则拉取新镜像并标记相关服务需要重启
-            if [ -n "$BUILT_BACKEND_URI" ]; then
-              sudo docker pull "$FINAL_BACKEND_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_default beat"
+            # 只有在前端镜像被成功构建时，才执行相关操作
+            if [ "${{ needs.build-frontend.result }}" = "success" ]; then
+              echo "前端镜像已构建，准备拉取并部署..."
+              # 从构建作业的输出中获取镜像 URI
+              FRONTEND_IMAGE_URI="${{ needs.build-frontend.outputs.image-uri }}"
+              
+              # 更新环境变量文件
+              # 使用 sed 命令安全地更新或添加前端镜像 URI
+              grep -q '^FRONTEND_IMAGE_URI=' .env.deployment && sed -i "s|^FRONTEND_IMAGE_URI=.*|FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}|" .env.deployment || echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}" >> .env.deployment
+              
+              # 拉取新镜像
+              sudo docker pull "$FRONTEND_IMAGE_URI"
+              
+              # 重启前端服务
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate frontend-nginx
+            fi
+
+            # 如果只有 docker 相关文件发生变化，则重新加载所有服务
+            if [ "${{ needs.detect-changes.outputs.docker }}" = "true" ] && [ "${{ needs.build-backend.result }}" != "success" ] && [ "${{ needs.build-frontend.result }}" != "success" ]; then
+                echo "检测到 Docker 相关文件变更，正在重新加载所有服务..."
+                sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
             fi
             
-            # 如果前端镜像被构建，则拉取新镜像并标记相关服务需要重启
-            if [ -n "$BUILT_FRONTEND_URI" ]; then
-              sudo docker pull "$FINAL_FRONTEND_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend-nginx"
-            fi
-            
-            # 如果仅仅是 docker-compose.yml 等文件变更，也需要重启
-            if [ "${{ needs.detect-changes.outputs.docker }}" = "true" ] && [ -z "$SERVICES_TO_RESTART" ]; then
-              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
-            elif [ -n "$SERVICES_TO_RESTART" ]; then
-              # 精确重启已变更的服务
-              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate $SERVICES_TO_RESTART
-            else
-              echo "没有检测到任何需要部署的变更。"
-            fi
-            
-            # 清理未使用的镜像
+            echo "清理未使用的镜像..."
             sudo docker image prune -f
+            
+            echo "部署完成！"
