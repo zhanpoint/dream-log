@@ -11,7 +11,9 @@ services:
     env_file: ./.env
     restart: unless-stopped
     ports:
-      - "3306:3306" 
+      - "3306:3306"
+    networks:
+      - dream-log-net
 
   # 2. 缓存/Celery结果后端 (Redis)
   # -------------------------------------
@@ -23,6 +25,8 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    networks:
+      - dream-log-net
 
   # 3. 消息代理 (RabbitMQ)
   # -------------------------------------
@@ -37,6 +41,8 @@ services:
     expose:
       # AMQP协议端口仅对内部网络暴露，供Celery连接
       - "5672"
+    networks:
+      - dream-log-net
 
   # 4. 后端应用服务器 (Django with Daphne)
   # -------------------------------------
@@ -47,7 +53,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles_collected
       - media_volume:/app/media
-      - ./backend/logs:/app/logs
+      - logs_volume:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
@@ -58,6 +64,8 @@ services:
     restart: unless-stopped
     expose:
       - "8000"
+    networks:
+      - dream-log-net
 
   # 5a. 默认任务处理器 (处理 'default' 队列)
   worker_default:
@@ -65,7 +73,7 @@ services:
     container_name: dream_log_worker_default
     command: celery -A config worker -l info -Q default -n default_worker@%h
     volumes:
-      - ./backend/logs:/app/logs
+      - logs_volume:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
@@ -73,16 +81,16 @@ services:
       - backend
       - cache
       - broker
-
+    networks:
+      - dream-log-net
 
   # 新增: 5b. Celery Beat 定时任务调度器
   beat:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_beat
-    # 使用 django-celery-beat 调度器，它将从数据库读取任务计划
     command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
-      - ./backend/logs:/app/logs
+      - logs_volume:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
@@ -91,6 +99,8 @@ services:
       - cache
       - broker
     restart: unless-stopped
+    networks:
+      - dream-log-net
 
   # 6. 前端/反向代理 (Nginx)
   # -------------------------------------
@@ -101,20 +111,25 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      # Nginx 配置文件依然从本地挂载，方便修改
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # 静态文件和媒体文件卷挂载保持不变
       - static_volume:/app/staticfiles_collected:ro
       - media_volume:/app/media:ro
-      # SSL 证书挂载保持不变
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /var/www/certbot:/var/www/certbot:ro
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - dream-log-net
 
-# 数据卷定义 (移除 vite-cache，因为它只在构建时需要)
+# 数据卷定义
 volumes:
   mysql_data:
   static_volume:
-  media_volume: 
+  media_volume:
+  logs_volume: {}
+
+# 网络定义
+networks:
+  dream-log-net:
+    driver: bridge
