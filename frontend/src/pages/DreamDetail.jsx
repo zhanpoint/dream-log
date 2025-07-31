@@ -24,6 +24,14 @@ const CATEGORY_CONFIG = {
     healing: { label: '治愈梦', color: '#06b6d4' },
     spiritual: { label: '灵性梦境', color: '#ec4899' },
     creative: { label: '创意梦境', color: '#f97316' },
+    hypnagogic: { label: '入睡幻觉', color: '#d946ef' },
+    hypnopompic: { label: '醒前幻觉', color: '#84cc16' },
+    sleep_paralysis: { label: '睡眠瘫痪', color: '#78716c' },
+    false_awakening: { label: '假醒', color: '#fbbf24' },
+    anxiety: { label: '焦虑梦', color: '#f87171' },
+    joyful: { label: '快乐梦境', color: '#facc15' },
+    melancholic: { label: '忧郁梦境', color: '#60a5fa' },
+    adventure: { label: '冒险梦境', color: '#fb923c' },
 };
 
 // 情绪配置

@@ -1,0 +1,1030 @@
+/* ===== Tiptap编辑器基础样式 ===== */
+.tiptap-editor-wrapper {
+    @apply relative border border-purple-300/30 rounded-lg;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    /* 移除overflow-hidden，允许滚动条显示 */
+}
+
+.tiptap-editor-wrapper:focus-within {
+    @apply border-purple-400/50;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+}
+
+/* ===== 真正的全屏模式样式（Portal渲染到body） ===== */
+.tiptap-fullscreen-overlay {
+    @apply fixed inset-0 z-[99999];
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fullscreenFadeIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    /* 在这里添加外边距 */
+}
+
+.tiptap-fullscreen-container {
+    @apply w-full h-full flex flex-col rounded-lg;
+    background: linear-gradient(135deg, #1e1b3e 0%, #2d1b69 50%, #1e1b3e 100%);
+    box-shadow: 0 0 40px rgba(147, 51, 234, 0.4);
+    border: 1px solid rgba(147, 51, 234, 0.2);
+    max-width: 1600px;
+    /* 限制最大宽度，避免超宽屏显示不佳 */
+    overflow: hidden;
+    /* 容器级别隐藏溢出，但内部内容区域可以滚动 */
+}
+
+.tiptap-fullscreen-menubar {
+    @apply relative border-b border-purple-300/30 flex-shrink-0;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.tiptap-fullscreen-toolbar {
+    @apply flex items-center justify-between gap-2 p-4;
+    min-height: 64px;
+}
+
+.tiptap-fullscreen-right {
+    @apply flex items-center gap-4;
+}
+
+.tiptap-fullscreen-content {
+    @apply flex-1 overflow-y-auto p-6;
+    /* 设为滚动容器，并添加内边距 */
+    min-height: 0;
+    /* 确保flex项可以正确收缩 */
+    box-sizing: border-box;
+    padding-bottom: 4rem;
+    /* 增加底部padding，确保内容不被遮挡 */
+    scroll-padding-bottom: 2rem;
+    /* 添加滚动时的底部缓冲区 */
+}
+
+.tiptap-fullscreen-content .tiptap-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    min-height: 100%;
+    /* 覆盖基础样式的min-height，并撑满父容器 */
+    max-height: none;
+    /* 覆盖基础样式中的max-height限制，这是问题的关键 */
+    overflow: unset;
+    /* 覆盖基础样式中的overflow，避免嵌套滚动条 */
+    padding: 0;
+    /* 覆盖基础样式中的padding，由父容器统一管理 */
+    outline: none;
+    /* 移除默认的焦点轮廓 */
+}
+
+/* 覆盖基础样式中在焦点状态下添加的背景色，确保全屏模式背景统一 */
+.tiptap-fullscreen-content .tiptap-content:focus-within {
+    background: transparent;
+}
+
+@keyframes fullscreenFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+}
+
+/* ===== 工具栏样式 ===== */
+.tiptap-menubar {
+    @apply flex items-center justify-between gap-2 p-3 border-b border-purple-300/20;
+    background: rgba(255, 255, 255, 0.02);
+    flex-wrap: wrap;
+    min-height: 60px;
+    position: relative;
+}
+
+.tiptap-button-group {
+    @apply flex items-center gap-1;
+}
+
+.tiptap-separator {
+    @apply w-px h-6 bg-purple-300/30 mx-1;
+}
+
+.tiptap-menu-button {
+    @apply h-8 w-8 p-0 text-purple-200 hover:text-white hover:bg-purple-600/20;
+    transition: all 0.2s ease;
+}
+
+.tiptap-menu-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+.tiptap-active {
+    @apply bg-purple-600/30 text-purple-300 border-purple-400/50;
+}
+
+.tiptap-close-button {
+    @apply ml-2 border border-purple-400/30 hover:border-purple-400/60;
+}
+
+/* ===== 标题按钮样式 ===== */
+.tiptap-heading-button {
+    @apply px-2 w-auto text-xs font-medium;
+    min-width: 60px;
+}
+
+/* ===== 统计信息样式 ===== */
+.tiptap-stats {
+    @apply flex items-center gap-3 text-xs text-purple-300 ml-auto;
+}
+
+.tiptap-stat-item {
+    @apply flex items-center gap-1;
+}
+
+/* ===== 修复的工具提示样式（Portal渲染） ===== */
+.simple-tooltip-portal {
+    @apply px-2 py-1 text-xs text-purple-200 whitespace-nowrap rounded;
+    background: rgba(30, 27, 62, 0.95);
+    border: 1px solid rgba(147, 51, 234, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: tooltipFadeIn 0.2s ease-out;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    /* 水平居中并向上移动整个工具提示的高度 */
+    margin-bottom: 8px;
+    /* 增加与按钮的间距 */
+}
+
+.simple-tooltip-portal::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(30, 27, 62, 0.95);
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, calc(-100% + 5px));
+        /* 调整初始位置以匹配新的transform */
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%);
+    }
+}
+
+/* ===== 通知系统样式 ===== */
+.tiptap-notification {
+    @apply absolute top-0 left-0 right-0 z-50;
+    @apply flex items-center gap-2 px-4 py-2 text-sm;
+    @apply bg-red-600 text-white border-b border-red-500;
+    animation: notificationSlideDown 0.3s ease-out;
+}
+
+.tiptap-notification.success {
+    @apply bg-green-600 border-green-500;
+}
+
+.tiptap-notification button {
+    @apply ml-auto p-1 hover:bg-white/20 rounded;
+}
+
+@keyframes notificationSlideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===== 编辑器内容样式 ===== */
+.tiptap-content {
+    @apply p-4 focus:outline-none min-h-[300px] max-h-[400px];
+    color: #e5e7eb;
+    line-height: 1.7;
+    overflow-y: auto;
+    /* 确保滚动条显示 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(147, 51, 234, 0.5) rgba(31, 41, 55, 0.5);
+}
+
+.tiptap-content p {
+    @apply mb-3;
+}
+
+.tiptap-content p:last-child {
+    @apply mb-0;
+}
+
+.tiptap-content h1,
+.tiptap-content h2,
+.tiptap-content h3,
+.tiptap-content h4,
+.tiptap-content h5,
+.tiptap-content h6 {
+    @apply font-bold mb-4 mt-6;
+    color: #c084fc;
+}
+
+.tiptap-content h1 {
+    @apply text-2xl;
+}
+
+.tiptap-content h2 {
+    @apply text-xl;
+}
+
+.tiptap-content h3 {
+    @apply text-lg;
+}
+
+.tiptap-content h4 {
+    @apply text-base;
+    font-weight: 600;
+}
+
+.tiptap-content h5 {
+    @apply text-sm;
+    font-weight: 600;
+}
+
+.tiptap-content h6 {
+    @apply text-sm;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.tiptap-content ul,
+.tiptap-content ol {
+    @apply ml-6 mb-3;
+}
+
+.tiptap-content li {
+    @apply mb-1;
+}
+
+.tiptap-content strong {
+    @apply font-bold text-purple-200;
+}
+
+.tiptap-content em {
+    @apply italic text-purple-300;
+}
+
+/* ===== 图片样式 & 尺寸调整功能样式 ===== */
+.tiptap-image-resizable {
+    max-width: 100%;
+    /* 确保图片不会超出编辑器宽度 */
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid rgba(147, 51, 234, 0.2);
+    transition: all 0.2s ease-in-out;
+    display: block;
+    /* 确保 max-width 生效 */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 编辑器中未调整大小的图片的默认样式 */
+.tiptap-content img:not([style*="width"]) {
+    max-width: 600px;
+}
+
+.tiptap-image-resizable:hover {
+    border-color: rgba(147, 51, 234, 0.5);
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+}
+
+/* 调整大小的包裹层 */
+.image-resize-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    /* 移除图片下方的额外空间 */
+}
+
+/* 拖拽手柄的样式 */
+.image-resizer {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #8b5cf6;
+    /* 紫色 */
+    border: 1px solid #fff;
+    border-radius: 50%;
+    bottom: 5px;
+    right: 5px;
+    cursor: nwse-resize;
+    transform: translate(50%, 50%);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.image-resize-wrapper:hover .image-resizer {
+    opacity: 1;
+}
+
+/* ===== 增强的梦境分隔符样式 ===== */
+.dream-separator-node {
+    @apply my-8 select-none;
+    position: relative;
+    padding: 1rem 0;
+}
+
+.dream-separator-content {
+    @apply flex items-center justify-center gap-4;
+    position: relative;
+}
+
+.dream-separator-line {
+    @apply flex-1 h-1;
+    background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.9), rgba(255, 255, 255, 0.3), rgba(147, 51, 234, 0.9), transparent);
+    box-shadow: 0 0 8px rgba(147, 51, 234, 0.6), 0 0 16px rgba(147, 51, 234, 0.3);
+    border-radius: 2px;
+    position: relative;
+}
+
+.dream-separator-line::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    transform: translateY(-50%);
+}
+
+.dream-separator-icon {
+    @apply text-4xl text-purple-300;
+    filter: drop-shadow(0 0 16px rgba(147, 51, 234, 0.8));
+    animation: dream-twinkle 4s ease-in-out infinite;
+    text-shadow: 0 0 12px rgba(147, 51, 234, 0.7), 0 0 24px rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(45deg, #c084fc, #a855f7, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dream-separator-icon::before {
+    content: '✧';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    -webkit-text-fill-color: rgba(147, 51, 234, 0.3);
+    animation: dream-pulse 2s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes dream-twinkle {
+
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 16px rgba(147, 51, 234, 0.8));
+    }
+
+    25% {
+        opacity: 1;
+        transform: scale(1.1) rotate(90deg);
+        filter: drop-shadow(0 0 24px rgba(147, 51, 234, 1));
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05) rotate(180deg);
+        filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.9));
+    }
+
+    75% {
+        opacity: 1;
+        transform: scale(1.15) rotate(270deg);
+        filter: drop-shadow(0 0 28px rgba(147, 51, 234, 1));
+    }
+}
+
+@keyframes dream-pulse {
+    0% {
+        transform: scale(1.2);
+        opacity: 0.2;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0.05;
+    }
+}
+
+/* ===== 增强的水平线样式 ===== */
+.dream-horizontal-rule {
+    @apply my-6 border-0 h-1;
+    background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.6), rgba(255, 255, 255, 0.4), rgba(147, 51, 234, 0.6), transparent);
+    box-shadow: 0 0 12px rgba(147, 51, 234, 0.7);
+    border-radius: 2px;
+    position: relative;
+}
+
+.dream-horizontal-rule::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    transform: translateY(-50%);
+}
+
+/* ===== 超级优化的可调整大小编辑器样式 ===== */
+.resizable-editor-container {
+    @apply relative;
+    contain: layout style;
+}
+
+.resizable-editor-content {
+    @apply overflow-hidden relative;
+    resize: none;
+    will-change: height;
+    transform: translateZ(0);
+    contain: strict;
+}
+
+.resizable-editor-handle {
+    @apply relative w-full h-4 cursor-ns-resize flex items-center justify-center;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(147, 51, 234, 0.05));
+    border-top: 1px solid rgba(147, 51, 234, 0.2);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+}
+
+.resizable-editor-handle:hover,
+.resizable-editor-handle-hover {
+    background: linear-gradient(180deg, rgba(147, 51, 234, 0.1), rgba(147, 51, 234, 0.15));
+    border-top-color: rgba(147, 51, 234, 0.3);
+}
+
+.resizable-editor-handle-active {
+    background: linear-gradient(180deg, rgba(147, 51, 234, 0.25), rgba(147, 51, 234, 0.3)) !important;
+    border-top-color: rgba(147, 51, 234, 0.5) !important;
+    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+}
+
+.resizable-editor-handle-line {
+    @apply flex items-center justify-center w-12 h-full;
+    position: relative;
+}
+
+.resizable-editor-handle-icon {
+    @apply w-4 h-4 text-purple-400/60;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.resizable-editor-handle:hover .resizable-editor-handle-icon,
+.resizable-editor-handle-hover .resizable-editor-handle-icon {
+    @apply text-purple-400;
+    transform: scale(1.1);
+}
+
+.resizable-editor-handle-active .resizable-editor-handle-icon {
+    @apply text-purple-300;
+    transform: scale(1.25);
+}
+
+.resizable-editor-handle-tooltip {
+    @apply absolute top-full left-1/2 transform -translate-x-1/2 mt-1;
+    @apply bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap;
+    @apply opacity-0 pointer-events-none;
+    transition: opacity 0.2s ease;
+    z-index: 30;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+.resizable-editor-handle:hover .resizable-editor-handle-tooltip {
+    @apply opacity-100;
+}
+
+/* ===== 高度指示器样式 ===== */
+.resizable-editor-height-indicator {
+    @apply absolute top-full right-2 mt-1;
+    @apply bg-purple-600 text-white text-xs px-2 py-1 rounded;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(147, 51, 234, 0.5);
+    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+    z-index: 40;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== 全局调整样式 ===== */
+body.resizing-editor {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    pointer-events: none !important;
+}
+
+body.resizing-editor * {
+    cursor: ns-resize !important;
+}
+
+body.resizing-editor .resizable-editor-handle {
+    pointer-events: auto !important;
+}
+
+/* ===== 可调整大小文本框样式 ===== */
+.resizable-textarea-wrapper {
+    @apply relative;
+    contain: layout style;
+}
+
+.resizable-textarea {
+    @apply w-full rounded-md border border-purple-300/30 bg-transparent px-3 py-2;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    color: #e5e7eb;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    outline: none;
+    overflow-y: auto;
+    field-sizing: content;
+    font-family: inherit;
+    padding-bottom: 2rem;
+    /* 为拖拽句柄留出空间 */
+}
+
+.resizable-textarea:focus {
+    @apply border-purple-400/50;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.resizable-textarea::placeholder {
+    color: #a78bfa;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.resizable-textarea:hover {
+    border-color: rgba(147, 51, 234, 0.5);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* 自定义滚动条样式 */
+.resizable-textarea::-webkit-scrollbar {
+    @apply w-2;
+}
+
+.resizable-textarea::-webkit-scrollbar-track {
+    @apply bg-gray-800/50 rounded;
+}
+
+.resizable-textarea::-webkit-scrollbar-thumb {
+    @apply bg-purple-600/50 rounded;
+}
+
+.resizable-textarea::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-600/70;
+}
+
+/* 拖拽句柄样式 */
+.resizable-textarea-handle {
+    @apply absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize flex items-center justify-center;
+    background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.1));
+    border-top: 1px solid rgba(147, 51, 234, 0.2);
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+}
+
+.resizable-textarea-handle:hover {
+    background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.15));
+    border-top-color: rgba(147, 51, 234, 0.3);
+}
+
+.resizable-textarea-handle-line {
+    @apply flex items-center justify-center w-12 h-full;
+    position: relative;
+}
+
+.resizable-textarea-handle-icon {
+    @apply w-4 h-4 text-purple-400/60;
+    transition: all 0.2s ease;
+}
+
+.resizable-textarea-handle:hover .resizable-textarea-handle-icon {
+    @apply text-purple-400;
+    transform: scale(1.1);
+}
+
+/* ===== 优化的迷你画板样式 ===== */
+.mini-canvas-overlay {
+    @apply fixed inset-0 z-[100000] flex items-center justify-center;
+    background: rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.mini-canvas-modal {
+    @apply bg-gray-900 rounded-lg shadow-2xl w-full mx-4;
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    max-width: min(95vw, 1200px);
+    max-height: min(95vh, 800px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.mini-canvas-header {
+    @apply flex items-center justify-between p-4 border-b border-purple-300/20;
+    flex-shrink: 0;
+}
+
+.mini-canvas-header h3 {
+    @apply text-lg font-semibold text-purple-200;
+}
+
+.mini-canvas-close {
+    @apply text-gray-400 hover:text-white;
+}
+
+.mini-canvas-toolbar {
+    @apply flex items-center gap-4 p-4 border-b border-purple-300/20 flex-wrap;
+    background: rgba(255, 255, 255, 0.02);
+    flex-shrink: 0;
+}
+
+.mini-canvas-tool-group {
+    @apply flex items-center gap-2;
+}
+
+.mini-canvas-tool {
+    @apply h-8 w-8 p-0;
+}
+
+.mini-canvas-label {
+    @apply text-sm text-purple-300 whitespace-nowrap;
+}
+
+.mini-canvas-slider {
+    @apply w-20 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer;
+}
+
+.mini-canvas-slider::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 bg-purple-500 rounded-full cursor-pointer;
+}
+
+.mini-canvas-size-display {
+    @apply text-sm text-purple-300 min-w-[2rem] text-center;
+}
+
+.mini-canvas-color-palette {
+    @apply flex gap-1 flex-wrap;
+}
+
+.mini-canvas-color-swatch {
+    @apply w-6 h-6 rounded border-2 border-transparent cursor-pointer;
+    transition: all 0.2s ease;
+}
+
+.mini-canvas-color-swatch:hover {
+    @apply scale-110;
+}
+
+.mini-canvas-color-active {
+    @apply border-purple-400 ring-2 ring-purple-400/50;
+}
+
+/* 背景颜色选择器样式 */
+.mini-canvas-background-palette {
+    @apply flex gap-1 flex-wrap;
+}
+
+.mini-canvas-background-swatch {
+    @apply w-5 h-5 rounded border cursor-pointer;
+    border-color: rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.mini-canvas-background-swatch:hover {
+    @apply scale-110;
+    border-color: rgba(147, 51, 234, 0.6);
+}
+
+.mini-canvas-background-active {
+    border-color: rgba(147, 51, 234, 0.8) !important;
+    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3);
+}
+
+.mini-canvas-container {
+    @apply p-4 bg-gray-800 flex-1 overflow-auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+}
+
+.mini-canvas {
+    @apply border border-gray-600 rounded cursor-crosshair;
+    background: white;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mini-canvas-footer {
+    @apply p-4 border-t border-purple-300/20 flex items-center justify-between;
+    flex-shrink: 0;
+}
+
+.mini-canvas-hints {
+    @apply text-xs text-gray-400;
+}
+
+.mini-canvas-actions {
+    @apply flex gap-2;
+}
+
+.mini-canvas-complete {
+    @apply bg-purple-600 hover:bg-purple-700 text-white;
+}
+
+/* ===== Placeholder样式 ===== */
+.tiptap-content .is-editor-empty:first-child::before {
+    @apply text-gray-500 float-left h-0 pointer-events-none;
+    content: attr(data-placeholder);
+}
+
+/* ===== 加载状态样式 ===== */
+.tiptap-loading {
+    @apply flex items-center justify-center p-8 text-purple-300;
+}
+
+/* ===== 上传进度样式 ===== */
+.upload-progress-container {
+    @apply fixed top-4 right-4 z-50;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.upload-progress-content {
+    @apply relative bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/30 p-4 shadow-xl;
+    background: linear-gradient(135deg, rgba(30, 27, 62, 0.95) 0%, rgba(45, 27, 105, 0.95) 100%);
+}
+
+.upload-progress-text {
+    @apply flex items-center gap-2 mb-3 text-sm text-purple-100;
+}
+
+.upload-step-indicator {
+    @apply text-base;
+}
+
+.upload-step-indicator.error {
+    @apply text-red-400;
+}
+
+.upload-message {
+    @apply flex-1 font-medium;
+}
+
+.upload-progress-bar {
+    @apply w-full h-2 bg-gray-700 rounded-full overflow-hidden;
+}
+
+.upload-progress-fill {
+    @apply h-full transition-all duration-300 ease-out;
+    background: linear-gradient(90deg, currentColor 0%, rgba(255, 255, 255, 0.8) 50%, currentColor 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+.upload-cancel-btn {
+    @apply absolute top-2 right-2 p-1 text-gray-400 hover:text-white transition-colors duration-200 rounded;
+}
+
+.upload-cancel-btn:hover {
+    @apply bg-gray-700/50;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* ===== 响应式设计 ===== */
+@media (max-width: 768px) {
+    .tiptap-menubar {
+        @apply gap-1 p-2;
+    }
+
+    .tiptap-button-group {
+        @apply gap-0.5;
+    }
+
+    .mini-canvas-modal {
+        @apply mx-2;
+        max-width: calc(100vw - 16px);
+        max-height: calc(100vh - 16px);
+    }
+
+    .mini-canvas-toolbar {
+        @apply gap-2 p-2;
+    }
+
+    .resizable-editor-handle-tooltip,
+    .resizable-editor-height-indicator {
+        @apply hidden;
+    }
+
+    .tiptap-stats {
+        @apply text-xs;
+    }
+
+    .tiptap-heading-button {
+        @apply text-xs px-1;
+        min-width: 50px;
+    }
+
+    /* 全屏模式移动端优化 */
+    .tiptap-fullscreen-overlay {
+        padding: 0;
+        /* 移动端全屏，移除外边距 */
+    }
+
+    .tiptap-fullscreen-container {
+        border-radius: 0;
+        /* 移动端全屏，移除圆角 */
+    }
+
+    .tiptap-fullscreen-content {
+        @apply p-4;
+        /* 在移动端使用较小的内边距 */
+        padding-bottom: 6rem;
+        /* 移动端需要更多底部空间 */
+        scroll-padding-bottom: 3rem;
+        /* 移动端滚动缓冲区 */
+    }
+
+    .tiptap-fullscreen-content .tiptap-content {
+        /* 继承桌面端的核心修复，只调整字体大小 */
+        font-size: 1rem;
+    }
+
+    .tiptap-fullscreen-toolbar {
+        @apply gap-1 p-2;
+        flex-wrap: wrap;
+    }
+
+    .tiptap-fullscreen-right {
+        @apply gap-2;
+    }
+}
+
+/* ===== 滚动条样式 ===== */
+.tiptap-content::-webkit-scrollbar {
+    @apply w-2;
+}
+
+.tiptap-content::-webkit-scrollbar-track {
+    @apply bg-gray-800/50 rounded;
+}
+
+.tiptap-content::-webkit-scrollbar-thumb {
+    @apply bg-purple-600/50 rounded;
+}
+
+.tiptap-content::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-600/70;
+}
+
+/* 确保Tiptap编辑器的滚动条在非全屏模式下正常显示 */
+.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar {
+    @apply w-2;
+    display: block;
+}
+
+.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-track {
+    @apply bg-gray-800/50 rounded;
+    background: rgba(31, 41, 55, 0.5);
+}
+
+.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-thumb {
+    @apply bg-purple-600/50 rounded;
+    background: rgba(147, 51, 234, 0.5);
+}
+
+.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-thumb:hover {
+    @apply bg-purple-600/70;
+    background: rgba(147, 51, 234, 0.7);
+}
+
+.mini-canvas-container::-webkit-scrollbar {
+    @apply w-2 h-2;
+}
+
+.mini-canvas-container::-webkit-scrollbar-track {
+    @apply bg-gray-700/50 rounded;
+}
+
+.mini-canvas-container::-webkit-scrollbar-thumb {
+    @apply bg-purple-600/50 rounded;
+}
+
+/* ===== 动画增强 ===== */
+.tiptap-editor-wrapper {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== 焦点状态增强 ===== */
+.tiptap-content:focus {
+    @apply outline-none;
+}
+
+.tiptap-content:focus-within {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ===== 选中状态样式 ===== */
+.tiptap-content ::selection {
+    background: rgba(147, 51, 234, 0.3);
+}
+
+/* ===== 链接样式 ===== */
+.tiptap-link {
+    @apply text-purple-400 underline hover:text-purple-300;
+    transition: color 0.2s ease;
+}
+
+/* ===== 错误状态样式 ===== */
+.tiptap-editor-wrapper.error {
+    @apply border-red-400/50;
+}
+
+.tiptap-editor-wrapper.error:focus-within {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+/* ===== 禁用状态样式 ===== */
+.tiptap-editor-wrapper.disabled {
+    @apply opacity-60 pointer-events-none;
+}

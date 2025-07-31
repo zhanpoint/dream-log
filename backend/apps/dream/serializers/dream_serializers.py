@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from apps.dream.models import (
     Dream, DreamCategory, Tag,
-    DreamJournal, SleepPattern
+    DreamJournal, SleepPattern, UploadedImage
 )
 from datetime import timedelta
 
@@ -328,3 +328,15 @@ class SleepPatternSerializer(serializers.ModelSerializer):
         if value > timezone.now().date():
             raise serializers.ValidationError("日期不能是未来日期")
         return value
+
+
+class UploadedImageSerializer(serializers.ModelSerializer):
+    """上传图片序列化器"""
+    
+    class Meta:
+        model = UploadedImage
+        fields = [
+            'id', 'url', 'file_key', 'user', 'dream', 
+            'status', 'upload_time', 'updated_at'
+        ]
+        read_only_fields = ['id', 'upload_time', 'updated_at']

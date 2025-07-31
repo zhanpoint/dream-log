@@ -77,18 +77,10 @@
         },
         {
             "name": "Frontend: Vite",
-            "type": "node",
+            "type": "node-terminal",
             "request": "launch",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run",
-                "dev"
-            ],
+            "command": "npm run dev",
             "cwd": "${workspaceFolder}/frontend",
-            "console": "integratedTerminal",
-            "windows": {
-                "runtimeExecutable": "npm.cmd"
-            },
             "serverReadyAction": {
                 "pattern": "Local:.*(https?://localhost:[0-9]+)",
                 "uriFormat": "%s",

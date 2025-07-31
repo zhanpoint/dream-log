@@ -1,33 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Hash, Lock, Sparkles, Moon, Sun, Cloud, Clock, Bed, Star, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Wand2 } from 'lucide-react';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-// 确保Quill全局可用
-import Quill from 'quill';
+import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Wand2 } from 'lucide-react';
+import TiptapEditor from '@/components/ui/tiptap-editor';
+import '@/components/ui/css/tiptap-editor.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { EnhancedResizableTextarea } from '@/components/ui/enhanced-resizable-textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import notification from '@/utils/notification';
 import api from '@/services/api';
-import { uploadImage } from '@/services/oss';
+import { uploadImage, markImagesForDeletion } from '@/services/oss';
+import { useImageUndoRedo } from '@/hooks/useUndoRedo';
 import { cn } from '@/lib/utils';
 import './css/CreateDream.css';
 
 // Enhanced Input with Traditional Label
-const EnhancedInput = React.forwardRef(({ id, label, icon: Icon, className, required, ...props }, ref) => {
+const EnhancedInput = React.forwardRef(({ id, label, icon: Icon, className, required, optional, ...props }, ref) => {
     return (
         <div className="enhanced-input-wrapper">
             <Label htmlFor={id} className="enhanced-label">
                 {Icon && <Icon className="w-4 h-4" />}
                 {label}
-                {required && <span className="required-badge">必填</span>}
+                {required && <span className="required-star">*</span>}
+                {optional && <span className="optional-text">(可选)</span>}
             </Label>
             <Input
                 ref={ref}
@@ -40,13 +41,14 @@ const EnhancedInput = React.forwardRef(({ id, label, icon: Icon, className, requ
 });
 
 // Enhanced Textarea with Traditional Label
-const EnhancedTextarea = React.forwardRef(({ id, label, icon: Icon, className, required, ...props }, ref) => {
+const EnhancedTextarea = React.forwardRef(({ id, label, icon: Icon, className, required, optional, ...props }, ref) => {
     return (
         <div className="enhanced-input-wrapper">
             <Label htmlFor={id} className="enhanced-label">
                 {Icon && <Icon className="w-4 h-4" />}
                 {label}
-                {required && <span className="required-badge">必填</span>}
+                {required && <span className="required-star">*</span>}
+                {optional && <span className="optional-text">(可选)</span>}
             </Label>
             <Textarea
                 ref={ref}
@@ -125,7 +127,9 @@ const EditDream = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const quillRef = useRef(null);
+
+    // 图片删除撤销重做管理
+    const imageUndoRedo = useImageUndoRedo();
 
     // 表单数据
     const [formData, setFormData] = useState({
@@ -249,134 +253,30 @@ const EditDream = () => {
     };
 
     // 自定义图片上传处理器
-    const imageHandler = async () => {
-        const input = document.createElement('input');
-        input.setAttribute('type', 'file');
-        input.setAttribute('accept', 'image/*');
-        input.click();
-
-        input.onchange = async () => {
-            const file = input.files[0];
-            if (!file) return;
-
-            try {
-                const result = await uploadImage(file);
-
-                if (result && result.url) {
-                    const quill = quillRef.current.getEditor();
-                    const range = quill.getSelection();
-                    quill.insertEmbed(range.index, 'image', result.url);
-                    quill.setSelection(range.index + 1);
-                }
-            } catch (error) {
-                notification.error('图片上传失败');
+    const handleImageUpload = async (file, onProgress = null) => {
+        try {
+            // uploadImage 现在支持进度回调
+            const result = await uploadImage(file, onProgress);
+            if (result && result.url) {
+                // 确保返回的是可公开访问的URL
+                return result.url;
             }
-        };
-    };
-
-    // 撤销重做处理器
-    const undoHandler = () => {
-        if (quillRef.current) {
-            const quill = quillRef.current.getEditor();
-            quill.history.undo();
+            notification.error('图片上传成功，但无法获取URL');
+            return null; // 返回null表示失败
+        } catch (error) {
+            notification.error('图片上传失败');
+            console.error("Upload failed:", error);
+            return null;
         }
     };
 
-    const redoHandler = () => {
-        if (quillRef.current) {
-            const quill = quillRef.current.getEditor();
-            quill.history.redo();
-        }
+    // 新增: 处理图片删除
+    const handleImageDeleted = (imageUrl) => {
+        console.log('EditDream: 处理图片删除:', imageUrl);
+        imageUndoRedo.addImageToDeleteList(imageUrl);
     };
 
-    // 工具栏中文配置
-    const toolbarOptions = [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'header': 1 }, { 'header': 2 }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        [{ 'indent': '-1' }, { 'indent': '+1' }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'font': [] }],
-        [{ 'align': [] }],
-        ['clean'],
-        ['link', 'image'],
-        // 添加撤销和重做按钮到工具栏
-        ['undo', 'redo']
-    ];
 
-    // Quill模块配置
-    const modules = {
-        toolbar: {
-            container: toolbarOptions,
-            handlers: {
-                image: imageHandler,
-                undo: undoHandler,
-                redo: redoHandler,
-            },
-        },
-        // 配置历史记录模块
-        history: {
-            delay: 2000,        // 操作后延迟2秒计入历史记录
-            maxStack: 500,      // 最大可撤销步数
-            userOnly: true      // 仅捕获用户产生的更改
-        }
-    };
-
-    // 添加中文工具栏提示
-    useEffect(() => {
-        // 注册自定义按钮和添加中文提示
-        const initializeQuillExtensions = () => {
-            // 注册自定义按钮图标
-            const icons = Quill.import('ui/icons');
-            icons['undo'] = '↶';
-            icons['redo'] = '↷';
-
-            // 添加中文工具栏提示
-            const tooltips = {
-                '.ql-bold': '粗体',
-                '.ql-italic': '斜体',
-                '.ql-underline': '下划线',
-                '.ql-strike': '删除线',
-                '.ql-blockquote': '引用',
-                '.ql-code-block': '代码块',
-                '.ql-header[value="1"]': '标题1',
-                '.ql-header[value="2"]': '标题2',
-                '.ql-list[value="ordered"]': '有序列表',
-                '.ql-list[value="bullet"]': '无序列表',
-                '.ql-script[value="sub"]': '下标',
-                '.ql-script[value="super"]': '上标',
-                '.ql-indent[value="-1"]': '减少缩进',
-                '.ql-indent[value="+1"]': '增加缩进',
-                '.ql-size[value="small"]': '小号字体',
-                '.ql-size[value="large"]': '大号字体',
-                '.ql-size[value="huge"]': '超大字体',
-                '.ql-color': '字体颜色',
-                '.ql-background': '背景颜色',
-                '.ql-font': '字体',
-                '.ql-align': '对齐方式',
-                '.ql-clean': '清除格式',
-                '.ql-link': '插入链接',
-                '.ql-image': '插入图片',
-                // 添加撤销和重做的中文提示
-                '.ql-undo': '撤销 (Ctrl+Z)',
-                '.ql-redo': '重做 (Ctrl+Y)'
-            };
-
-            Object.entries(tooltips).forEach(([selector, tooltip]) => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(element => {
-                    element.setAttribute('title', tooltip);
-                });
-            });
-        };
-
-        const timer = setTimeout(initializeQuillExtensions, 100);
-        return () => clearTimeout(timer);
-    }, []);
 
     const handleSubmit = async () => {
         if (!formData.title.trim()) {
@@ -401,8 +301,19 @@ const EditDream = () => {
             const response = await api.put(`/dreams/${id}/`, submitData);
 
             if (response.data) {
+                // 处理待删除的图片
+                if (imageUndoRedo.pendingDeletes.length > 0) {
+                    try {
+                        await markImagesForDeletion(imageUndoRedo.pendingDeletes);
+                        console.log(`已标记 ${imageUndoRedo.pendingDeletes.length} 张图片待删除`);
+                    } catch (error) {
+                        console.warn('标记待删除图片时出错:', error);
+                        // 不阻止梦境更新成功的流程
+                    }
+                }
+
                 notification.success('梦境更新成功！');
-                navigate('/my-dreams');
+                navigate(`/dreams/${id}`);
             }
         } catch (error) {
             notification.error('更新梦境失败: ' + (error.response?.data?.message || error.message));
@@ -444,7 +355,49 @@ const EditDream = () => {
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="create-dream-title">
-                    <Sparkles className="h-6 w-6" />
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="dreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#ec4899">
+                                    <animate attributeName="stop-color"
+                                        values="#ec4899;#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                                <stop offset="20%" stopColor="#f472b6">
+                                    <animate attributeName="stop-color"
+                                        values="#f472b6;#fbbf24;#34d399;#60a5fa;#a855f7;#f472b6"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                                <stop offset="40%" stopColor="#a855f7">
+                                    <animate attributeName="stop-color"
+                                        values="#a855f7;#ec4899;#f59e0b;#10b981;#3b82f6;#a855f7"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                                <stop offset="60%" stopColor="#3b82f6">
+                                    <animate attributeName="stop-color"
+                                        values="#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981;#3b82f6"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                                <stop offset="80%" stopColor="#10b981">
+                                    <animate attributeName="stop-color"
+                                        values="#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                                <stop offset="100%" stopColor="#f59e0b">
+                                    <animate attributeName="stop-color"
+                                        values="#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b"
+                                        dur="3s"
+                                        repeatCount="indefinite" />
+                                </stop>
+                            </linearGradient>
+                        </defs>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                    </svg>
                     编辑梦境
                 </h1>
             </div>
@@ -480,7 +433,7 @@ const EditDream = () => {
                                 <Label htmlFor="dream_date" className="enhanced-label">
                                     <Calendar className="w-4 h-4" />
                                     梦境日期
-                                    <span className="required-badge">必填</span>
+                                    <span className="required-star">*</span>
                                 </Label>
                                 <Input
                                     id="dream_date"
@@ -499,19 +452,16 @@ const EditDream = () => {
                                 <Label className="enhanced-label">
                                     <BookOpen className="w-4 h-4" />
                                     梦境内容
-                                    <span className="required-badge">必填</span>
+                                    <span className="required-star">*</span>
                                 </Label>
 
-                                <div className="rich-text-editor-wrapper">
-                                    <ReactQuill
-                                        ref={quillRef}
-                                        value={formData.content}
-                                        onChange={(value) => handleFieldChange('content', value || '')}
-                                        modules={modules}
-                                        placeholder="开始记录你的梦境..."
-                                        className="quill-editor"
-                                    />
-                                </div>
+                                <TiptapEditor
+                                    content={formData.content}
+                                    onChange={(value) => handleFieldChange('content', value || '')}
+                                    placeholder="开始记录你的梦境..."
+                                    onImageUpload={handleImageUpload}
+                                    onImageDeleted={handleImageDeleted}
+                                />
                             </div>
                         </div>
 
@@ -561,7 +511,7 @@ const EditDream = () => {
                                 </Label>
                                 <div className="tags-input-wrapper">
                                     <Select value={newTagType} onValueChange={setNewTagType}>
-                                        <SelectTrigger className="tag-type-select">
+                                        <SelectTrigger className="tag-type-select enhanced-input">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -577,9 +527,9 @@ const EditDream = () => {
                                         value={newTag}
                                         onChange={(e) => setNewTag(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                                        className="tag-input"
+                                        className="tag-input enhanced-input"
                                     />
-                                    <Button onClick={addTag} size="sm" variant="secondary">
+                                    <Button onClick={addTag} size="sm" className="tag-add-button">
                                         添加
                                     </Button>
                                 </div>
@@ -618,7 +568,7 @@ const EditDream = () => {
                                 <div className="enhanced-input-wrapper">
                                     <Label className="enhanced-label">
                                         <Moon className="w-4 h-4" />
-                                        清醒度等级: {formData.lucidity_level}
+                                        清醒度等级 <span className="optional-text">(可选)</span>: {formData.lucidity_level}
                                     </Label>
                                     <input
                                         type="range"
@@ -661,12 +611,14 @@ const EditDream = () => {
                         <div className="form-group">
                             <div className="enhanced-input-wrapper">
                                 <div className="checkbox-wrapper">
-                                    <Checkbox
+                                    <input
+                                        type="checkbox"
                                         id="is_recurring"
                                         checked={formData.is_recurring}
-                                        onCheckedChange={(checked) => handleFieldChange('is_recurring', checked)}
+                                        onChange={(e) => handleFieldChange('is_recurring', e.target.checked)}
+                                        className="recurring-checkbox"
                                     />
-                                    <Label htmlFor="is_recurring">这是一个重复梦境</Label>
+                                    <Label htmlFor="is_recurring" className="recurring-label">这是一个重复梦境</Label>
                                 </div>
                                 {formData.is_recurring && (
                                     <Textarea
@@ -696,7 +648,7 @@ const EditDream = () => {
                                         睡前情绪 <span className="optional-text">(可选)</span>
                                     </Label>
                                     <Select value={formData.mood_before_sleep} onValueChange={(value) => handleFieldChange('mood_before_sleep', value)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="enhanced-input">
                                             <SelectValue placeholder="选择情绪" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -720,7 +672,7 @@ const EditDream = () => {
                                         梦中情绪 <span className="optional-text">(可选)</span>
                                     </Label>
                                     <Select value={formData.mood_in_dream} onValueChange={(value) => handleFieldChange('mood_in_dream', value)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="enhanced-input">
                                             <SelectValue placeholder="选择情绪" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -744,7 +696,7 @@ const EditDream = () => {
                                         醒后情绪 <span className="optional-text">(可选)</span>
                                     </Label>
                                     <Select value={formData.mood_after_waking} onValueChange={(value) => handleFieldChange('mood_after_waking', value)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="enhanced-input">
                                             <SelectValue placeholder="选择情绪" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -778,7 +730,7 @@ const EditDream = () => {
                                         睡眠质量 <span className="optional-text">(可选)</span>
                                     </Label>
                                     <Select value={formData.sleep_quality} onValueChange={(value) => handleFieldChange('sleep_quality', value)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="enhanced-input">
                                             <SelectValue placeholder="选择睡眠质量" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -855,27 +807,33 @@ const EditDream = () => {
 
                         {/* 梦境解析 */}
                         <div className="form-group">
-                            <EnhancedTextarea
+                            <EnhancedResizableTextarea
                                 id="interpretation"
                                 label="梦境解析"
                                 icon={Brain}
+                                optional
                                 placeholder="记录你对这个梦境的理解和解析..."
                                 value={formData.interpretation}
                                 onChange={(e) => handleFieldChange('interpretation', e.target.value)}
-                                rows={4}
+                                minHeight={120}
+                                maxHeight={400}
+                                defaultHeight={120}
                             />
                         </div>
 
                         {/* 个人笔记 */}
                         <div className="form-group">
-                            <EnhancedTextarea
+                            <EnhancedResizableTextarea
                                 id="personal_notes"
                                 label="个人笔记"
                                 icon={NotebookPen}
+                                optional
                                 placeholder="记录你的个人想法、感受或其他备注..."
                                 value={formData.personal_notes}
                                 onChange={(e) => handleFieldChange('personal_notes', e.target.value)}
-                                rows={3}
+                                minHeight={100}
+                                maxHeight={350}
+                                defaultHeight={100}
                             />
                         </div>
                     </div>

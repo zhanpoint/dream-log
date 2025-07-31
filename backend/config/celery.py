@@ -22,11 +22,20 @@ app.autodiscover_tasks()
 
 # Celery Beat 任务调度器
 app.conf.beat_schedule = {
-    # 每日凌晨2点清理过期图片
+    # 每日凌晨2点清理待删除图片
     'daily-image-cleanup': {
-        'task': 'apps.dream.tasks.image_cleanup_tasks.cleanup_expired_images',
-        'schedule': crontab(hour=2, minute=0),  # 每天凌晨2点执行
-        'args': (24,), # 清理24小时前标记的图片
+        'task': 'apps.dream.tasks.image_cleanup_tasks.cleanup_pending_delete_images',
+        'schedule': crontab(hour=23, minute=0),  # 每天凌晨2点执行
+        'options': {
+            'expires': 3600,  # 任务1小时后过期
+        }
+    },
+    
+    # 每日凌晨3点清理僵尸图片
+    'cleanup-orphan-images': {
+        'task': 'apps.dream.tasks.image_cleanup_tasks.cleanup_orphan_images',
+        'schedule': crontab(hour=23, minute=0),  # 每天凌晨3点执行
+        'args': (30,),  # 清理30天前上传但未关联梦境的图片
         'options': {
             'expires': 3600,  # 任务1小时后过期
         }

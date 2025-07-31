@@ -41,11 +41,10 @@ api_urlpatterns = [
     path('verifications/sms/', VerificationCodeAPIView.as_view(), name='sms-verification'),
     path('verifications/email/', EmailVerificationCodeAPIView.as_view(), name='email-verification'),
 
-    # OSS文件存储API - RESTful规范，支持图片软删除
+    # OSS文件存储API - RESTful规范
     path('files/upload-signature/', oss.upload_signature, name='file-upload-signature'),
-    path('files/', oss.list_files, name='file-list'),
-    path('files/delete/', oss.delete_file, name='file-delete'),
-    path('files/restore/', oss.restore_file, name='file-restore'),  # 新增：恢复文件
+    path('files/complete-upload/', oss.complete_upload, name='file-complete-upload'),
+    path('files/mark-for-deletion/', oss.mark_images_for_deletion, name='file-mark-for-deletion'),
     path('files/sts-token/', oss.get_sts_token, name='file-sts-token'),
     
     # 包含ViewSet路由

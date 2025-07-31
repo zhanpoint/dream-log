@@ -2,259 +2,96 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+import logging
+import uuid
 import time
-
 from ..utils.oss import OSS
 from ..models import UploadedImage
+from ..serializers.dream_serializers import UploadedImageSerializer
+from ..tasks.image_cleanup_tasks import schedule_image_deletion
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_signature(request):
-    """获取上传签名 - 支持图片生命周期管理"""
+    """为客户端生成OSS上传签名，不创建数据库记录。"""
+    file_name = request.data.get('file_name')
+    content_type = request.data.get('content_type', 'application/octet-stream')
+
+    if not file_name:
+        return Response({'detail': '缺少文件名'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        user = request.user
-        filename = request.data.get('filename', '')
-        content_type = request.data.get('content_type', 'image/jpeg')
-        file_size = request.data.get('file_size')  # 新增：文件大小
+        oss_client = OSS(user_id=request.user.id)
+        unique_id = str(uuid.uuid4())
+        unique_filename = f"{unique_id}_{file_name}"
         
-        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-        if content_type not in allowed_types:
-            return Response(
-                {'error': '不支持的文件类型'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        presigned_data = oss_client.generate_presigned_url(unique_filename, content_type)
         
-        # 检查文件大小限制
-        max_size = 10 * 1024 * 1024  # 10MB
-        if file_size and int(file_size) > max_size:
-            return Response(
-                {'error': f'文件大小不能超过{max_size // (1024*1024)}MB'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        oss_client = OSS(user_id=user.id)
-        oss_client.ensure_bucket_exists()
-        
-        result = oss_client.generate_presigned_url(
-            filename=filename,
-            content_type=content_type,
-            expires=3600
-        )
-        
-        # 预注册图片到数据库（状态为active，但可能还未实际上传）
-        try:
-            # 检查是否已经存在同样的URL
-            existing_image = UploadedImage.objects.filter(
-                url=result['access_url'],
-                user=user
-            ).first()
-            
-            if not existing_image:
-                UploadedImage.objects.create(
-                    url=result['access_url'],
-                    file_key=result['file_key'],
-                    user=user,
-                    status='active',
-                    file_size=int(file_size) if file_size else None,
-                    file_name=filename,
-                    content_type=content_type
-                )
-        except Exception as e:
-            # 预注册失败不影响上传流程
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"预注册图片失败: {e}")
-        
-        return Response(result, status=status.HTTP_200_OK)
-        
+        return Response(presigned_data, status=status.HTTP_200_OK)
+    
     except Exception as e:
-        return Response(
-            {'error': '获取上传签名失败', 'detail': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def delete_file(request):
-    """删除文件 - 支持软删除"""
-    try:
-        user = request.user
-        file_key = request.data.get('file_key')
-        url = request.data.get('url')  # 新增：支持通过URL删除
-        force_delete = request.data.get('force_delete', False)  # 新增：是否强制物理删除
-        
-        if not file_key and not url:
-            return Response(
-                {'error': '缺少file_key或url参数'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # 查找图片记录
-        try:
-            if url:
-                image = UploadedImage.objects.get(url=url, user=user)
-            else:
-                image = UploadedImage.objects.get(file_key=file_key, user=user)
-        except UploadedImage.DoesNotExist:
-            # 如果数据库中没有记录，但有file_key，尝试直接从OSS删除
-            if file_key and force_delete:
-                oss_client = OSS(user_id=user.id)
-                success = oss_client.delete_file(file_key)
-                if success:
-                    return Response(
-                        {'message': '文件删除成功（仅OSS）'}, 
-                        status=status.HTTP_200_OK
-                    )
-                
-                return Response(
-                    {'error': '文件不存在或无权限'}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            return Response(
-                {'error': '文件不存在或无权限'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        if force_delete:
-            # 强制物理删除
-            oss_client = OSS(user_id=user.id)
-            oss_success = True
-            
-            if image.file_key:
-                oss_success = oss_client.delete_file(image.file_key)
-            
-            # 删除数据库记录
-            image.delete()
-            
-            return Response(
-                {
-                    'message': '文件强制删除成功',
-                    'oss_deleted': oss_success,
-                    'db_deleted': True
-                }, 
-                status=status.HTTP_200_OK
-            )
-        else:
-            # 软删除（标记为待删除）
-            image.mark_for_deletion()
-            
-            return Response(
-                {
-                    'message': '文件已标记为待删除',
-                    'image_id': str(image.id),
-                    'marked_time': image.marked_for_delete_time,
-                    'will_be_deleted_after': '24小时后自动清理'
-                }, 
-                status=status.HTTP_200_OK
-            )
-        
-    except Exception as e:
-        return Response(
-            {'error': '删除文件失败', 'detail': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_files(request):
-    """列出用户文件 - 从数据库获取"""
-    try:
-        user = request.user
-        status_filter = request.GET.get('status', 'active')  # active, pending_delete, all
-        max_keys = int(request.GET.get('max_keys', 100))
-        
-        max_keys = min(max_keys, 1000)
-        
-        # 从数据库查询而不是OSS
-        queryset = UploadedImage.objects.filter(user=user)
-        
-        if status_filter != 'all':
-            queryset = queryset.filter(status=status_filter)
-        
-        queryset = queryset.order_by('-upload_time')[:max_keys]
-        
-        files = []
-        for image in queryset:
-            files.append({
-                'id': str(image.id),
-                'url': image.url,
-                'file_key': image.file_key,
-
-                'status': image.status,
-                'upload_time': image.upload_time,
-                'last_referenced_time': image.last_referenced_time,
-                'marked_for_delete_time': image.marked_for_delete_time,
-                'dream_title': image.dream.title if image.dream else None
-            })
-        
-        return Response({
-            'files': files,
-            'count': len(files),
-            'status_filter': status_filter
-        }, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        return Response(
-            {'error': '列出文件失败', 'detail': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        logger.error(f"生成上传签名失败: {e}", exc_info=True)
+        return Response({'detail': f'服务器内部错误: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def restore_file(request):
-    """恢复被标记为删除的文件"""
+def complete_upload(request):
+    """客户端完成上传后，创建图片数据库记录。"""
+    file_key = request.data.get('file_key')
+    access_url = request.data.get('access_url')
+
+    if not file_key or not access_url:
+        return Response({'detail': '缺少 file_key 或 access_url'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        user = request.user
-        image_id = request.data.get('image_id')
-        url = request.data.get('url')
-        
-        if not image_id and not url:
-            return Response(
-                {'error': '缺少image_id或url参数'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # 查找图片记录
-        try:
-            if image_id:
-                image = UploadedImage.objects.get(id=image_id, user=user)
-            else:
-                image = UploadedImage.objects.get(url=url, user=user)
-        except UploadedImage.DoesNotExist:
-            return Response(
-                {'error': '文件不存在或无权限'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        if image.status != 'pending_delete':
-            return Response(
-                {'error': '文件未处于待删除状态'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # 恢复文件
-        image.restore_active()
-        
-        return Response(
-            {
-                'message': '文件已恢复',
-                'image_id': str(image.id),
-                'url': image.url,
-                'restored_time': image.last_referenced_time
-            }, 
-            status=status.HTTP_200_OK
+        image, created = UploadedImage.objects.get_or_create(
+            user=request.user,
+            file_key=file_key,
+            defaults={'url': access_url, 'status': 'active'}
         )
         
+        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        serializer = UploadedImageSerializer(image)
+        return Response(serializer.data, status=status_code)
+
     except Exception as e:
-        return Response(
-            {'error': '恢复文件失败', 'detail': str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        logger.error(f"完成图片上传失败: {e}", exc_info=True)
+        return Response({'detail': '服务器内部错误'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_images_for_deletion(request):
+    """接收前端待删除图片列表，标记图片为待删除状态，并启动定时删除任务。"""
+    image_urls = request.data.get('image_urls', [])
+
+    if not isinstance(image_urls, list):
+        return Response({'error': 'image_urls 必须是一个列表'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        updated_images = UploadedImage.objects.filter(
+            url__in=image_urls, 
+            user=request.user,
+            status='active'
+        ).update(status='pending_delete')
+        
+        logger.info(f"标记 {updated_images} 张图片为待删除状态。")
+
+        # 启动后台任务，在10分钟后执行物理删除
+        if updated_images > 0:
+            schedule_image_deletion.apply_async(args=[image_urls], countdown=600)
+
+        return Response({
+            'message': f'成功标记 {updated_images} 张图片待删除，删除任务已启动。'
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.error(f"标记图片待删除失败: {e}", exc_info=True)
+        return Response({'detail': '服务器内部错误'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])

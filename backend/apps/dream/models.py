@@ -8,6 +8,20 @@ from django.utils import timezone
 import uuid
 
 
+class SoftDeleteManager(models.Manager):
+    """软删除管理器 - 只返回活跃状态的记录"""
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(status='active')
+
+
+class AllObjectsManager(models.Manager):
+    """全对象管理器 - 返回所有记录包括软删除的"""
+    
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 # 用户的注册方式
 class RegistrationMethod(models.TextChoices):
     EMAIL = 'email', _('邮箱')
@@ -373,7 +387,7 @@ class SleepPattern(models.Model):
 
 
 class UploadedImage(models.Model):
-    """图片软删除管理模型"""
+    """图片管理模型 - 简化版"""
     
     STATUS_CHOICES = [
         ('active', '活跃'),
@@ -382,7 +396,7 @@ class UploadedImage(models.Model):
     
     # 基础信息
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.URLField(max_length=500, unique=True, verbose_name="图片URL")
+    url = models.URLField(max_length=500, unique=True, null=True, blank=True, default=None, verbose_name="图片URL")
     file_key = models.CharField(max_length=500, verbose_name="OSS文件Key")
     
     # 关联信息
@@ -402,15 +416,10 @@ class UploadedImage(models.Model):
         default='active',
         verbose_name="状态"
     )
-    marked_for_delete_time = models.DateTimeField(
-        null=True, 
-        blank=True,
-        verbose_name="标记删除时间"
-    )
     
     # 元数据
     upload_time = models.DateTimeField(auto_now_add=True, verbose_name="上传时间")
-    last_referenced_time = models.DateTimeField(auto_now=True, verbose_name="最后引用时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新时间")
     
     class Meta:
         verbose_name = "上传图片"
@@ -418,49 +427,19 @@ class UploadedImage(models.Model):
         ordering = ['-upload_time']
         indexes = [
             models.Index(fields=['user', 'status']),
-            models.Index(fields=['status', 'marked_for_delete_time']),
+            models.Index(fields=['status', 'updated_at']),
             models.Index(fields=['dream', 'status']),
             models.Index(fields=['url']),
         ]
     
     def __str__(self):
         return f"{self.user.username} - {self.url} ({self.status})"
-    
-    def mark_for_deletion(self):
-        """标记图片为待删除状态"""
-        if self.status == 'active':
-            self.status = 'pending_delete'
-            self.marked_for_delete_time = timezone.now()
-            self.save(update_fields=['status', 'marked_for_delete_time'])
-    
-    def restore_active(self):
-        """恢复图片为活跃状态"""
-        if self.status == 'pending_delete':
-            self.status = 'active'
-            self.marked_for_delete_time = None
-            self.last_referenced_time = timezone.now()
-            self.save(update_fields=['status', 'marked_for_delete_time', 'last_referenced_time'])
-    
-    @property
-    def is_pending_delete(self):
-        """检查是否处于待删除状态"""
-        return self.status == 'pending_delete'
-    
-    def is_ready_for_deletion(self, hours_threshold=24):
-        """检查是否可以被物理删除（默认24小时后）"""
-        if not self.is_pending_delete or not self.marked_for_delete_time:
-            return False
         
-        threshold_time = timezone.now() - timezone.timedelta(hours=hours_threshold)
-        return self.marked_for_delete_time <= threshold_time
-    
     def get_file_key_from_url(self):
         """从URL中提取文件key"""
         if not self.url:
             return None
         
-        # 假设URL格式: https://domain.com/bucket/users/123/dreams/2024/01/01/filename.jpg
-        # 提取: users/123/dreams/2024/01/01/filename.jpg
         if '/users/' in self.url:
-            return self.url.split('/users/', 1)[1]
+            return 'users/' + self.url.split('/users/', 1)[1]
         return None

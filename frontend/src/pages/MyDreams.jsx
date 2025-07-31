@@ -22,6 +22,14 @@ const CATEGORY_CONFIG = {
     healing: { label: '治愈梦', color: '#06b6d4' },
     spiritual: { label: '灵性梦境', color: '#ec4899' },
     creative: { label: '创意梦境', color: '#f97316' },
+    hypnagogic: { label: '入睡幻觉', color: '#d946ef' },
+    hypnopompic: { label: '醒前幻觉', color: '#84cc16' },
+    sleep_paralysis: { label: '睡眠瘫痪', color: '#78716c' },
+    false_awakening: { label: '假醒', color: '#fbbf24' },
+    anxiety: { label: '焦虑梦', color: '#f87171' },
+    joyful: { label: '快乐梦境', color: '#facc15' },
+    melancholic: { label: '忧郁梦境', color: '#60a5fa' },
+    adventure: { label: '冒险梦境', color: '#fb923c' },
 };
 
 // 情绪配置
@@ -81,9 +89,19 @@ const MyDreams = () => {
         });
     };
 
-    const truncateContent = (content, maxLength = 150) => {
-        if (content.length <= maxLength) return content;
-        return content.substring(0, maxLength) + '...';
+    const truncateContent = (htmlContent, maxLength = 150) => {
+        // 创建一个临时div来解析HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+
+        // 获取纯文本内容
+        const textContent = tempDiv.textContent || tempDiv.innerText || "";
+
+        // 截断文本
+        if (textContent.length <= maxLength) {
+            return textContent;
+        }
+        return textContent.substring(0, maxLength) + '...';
     };
 
     // 过滤和排序梦境
@@ -235,19 +253,16 @@ const MyDreams = () => {
             ) : (
                 <div className="dreams-grid">
                     {filteredAndSortedDreams.map(dream => (
-                        <Card key={dream.id} className="dream-card">
+                        <Card
+                            key={dream.id}
+                            className="dream-card"
+                            onClick={() => navigate(`/dreams/${dream.id}`)}
+                        >
                             <CardHeader className="dream-card-header">
                                 <div className="dream-card-title-row">
                                     <h3 className="dream-card-title">{dream.title}</h3>
-                                    <div className="dream-card-actions">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => navigate(`/dreams/${dream.id}`)}
-                                            className="action-icon"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                        </Button>
+                                    <div className="dream-card-actions" onClick={(e) => e.stopPropagation()}>
+
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -322,7 +337,7 @@ const MyDreams = () => {
 
                                 {/* 梦境内容预览 */}
                                 <p className="dream-preview">
-                                    {truncateContent(dream.content.replace(/[#*`]/g, ''))}
+                                    {truncateContent(dream.content)}
                                 </p>
 
                                 {/* 标签和情绪 */}
