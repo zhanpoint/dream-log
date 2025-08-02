@@ -107,6 +107,7 @@ jobs:
           context: backend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${{ steps.short-sha.outputs.sha }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.force_rebuild_all == 'true' || github.event.inputs.force_rebuild_backend == 'true') }}
           cache-from: type=gha,scope=backend
           cache-to: type=gha,scope=backend,mode=max
           platforms: linux/amd64
@@ -152,6 +153,7 @@ jobs:
           context: frontend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.force_rebuild_all == 'true' || github.event.inputs.force_rebuild_frontend == 'true') }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,scope=frontend,mode=max
           platforms: linux/amd64

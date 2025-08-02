@@ -49,12 +49,7 @@ services:
   backend:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_backend_daphne
-    command: >
-      sh -c "
-        chown -R appuser:appuser /app/logs /app/media &&
-        echo 'Permissions adjusted for logs and media.' &&
-        /app/scripts/start.sh
-      "
+    command: /app/scripts/start.sh
     volumes:
       - static_volume:/app/staticfiles_collected
       - media_volume:/app/media
@@ -66,7 +61,7 @@ services:
       - db
       - cache
       - broker
-    restart: always
+    restart: on-failure
     healthcheck:
       test: ["CMD", "python", "manage.py", "check", "--deploy"]
       interval: 30s
@@ -82,12 +77,7 @@ services:
   worker_default:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_worker_default
-    command: >
-      sh -c "
-        chown -R appuser:appuser /app/logs &&
-        echo 'Permissions adjusted for logs.' &&
-        celery -A config worker -l info -Q default -n default_worker@%h
-      "
+    command: celery -A config worker -l info -Q default -n default_worker@%h
     volumes:
       - logs_volume:/app/logs
     env_file: ./.env
@@ -97,7 +87,7 @@ services:
       - backend
       - cache
       - broker
-    restart: always
+    restart: on-failure
     networks:
       - dream-log-net
 
@@ -106,27 +96,20 @@ services:
   beat:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_beat
-    command: >
-      sh -c "
-        # 等待后端服务就绪，确保数据库迁移完成
-        while ! nc -z backend 8000; do
-          echo 'Waiting for backend service to be ready...';
-          sleep 2;
-        done;
-        chown -R appuser:appuser /app/logs &&
-        echo 'Permissions adjusted for logs.' &&
-        celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-      "
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
       - APP_ENV=prod
     depends_on:
-      - db
-      - cache
-      - broker
-    restart: always
+      backend:
+        condition: service_healthy
+      cache:
+        condition: service_started
+      broker:
+        condition: service_started
+    restart: on-failure
     networks:
       - dream-log-net
 

@@ -57,7 +57,7 @@ WORKDIR /app
 COPY --from=builder /install /install
 
 # 创建必要的目录
-RUN mkdir -p /app/scripts /app/logs && \
+RUN mkdir -p /app/scripts /app/logs /app/media /app/staticfiles_collected && \
     chown -R appuser:appuser /app
 
 # 拷贝启动脚本并设置权限
