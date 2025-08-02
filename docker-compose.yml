@@ -133,7 +133,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    restart: always
+    restart: on-failure
     networks:
       - dream-log-net
 

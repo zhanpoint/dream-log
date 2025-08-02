@@ -6,12 +6,19 @@ FROM node:18-alpine AS build
 # 设置工作目录
 WORKDIR /app
 
-# 拷贝包管理文件，优先利用 Docker 层缓存
+# 定义构建参数，用于控制是否强制重新安装依赖
+ARG FORCE_REINSTALL_DEPS=false
+
+# 拷贝包管理文件
 COPY package*.json ./
 
 # 安装依赖，使用缓存挂载加速构建
-# 在构建阶段需要安装开发依赖（如 vite），因此移除 --only=production 标志
+# 在需要强制重新安装时，先清除缓存
 RUN --mount=type=cache,target=/root/.npm \
+    if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
+        echo "FORCE_REINSTALL_DEPS is true, clearing npm cache..."; \
+        rm -rf /root/.npm/*; \
+    fi && \
     npm ci --legacy-peer-deps
 
 # 拷贝源代码
@@ -23,7 +30,9 @@ RUN npm run build
 # --- 第二阶段：生产环境 ---
 FROM nginx:1.25-alpine AS production
 
-# 官方 nginx 镜像已预设 'nginx' 用户和组，我们直接使用以遵循最佳实践，无需手动创建，避免冲突
+# 为 Nginx 创建并授权必要的缓存和临时目录
+RUN mkdir -p /var/cache/nginx/client_temp /var/run/nginx && \
+    chown -R nginx:nginx /var/cache/nginx/client_temp /var/run/nginx
 
 # 从构建阶段拷贝静态文件
 COPY --from=build /app/dist /usr/share/nginx/html
