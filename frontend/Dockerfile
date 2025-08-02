@@ -30,9 +30,11 @@ RUN npm run build
 # --- 第二阶段：生产环境 ---
 FROM nginx:1.25-alpine AS production
 
-# 为 Nginx 创建并授权必要的缓存和临时目录
-RUN mkdir -p /var/cache/nginx/client_temp /var/run/nginx && \
-    chown -R nginx:nginx /var/cache/nginx/client_temp /var/run/nginx
+# 为 Nginx 创建并授权所有必要的缓存和临时目录，从根源上解决权限问题
+RUN mkdir -p /var/cache/nginx && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    mkdir -p /var/run/nginx && \
+    chown -R nginx:nginx /var/run/nginx
 
 # 从构建阶段拷贝静态文件
 COPY --from=build /app/dist /usr/share/nginx/html
