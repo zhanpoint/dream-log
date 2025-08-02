@@ -43,9 +43,6 @@ COPY --from=build /app/dist /usr/share/nginx/html
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# 切换到镜像预设的非 root 用户运行，增强安全性
-USER nginx
-
 # 暴露端口
 EXPOSE 80
 
