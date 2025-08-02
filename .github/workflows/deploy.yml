@@ -54,9 +54,7 @@ jobs:
         uses: dorny/paths-filter@v3
         id: changes
         with:
-          # 显式指定比较基准为 push 事件前一个 commit
-          # 这是修复变更检测不准确问题的核心
-          base: ${{ github.event.before }}
+          base: ${{ github.event_name == 'push' && github.event.before }}
           filters: |
             backend:
               - 'backend/**'
