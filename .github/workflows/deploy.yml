@@ -20,13 +20,18 @@ on:
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
+      force_rebuild_all:
+        description: '强制重新构建所有镜像 (后端和前端)'
+        required: false
+        default: false
+        type: boolean
       force_rebuild_backend:
-        description: '强制重新构建后端镜像'
+        description: '强制重新构建后端镜像 (如果 all 未勾选)'
         required: false
         default: false
         type: boolean
       force_rebuild_frontend:
-        description: '强制重新构建前端镜像'
+        description: '强制重新构建前端镜像 (如果 all 未勾选)'
         required: false
         default: false
         type: boolean
@@ -54,7 +59,9 @@ jobs:
         uses: dorny/paths-filter@v3
         id: changes
         with:
-          base: ${{ github.event_name == 'push' && github.event.before }}
+          # 显式指定比较基准为 push 事件前一个 commit
+          # 这是修复变更检测不准确问题的核心
+          base: ${{ github.event.before }}
           filters: |
             backend:
               - 'backend/**'
@@ -67,7 +74,12 @@ jobs:
   # 后端构建作业
   build-backend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_backend == 'true'
+    if: |
+      needs.detect-changes.outputs.backend == 'true' ||
+      (github.event_name == 'workflow_dispatch' && (
+        github.event.inputs.force_rebuild_all == 'true' ||
+        github.event.inputs.force_rebuild_backend == 'true'
+      ))
     runs-on: ubuntu-22.04
     outputs:
       image-tag: ${{ steps.short-sha.outputs.sha }}
@@ -102,7 +114,12 @@ jobs:
   # 前端构建作业
   build-frontend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.force_rebuild_frontend == 'true'
+    if: |
+      needs.detect-changes.outputs.frontend == 'true' ||
+      (github.event_name == 'workflow_dispatch' && (
+        github.event.inputs.force_rebuild_all == 'true' ||
+        github.event.inputs.force_rebuild_frontend == 'true'
+      ))
     runs-on: ubuntu-22.04
     outputs:
       image-tag: ${{ steps.short-sha.outputs.sha }}
