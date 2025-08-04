@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 import logging
-from apps.dream.serializers.user_serializers import VerificationCodeRequestSerializer
-from apps.dream.utils.email import EmailService
-from apps.dream.models import User
+from apps.user.serializers.user_serializers import VerificationCodeRequestSerializer
+from apps.user.utils.email import EmailService
+from apps.user.models import User
 
 # 获取日志记录器
 logger = logging.getLogger(__name__)

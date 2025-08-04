@@ -110,22 +110,22 @@ class EmailService:
         """
         内部方法：渲染并发送邮件
         """
-        # 1. 场景与模板映射
+        # 1. 场景与模板映射 - 使用带应用命名空间的模板路径
         template_map = {
             'register': {
                 'subject': '欢迎注册DreamLog - 您的验证码',
-                'html': 'email/user_register.html',
-                'text': 'email/user_register.txt',
+                'html': 'user/email/user_register.html',
+                'text': 'user/email/user_register.txt',
             },
             'login': {
                 'subject': 'DreamLog 登录验证',
-                'html': 'email/user_login.html',
-                'text': 'email/user_login.txt',
+                'html': 'user/email/user_login.html',
+                'text': 'user/email/user_login.txt',
             },
             'reset_password': {
                 'subject': 'DreamLog 密码重置',
-                'html': 'email/user_reset_password.html',
-                'text': 'email/user_reset_password.txt',
+                'html': 'user/email/user_reset_password.html',
+                'text': 'user/email/user_reset_password.txt',
             }
         }
         
@@ -181,7 +181,7 @@ class EmailService:
                 return False
 
             # 3. 异步发送邮件 - 使用延迟导入避免循环依赖，避免模块加载时的死锁
-            from apps.dream.tasks.email_tasks import send_verification_email_task
+            from apps.user.tasks.email_tasks import send_verification_email_task
             send_verification_email_task.delay(email, code, scene)
             logger.info(f"成功提交邮箱验证码发送任务: {email}, 场景: {scene}")
 
@@ -247,4 +247,4 @@ class EmailService:
 
         except Exception as e:
             logger.error(f"验证邮箱验证码时发生错误: {str(e)}")
-            return False 
+            return False

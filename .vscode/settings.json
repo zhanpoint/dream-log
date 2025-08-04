@@ -1,3 +1,5 @@
 {
-    "editor.fontSize": 13
+    "terminal.integrated.cwd": "${workspaceFolder}/backend",
+    "python.terminal.activateEnvironment": true,
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe"
 }

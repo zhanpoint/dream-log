@@ -1,5 +1,5 @@
 from celery import shared_task
-from apps.dream.utils.email import EmailService
+from apps.user.utils.email import EmailService
 import logging
 
 logger = logging.getLogger(__name__)

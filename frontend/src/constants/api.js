@@ -1,67 +1,62 @@
 /**
  * API 端点常量
- * 集中管理所有API路径
+ * 集中管理所有API路径, 确保与后端RESTful规范一致
  */
 
 // 基础配置
 export const API_BASE_URL = '/api';
 
-// 认证相关端点
+// 认证相关端点 (Prefix: /api/auth)
 export const AUTH_ENDPOINTS = {
-    // 登录相关
-    LOGIN: '/auth/sessions/',
-    LOGOUT: '/auth/logout/',
-    REGISTER: '/auth/register/',
-
-    // 令牌管理
-    TOKEN_REFRESH: '/auth/tokens/refresh/',
-    TOKEN_VERIFY: '/auth/tokens/verify/',
-
-    // 密码重置
-    PASSWORD_RESET: '/auth/password/reset/',
-    PASSWORD_RESET_CONFIRM: '/auth/password/reset/confirm/',
-
-    // 验证码
-    SMS_CODE: '/auth/sms/code/',
-    EMAIL_CODE: '/auth/email/code/',
-
-    // 用户信息
-    USER_PROFILE: '/auth/user/',
-    USER_UPDATE: '/auth/user/update/',
+    SESSIONS: `${API_BASE_URL}/auth/sessions/`,
+    TOKEN_OBTAIN: `${API_BASE_URL}/auth/tokens/`,
+    TOKEN_REFRESH: `${API_BASE_URL}/auth/tokens/refresh/`,
+    TOKEN_VERIFY: `${API_BASE_URL}/auth/tokens/verify/`,
+    PASSWORD_RESET: `${API_BASE_URL}/auth/password/reset/`,
 };
 
-// 系统相关端点
+// 用户管理相关端点 (Prefix: /api/users)
+export const USER_ENDPOINTS = {
+    // GET, PUT, PATCH, DELETE /api/users/{id}/
+    // POST /api/users/
+    USER_DETAIL: (userId) => `${API_BASE_URL}/users/${userId}/`,
+    USER_LIST: `${API_BASE_URL}/users/`,
+};
+
+// 验证码相关端点 (Prefix: /api/verifications)
+export const VERIFICATION_ENDPOINTS = {
+    SMS: `${API_BASE_URL}/verifications/sms/`,
+    EMAIL: `${API_BASE_URL}/verifications/email/`,
+};
+
+// 系统相关端点 (Prefix: /api/system)
 export const SYSTEM_ENDPOINTS = {
-    // 功能开关
-    FEATURES: '/system/features/',
-
-    // 健康检查
-    HEALTH: '/system/health/',
-    VERSION: '/system/version/',
+    FEATURES: `${API_BASE_URL}/system/features/`,
 };
 
-// 通知相关端点
-export const NOTIFICATION_ENDPOINTS = {
-    // 短信通知
-    SMS_SEND: '/notifications/sms/send/',
-    SMS_VERIFY: '/notifications/sms/verify/',
-
-    // 邮件通知
-    EMAIL_SEND: '/notifications/email/send/',
-    EMAIL_VERIFY: '/notifications/email/verify/',
-
-    // 系统通知
-    SYSTEM_NOTIFICATIONS: '/notifications/system/',
-    USER_NOTIFICATIONS: '/notifications/user/',
+// 梦境相关端点 (Prefix: /api/dream)
+export const DREAM_ENDPOINTS = {
+    DREAMS: `${API_BASE_URL}/dream/dreams/`,
+    DREAM_DETAIL: (dreamId) => `${API_BASE_URL}/dream/dreams/${dreamId}/`,
+    CATEGORIES: `${API_BASE_URL}/dream/dreams/categories/`,
+    TAGS: `${API_BASE_URL}/dream/dreams/tags/`,
 };
 
+// 文件上传相关端点 (Prefix: /api/dream/files)
+export const FILE_ENDPOINTS = {
+    UPLOAD_SIGNATURE: `${API_BASE_URL}/dream/files/upload-signature/`,
+    COMPLETE_UPLOAD: `${API_BASE_URL}/dream/files/complete-upload/`,
+    MARK_FOR_DELETION: `${API_BASE_URL}/dream/files/mark-for-deletion/`,
+};
 
 // 完整的API端点集合
 export const API_ENDPOINTS = {
     AUTH: AUTH_ENDPOINTS,
+    USER: USER_ENDPOINTS,
+    VERIFICATION: VERIFICATION_ENDPOINTS,
     SYSTEM: SYSTEM_ENDPOINTS,
-    NOTIFICATIONS: NOTIFICATION_ENDPOINTS,
+    DREAM: DREAM_ENDPOINTS,
+    FILE: FILE_ENDPOINTS,
 };
 
-// 默认导出
-export default API_ENDPOINTS; 
+export default API_ENDPOINTS;

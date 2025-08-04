@@ -22,19 +22,24 @@ from django.conf.urls.static import static
 
 # API文档设置
 schema_view = get_schema_view(
-    title="Dream API",
-    description="API Documentation for Dream Application",
+    title="DreamLog API",
+    description="API Documentation for DreamLog Application",
     version="1.0.0"
 )
 
 urlpatterns = [
     # django自带的admin管理后台
     path('admin/', admin.site.urls),
-    # dream应用路由
-    path('', include('apps.dream.urls')),
-    
+
+    # API主路由 - 将所有应用的API路由统一整合到 /api/ 前缀下
+    path('api/', include([
+        path('', include('apps.user.urls')),
+        path('', include('apps.dream.urls')),
+    ])),
+
     # API文档路径
     path('api/schema/', schema_view, name='api_schema'),
+
     # API认证路由
     path('api-auth/', include('rest_framework.urls')),  # DRF登录/登出视图
 ]

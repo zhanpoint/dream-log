@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import RegexValidator
 from django.contrib.auth import authenticate
-from apps.dream.models import User
+from apps.user.models import User
 import re
 
 class UserSerializer(serializers.ModelSerializer):

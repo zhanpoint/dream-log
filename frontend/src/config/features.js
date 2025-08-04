@@ -3,6 +3,7 @@
  * 采用应用启动时初始化，后续同步获取的模式
  * 初始化过程是幂等的，可防止在React.StrictMode中重复请求
  */
+import { SYSTEM_ENDPOINTS } from '../constants/api';
 
 // 默认的功能开关配置（后备配置）
 const DEFAULT_FEATURE_FLAGS = {
@@ -23,7 +24,7 @@ let initializePromise = null;
  */
 export const initializeFeatureFlags = () => {
     if (!initializePromise) {
-        initializePromise = fetch('/api/system/features/')
+        initializePromise = fetch(SYSTEM_ENDPOINTS.FEATURES)
             .then(response => {
                 if (response.ok) {
                     return response.json();

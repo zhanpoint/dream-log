@@ -49,13 +49,13 @@ app.conf.beat_schedule = {
             'expires': 3600,
         }
     },
-    
-    # 清理过期的邮箱验证码（保留原有任务）
+
+    # 每日凌晨4点清理过期的邮件验证码
     'cleanup-expired-email-codes': {
-        'task': 'apps.dream.tasks.email_tasks.cleanup_expired_email_codes',
-        'schedule': crontab(hour=1, minute=0),  # 每天凌晨1点执行
+        'task': 'apps.user.tasks.email_tasks.cleanup_expired_email_codes',
+        'schedule': crontab(hour=4, minute=0),
         'options': {
-            'expires': 1800,
+            'expires': 3600,
         }
-    },
-} 
+    }
+}

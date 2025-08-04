@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny
 from django.core.cache import cache
 import logging
 
-from apps.dream.serializers.user_serializers import VerificationCodeRequestSerializer
-from apps.dream.utils.sms import SMSService
+from apps.user.serializers.user_serializers import VerificationCodeRequestSerializer
+from apps.user.utils.sms import SMSService
 from config.env_config import FEATURE_FLAGS
 
 # 获取日志记录器

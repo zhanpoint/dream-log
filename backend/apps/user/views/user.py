@@ -5,9 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import login, logout
 from django.core.cache import cache
-from apps.dream.models import User
+from apps.user.models import User
 import logging
-from apps.dream.serializers.user_serializers import (
+from apps.user.serializers.user_serializers import (
     UserSerializer,
     UserLoginSerializer,
     UserRegistrationSerializer,
@@ -15,8 +15,8 @@ from apps.dream.serializers.user_serializers import (
     EmailLoginSerializer,
     PasswordResetSerializer,
 )
-from apps.dream.utils.sms import SMSService
-from apps.dream.utils.email import EmailService
+from apps.user.utils.sms import SMSService
+from apps.user.utils.email import EmailService
 from config.env_config import FEATURE_FLAGS
 
 # 获取日志记录器
