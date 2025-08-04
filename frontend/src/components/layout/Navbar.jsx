@@ -28,25 +28,6 @@ const Navbar = ({
     menu = [
         { title: "首页", url: "/" },
         {
-            title: "探索",
-            url: "#",
-            icon: <Compass className="size-5 shrink-0" />,
-            items: [
-                {
-                    title: "最新梦境",
-                    description: "浏览最新记录的梦境内容",
-                    icon: <Compass className="size-5 shrink-0" />,
-                    url: "/explore/latest",
-                },
-                {
-                    title: "热门梦境",
-                    description: "查看社区热门的梦境记录",
-                    icon: <Compass className="size-5 shrink-0" />,
-                    url: "/explore/trending",
-                },
-            ],
-        },
-        {
             title: "知识中心",
             url: "#",
             icon: <Book className="size-5 shrink-0" />,
@@ -68,25 +49,6 @@ const Navbar = ({
                     description: "学习记忆和控制梦境的技巧",
                     icon: <Book className="size-5 shrink-0" />,
                     url: "/knowledge/techniques",
-                },
-            ],
-        },
-        {
-            title: "社区",
-            url: "#",
-            icon: <Users className="size-5 shrink-0" />,
-            items: [
-                {
-                    title: "解梦论坛",
-                    description: "分享您的梦境，获取他人解读",
-                    icon: <Users className="size-5 shrink-0" />,
-                    url: "/community/forum",
-                },
-                {
-                    title: "梦境挑战",
-                    description: "参与社区梦境记录挑战",
-                    icon: <Users className="size-5 shrink-0" />,
-                    url: "/community/challenges",
                 },
             ],
         },

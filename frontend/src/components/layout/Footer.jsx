@@ -29,7 +29,6 @@ const Footer = () => {
                             <ul>
                                 <li><a href="/dreams/create">记录梦境</a></li>
                                 <li><a href="/my-dreams">我的梦境</a></li>
-                                <li><a href="/explore">探索社区</a></li>
                                 <li><a href="/knowledge">梦境知识</a></li>
                             </ul>
                         </div>

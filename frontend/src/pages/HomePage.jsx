@@ -19,7 +19,7 @@ const HomePage = () => {
     // 打字机文本
     const welcomeTexts = [
         "欢迎来到Dream Log",
-        "记录、分享和解析您的梦境，探索梦境的奥秘，与社区互动。"
+        "记录、分享和解析您的梦境，探索梦境的奥秘"
     ];
 
     // 页面加载完成后设置状态
@@ -62,11 +62,6 @@ const HomePage = () => {
             icon: "🤖",
             title: "AI解梦助手",
             description: "专业AI助手为您提供个性化梦境解析与建议"
-        },
-        {
-            icon: "👥",
-            title: "分享体验",
-            description: "与全球梦境爱好者交流，探讨相似体验"
         }
     ];
 
