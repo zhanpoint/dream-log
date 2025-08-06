@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     # 本地应用
     'apps.dream',
     'apps.user',
+    'apps.ai_services',
 ]
 
 MIDDLEWARE = [

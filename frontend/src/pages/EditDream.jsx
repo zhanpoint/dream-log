@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Wand2 } from 'lucide-react';
+import AiTitleGenerator from '@/components/ui/ai-title-generator';
 import TiptapEditor from '@/components/ui/tiptap-editor';
 import '@/components/ui/css/tiptap-editor.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -416,15 +417,33 @@ const EditDream = () => {
 
                         {/* 标题 */}
                         <div className="form-group">
-                            <EnhancedInput
-                                id="title"
-                                label="梦境标题"
-                                icon={Text}
-                                required
-                                placeholder="给你的梦境起个标题..."
-                                value={formData.title}
-                                onChange={(e) => handleFieldChange('title', e.target.value)}
-                            />
+                            <div className="enhanced-input-wrapper">
+                                <Label htmlFor="title" className="enhanced-label">
+                                    <Text className="w-4 h-4" />
+                                    梦境标题
+                                    <span className="required-star">*</span>
+                                </Label>
+                                <div className="relative flex items-center gap-2">
+                                    <Input
+                                        id="title"
+                                        value={formData.title}
+                                        onChange={(e) => handleFieldChange('title', e.target.value)}
+                                        className="enhanced-input transition-all duration-300 pr-32" // 增加右侧内边距，为按钮和计数器留出空间
+                                        maxLength={30} // 限制标题最多30个字符
+                                        placeholder="请输入5-30字的梦境标题..."
+                                    />
+                                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                        <span className="text-xs text-purple-400 font-medium">
+                                            {formData.title.length}/30
+                                        </span>
+                                        <AiTitleGenerator
+                                            dreamContent={formData.content}
+                                            onTitleGenerated={(title) => handleFieldChange('title', title)}
+                                            className="shrink-0"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* 梦境日期 */}

@@ -53,3 +53,4 @@ logs/
 
 # cursor规则文件
 .cursor
+.idea
