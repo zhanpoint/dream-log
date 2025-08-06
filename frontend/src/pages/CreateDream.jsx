@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, Wand2, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, Wand2, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Info } from 'lucide-react';
+import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import AiTitleGenerator from '@/components/ui/ai-title-generator';
 import TiptapEditor from '@/components/ui/tiptap-editor';
 import '@/components/ui/css/tiptap-editor.css';
@@ -21,22 +22,22 @@ import './css/CreateDream.css';
 
 // 梦境分类选项
 const DREAM_CATEGORIES = [
-  { value: 'normal', label: '普通梦境', color: '#6366f1' },
-  { value: 'lucid', label: '清醒梦', color: '#8b5cf6' },
-  { value: 'nightmare', label: '噩梦', color: '#ef4444' },
-  { value: 'recurring', label: '重复梦', color: '#f59e0b' },
-  { value: 'prophetic', label: '预知梦', color: '#10b981' },
-  { value: 'healing', label: '治愈梦', color: '#06b6d4' },
-  { value: 'spiritual', label: '灵性梦境', color: '#ec4899' },
-  { value: 'creative', label: '创意梦境', color: '#f97316' },
-  { value: 'hypnagogic', label: '入睡幻觉', color: '#84cc16' },
-  { value: 'hypnopompic', label: '醒前幻觉', color: '#22d3ee' },
-  { value: 'sleep_paralysis', label: '睡眠瘫痪', color: '#a855f7' },
-  { value: 'false_awakening', label: '假醒', color: '#fb7185' },
-  { value: 'anxiety', label: '焦虑梦', color: '#f87171' },
-  { value: 'joyful', label: '快乐梦境', color: '#34d399' },
-  { value: 'melancholic', label: '忧郁梦境', color: '#64748b' },
-  { value: 'adventure', label: '冒险梦境', color: '#fbbf24' },
+  { value: 'normal', label: '普通梦境', color: '#6366f1', description: '最常见的梦境类型，通常反映日常生活经历和潜意识活动。这类梦境内容相对平和，可能包含熟悉的人物、场景和情境，是大脑在睡眠中整理记忆和情感的正常表现。' },
+  { value: 'lucid', label: '清醒梦', color: '#8b5cf6', description: '在梦中意识到自己正在做梦的特殊状态。清醒梦者可以在一定程度上控制梦境内容，这种能力可以通过练习获得。对于创意工作者和心理治疗具有重要价值。' },
+  { value: 'nightmare', label: '噩梦', color: '#ef4444', description: '引起强烈恐惧、焦虑或不适感的梦境。通常包含威胁性情境，可能导致惊醒。频繁的噩梦可能与压力、创伤或心理健康问题相关，需要关注和适当处理。' },
+  { value: 'recurring', label: '重复梦', color: '#f59e0b', description: '内容相似或完全相同的反复出现的梦境。这类梦境往往指向未解决的心理冲突或重要的生活主题，大脑通过重复来强调需要关注的问题。' },
+  { value: 'prophetic', label: '预知梦', color: '#10b981', description: '似乎预示未来事件的梦境。虽然科学上缺乏确凿证据，但许多人报告过此类体验。可能是潜意识对现有信息的整合和推测，值得记录和观察。' },
+  { value: 'healing', label: '治愈梦', color: '#06b6d4', description: '带来心理慰藉和情感修复的梦境。这类梦境通常包含积极的象征、已故亲人的安慰或问题的解决方案，有助于心理创伤的恢复和情感的平衡。' },
+  { value: 'spiritual', label: '灵性梦境', color: '#ec4899', description: '涉及宗教、哲学或超越性体验的梦境。可能包含神圣符号、精神导师或深刻的洞察。这类梦境常被认为具有特殊意义，反映个人的精神追求和信仰体系。' },
+  { value: 'creative', label: '创意梦境', color: '#f97316', description: '产生新颖想法、艺术灵感或问题解决方案的梦境。许多科学发现和艺术作品都源于梦境启发。大脑在睡眠中的自由联想能够突破常规思维限制。' },
+  { value: 'hypnagogic', label: '入睡幻觉', color: '#84cc16', description: '在入睡过程中出现的半梦半醒状态下的感知体验。常见现象包括听到声音、看到图像或感觉身体下坠。这是意识从清醒向睡眠过渡的正常生理现象。' },
+  { value: 'hypnopompic', label: '醒前幻觉', color: '#22d3ee', description: '在觉醒过程中出现的类似梦境的感知体验。可能在完全清醒前持续几秒到几分钟。这是大脑从睡眠状态向清醒状态转换时的正常现象。' },
+  { value: 'sleep_paralysis', label: '睡眠瘫痪', color: '#a855f7', description: '意识清醒但身体无法移动的状态，通常伴随恐惧感和幻觉。这是REM睡眠期间肌肉麻痹机制的异常延续，虽然令人不安但通常无害。' },
+  { value: 'false_awakening', label: '假醒', color: '#fb7185', description: '梦中以为自己已经醒来并开始日常活动的体验。这类梦境极其逼真，可能连续发生多次。反映了大脑对日常例行公事的深度记忆和自动化处理。' },
+  { value: 'anxiety', label: '焦虑梦', color: '#f87171', description: '反映现实压力和担忧的梦境。常见主题包括考试失败、迟到、被追赶等。这类梦境是心理压力的自然表达，有助于情感的释放和处理。' },
+  { value: 'joyful', label: '快乐梦境', color: '#34d399', description: '充满积极情感和愉悦体验的梦境。可能包含成功场景、团聚时刻或美好回忆。这类梦境反映内心的希望和愿望，有助于维持心理健康和乐观态度。' },
+  { value: 'melancholic', label: '忧郁梦境', color: '#64748b', description: '带有悲伤、怀念或失落情绪的梦境。常涉及分离、失去或过往回忆。这类梦境帮助处理悲伤情感，是心理适应和情感整合的重要过程。' },
+  { value: 'adventure', label: '冒险梦境', color: '#fbbf24', description: '充满探索、挑战和新奇体验的梦境。可能包含旅行、发现或克服困难的情节。反映对新体验的渴望和对未知的好奇心，激发生活的活力和创造力。' },
 ];
 
 // 情绪选项
@@ -715,6 +716,28 @@ const CreateDream = () => {
                   <Label className="enhanced-label">
                     <Star className="w-4 h-4" />
                     梦境分类 <span className="optional-text">(可选)</span>
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-purple-400">梦境类别说明</h4>
+                            <p className="text-xs text-gray-300">选择最符合你梦境特点的类别：</p>
+                          <div className="max-h-60 overflow-y-auto pr-2">
+                            {DREAM_CATEGORIES.map(category => (
+                              <div key={category.value} className="mb-2 last:mb-0">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }}></div>
+                                  <span className="text-xs font-medium" style={{ color: category.color }}>{category.label}</span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-0.5">{category.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   </Label>
                   <div className="categories-grid">
                     {DREAM_CATEGORIES.map(category => (
@@ -807,6 +830,27 @@ const CreateDream = () => {
                     <Label className="enhanced-label">
                       <Moon className="w-4 h-4" />
                       清醒度等级 <span className="optional-text">(可选)</span>: {formData.lucidity_level}
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-purple-400">清醒度等级说明</h4>
+                             <p className="text-xs text-gray-300">
+                              清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。
+                            </p>
+                            <div className="space-y-1 text-xs">
+                              <div><span className="font-medium">0级 - 完全无意识：</span> 完全不知道自己在做梦，梦境体验如同现实</div>
+                              <div><span className="font-medium">1级 - 微弱意识：</span> 偶尔怀疑现实，但很快被梦境逻辑说服</div>
+                              <div><span className="font-medium">2级 - 模糊意识：</span> 隐约感觉不对劲，但无法确定是在做梦</div>
+                              <div><span className="font-medium">3级 - 部分清醒：</span> 意识到在做梦，但控制能力有限</div>
+                              <div><span className="font-medium">4级 - 高度清醒：</span> 完全知道在做梦，能够进行一定程度的控制</div>
+                              <div><span className="font-medium">5级 - 超清醒状态：</span> 完全清醒，能够自由控制梦境内容和情节</div>
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
                     </Label>
                     <input
                       type="range"
@@ -828,6 +872,29 @@ const CreateDream = () => {
                     <Label className="enhanced-label">
                       <Sun className="w-4 h-4" />
                       清晰度 <span className="optional-text">(可选)</span>: {formData.vividness}
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-purple-400">清晰度说明</h4>
+                             <p className="text-xs text-gray-300">
+                              清晰度是指梦境中感官体验的生动程度和细节丰富度。
+                            </p>
+                            <div className="space-y-1 text-xs">
+                              <div><span className="font-medium">1级 - 模糊：</span> 梦境朦胧不清，细节缺失，如同雾中看花</div>
+                              <div><span className="font-medium">2级 - 较模糊：</span> 能看清大致轮廓，但细节不够清晰</div>
+                              <div><span className="font-medium">3级 - 一般：</span> 梦境相对清晰，能够辨认人物和场景</div>
+                              <div><span className="font-medium">4级 - 清晰：</span> 梦境生动清晰，细节丰富，接近现实体验</div>
+                              <div><span className="font-medium">5级 - 非常清晰：</span> 梦境极其生动，所有感官都异常清晰，甚至超越现实</div>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">
+                              注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
                     </Label>
                     <input
                       type="range"
@@ -1128,4 +1195,4 @@ const CreateDream = () => {
   );
 };
 
-export default CreateDream; 
+export default CreateDream;
