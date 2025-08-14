@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import FieldDoesNotExist
 from django_celery_beat.models import PeriodicTask, CrontabSchedule, IntervalSchedule
-from config.celery import app as celery_app
+from config.celery_app import app as celery_app
 from celery.schedules import crontab, schedule as celery_schedule
 
 class Command(BaseCommand):

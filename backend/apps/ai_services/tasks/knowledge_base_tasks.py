@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from config.celery import app
+from config.celery_app import app
 from ..knowledge_base.manager import get_knowledge_base_manager
 from ..prompts.knowledge_base_search_prompts import COMMON_DREAM_SYMBOLS
 from ..knowledge_base.utils import convert_category_names_to_enums

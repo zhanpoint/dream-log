@@ -1,5 +1,5 @@
 # 确保在 Django 启动时，Celery 应用总能被导入，
-from .celery import app as celery_app
+from .celery_app import app as celery_app
 
 # 显式声明当使用 from config import * 时，要导出的内容是 celery_app
 __all__ = ('celery_app',)
