@@ -35,6 +35,8 @@ annotated-types==0.7.0
 attrs==25.3.0
 backoff==2.2.1
 cachetools==5.5.2
+# 解决celery 5.5.0 的依赖问题
+importlib-metadata==4.13.0
 click==8.1.8
 click-didyoumean==0.3.1
 click-plugins==1.1.1

@@ -3,10 +3,6 @@
 # 遇到任何错误则终止脚本
 set -e
 
-# 设置环境变量确保Python能找到所有模块
-export PYTHONPATH=/app:/install:$PYTHONPATH
-export PATH=/install/bin:$PATH
-
 # --- 最佳实践：等待数据库服务完全就绪 ---
 python -c "
 import sys

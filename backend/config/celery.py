@@ -1,5 +1,5 @@
 import os
-from celery import Celery
+from celery.app.base import Celery
 from celery.schedules import crontab
 
 # 在命令中设置环境变量（pycharm中配置的环境变量只在pycharm中生效）

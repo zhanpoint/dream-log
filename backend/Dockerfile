@@ -47,7 +47,7 @@ RUN apt-get update && \
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/install/bin:$PATH \
-    PYTHONPATH=/app:/install:/install/lib/python3.9/site-packages \
+    PYTHONPATH=/app:/install \
     DJANGO_SETTINGS_MODULE=config.settings.prod
 
 WORKDIR /app
