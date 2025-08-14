@@ -26,7 +26,6 @@ COPY requirements_deploy.txt .
 # 使用缓存挂载安装依赖
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir \
-    -i https://pypi.tuna.tsinghua.edu.cn/simple \
     --target=/install \
     -r requirements_deploy.txt
 

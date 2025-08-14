@@ -73,6 +73,12 @@ langchain==0.3.26
 langchain-openai==0.3.28
 langchain-core==0.3.68
 langchain-text-splitters==0.3.8
+langchain_community==0.3.27
+langchain-tavily==0.2.11
+langchain_google_genai==2.1.9
+chromadb==1.0.16
+langchain_chroma==0.2.5
+firecrawl-py==2.16.5
 langsmith==0.4.4
 MarkupSafe==3.0.2
 marshmallow==3.26.1
