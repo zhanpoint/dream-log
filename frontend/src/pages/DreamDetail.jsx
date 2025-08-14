@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import DreamAIAnalyzer from '@/components/ui/dream-ai-analyzer';
 import { useAuth } from '@/hooks/useAuth';
 import notification from '@/utils/notification';
 import api from '@/services/api';
@@ -190,44 +191,65 @@ const DreamDetail = () => {
                             </div>
                         </div>
 
-                        {isAuthor && (
-                            <div className="dream-actions">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => navigate(`/dreams/${id}/edit`)}
-                                    className="action-button"
-                                >
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="action-button delete-button"
-                                            disabled={isDeleting}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>确认删除</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                确定要删除这个梦境记录吗？此操作无法撤销。
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>取消</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleDelete}>
-                                                确认删除
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        )}
+                        <div className="dream-actions">
+                            {/* AI解梦快捷按钮 */}
+                            <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => {
+                                    // 滚动到分析tab并自动切换
+                                    const analysisTab = document.querySelector('[data-state="active"][value="analysis"]') ||
+                                        document.querySelector('[value="analysis"]');
+                                    if (analysisTab) {
+                                        analysisTab.click();
+                                        analysisTab.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }
+                                }}
+                                className="ai-quick-button"
+                            >
+                                <Brain className="h-4 w-4" />
+                                AI解梦
+                            </Button>
+
+                            {isAuthor && (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => navigate(`/dreams/${id}/edit`)}
+                                        className="action-button"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="action-button delete-button"
+                                                disabled={isDeleting}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>确认删除</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    确定要删除这个梦境记录吗？此操作无法撤销。
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>取消</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete}>
+                                                    确认删除
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                            )}
+                        </div>
                     </CardHeader>
 
                     <CardContent className="dream-main-content">
@@ -381,36 +403,58 @@ const DreamDetail = () => {
 
                             <TabsContent value="analysis" className="tab-content">
                                 <div className="analysis-section">
-                                    {dream.interpretation && (
-                                        <div className="interpretation-card">
-                                            <div className="card-header">
-                                                <Brain className="h-5 w-5" />
-                                                <h3>梦境解析</h3>
-                                            </div>
-                                            <div className="card-content">
-                                                {dream.interpretation}
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* AI分析组件 */}
+                                    <DreamAIAnalyzer
+                                        dream={dream}
+                                        onAnalysisComplete={(analysis) => {
+                                            // 可以在这里处理分析完成后的逻辑
+                                            console.log('Analysis completed:', analysis);
+                                        }}
+                                    />
 
-                                    {dream.personal_notes && (
-                                        <div className="notes-card">
-                                            <div className="card-header">
-                                                <BookOpen className="h-5 w-5" />
-                                                <h3>个人笔记</h3>
-                                            </div>
-                                            <div className="card-content">
-                                                {dream.personal_notes}
-                                            </div>
-                                        </div>
-                                    )}
+                                    <Separator className="my-6" />
 
-                                    {!dream.interpretation && !dream.personal_notes && (
-                                        <div className="empty-state">
-                                            <Brain className="h-12 w-12 text-muted-foreground" />
-                                            <p>暂无分析内容</p>
-                                        </div>
-                                    )}
+                                    {/* 原有的人工分析内容 */}
+                                    <div className="manual-analysis">
+                                        <h3 className="section-title">
+                                            <BookOpen className="h-5 w-5" />
+                                            人工分析与笔记
+                                        </h3>
+
+                                        {dream.interpretation && (
+                                            <div className="interpretation-card">
+                                                <div className="card-header">
+                                                    <Brain className="h-5 w-5" />
+                                                    <h4>梦境解析</h4>
+                                                </div>
+                                                <div className="card-content">
+                                                    {dream.interpretation}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {dream.personal_notes && (
+                                            <div className="notes-card">
+                                                <div className="card-header">
+                                                    <BookOpen className="h-5 w-5" />
+                                                    <h4>个人笔记</h4>
+                                                </div>
+                                                <div className="card-content">
+                                                    {dream.personal_notes}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!dream.interpretation && !dream.personal_notes && (
+                                            <div className="empty-state">
+                                                <BookOpen className="h-8 w-8 text-muted-foreground" />
+                                                <p>暂无人工分析内容</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    你可以编辑梦境来添加个人解析和笔记
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </TabsContent>
 

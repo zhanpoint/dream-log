@@ -35,7 +35,7 @@ urlpatterns = [
     path('api/', include([
         path('', include('apps.user.urls')),
         path('', include('apps.dream.urls')),
-        path('', include('apps.ai_services.urls')),
+        path('ai/', include('apps.ai_services.urls')),  # AI服务使用 /ai/ 前缀
     ])),
 
     # API文档路径

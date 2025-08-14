@@ -27,7 +27,7 @@ django_asgi_app = get_asgi_application()
 django.setup()
 
 # 导入WebSocket路由
-from apps.dream.websocket.routing import websocket_urlpatterns  # 更新为新的导入路径
+from apps.ai_services.websocket.routing.urls import websocket_urlpatterns
 
 
 application = ProtocolTypeRouter({  # - 根据不同的协议类型（HTTP/WebSocket）路由到不同的处理器

@@ -615,4 +615,102 @@
     .detail-group {
         padding: 1rem;
     }
+
+    .ai-quick-button {
+        order: -1;
+        /* AI按钮在移动端优先显示 */
+    }
+
+    .analysis-section {
+        gap: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+}
+
+/* AI解梦按钮样式 */
+.ai-quick-button {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.ai-quick-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    background: linear-gradient(135deg, #5855eb, #7c3aed);
+}
+
+/* 分析区域样式 */
+.analysis-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.manual-analysis {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 1rem;
+}
+
+.interpretation-card,
+.notes-card {
+    padding: 1.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--card));
+}
+
+.interpretation-card .card-header,
+.notes-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.interpretation-card .card-header h4,
+.notes-card .card-header h4 {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+.interpretation-card .card-content,
+.notes-card .card-content {
+    color: hsl(var(--muted-foreground));
+    line-height: 1.6;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    gap: 1rem;
+    border: 2px dashed hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--muted) / 0.1);
+}
+
+.empty-state p {
+    color: hsl(var(--muted-foreground));
+    margin: 0;
 }

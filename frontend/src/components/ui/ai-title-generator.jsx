@@ -32,7 +32,7 @@ const AiTitleGenerator = ({
         setIsGenerating(true);
 
         try {
-            const response = await api.post('/generate-title/', {
+            const response = await api.post('/ai/generate-title/', {
                 dream_content: dreamContent.trim()
             });
 

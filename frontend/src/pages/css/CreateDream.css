@@ -187,10 +187,25 @@
     align-items: center;
     font-size: 1rem;
     font-weight: 600;
-    color: #c084fc;
+    color: #c084fc !important;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(147, 51, 234, 0.3);
+    border-bottom: 1px solid rgba(192, 132, 252, 0.3);
+}
+
+/* 梦境主题图标样式 */
+.section-title svg {
+    color: #c084fc !important;
+    transition: all 0.3s ease;
+}
+
+.section-title:hover {
+    color: #d8b4fe !important;
+}
+
+.section-title:hover svg {
+    color: #d8b4fe !important;
+    transform: scale(1.02);
 }
 
 .form-group {
@@ -508,9 +523,9 @@
     position: relative;
     transition: all 0.3s ease;
     flex-shrink: 0;
-    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
 }
 
 .recurring-checkbox:checked {

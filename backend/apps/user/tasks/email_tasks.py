@@ -46,18 +46,4 @@ def send_verification_email_task(self, email, code, scene='register'):
             }
 
 
-@shared_task
-def cleanup_expired_email_codes():
-    """
-    清理过期的邮箱验证码缓存
-    注意：Redis会自动清理过期的键，这个任务主要用于清理内存缓存
-    """
-    try:
-        if hasattr(EmailService, '_code_cache'):
-            # 这里只是记录，实际的清理由各个键的过期机制自动处理
-            cache_size = len(EmailService._code_cache)
-            logger.info(f"当前内存中的邮箱验证码缓存数量: {cache_size}")
-        return "清理任务执行完成"
-    except Exception as e:
-        logger.error(f"清理邮箱验证码缓存失败: {str(e)}")
-        return f"清理任务失败: {str(e)}" 
+ 

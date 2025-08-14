@@ -39,7 +39,8 @@
                 "-P",
                 "threads",
                 "-n",
-                "default_worker@%h"
+                "default_worker@%h",
+                "--concurrency=4"
             ],
             "cwd": "${workspaceFolder}/backend",
             "env": {

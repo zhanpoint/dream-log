@@ -77,7 +77,7 @@ services:
   worker_default:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_worker_default
-    command: celery -A config worker -l warning -Q default -n default_worker@%h
+    command: celery -A config worker -l warning -Q default -n default_worker@%h --concurrency=2
     volumes:
       - logs_volume:/app/logs
     env_file: ./.env

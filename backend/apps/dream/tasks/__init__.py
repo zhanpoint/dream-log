@@ -1,3 +1,8 @@
 """
 确保所有任务具有幂等性：即同一个任务执行一次和执行多次产生的结果应该完全相同。防止因worker崩溃而重复执行
 """
+from .image_cleanup_tasks import cleanup_pending_delete_images
+
+__all__ = [
+    'cleanup_pending_delete_images',
+]

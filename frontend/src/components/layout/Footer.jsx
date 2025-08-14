@@ -75,19 +75,18 @@ const Footer = () => {
                                 豫ICP备2025135141号-1
                             </a>
 
-                            {/* 公安备案号占位符 - 待公安备案完成后更新 */}
-                            <span className="beian-police" style={{ display: 'none' }}>
-                                {/* 公安备案完成后取消注释并填入正确的备案号 */}
-                                {/* <a 
-                                    href="http://www.beian.gov.cn/portal/registerSystemInfo" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
+                            {/* 公安备案号 - 根据阿里云公安联网备案要求添加 */}
+                            <div className="beian-police">
+                                <a
+                                    href="https://beian.mps.gov.cn/#/query/webSearch?code=41911002000051"
+                                    target="_blank"
+                                    rel="noreferrer"
                                     className="beian-link"
                                 >
-                                    <img src="/assets/beian-police.png" alt="公安备案" className="beian-police-icon" />
-                                    豫公网安备 xxxxxxxxxxxxxxx号
-                                </a> */}
-                            </span>
+                                    <img src="/assets/备案图标.png" alt="公安备案" className="beian-police-icon" width="20" />
+                                    豫公网安备41911002000051号
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,11 @@
-.cursor
-.idea
-.vscode
-.trae
-.env
+.cursor/
+.idea/
+.vscode/
+.trae/
+.env/
+
+
+
+
+
+
