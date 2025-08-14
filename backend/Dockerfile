@@ -23,10 +23,11 @@ WORKDIR /app
 # 优化依赖安装，充分利用Docker缓存
 COPY requirements_deploy.txt .
 
-# 使用缓存挂载安装依赖
+# 创建虚拟环境并安装依赖
+RUN python -m venv /opt/venv
+# BuildKit 功能，挂载一个持久缓存目录 /root/.cache/pip，pip 会缓存已下载的包，下一次构建镜像时可以复用，不用重新下载，加快构建速度。
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir \
-    --target=/install \
+    /opt/venv/bin/pip install --no-cache-dir \
     -r requirements_deploy.txt
 
 # ---- Production Stage ----
@@ -46,14 +47,16 @@ RUN apt-get update && \
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH=/install/bin:$PATH \
-    PYTHONPATH=/install:/app \
+    # 使用虚拟环境的 Python 和工具
+    PATH=/opt/venv/bin:$PATH \
+    # 设置项目根目录到 Python 路径，虚拟环境自动处理第三方库
+    PYTHONPATH=/app \
     DJANGO_SETTINGS_MODULE=config.settings.prod
 
 WORKDIR /app
 
-# 从构建器阶段拷贝已安装的依赖
-COPY --from=builder /install /install
+# 从构建器阶段拷贝虚拟环境
+COPY --from=builder /opt/venv /opt/venv
 
 # 创建必要的目录
 RUN mkdir -p /app/scripts /app/logs /app/media /app/staticfiles_collected && \
