@@ -47,7 +47,7 @@ RUN apt-get update && \
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/install/bin:$PATH \
-    PYTHONPATH=/app:/install \
+    PYTHONPATH=/install:/app \
     DJANGO_SETTINGS_MODULE=config.settings.prod
 
 WORKDIR /app
