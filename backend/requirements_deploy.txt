@@ -1,93 +1,27 @@
-# Dream Log 生产环境依赖包
-# 仅包含生产环境运行所需的核心依赖
+# Dream Log 生产环境依赖包 - 精简版
+# 基于原始requirements.txt，移除开发、测试和构建工具
 
-# ========== Django 核心框架 ==========
-Django==4.2.20
-djangorestframework==3.15.2
-djangorestframework_simplejwt==5.5.0
-django-cors-headers==4.7.0
-django-environ==0.12.0
-django-filter==25.1
-django-redis==5.4.0
-django-timezone-field==7.1
-asgiref==3.8.1
-
-# ========== 异步和WebSocket支持 ==========
-channels==4.2.2
-channels_redis==4.2.1
-daphne==4.1.2
-Twisted==24.11.0
-txaio==23.1.1
-autobahn==24.4.2
-Automat==24.8.1
-constantly==23.10.4
-hyperlink==21.0.0
-incremental==24.7.2
-service-identity==24.2.0
-pyOpenSSL==25.0.0
-
-# ========== Celery 异步任务 ==========
-celery==5.5.0
-django-celery-beat==2.8.1
-kombu==5.5.2
-billiard==4.2.1
-vine==5.1.0
-amqp==5.3.1
-click==8.1.8
-click-didyoumean==0.3.1
-click-plugins==1.1.1
-click-repl==0.3.0
-
-# ========== 数据库和缓存 ==========
-mysqlclient==2.2.7
-redis==5.2.1
-PyMySQL==1.1.1
-
-# ========== AI和机器学习服务 ==========
-# LangChain 核心
-langchain==0.3.26
-langchain-core==0.3.74
-langchain-community==0.3.27
-langchain-openai==0.3.28
-langchain-google-genai==2.1.9
-langchain-tavily==0.2.11
-langchain-text-splitters==0.3.8
-langchain-chroma==0.2.5
-langsmith==0.4.4
-
-# OpenAI API
-openai==1.93.0
-
-# FireCrawl
-firecrawl-py==2.16.5
-
-# ChromaDB 向量数据库
-chromadb==1.0.16
-
-# Google AI
-google-ai-generativelanguage==0.6.18
-google-api-core==2.25.1
-google-auth==2.40.3
-googleapis-common-protos==1.70.0
-
-# ========== HTTP客户端和网络 ==========
+# ========== 网络和HTTP ==========
+aiohappyeyeballs==2.6.1
+aiohttp==3.11.16
+aiosignal==1.3.2
+anyio==4.9.0
+async-timeout==4.0.3
+frozenlist==1.5.0
+multidict==6.3.2
+yarl==1.19.0
+propcache==0.3.1
+h11==0.16.0
+httpcore==1.0.9
 httpx==0.28.1
 httpx-sse==0.4.1
-httpcore==1.0.9
-h11==0.16.0
 requests==2.32.3
 requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
 urllib3==2.3.0
 certifi==2025.6.15
-aiohttp==3.11.16
-aiosignal==1.3.2
-aiohappyeyeballs==2.6.1
-frozenlist==1.5.0
-multidict==6.3.2
-yarl==1.19.0
-async-timeout==4.0.3
-propcache==0.3.1
+idna==3.10
+charset-normalizer==3.4.1
 
 # ========== 阿里云服务 ==========
 aliyun-python-sdk-core==2.16.0
@@ -96,86 +30,21 @@ aliyun-python-sdk-sts==3.1.2
 oss2==2.19.1
 crcmod==1.7
 
-# ========== 数据处理 ==========
-pandas==2.3.0
-numpy==2.0.2
-pyarrow==20.0.0
-
-# ========== 安全和加密 ==========
-cryptography==41.0.5
-bcrypt==4.3.0
-PyJWT==2.9.0
-cffi==1.17.1
-pycparser==2.22
-pycryptodome==3.22.0
-
-# ========== JSON和数据序列化 ==========
-orjson==3.10.18
-pydantic==2.11.7
-pydantic-settings==2.10.1
-pydantic_core==2.33.2
-dataclasses-json==0.6.7
-marshmallow==3.26.1
-
-# ========== 模板和标记 ==========
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-beautifulsoup4==4.13.3
-soupsieve==2.6
-bleach==6.2.0
-
-# ========== 时间和日期 ==========
-python-dateutil==2.9.0.post0
-pytz==2025.1
-tzdata==2025.2
-python-crontab==3.3.0
-cron-descriptor==1.4.5
-dateutils==0.6.12
-
-# ========== 配置和环境 ==========
-python-decouple==3.8
-python-dotenv==1.1.1
-
-# ========== 文件处理 ==========
-filetype==1.2.0
-filelock==3.18.0
-fsspec==2025.7.0
-pillow==11.1.0
-
-# ========== 网络协议和通信 ==========
-grpcio==1.74.0
-grpcio-status==1.74.0
-websockets==15.0.1
-websocket-client==1.8.0
-dnspython==2.7.0
-pika==1.3.2
-
-# ========== 文本处理和NLP ==========
-tiktoken==0.9.0
-tokenizers==0.21.4
-regex==2024.11.6
-huggingface-hub==0.34.4
-
-# ========== 监控和追踪 ==========
-opentelemetry-api==1.36.0
-opentelemetry-sdk==1.36.0
-opentelemetry-exporter-otlp-proto-grpc==1.36.0
-opentelemetry-exporter-otlp-proto-common==1.36.0
-opentelemetry-proto==1.36.0
-opentelemetry-semantic-conventions==0.57b0
-posthog==5.4.0
-
 # ========== 基础工具库 ==========
-attrs==25.3.0
 annotated-types==0.7.0
-anyio==4.9.0
+attrs==25.3.0
 backoff==2.2.1
 cachetools==5.5.2
-charset-normalizer==3.4.1
+click==8.1.8
+click-didyoumean==0.3.1
+click-plugins==1.1.1
+click-repl==0.3.0
 colorama==0.4.6
 distro==1.9.0
 exceptiongroup==1.3.0
-idna==3.10
+filelock==3.18.0
+filetype==1.2.0
+fsspec==2025.7.0
 jiter==0.10.0
 jmespath==0.10.0
 jsonpatch==1.33
@@ -189,19 +58,10 @@ overrides==7.7.0
 packaging==24.2
 pathlib==1.0.1
 platformdirs==4.3.7
-proto-plus==1.26.1
-protobuf==6.31.1
-pyasn1==0.6.1
-pyasn1_modules==0.4.2
-pybase64==1.4.2
 referencing==0.36.2
 rpds-py==0.24.0
-rsa==4.9.1
 six==1.17.0
 sniffio==1.3.1
-SQLAlchemy==2.0.41
-sqlparse==0.5.3
-sympy==1.14.0
 tenacity==9.1.2
 toml==0.10.2
 tomli==2.2.1
@@ -215,11 +75,143 @@ zipp==3.21.0
 zope.event==5.0
 zope.interface==7.2
 zstandard==0.23.0
-defusedxml==0.7.1
-greenlet==3.2.3
+
+# ========== Django 核心 ==========
+Django==4.2.20
+djangorestframework==3.15.2
+djangorestframework_simplejwt==5.5.0
+django-cors-headers==4.7.0
+django-environ==0.12.0
+django-filter==25.1
+django-redis==5.4.0
+django-timezone-field==7.1
+asgiref==3.8.1
+sqlparse==0.5.3
+
+# ========== 异步和WebSocket ==========
+channels==4.2.2
+channels_redis==4.2.1
+daphne==4.1.2
+Twisted==24.11.0
+txaio==23.1.1
+autobahn==24.4.2
+Automat==24.8.1
+constantly==23.10.4
+hyperlink==21.0.0
+incremental==24.7.2
+service-identity==24.2.0
+pyOpenSSL==25.0.0
+websockets==15.0.1
+websocket-client==1.8.0
+
+# ========== Celery 异步任务 ==========
+celery==5.5.0
+django-celery-beat==2.8.1
+kombu==5.5.2
+billiard==4.2.1
+vine==5.1.0
+amqp==5.3.1
+
+# ========== 数据库 ==========
+mysqlclient==2.2.7
+redis==5.2.1
+PyMySQL==1.1.1
+SQLAlchemy==2.0.41
+
+# ========== AI和机器学习 ==========
+langchain==0.3.26
+langchain-core==0.3.74
+langchain-community==0.3.27
+langchain-openai==0.3.28
+langchain-google-genai==2.1.9
+langchain-tavily==0.2.11
+langchain-text-splitters==0.3.8
+langchain-chroma==0.2.5
+langsmith==0.4.4
+openai==1.93.0
+firecrawl-py==2.16.5
+chromadb==1.0.16
+google-ai-generativelanguage==0.6.18
+google-api-core==2.25.1
+google-auth==2.40.3
+googleapis-common-protos==1.70.0
+huggingface-hub==0.34.4
+tiktoken==0.9.0
+tokenizers==0.21.4
+onnxruntime==1.19.2
+
+# ========== 数据处理 ==========
+pandas==2.3.0
+numpy==2.0.2
+pyarrow==20.0.0
 flatbuffers==25.2.10
 narwhals==1.45.0
+
+# ========== 安全和加密 ==========
+cryptography==41.0.5
+bcrypt==4.3.0
+PyJWT==2.9.0
+cffi==1.17.1
+pycparser==2.22
+pycryptodome==3.22.0
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
+pybase64==1.4.2
+rsa==4.9.1
+
+# ========== JSON和数据序列化 ==========
+orjson==3.10.18
+pydantic==2.11.7
+pydantic-settings==2.10.1
+pydantic_core==2.33.2
+dataclasses-json==0.6.7
+marshmallow==3.26.1
+
+# ========== 模板和内容处理 ==========
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+beautifulsoup4==4.13.3
+soupsieve==2.6
+bleach==6.2.0
+defusedxml==0.7.1
+regex==2024.11.6
+
+# ========== 时间和日期 ==========
+python-dateutil==2.9.0.post0
+pytz==2025.1
+tzdata==2025.2
+python-crontab==3.3.0
+cron-descriptor==1.4.5
+dateutils==0.6.12
+
+# ========== 配置管理 ==========
+python-decouple==3.8
+python-dotenv==1.1.1
+
+# ========== 文件和图像处理 ==========
+pillow==11.1.0
+
+# ========== 网络协议 ==========
+grpcio==1.74.0
+grpcio-status==1.74.0
+dnspython==2.7.0
+pika==1.3.2
+
+# ========== 监控和追踪 ==========
+opentelemetry-api==1.36.0
+opentelemetry-sdk==1.36.0
+opentelemetry-exporter-otlp-proto-grpc==1.36.0
+opentelemetry-exporter-otlp-proto-common==1.36.0
+opentelemetry-proto==1.36.0
+opentelemetry-semantic-conventions==0.57b0
+posthog==5.4.0
+
+# ========== 其他运行时依赖 ==========
+greenlet==3.2.3
 nest-asyncio==1.6.0
 oauthlib==3.3.1
-onnxruntime==1.19.2
 smmap==5.0.2
+proto-plus==1.26.1
+protobuf==6.31.1
+sympy==1.14.0
+blinker==1.9.0
