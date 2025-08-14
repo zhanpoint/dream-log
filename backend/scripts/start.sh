@@ -35,7 +35,7 @@ python manage.py create_categories
 # python manage.py another_custom_command
 
 # --- 静态文件处理 ---
-python manage.py collectstatic --no-input
+# python manage.py collectstatic --no-input
 
 # --- 启动主应用 ---
 # 使用 exec, 它会用 daphne 进程替换当前的 shell 进程

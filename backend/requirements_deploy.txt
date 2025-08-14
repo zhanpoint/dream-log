@@ -127,6 +127,7 @@ langchain-google-genai==2.1.9
 langchain-tavily==0.2.11
 langchain-text-splitters==0.3.8
 langchain-chroma==0.2.5
+langchain_cohere==0.4.5
 langsmith==0.4.4
 openai==1.93.0
 firecrawl-py==2.16.5

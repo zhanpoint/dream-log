@@ -70,6 +70,10 @@ COPY --chown=appuser:appuser ./apps /app/apps
 COPY --chown=appuser:appuser ./config /app/config
 COPY --chown=appuser:appuser ./manage.py /app/manage.py
 
+# 在构建时收集静态文件，并确保权限正确
+RUN python manage.py collectstatic --no-input && \
+    chown -R appuser:appuser /app/staticfiles_collected
+
 # 修复脚本行尾符并设置权限
 RUN dos2unix /app/scripts/start.sh && \
     chmod +x /app/scripts/start.sh
