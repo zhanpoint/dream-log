@@ -71,7 +71,7 @@ jsonschema-specifications==2024.10.1
 kombu==5.5.2
 langchain==0.3.26
 langchain-openai==0.3.28
-langchain-core==0.3.68
+langchain-core==0.3.74
 langchain-text-splitters==0.3.8
 langchain_community==0.3.27
 langchain-tavily==0.2.11
