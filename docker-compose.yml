@@ -148,6 +148,12 @@ services:
       # SSL 证书挂载保持不变
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /var/www/certbot:/var/www/certbot:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     depends_on:
       backend:
         condition: service_healthy

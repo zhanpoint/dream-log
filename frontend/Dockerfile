@@ -46,9 +46,9 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
 # 暴露端口
 EXPOSE 80
 
-# 健康检查
+# 健康检查：命中 Nginx 的本地健康检查端点，避免 301 跳转与证书校验
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1/healthz || exit 1
 
 # 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"] 
