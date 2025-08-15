@@ -71,7 +71,8 @@ COPY --chown=appuser:appuser ./config /app/config
 COPY --chown=appuser:appuser ./manage.py /app/manage.py
 
 # 在构建时收集静态文件，并确保权限正确
-RUN python manage.py collectstatic --no-input && \
+# 为collectstatic提供一个临时的SECRET_KEY，因为它在构建时需要，但不会存储在最终镜像中
+RUN DJANGO_SECRET_KEY="dummy-key-for-collectstatic" python manage.py collectstatic --no-input && \
     chown -R appuser:appuser /app/staticfiles_collected
 
 # 修复脚本行尾符并设置权限
