@@ -158,12 +158,13 @@ class LLMManager:
                 logger.error(f"No config found for scenario {scenario}")
                 return None
             
-            # --- 显式代理配置 ---
+            # --- 显式代理配置  ---
             import httpx
-            http_client = httpx.Client(proxies=PROXY_URL) if PROXY_URL else None
-            if http_client:
-                logger.info("HTTP proxy is enabled for LLM client")
-            # --------------------
+            http_client = None
+            if PROXY_URL:
+                proxies = {"http://": PROXY_URL, "https://": PROXY_URL}
+                http_client = httpx.Client(proxies=proxies)
+            # --------------------------
 
             # 将response_format移动到model_kwargs中以避免警告
             model_kwargs = {}
@@ -177,6 +178,8 @@ class LLMManager:
                 temperature=config_obj.temperature,
                 top_p=config_obj.top_p,
                 max_tokens=config_obj.max_tokens,
+                presence_penalty=config_obj.presence_penalty,
+                frequency_penalty=config_obj.frequency_penalty,
                 http_client=http_client,  # 显式传递代理客户端
                 model_kwargs=model_kwargs,
                 timeout=15  # 降低超时时间以快速识别问题
