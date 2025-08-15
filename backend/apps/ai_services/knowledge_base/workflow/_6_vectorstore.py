@@ -11,12 +11,12 @@ from dataclasses import dataclass
 from threading import Lock
 
 from langchain_chroma import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 
 
 from ...config import (
-    GOOGLE_API_KEY, GEMINI_EMBEDDING_MODEL,
+    OPENROUTER_API_KEY, OPENROUTER_BASE_URL,
     CHROMA_CLOUD_API_KEY,
     CHROMA_COLLECTION_NAME, CHROMA_TENANT, CHROMA_DATABASE
 )
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class OptimizedVectorStoreConfig:
     """向量存储配置"""
     collection_name: str = CHROMA_COLLECTION_NAME
-    embedding_model: str = GEMINI_EMBEDDING_MODEL
+    embedding_model: str = "text-embedding-3-small"  # 走 OpenRouter，稳定且支持代理
 
 
 class DocumentHashIndex:
@@ -99,28 +99,20 @@ class OptimizedDreamVectorStore:
         # 线程安全
         self._lock = Lock()
         
-    def _initialize_embeddings(self) -> GoogleGenerativeAIEmbeddings:
+    def _initialize_embeddings(self) -> OpenAIEmbeddings:
         """
-        初始化嵌入模型。
-
-        在 Celery 的 'threads' 工作模式下，每个工作线程默认没有事件循环。
-        GoogleGenerativeAIEmbeddings 的初始化需要一个事件循环来设置其异步客户端。
-        因此，我们在此处手动检查并设置事件循环，以确保在多线程环境中正确初始化。
+        初始化嵌入模型（OpenAIEmbeddings via OpenRouter）。
+        说明：Google gRPC 在代理环境下不稳定且易超时，这里改为 OpenRouter 的 HTTP 接口，
+        能完全继承 HTTP(S)_PROXY，显著降低超时与抖动。
         """
-        try:
-            # 检查当前线程中是否存在正在运行的事件循环
-            asyncio.get_running_loop()
-        except RuntimeError:
-            # 如果没有，则为该线程创建一个新的事件循环并设置为当前循环
-            asyncio.set_event_loop(asyncio.new_event_loop())
+        # OpenAIEmbeddings 是同步 HTTP 调用，不需要事件循环兜底
+        if not OPENROUTER_API_KEY:
+            raise ValueError("OPENROUTER_API_KEY is required for OpenRouter embeddings")
 
-        if not GOOGLE_API_KEY:
-            raise ValueError("GOOGLE_API_KEY is required")
-            
-        return GoogleGenerativeAIEmbeddings(
+        return OpenAIEmbeddings(
             model=self.config.embedding_model,
-            google_api_key=GOOGLE_API_KEY,
-            task_type="retrieval_document"
+            api_key=OPENROUTER_API_KEY,
+            base_url=OPENROUTER_BASE_URL
         )
         
     def _get_vectorstore(self) -> Chroma:

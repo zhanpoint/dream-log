@@ -6,10 +6,10 @@ import logging
 from typing import List, Optional
 
 from langchain_core.documents import Document
-from langchain.retrievers.document_compressors import CohereRerank
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_cohere import CohereRerank
+from langchain_openai import OpenAIEmbeddings
 
-from ..config import GOOGLE_API_KEY, GEMINI_EMBEDDING_MODEL
+from ..config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL
 from ..knowledge_base.workflow._6_vectorstore import get_vectorstore
 
 logger = logging.getLogger(__name__)
@@ -46,15 +46,16 @@ class DreamAnalysisRAGRetriever:
         
         logger.info("DreamAnalysisRAGRetriever initialized successfully")
     
-    def _initialize_embeddings(self) -> GoogleGenerativeAIEmbeddings:
-        """初始化Gemini嵌入模型"""
+    def _initialize_embeddings(self) -> OpenAIEmbeddings:
+        """初始化嵌入模型（OpenAIEmbeddings via OpenRouter）"""
         try:
-            if not GOOGLE_API_KEY:
-                raise ValueError("GOOGLE_API_KEY is required for embeddings")
-                
-            embeddings = GoogleGenerativeAIEmbeddings(
-                model=GEMINI_EMBEDDING_MODEL,
-                google_api_key=GOOGLE_API_KEY
+            if not OPENROUTER_API_KEY:
+                raise ValueError("OPENROUTER_API_KEY is required for embeddings")
+
+            embeddings = OpenAIEmbeddings(
+                model="text-embedding-3-small",
+                api_key=OPENROUTER_API_KEY,
+                base_url=OPENROUTER_BASE_URL
             )
 
             return embeddings
@@ -75,6 +76,7 @@ class DreamAnalysisRAGRetriever:
                 
             reranker = CohereRerank(
                 cohere_api_key=cohere_api_key,
+                    model='rerank-multilingual-v3.0',  # 添加model参数
                 top_n=self.top_n_final
             )
             return reranker
@@ -88,7 +90,7 @@ class DreamAnalysisRAGRetriever:
     
     def retrieve_documents(self, queries: List[str]) -> List[Document]:
         """
-        使用多个查询进行向量检索
+        使用多个查询进行并行向量检索 - 性能优化版
         
         Args:
             queries: 查询列表
@@ -96,19 +98,79 @@ class DreamAnalysisRAGRetriever:
         Returns:
             检索到的文档列表
         """
+        import concurrent.futures
+        import threading
+        
+        if not queries:
+            return []
+            
         all_documents = []
         seen_content = set()
+        seen_content_lock = threading.Lock()
         
-        try:
-            for query in queries:
-                # 使用向量存储进行相似性搜索
+        def search_single_query(query: str) -> List[Document]:
+            """单个查询的搜索函数"""
+            try:
                 docs = self.vectorstore.search_similar(
                     query=query,
                     k=self.top_k_initial // len(queries),  # 平均分配每个查询的检索数量
                     score_threshold=self.score_threshold
                 )
+                logger.info(f"Query '{query}' retrieved {len(docs)} documents")
+                return docs
+            except Exception as e:
+                logger.error(f"Error searching for query '{query}': {e}")
+                return []
+        
+        try:
+            # 使用线程池并行执行所有查询
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(queries), 3)) as executor:
+                # 提交所有查询任务
+                future_to_query = {
+                    executor.submit(search_single_query, query): query 
+                    for query in queries
+                }
                 
-                # 去重
+                # 收集结果
+                for future in concurrent.futures.as_completed(future_to_query):
+                    query = future_to_query[future]
+                    try:
+                        docs = future.result(timeout=10)  # 10秒超时
+                        
+                        # 线程安全的去重
+                        with seen_content_lock:
+                            for doc in docs:
+                                content_hash = hash(doc.page_content)
+                                if content_hash not in seen_content:
+                                    seen_content.add(content_hash)
+                                    all_documents.append(doc)
+                                    
+                    except concurrent.futures.TimeoutError:
+                        logger.warning(f"Query '{query}' timed out")
+                    except Exception as e:
+                        logger.error(f"Query '{query}' failed: {e}")
+            
+            logger.info(f"Total unique documents retrieved: {len(all_documents)}")
+            return all_documents
+            
+        except Exception as e:
+            logger.error(f"Error in parallel document retrieval: {e}", exc_info=True)
+            # 如果并行检索失败，回退到串行方式
+            return self._retrieve_documents_serial(queries)
+    
+    def _retrieve_documents_serial(self, queries: List[str]) -> List[Document]:
+        """备用的串行检索方法"""
+        all_documents = []
+        seen_content = set()
+        
+        try:
+            for query in queries:
+                docs = self.vectorstore.search_similar(
+                    query=query,
+                    k=self.top_k_initial // len(queries),
+                    score_threshold=self.score_threshold
+                )
+                
                 for doc in docs:
                     content_hash = hash(doc.page_content)
                     if content_hash not in seen_content:
@@ -117,11 +179,10 @@ class DreamAnalysisRAGRetriever:
                         
                 logger.info(f"Query '{query}' retrieved {len(docs)} documents")
             
-            logger.info(f"Total unique documents retrieved: {len(all_documents)}")
             return all_documents
             
         except Exception as e:
-            logger.error(f"Error in document retrieval: {e}", exc_info=True)
+            logger.error(f"Error in serial document retrieval: {e}", exc_info=True)
             return []
     
     def rerank_documents(self, documents: List[Document], query: str) -> List[Document]:

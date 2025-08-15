@@ -58,7 +58,7 @@ services:
     environment:
       - HTTP_PROXY=http://host.docker.internal:7897
       - HTTPS_PROXY=http://host.docker.internal:7897
-      - NO_PROXY=localhost,127.0.0.1
+      - NO_PROXY=localhost,127.0.0.1,::1,backend,db,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
       - APP_ENV=prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -89,7 +89,7 @@ services:
     environment:
       - HTTP_PROXY=http://host.docker.internal:7897
       - HTTPS_PROXY=http://host.docker.internal:7897
-      - NO_PROXY=localhost,127.0.0.1
+      - NO_PROXY=localhost,127.0.0.1,::1,backend,db,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
       - APP_ENV=prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -116,7 +116,7 @@ services:
     environment:
       - HTTP_PROXY=http://host.docker.internal:7897
       - HTTPS_PROXY=http://host.docker.internal:7897
-      - NO_PROXY=localhost,127.0.0.1
+      - NO_PROXY=localhost,127.0.0.1,::1,backend,db,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
       - APP_ENV=prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
