@@ -28,7 +28,7 @@ python manage.py migrate
 # 在这里按顺序添加所有需要一次性执行的自定义命令
 # get_or_create 保证了这些命令是幂等的，重复执行是安全的
 python manage.py create_categories
-# 暂时不执行定时任务
+# 从 Celery 配置中强制初始化或更新数据库中的定时任务
 python manage.py setup_periodic_tasks --overwrite
 
 # 如果有其他命令，像这样继续添加:

@@ -60,22 +60,7 @@ _current_dir = os.path.dirname(os.path.abspath(__file__))
 PROCESSED_URLS_FILE_PATH = os.path.join(_current_dir, 'knowledge_base', 'data', 'processed_urls.json')
 
 # 代理配置
-PROXY_URL = config('PROXY_URL', default='', cast=str)
-
-
-def _apply_proxy_settings() -> None:
-    """根据 PROXY_URL 应用 HTTP(S) 代理到环境变量。
-
-    - 仅在配置存在时生效，避免影响无代理环境。
-    """
-    if not PROXY_URL:
-        return
-    try:
-        os.environ.setdefault('http_proxy', PROXY_URL)
-        os.environ.setdefault('https_proxy', PROXY_URL)
-        logger.info("HTTP proxy is enabled for LLM client")
-    except Exception as e:
-        logger.warning(f"Failed to apply HTTP proxy: {e}")
+PROXY_URL = config('PROXY_URL', default=None)
 
 # LangSmith Tracing (optional)
 # LANGCHAIN_TRACING_V2 = config('LANGCHAIN_TRACING_V2', default='true')
@@ -98,8 +83,6 @@ class LLMManager:
     def __init__(self):
         self._llm_instances: Dict[LLMScenario, Optional[ChatOpenAI]] = {}
         self._initialized = False
-        # 优先应用代理设置
-        _apply_proxy_settings()
         # 设置各场景的LLM配置参数
         self._setup_scenario_configs()
     
@@ -109,28 +92,28 @@ class LLMManager:
         primary_model = models[0] if models else "google/gemini-2.5-flash-lite"
         
         self.scenario_configs = {
-            # 梦境深度分析 - 需要高创造性、详细输出
+            # 梦境深度分析 - 需要高创造性、详细输出（性能优化版）
             LLMScenario.DREAM_ANALYSIS: LLMConfig(
                 model=primary_model,
-                temperature=0.8,           # 高温度，允许创造性思维
-                top_p=0.9,                # 允许更多样化的词汇选择
-                max_tokens=8192,          # 输出token限制，支持9个详细分析模块
-                presence_penalty=0.3,     # 轻微惩罚重复，鼓励多元化表达
-                frequency_penalty=0.2,    # 轻微频率惩罚，避免循环表达
+                temperature=0.75,           # 适度降低温度以提高响应速度
+                top_p=0.85,               # 稍微降低以减少计算复杂度
+                max_tokens=6144,          # 减少到7K以提高速度，仍足够详细分析
+                presence_penalty=0.3,     # 降低惩罚值，减少计算开销
+                frequency_penalty=0.2,    # 降低频率惩罚，优化性能
                 response_format={"type": "json_object"},  # 强制JSON输出格式
-                description="梦境深度分析 - 高创造性、详细解释"
+                description="梦境深度分析 - 平衡创造性与性能"
             ),
             
-            # RAG查询扩展 - 需要精确、结构化
+            # RAG查询扩展 - 需要精确、结构化（性能优化版）
             LLMScenario.QUERY_EXPANSION: LLMConfig(
                 model=primary_model,
-                temperature=0.3,          # 低温度，保证一致性和精确性
-                top_p=0.8,               # 适度限制词汇选择，保证质量
-                max_tokens=512,          # 中等输出长度，查询不需要太长
-                presence_penalty=0.0,    # 不惩罚重复，允许使用标准查询术语
-                frequency_penalty=0.1,   # 轻微频率控制，保持查询多样性
+                temperature=0.25,          # 进一步降低温度，提高确定性和速度
+                top_p=0.8,               # 更严格的词汇选择，减少计算
+                max_tokens=256,          # 减少到256，查询扩展不需要太长
+                presence_penalty=0.1,    # 不惩罚重复，减少计算
+                frequency_penalty=0.1,   # 去除频率惩罚，优化速度
                 response_format={"type": "json_object"},  # 强制JSON输出格式
-                description="RAG查询扩展 - 精确、结构化查询生成"
+                description="RAG查询扩展 - 快速、精确的查询生成"
             ),
             
             # AI标题生成 - 需要简洁、准确
@@ -175,14 +158,17 @@ class LLMManager:
                 logger.error(f"No config found for scenario {scenario}")
                 return None
             
-            # 构建模型参数
-            model_kwargs = {
-                "presence_penalty": config_obj.presence_penalty,
-                "frequency_penalty": config_obj.frequency_penalty,
-            }
-            
+            # --- 显式代理配置 ---
+            import httpx
+            http_client = httpx.Client(proxies=PROXY_URL) if PROXY_URL else None
+            if http_client:
+                logger.info("HTTP proxy is enabled for LLM client")
+            # --------------------
+
+            # 将response_format移动到model_kwargs中以避免警告
+            model_kwargs = {}
             if config_obj.response_format:
-                model_kwargs["response_format"] = config_obj.response_format
+                model_kwargs['response_format'] = config_obj.response_format
             
             llm = ChatOpenAI(
                 api_key=OPENROUTER_API_KEY,
@@ -191,8 +177,9 @@ class LLMManager:
                 temperature=config_obj.temperature,
                 top_p=config_obj.top_p,
                 max_tokens=config_obj.max_tokens,
+                http_client=http_client,  # 显式传递代理客户端
                 model_kwargs=model_kwargs,
-                timeout=30
+                timeout=15  # 降低超时时间以快速识别问题
             )
             
             # 缓存实例
