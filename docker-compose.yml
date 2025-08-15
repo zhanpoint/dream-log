@@ -56,7 +56,12 @@ services:
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
+      - HTTP_PROXY=http://host.docker.internal:7897
+      - HTTPS_PROXY=http://host.docker.internal:7897
+      - NO_PROXY=localhost,127.0.0.1
       - APP_ENV=prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
       - cache
@@ -82,7 +87,12 @@ services:
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
+      - HTTP_PROXY=http://host.docker.internal:7897
+      - HTTPS_PROXY=http://host.docker.internal:7897
+      - NO_PROXY=localhost,127.0.0.1
       - APP_ENV=prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       backend:
         condition: service_started
@@ -104,7 +114,12 @@ services:
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
+      - HTTP_PROXY=http://host.docker.internal:7897
+      - HTTPS_PROXY=http://host.docker.internal:7897
+      - NO_PROXY=localhost,127.0.0.1
       - APP_ENV=prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       backend:
         condition: service_healthy

@@ -29,7 +29,7 @@ python manage.py migrate
 # get_or_create 保证了这些命令是幂等的，重复执行是安全的
 python manage.py create_categories
 # 暂时不执行定时任务
-# python manage.py setup_periodic_tasks --overwrite
+python manage.py setup_periodic_tasks --overwrite
 
 # 如果有其他命令，像这样继续添加:
 # python manage.py another_custom_command

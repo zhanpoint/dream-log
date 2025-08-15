@@ -17,10 +17,12 @@ app = Celery('DreamLog')
 # 导入 Django 的全局配置对象 settings，用于获取当前激活的配置内容（通常是你指定的 DJANGO_SETTINGS_MODULE 指向的模块，比如 config.settings.dev）
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# 自动从所有已注册的 Django app 中查找并加载 tasks.py 文件中的任务函数
-app.autodiscover_tasks()
-# 或者显式导入任务模块，避免自动发现时的问题
-# app.autodiscover_tasks(['apps.ai_services.tasks', 'apps.dream.tasks', 'apps.user.tasks'])
+# 显式导入任务模块，避免自动发现时的问题
+app.autodiscover_tasks([
+    'apps.ai_services.tasks',
+    'apps.dream.tasks',
+    'apps.user.tasks'
+])
 
 # 配置 Celery Beat 调度器
 app.conf.beat_scheduler = 'django_celery_beat.schedulers:DatabaseScheduler'
