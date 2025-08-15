@@ -62,6 +62,21 @@ PROCESSED_URLS_FILE_PATH = os.path.join(_current_dir, 'knowledge_base', 'data', 
 # 代理配置
 PROXY_URL = config('PROXY_URL', default=None)
 
+def _apply_proxy_settings() -> None:
+	"""以不覆盖既有环境变量的方式注入代理配置。
+	优先使用外部（如 docker-compose）提供的 HTTP_PROXY/HTTPS_PROXY，
+	若不存在则退回到 PROXY_URL。"""
+	if 'HTTP_PROXY' in os.environ or 'HTTPS_PROXY' in os.environ:
+		# 外部已提供，保持不变
+		return
+	if not PROXY_URL:
+		return
+	os.environ.setdefault('HTTP_PROXY', PROXY_URL)
+	os.environ.setdefault('HTTPS_PROXY', PROXY_URL)
+	os.environ.setdefault('http_proxy', PROXY_URL)
+	os.environ.setdefault('https_proxy', PROXY_URL)
+	os.environ.setdefault('NO_PROXY', 'localhost,127.0.0.1,::1')
+
 # LangSmith Tracing (optional)
 # LANGCHAIN_TRACING_V2 = config('LANGCHAIN_TRACING_V2', default='true')
 # LANGCHAIN_API_KEY = config('LANGCHAIN_API_KEY', default='')
@@ -83,6 +98,8 @@ class LLMManager:
     def __init__(self):
         self._llm_instances: Dict[LLMScenario, Optional[ChatOpenAI]] = {}
         self._initialized = False
+        # 优先注入代理环境变量，避免 httpx 版本差异
+        _apply_proxy_settings()
         # 设置各场景的LLM配置参数
         self._setup_scenario_configs()
     
@@ -158,14 +175,6 @@ class LLMManager:
                 logger.error(f"No config found for scenario {scenario}")
                 return None
             
-            # --- 显式代理配置  ---
-            import httpx
-            http_client = None
-            if PROXY_URL:
-                proxies = {"http://": PROXY_URL, "https://": PROXY_URL}
-                http_client = httpx.Client(proxies=proxies)
-            # --------------------------
-
             # 将response_format移动到model_kwargs中以避免警告
             model_kwargs = {}
             if config_obj.response_format:
@@ -180,7 +189,6 @@ class LLMManager:
                 max_tokens=config_obj.max_tokens,
                 presence_penalty=config_obj.presence_penalty,
                 frequency_penalty=config_obj.frequency_penalty,
-                http_client=http_client,  # 显式传递代理客户端
                 model_kwargs=model_kwargs,
                 timeout=15  # 降低超时时间以快速识别问题
             )
