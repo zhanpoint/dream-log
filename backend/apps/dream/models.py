@@ -73,12 +73,7 @@ class Tag(models.Model):
         ('location', '地点'),
         ('object', '物体'),
         ('action', '行为'),
-        ('symbol', '符号'),
-        ('color', '颜色'),
-        ('sound', '声音'),
         ('weather', '天气'),
-        ('time', '时间'),
-        ('custom', '自定义'),
     ]
 
     name = models.CharField(max_length=50, verbose_name="标签名称")
@@ -155,7 +150,8 @@ class Dream(models.Model):
     
     # 梦境内容
     content = models.TextField(verbose_name="梦境内容")
-    interpretation = models.TextField(blank=True, verbose_name="梦境解析")
+    user_analysis = models.TextField(blank=True, null=True, verbose_name="用户解析")
+    ai_analysis = models.TextField(blank=True, null=True, verbose_name="AI梦境解析")
     personal_notes = models.TextField(blank=True, verbose_name="个人笔记")
     
     # 梦境特征
@@ -323,7 +319,7 @@ class UploadedImage(models.Model):
     
     # 基础信息
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.URLField(max_length=500, unique=True, null=True, blank=True, default=None, verbose_name="图片URL")
+    url = models.URLField(max_length=255, unique=True, null=True, blank=True, default=None, verbose_name="图片URL")
     file_key = models.CharField(max_length=500, verbose_name="OSS文件Key")
     
     # 关联信息

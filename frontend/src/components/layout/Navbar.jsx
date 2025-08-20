@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Book, Compass, Users, Moon } from "lucide-react";
+import { Book, Compass, Users, Moon, BarChart3 } from "lucide-react";
 import "./Navbar.css";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/user/UserAvatar";
@@ -156,8 +156,18 @@ const Navbar = ({
                             <div className="user-actions">
                                 <MyDreamsButton />
                                 <Button
+                                    variant="ghost"
                                     size="sm"
-                                    className="create-dream-btn"
+                                    className="my-dreams-btn"
+                                    onClick={() => navigate('/statistics')}
+                                >
+                                    <BarChart3 className="h-4 w-4 mr-1" />
+                                    统计
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="my-dreams-btn"
                                     onClick={() => navigate('/dreams/create')}
                                 >
                                     创建梦境

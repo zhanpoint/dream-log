@@ -36,6 +36,7 @@ urlpatterns = [
         path('', include('apps.user.urls')),
         path('', include('apps.dream.urls')),
         path('ai/', include('apps.ai_services.urls')),  # AI服务使用 /ai/ 前缀
+        path('system/', include('apps.core.urls')),  # 系统核心功能使用 /system/ 前缀
     ])),
 
     # API文档路径

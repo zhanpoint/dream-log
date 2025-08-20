@@ -9,6 +9,7 @@ from django.utils import timezone
 from channels.layers import get_channel_layer
 
 from ..chains.dream_analysis_chain import get_dream_analysis_chain
+from ..config import RAG_ENABLED
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ class DreamAnalysisService:
         """
         # 确保基础字段存在
         prepared_data = {
+            'id': dream_data.get('id'),
             'title': dream_data.get('title', '未命名梦境'),
             'content': dream_data.get('content', ''),
             'categories': dream_data.get('categories', []),
@@ -54,15 +56,13 @@ class DreamAnalysisService:
         
         return prepared_data
     
-    def start_async_analysis(self, dream_data: Dict[str, Any], websocket_channel_id: str, 
-                           use_rag: bool = True) -> Dict[str, Any]:
+    def start_async_analysis(self, dream_data: Dict[str, Any], websocket_channel_id: str) -> Dict[str, Any]:
         """
         启动异步梦境分析任务
         
         Args:
             dream_data: 梦境数据（已在前端验证）
             websocket_channel_id: WebSocket频道ID
-            use_rag: 是否使用RAG增强
             
         Returns:
             任务启动结果
@@ -78,18 +78,16 @@ class DreamAnalysisService:
             # - task.id: 任务ID (UUID字符串)
             # - task.status: 当前状态 ('PENDING')
             # - task.result: 结果 (None，因为还没执行)
-            task = analyze_dream_task.delay(prepared_data, websocket_channel_id, use_rag)
+            task = analyze_dream_task.delay(prepared_data, websocket_channel_id)
             
             # 缓存任务信息
             cache_key = f"analysis_task:{task.id}"
             cache.set(cache_key, {
                 'status': 'started',
                 'websocket_channel': websocket_channel_id,
-                'use_rag': use_rag,
+                'use_rag': RAG_ENABLED,
                 'created_at': str(timezone.now())
             }, timeout=600)  # 10分钟超时
-            
-            logger.info(f"Started dream analysis task {task.id}")
             
             return {
                 'success': True,
@@ -99,26 +97,24 @@ class DreamAnalysisService:
             }
             
         except Exception as e:
-            logger.error(f"Error starting async analysis: {e}", exc_info=True)
             return {
                 'success': False,
                 'error': f'启动分析失败: {str(e)}'
             }
     
-    def perform_analysis(self, dream_data: Dict[str, Any], use_rag: bool = True) -> Dict[str, Any]:
+    def perform_analysis(self, dream_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         执行梦境分析（核心分析逻辑）
         
         Args:
             dream_data: 梦境数据
-            use_rag: 是否使用RAG增强
             
         Returns:
             分析结果
         """
         try:
             # 执行分析
-            if use_rag:
+            if RAG_ENABLED:
                 analysis_result = self.analysis_chain.analyze_dream_with_rag(dream_data)
             else:
                 analysis_result = self.analysis_chain.analyze_dream_simple(dream_data)
@@ -129,63 +125,20 @@ class DreamAnalysisService:
                     'error': '分析执行失败，请重试'
                 }
             
-            # 将Pydantic对象转换为字典以支持JSON序列化
-            return {
+            # 准备结果
+            result = {
                 'success': True,
                 'analysis_result': analysis_result.model_dump() if analysis_result else None,
-                'used_rag': use_rag
+                'used_rag': RAG_ENABLED,
+                'from_cache': False
             }
             
+            return result
+            
         except Exception as e:
-            logger.error(f"Error in analysis: {e}", exc_info=True)
             return {
                 'success': False,
                 'error': f'分析过程中出错: {str(e)}'
-            }
-    
-    def get_analysis_status(self, task_id: str) -> Dict[str, Any]:
-        """
-        获取分析任务状态
-        
-        Args:
-            task_id: 任务ID
-            
-        Returns:
-            状态信息
-        """
-        try:
-            # 从缓存获取基础信息
-            cache_key = f"analysis_task:{task_id}"
-            task_info = cache.get(cache_key, {})
-            
-            # 获取Celery任务状态
-            from celery.result import AsyncResult
-            result = AsyncResult(task_id)
-            
-            status_info = {
-                'task_id': task_id,
-                'status': result.status,
-                'cached_info': task_info
-            }
-            
-            if result.ready():
-                if result.successful():
-                    status_info['result'] = result.result
-                else:
-                    status_info['error'] = str(result.info)
-            else:
-                # 检查进度信息
-                if hasattr(result, 'info') and isinstance(result.info, dict):
-                    status_info['progress'] = result.info
-            
-            return status_info
-            
-        except Exception as e:
-            logger.error(f"Error getting analysis status for task {task_id}: {e}", exc_info=True)
-            return {
-                'task_id': task_id,
-                'status': 'ERROR',
-                'error': str(e)
             }
     
     def cancel_analysis(self, task_id: str) -> Dict[str, Any]:

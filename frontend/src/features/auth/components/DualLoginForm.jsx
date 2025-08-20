@@ -10,8 +10,9 @@ import { Eye, EyeOff, User, Lock, Phone, Mail, Shield, Sparkles, Star } from "lu
 import { smsService } from "@/services/notification/sms";
 import { emailService } from "@/services/notification/email";
 import notification from "@/utils/notification";
-import { isFeatureEnabled, getAvailableLoginMethods } from "@/config/features";
+import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import "./css/DreamTheme.css";
+import "./css/pc-responsive.css";
 
 /**
  * 三模式登录表单组件
@@ -21,6 +22,7 @@ export function DualLoginForm() {
     const navigate = useNavigate();
     const location = useLocation();
     const { login } = useAuth();
+    const { isFeatureEnabled, getAvailableLoginMethods } = useFeatureFlags();
 
     // 获取重定向地址（如果有）
     const from = location.state?.from?.pathname || "/";
@@ -200,13 +202,7 @@ export function DualLoginForm() {
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
-            notification.error(errorMessage);
-
-            if (error.response?.data?.field) {
-                setErrors({ ...errors, [error.response.data.field]: errorMessage });
-            } else {
-                setErrors({ ...errors, phone: errorMessage });
-            }
+            setErrors(prev => ({ ...prev, phone: errorMessage }));
         } finally {
             setIsLoading(false);
         }
@@ -236,13 +232,7 @@ export function DualLoginForm() {
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
-            notification.error(errorMessage);
-
-            if (error.response?.data?.field) {
-                setErrors({ ...errors, [error.response.data.field]: errorMessage });
-            } else {
-                setErrors({ ...errors, email: errorMessage });
-            }
+            setErrors(prev => ({ ...prev, email: errorMessage }));
         } finally {
             setIsLoading(false);
         }
@@ -292,6 +282,7 @@ export function DualLoginForm() {
                 notification.success("登录成功！");
                 navigate(from, { replace: true });
             } else {
+                // 仅设置表单错误状态
                 if (result.field) {
                     setErrors({ [result.field]: result.message });
                 } else {

@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db import models
 from rest_framework import permissions, status, viewsets, filters
 from rest_framework.decorators import action
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -33,7 +33,7 @@ class DreamViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['privacy', 'lucidity_level', 'is_favorite', 'is_recurring']
-    search_fields = ['title', 'content', 'interpretation']
+    search_fields = ['title', 'content', 'user_analysis']
     ordering_fields = ['dream_date', 'created_at', 'lucidity_level']
     ordering = ['-dream_date', '-created_at']
 
@@ -82,14 +82,10 @@ class DreamViewSet(viewsets.ModelViewSet):
         # 分页
         page = self.paginate_queryset(queryset)
         if page is not None:
-            for dream in page:
-                dream.content = self._insert_images_to_content(dream)
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         
         # 不分页的情况
-        for dream in queryset:
-            dream.content = self._insert_images_to_content(dream)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -292,7 +288,7 @@ class DreamViewSet(viewsets.ModelViewSet):
         
         # 文本字段
         text_fields = [
-            'title', 'content', 'interpretation', 'personal_notes',
+            'title', 'content', 'user_analysis', 'ai_analysis', 'personal_notes',
             'dream_date', 'lucidity_level', 'mood_before_sleep', 
             'mood_in_dream', 'mood_after_waking', 'sleep_quality',
             'sleep_duration', 'bedtime', 'wake_time', 'is_recurring',
@@ -308,22 +304,17 @@ class DreamViewSet(viewsets.ModelViewSet):
         # JSON字段
         json_fields = ['categories', 'tags', 'related_dream_ids']
         for field in json_fields:
-            json_string = request.data.get(field)
-            if json_string:
+            data = request.data.get(field)
+            if data:
                 try:
-                    form_data[field] = (
-                        json.loads(json_string)
-                        if isinstance(json_string, str)
-                        else json_string
-                    )
+                    # 如果data是字符串，则加载它，否则直接使用
+                    form_data[field] = json.loads(data) if isinstance(data, str) else data
                 except json.JSONDecodeError:
-                    form_data[field] = [] if field != 'tags' else {}
-        
-        return form_data
+                    form_data[field] = []
+            elif field in request.data:  # 明确处理空数组的情况
+                form_data[field] = []
 
-    def _insert_images_to_content(self, dream):
-        """插入图片到内容中"""
-        return dream.content
+        return form_data
 
 
 class DreamJournalViewSet(viewsets.ModelViewSet):

@@ -41,7 +41,8 @@ class DreamAnalysisConsumer(AsyncWebsocketConsumer):
                 'type': 'connection_established',
                 'message': '已连接到梦境分析服务',
                 'user_id': self.user.id,
-                'room_name': self.room_name
+                'room_name': self.room_name,
+                'room_group_name': self.room_group_name
             }))
             
             logger.info(f"User {self.user.id} connected to dream analysis WebSocket")

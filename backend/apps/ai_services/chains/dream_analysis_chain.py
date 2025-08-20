@@ -113,11 +113,7 @@ class DreamAnalysisChain:
             return None
     
     def expand_queries(self, dream_data: Dict[str, Any]) -> Optional[QueryExpansionResult]:
-        """扩展查询，用于RAG检索 - 返回结构化对象"""
-        if not self.query_expansion_chain:
-            logger.error("Query expansion chain not available")
-            return None
-            
+        """扩展查询，用于RAG检索 - 返回结构化对象"""        
         try:
             # 准备输入数据
             input_data = {
@@ -130,7 +126,6 @@ class DreamAnalysisChain:
             # 执行查询扩展，返回Pydantic对象
             result = self.query_expansion_chain.invoke(input_data)
             
-            logger.info(f"Query expansion completed: {result.primary_queries}")
             return result
             
         except Exception as e:
@@ -138,45 +133,58 @@ class DreamAnalysisChain:
             return None
     
     def analyze_dream_with_rag(self, dream_data: Dict[str, Any]) -> Optional[DreamAnalysisResult]:
-        """使用RAG增强的梦境分析 - 返回结构化对象"""
-        if not self.analysis_chain:
-            logger.error("Dream analysis chain not available")
-            return None
-            
+        """使用RAG增强的梦境分析"""
         try:
-            # 1. 查询扩展
-            expansion_result = self.expand_queries(dream_data)
-            if not expansion_result or not expansion_result.primary_queries:
-                logger.warning("Query expansion failed, proceeding without RAG")
-                retrieved_knowledge = "无法获取相关知识库信息"
-            else:
-                # 2. RAG检索
+            import concurrent.futures
+            import time
+            
+            # 并行执行：查询扩展 + 格式化梦境数据
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                # 提交并行任务
+                query_future = executor.submit(self.expand_queries, dream_data)
+                format_future = executor.submit(
+                    DreamAnalysisPrompts.format_dream_data_for_analysis, 
+                    dream_data
+                )
+                
+                # 收集结果
+                expansion_result = query_future.result(timeout=10)
+                formatted_data = format_future.result(timeout=5)
+            
+            # RAG检索（如果查询扩展成功）
+            if expansion_result and expansion_result.primary_queries:
+                retrieval_start = time.time()
                 queries = expansion_result.primary_queries
+                # retrieve_documents会创建一个线程池，池中的线程数量等于您生成的查询（queries）数量，最多为3个，以避免过多消耗资源
+                # 它会将所有的查询任务提交到线程池，并等待所有任务完成。
+                # 线程池中的多个线程会同时向向量数据库发起查询请求
+                # 主线程会等待所有并行查询完成后，收集并去重所有结果，然后返回一个统一的文档列表。
                 retrieval_result = self.rag_retriever.retrieve_documents(queries)
                 retrieved_knowledge = self.rag_retriever.format_retrieved_knowledge(
                     retrieval_result
                 ) if retrieval_result else "未找到相关知识库信息"
+                
+                retrieval_time = time.time() - retrieval_start
+                logger.info(f"RAG retrieval completed in {retrieval_time:.2f}s")
+            else:
+                logger.warning("Query expansion failed, proceeding without RAG")
+                retrieved_knowledge = "无法获取相关知识库信息"
             
-            # 3. 格式化梦境数据用于分析
-            formatted_data = DreamAnalysisPrompts.format_dream_data_for_analysis(dream_data)
+            # 设置检索到的知识
             formatted_data['retrieved_knowledge'] = retrieved_knowledge
             
-            # 4. 执行分析，返回Pydantic对象
+            # 执行最终分析
             analysis_result = self.analysis_chain.invoke(formatted_data)
-            
-            logger.info("Dream analysis with RAG completed successfully")
+             
             return analysis_result
             
+        except concurrent.futures.TimeoutError:
+            raise Exception("Timeout in parallel processing")
         except Exception as e:
-            logger.error(f"Error in dream analysis with RAG: {e}", exc_info=True)
-            return None
+            raise Exception(f"Error in parallel dream analysis: {e}")
     
     def analyze_dream_simple(self, dream_data: Dict[str, Any]) -> Optional[DreamAnalysisResult]:
         """简单的梦境分析（不使用RAG）- 返回结构化对象"""
-        if not self.analysis_chain:
-            logger.error("Dream analysis chain not available")
-            return None
-            
         try:
             # 格式化梦境数据
             formatted_data = DreamAnalysisPrompts.format_dream_data_for_analysis(dream_data)

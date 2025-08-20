@@ -164,7 +164,7 @@ const ResizableTextarea = forwardRef(({
             <div
                 className="resizable-textarea-handle"
                 onMouseDown={handleMouseDown}
-                title="拖拽调整文本框高度 (或使用 Ctrl+Shift+↑/↓)"
+                title="拖拽调整高度"
             >
                 <div className="resizable-textarea-handle-line">
                     <GripHorizontal className="resizable-textarea-handle-icon" />

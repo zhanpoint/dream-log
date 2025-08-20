@@ -36,18 +36,20 @@ OPENROUTER_MODELS = config(
 # OpenRouter的Base URL
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
+# 嵌入模型
+EMBEDDING_MODEL=config('EMBEDDING_MODEL', default='voyage-3.5-lite', cast=str)
+
 # Tavily搜索API配置
 TAVILY_API_KEY = config('TAVILY_API_KEY', default='', cast=str)
 
 # Firecrawl API配置  
 FIRECRAWL_API_KEY = config('FIRECRAWL_API_KEY', default='', cast=str)
 
-# Cohere API配置（用于重排序）
-COHERE_API_KEY = config('COHERE_API_KEY', default='', cast=str)
+# VoyageAI API配置（用于重排序）
+VOYAGE_API_KEY = config('VOYAGE_API_KEY', default='', cast=str)
 
-# Google Gemini配置
-GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='', cast=str)
-GEMINI_EMBEDDING_MODEL = config('GEMINI_EMBEDDING_MODEL', default='models/embedding-001', cast=str)
+# RAG功能开关
+RAG_ENABLED = config('RAG_ENABLED', default=True, cast=bool)
 
 # ChromaDB Cloud配置
 CHROMA_CLOUD_API_KEY = config('CHROMA_CLOUD_API_KEY', default='', cast=str)
@@ -77,20 +79,6 @@ def _apply_proxy_settings() -> None:
 	os.environ.setdefault('https_proxy', PROXY_URL)
 	os.environ.setdefault('NO_PROXY', 'localhost,127.0.0.1,::1')
 
-# LangSmith Tracing (optional)
-# LANGCHAIN_TRACING_V2 = config('LANGCHAIN_TRACING_V2', default='true')
-# LANGCHAIN_API_KEY = config('LANGCHAIN_API_KEY', default='')
-# LANGCHAIN_PROJECT = config('LANGCHAIN_PROJECT', default='DreamLog-Project')
-
-# def _setup_langsmith():
-#     """配置LangSmith环境"""
-#     os.environ['LANGCHAIN_TRACING_V2'] = LANGCHAIN_TRACING_V2
-#     os.environ['LANGCHAIN_API_KEY'] = LANGCHAIN_API_KEY
-#     os.environ['LANGCHAIN_PROJECT'] = LANGCHAIN_PROJECT
-#     logger.info(f"LangSmith Tracing is {'enabled' if LANGCHAIN_TRACING_V2 == 'true' else 'disabled'}")
-
-# _setup_langsmith()
-
 
 class LLMManager:
     """LLM管理器 - 遵循单例模式和场景特定配置的最佳实践"""
@@ -109,38 +97,38 @@ class LLMManager:
         primary_model = models[0] if models else "google/gemini-2.5-flash-lite"
         
         self.scenario_configs = {
-            # 梦境深度分析 - 需要高创造性、详细输出（性能优化版）
+            # 梦境深度分析 - 需要高创造性、详细输出
             LLMScenario.DREAM_ANALYSIS: LLMConfig(
                 model=primary_model,
-                temperature=0.75,           # 适度降低温度以提高响应速度
-                top_p=0.85,               # 稍微降低以减少计算复杂度
-                max_tokens=6144,          # 减少到7K以提高速度，仍足够详细分析
-                presence_penalty=0.3,     # 降低惩罚值，减少计算开销
-                frequency_penalty=0.2,    # 降低频率惩罚，优化性能
-                response_format={"type": "json_object"},  # 强制JSON输出格式
-                description="梦境深度分析 - 平衡创造性与性能"
+                temperature=0.75,
+                top_p=0.85,
+                max_tokens=5120,
+                presence_penalty=0.3,
+                frequency_penalty=0.2,
+                response_format={"type": "json_object"},
+                description="梦境深度分析 - 高创造性、详细输出"
             ),
             
-            # RAG查询扩展 - 需要精确、结构化（性能优化版）
+            # RAG查询扩展 - 需要精确、结构化
             LLMScenario.QUERY_EXPANSION: LLMConfig(
                 model=primary_model,
-                temperature=0.25,          # 进一步降低温度，提高确定性和速度
-                top_p=0.8,               # 更严格的词汇选择，减少计算
-                max_tokens=256,          # 减少到256，查询扩展不需要太长
-                presence_penalty=0.1,    # 不惩罚重复，减少计算
-                frequency_penalty=0.1,   # 去除频率惩罚，优化速度
-                response_format={"type": "json_object"},  # 强制JSON输出格式
+                temperature=0.25,
+                top_p=0.8,
+                max_tokens=256,
+                presence_penalty=0.1,
+                frequency_penalty=0.1,
+                response_format={"type": "json_object"},
                 description="RAG查询扩展 - 快速、精确的查询生成"
             ),
             
             # AI标题生成 - 需要简洁、准确
             LLMScenario.TITLE_GENERATION: LLMConfig(
                 model=primary_model,
-                temperature=0.6,         # 中等温度，平衡创意和准确性
-                top_p=0.85,             # 适中的词汇选择范围
-                max_tokens=128,         # 小输出长度，标题要简洁
-                presence_penalty=0.1,   # 轻微惩罚重复，鼓励标题多样性
-                frequency_penalty=0.1,  # 轻微频率惩罚，避免标题套路化
+                temperature=0.6,
+                top_p=0.85,
+                max_tokens=128,
+                presence_penalty=0.1,
+                frequency_penalty=0.1,
                 description="AI标题生成 - 简洁、创意、准确"
             )
         }
@@ -190,7 +178,7 @@ class LLMManager:
                 presence_penalty=config_obj.presence_penalty,
                 frequency_penalty=config_obj.frequency_penalty,
                 model_kwargs=model_kwargs,
-                timeout=15  # 降低超时时间以快速识别问题
+                timeout=15
             )
             
             # 缓存实例
@@ -205,8 +193,6 @@ class LLMManager:
             logger.error(f"Failed to initialize LLM for scenario {scenario}: {e}", exc_info=True)
             return None
     
-
-
 
 # 全局LLM管理器实例（单例）
 _llm_manager = LLMManager()

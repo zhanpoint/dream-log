@@ -2,6 +2,17 @@ import notification from "@/utils/notification";
 import { tokenManager } from '../auth/tokenManager';
 import axios from 'axios';
 
+/**
+ * 检查是否是认证相关的API请求
+ * @param {string} url - 请求URL
+ * @returns {boolean} 是否是认证相关请求
+ */
+const isAuthError = (url) => {
+    if (!url) return false;
+    const authPaths = ['/auth/sessions/', '/users/', '/auth/tokens/', '/users/password/'];
+    return authPaths.some(path => url.includes(path));
+};
+
 // 令牌刷新状态管理
 let isRefreshing = false;
 let failedQueue = [];
@@ -81,11 +92,6 @@ export const setupRequestInterceptor = (apiClient) => {
                     // 触发重新登录
                     window.dispatchEvent(new CustomEvent('auth:required'));
 
-                    notification.error('登录已过期，请重新登录', {
-                        duration: 5000,
-                        id: 'auth-expired'
-                    });
-
                     return Promise.reject(error);
                 } finally {
                     isRefreshing = false;
@@ -138,12 +144,6 @@ export const setupResponseInterceptor = (apiClient) => {
                 // 刷新失败，处理排队的请求
                 processQueue(refreshError, null, apiClient);
 
-                // 显示通知提示用户需要重新登录
-                notification.error('登录已过期，请重新登录', {
-                    duration: 5000,
-                    id: 'auth-expired'
-                });
-
                 // 触发认证事件
                 window.dispatchEvent(new CustomEvent('auth:required'));
 
@@ -153,27 +153,7 @@ export const setupResponseInterceptor = (apiClient) => {
             }
         }
 
-        // 处理其他常见错误
-        if (error.response) {
-            // 服务器返回了错误状态码
-            switch (error.response.status) {
-                case 403:
-                    notification.error('没有权限执行此操作', { id: 'error-403' });
-                    break;
-                case 404:
-                    notification.error('请求的资源不存在', { id: 'error-404' });
-                    break;
-                case 500:
-                    notification.error('服务器内部错误，请稍后再试', { id: 'error-500' });
-                    break;
-                default:
-                    // 其他错误状态不主动显示，由调用方处理
-                    break;
-            }
-        } else if (error.request) {
-            // 请求发出，但没有收到响应
-            notification.error('网络错误，无法连接到服务器', { id: 'network-error' });
-        }
+        // 所有其他错误由调用方处理，不在拦截器中显示通知
 
         return Promise.reject(error);
     });

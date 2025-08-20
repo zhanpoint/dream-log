@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label.jsx";
 import { emailService } from "@/services/notification/email";
 import { smsService } from "@/services/notification/sms";
 import notification from "@/utils/notification";
-import { isFeatureEnabled, getAvailableResetMethods } from "@/config/features";
+import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useAuth } from "@/hooks/useAuth";
 import "./css/DreamTheme.css";
+import "./css/pc-responsive.css";
 
 /**
  * 密码重置表单组件
@@ -20,6 +21,7 @@ import "./css/DreamTheme.css";
 export function ResetPasswordForm() {
     const navigate = useNavigate();
     const { resetPassword } = useAuth();
+    const { isFeatureEnabled, getAvailableResetMethods } = useFeatureFlags();
 
     // 获取可用的重置方式
     const availableResetMethods = getAvailableResetMethods();
@@ -257,6 +259,7 @@ export function ResetPasswordForm() {
                 notification.success("密码重置成功！请使用新密码登录");
                 navigate("/login");
             } else {
+                // 仅设置表单错误状态
                 if (result.field) {
                     setErrors({ [result.field]: result.message });
                 } else {
@@ -290,6 +293,7 @@ export function ResetPasswordForm() {
                 notification.success("密码重置成功！请使用新密码登录");
                 navigate("/login");
             } else {
+                // 仅设置表单错误状态
                 if (result.field) {
                     setErrors({ [result.field]: result.message });
                 } else {

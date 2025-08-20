@@ -175,21 +175,11 @@ const ResizableEditor = ({
                 onMouseDown={handleMouseDown}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
-                title="拖拽调整编辑器高度 (或使用 Ctrl+Shift+↑/↓)"
+                title="拖拽调整高度"
             >
                 <div className="resizable-editor-handle-line">
                     <GripHorizontal className="resizable-editor-handle-icon" />
                 </div>
-                <div className="resizable-editor-handle-tooltip">
-                    拖拽调整高度 (Ctrl+Shift+↑/↓)
-                </div>
-
-                {/* 高度指示器 */}
-                {isResizing && (
-                    <div className="resizable-editor-height-indicator">
-                        {height}px
-                    </div>
-                )}
             </div>
         </div>
     );

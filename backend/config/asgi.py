@@ -12,7 +12,7 @@ import django
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from channels.security.websocket import AllowedHostsOriginValidator
+from channels.security.websocket import AllowedHostsOriginValidator, OriginValidator
 
 
 # 设置Django的环境变量，指定设置模块
@@ -34,10 +34,10 @@ from apps.ai_services.websocket.routing.urls import websocket_urlpatterns
 
 application = ProtocolTypeRouter({  # - 根据不同的协议类型（HTTP/WebSocket）路由到不同的处理器
     "http": django_asgi_app,  # Django视图处理HTTP请求
-    "websocket": AllowedHostsOriginValidator(  # 验证WebSocket请求来源
-        AuthMiddlewareStack(  # 提供认证中间件
-            URLRouter(  # 处理WebSocket的URL路由
-                websocket_urlpatterns  # 自定义的WebSocket路由配置
+    "websocket": AllowedHostsOriginValidator(  # 确保了在进行来源验证之前，用户的身份已经通过认证
+        AuthMiddlewareStack(
+            URLRouter(
+                websocket_urlpatterns
             )
         )
     ),

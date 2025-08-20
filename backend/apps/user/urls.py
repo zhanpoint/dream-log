@@ -8,7 +8,6 @@ from apps.user.views.user import (
     UserViewSet,
     AuthSessionAPIView,
     UserPasswordAPIView,
-    FeatureFlagsAPIView,
 )
 
 # 路由器和ViewSet注册
@@ -36,16 +35,9 @@ verification_urlpatterns = [
     path('email/', EmailVerificationCodeAPIView.as_view(), name='email-verification'),
 ]
 
-# 系统相关路由
-# API Prefix: /api/system/
-system_urlpatterns = [
-    path('features/', FeatureFlagsAPIView.as_view(), name='feature-flags'),
-]
-
 # user app的主路由, 最终会通过 config/urls.py 组合成:
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/', include(auth_urlpatterns)),
     path('verifications/', include(verification_urlpatterns)),
-    path('system/', include(system_urlpatterns)),
 ]

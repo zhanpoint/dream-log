@@ -17,7 +17,6 @@ from apps.user.serializers.user_serializers import (
 )
 from apps.user.utils.sms import SMSService
 from apps.user.utils.email import EmailService
-from config.env_config import FEATURE_FLAGS
 
 # 获取日志记录器
 logger = logging.getLogger(__name__)
@@ -551,36 +550,4 @@ class UserPasswordAPIView(APIView):
                 "code": 500,
                 "message": "服务器错误，密码重置失败",
                 "errors": {"detail": ["服务器内部错误，请稍后重试"]}
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FeatureFlagsAPIView(APIView):
-    """
-    获取功能开关状态API
-    """
-    permission_classes = [AllowAny]
-    
-    def get(self, request):
-        """
-        获取前端需要的功能开关状态
-        """
-        try:
-            # 只返回前端需要的功能开关
-            frontend_flags = {
-                'SMS_SERVICE_ENABLED': FEATURE_FLAGS.get('SMS_SERVICE_ENABLED', False),
-                'EMAIL_SERVICE_ENABLED': FEATURE_FLAGS.get('EMAIL_SERVICE_ENABLED', True),
-                'PASSWORD_LOGIN_ENABLED': True,  # 密码登录始终启用
-            }
-            
-            return Response({
-                'code': 200,
-                'message': '获取功能开关状态成功',
-                'data': frontend_flags
-            }, status=status.HTTP_200_OK)
-            
-        except Exception as e:
-            logger.error(f"获取功能开关状态失败: {str(e)}")
-            return Response({
-                'code': 500,
-                'message': '获取功能开关状态失败'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

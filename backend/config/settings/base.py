@@ -25,7 +25,8 @@ INSTALLED_APPS = [
     'django_celery_beat',  # 用于管理Celery Beat定时任务
     
     # 本地应用
-    'apps.dream',
+    'apps.core',
+    'apps.dream', 
     'apps.user',
     'apps.ai_services',
 ]

@@ -274,27 +274,42 @@ class UnifiedAuthService {
     }
 
     /**
-     * 统一处理认证错误
-     * @private
-     */
+ * 统一处理认证错误
+ * @private
+ */
     _handleAuthError(error, operationType) {
         console.error(`${operationType}操作失败:`, error);
 
-        // 处理不同类型的错误
+        // 仅处理后端返回的错误信息
         if (error.response?.data) {
             const errorData = error.response.data;
 
-            // 处理字段级别的错误
+            // 处理后端错误格式
             if (errorData.errors && typeof errorData.errors === 'object') {
+                // 处理 DRF non_field_errors
+                if (errorData.errors.non_field_errors && Array.isArray(errorData.errors.non_field_errors)) {
+                    return {
+                        success: false,
+                        message: errorData.errors.non_field_errors[0]
+                    };
+                }
+
+                // 处理字段级别的错误
                 const firstErrorField = Object.keys(errorData.errors)[0];
-                const firstErrorMessage = Array.isArray(errorData.errors[firstErrorField])
-                    ? errorData.errors[firstErrorField][0]
-                    : errorData.errors[firstErrorField];
+                let firstErrorMessage = errorData.errors[firstErrorField];
+
+                // 如果是数组，取第一个元素；如果是ErrorDetail对象，取string属性
+                if (Array.isArray(firstErrorMessage)) {
+                    firstErrorMessage = firstErrorMessage[0];
+                }
+                if (typeof firstErrorMessage === 'object' && firstErrorMessage.string) {
+                    firstErrorMessage = firstErrorMessage.string;
+                }
 
                 return {
                     success: false,
                     message: firstErrorMessage,
-                    field: firstErrorField
+                    field: firstErrorField === 'non_field_errors' ? undefined : firstErrorField
                 };
             }
 
@@ -305,22 +320,6 @@ class UnifiedAuthService {
                     message: errorData.message
                 };
             }
-        }
-
-        // 处理网络错误
-        if (error.code === 'NETWORK_ERROR' || !error.response) {
-            return {
-                success: false,
-                message: '网络错误，请检查网络连接'
-            };
-        }
-
-        // 处理超时错误
-        if (error.code === 'TIMEOUT' || error.message.includes('timeout')) {
-            return {
-                success: false,
-                message: '请求超时，请稍后重试'
-            };
         }
 
         // 默认错误处理

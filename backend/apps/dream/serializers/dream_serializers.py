@@ -54,7 +54,7 @@ class DreamSerializer(serializers.ModelSerializer):
         model = Dream
         fields = [
             # 基础信息
-            'id', 'title', 'content', 'interpretation', 'personal_notes',
+            'id', 'title', 'content', 'user_analysis', 'ai_analysis', 'personal_notes',
             'dream_date', 'author',
             
             # 梦境特征
@@ -127,7 +127,7 @@ class DreamCreateSerializer(serializers.ModelSerializer):
         model = Dream
         fields = [
             # 基础信息
-            'title', 'content', 'interpretation', 'personal_notes', 'dream_date',
+            'title', 'content', 'user_analysis', 'ai_analysis', 'personal_notes', 'dream_date',
             
             # 梦境特征
             'lucidity_level', 'mood_before_sleep', 'mood_in_dream', 'mood_after_waking',
@@ -172,7 +172,7 @@ class DreamCreateSerializer(serializers.ModelSerializer):
             for tag_data in tags_data:
                 tag, created = Tag.objects.get_or_create(
                     name=tag_data['name'],
-                    tag_type=tag_data.get('tag_type', 'custom'),
+                    tag_type=tag_data.get('tag_type', 'emotion'),
                     created_by=self.context['request'].user,
                     defaults={
                         'is_public': tag_data.get('is_public', False)
@@ -213,12 +213,13 @@ class DreamUpdateSerializer(DreamCreateSerializer):
         
         # 更新标签
         if tags_data is not None:
+            instance.tags.clear()  # 先清除旧标签
             # 处理新标签
             tag_instances = []
             for tag_data in tags_data:
                 tag, created = Tag.objects.get_or_create(
                     name=tag_data['name'],
-                    tag_type=tag_data.get('tag_type', 'custom'),
+                    tag_type=tag_data.get('tag_type', 'emotion'),
                     created_by=self.context['request'].user,
                     defaults={
                         'is_public': tag_data.get('is_public', False)

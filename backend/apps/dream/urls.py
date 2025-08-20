@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import oss
 from .views.dream import DreamViewSet, DreamJournalViewSet, SleepPatternViewSet
+from .views.statistics import dream_statistics
 
 # 创建路由器并注册ViewSet
 router = DefaultRouter()
@@ -23,4 +24,6 @@ urlpatterns = [
     path('', include(router.urls)),
     # 文件相关路由
     path('files/', include(file_urlpatterns)),
+    # 统计路由
+    path('statistics/', dream_statistics, name='dream-statistics'),
 ]

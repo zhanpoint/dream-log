@@ -6,10 +6,9 @@ import logging
 from typing import List, Optional
 
 from langchain_core.documents import Document
-from langchain_cohere import CohereRerank
-from langchain_openai import OpenAIEmbeddings
+from langchain_voyageai import VoyageAIRerank, VoyageAIEmbeddings
 
-from ..config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL
+from ..config import VOYAGE_API_KEY
 from ..knowledge_base.workflow._6_vectorstore import get_vectorstore
 
 logger = logging.getLogger(__name__)
@@ -39,50 +38,26 @@ class DreamAnalysisRAGRetriever:
         
         # 初始化组件
         self.vectorstore = get_vectorstore()
-        self.embeddings = self._initialize_embeddings()
         
-        # 初始化重排序器（如果可用）
-        self.reranker = self._initialize_reranker() if enable_reranking else None
-        
-        logger.info("DreamAnalysisRAGRetriever initialized successfully")
+        # 初始化重排序器
+        self.reranker = self._initialize_reranker()
     
-    def _initialize_embeddings(self) -> OpenAIEmbeddings:
-        """初始化嵌入模型（OpenAIEmbeddings via OpenRouter）"""
+    def _initialize_reranker(self) -> Optional[VoyageAIRerank]:
+        """初始化VoyageAI重排序器"""
         try:
-            if not OPENROUTER_API_KEY:
-                raise ValueError("OPENROUTER_API_KEY is required for embeddings")
-
-            embeddings = OpenAIEmbeddings(
-                model="text-embedding-3-small",
-                api_key=OPENROUTER_API_KEY,
-                base_url=OPENROUTER_BASE_URL
-            )
-
-            return embeddings
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize embeddings: {e}", exc_info=True)
-            raise
-    
-    def _initialize_reranker(self) -> Optional[CohereRerank]:
-        """初始化Cohere重排序器"""
-        try:
-            from decouple import config
-            cohere_api_key = config('COHERE_API_KEY', default='')
-            
-            if not cohere_api_key:
-                logger.warning("COHERE_API_KEY not found, reranking will be disabled")
+            if not VOYAGE_API_KEY:
+                logger.warning("VOYAGE_API_KEY not found, reranking will be disabled")
                 return None
                 
-            reranker = CohereRerank(
-                cohere_api_key=cohere_api_key,
-                    model='rerank-multilingual-v3.0',  # 添加model参数
-                top_n=self.top_n_final
+            reranker = VoyageAIRerank(
+                voyageai_api_key=VOYAGE_API_KEY,
+                model='rerank-2.5-lite',
+                top_k=self.top_n_final
             )
             return reranker
             
         except ImportError:
-            logger.warning("Cohere reranker not available, falling back to score-based ranking")
+            logger.warning("VoyageAI reranker not available, falling back to score-based ranking")
             return None
         except Exception as e:
             logger.error(f"Failed to initialize reranker: {e}", exc_info=True)
@@ -90,7 +65,7 @@ class DreamAnalysisRAGRetriever:
     
     def retrieve_documents(self, queries: List[str]) -> List[Document]:
         """
-        使用多个查询进行并行向量检索 - 性能优化版
+        使用多个查询进行并行向量检索
         
         Args:
             queries: 查询列表
@@ -99,14 +74,12 @@ class DreamAnalysisRAGRetriever:
             检索到的文档列表
         """
         import concurrent.futures
-        import threading
         
         if not queries:
             return []
             
         all_documents = []
         seen_content = set()
-        seen_content_lock = threading.Lock()
         
         def search_single_query(query: str) -> List[Document]:
             """单个查询的搜索函数"""
@@ -116,7 +89,6 @@ class DreamAnalysisRAGRetriever:
                     k=self.top_k_initial // len(queries),  # 平均分配每个查询的检索数量
                     score_threshold=self.score_threshold
                 )
-                logger.info(f"Query '{query}' retrieved {len(docs)} documents")
                 return docs
             except Exception as e:
                 logger.error(f"Error searching for query '{query}': {e}")
@@ -131,58 +103,26 @@ class DreamAnalysisRAGRetriever:
                     for query in queries
                 }
                 
-                # 收集结果
+                # 按完成顺序收集检索结果
                 for future in concurrent.futures.as_completed(future_to_query):
-                    query = future_to_query[future]
                     try:
                         docs = future.result(timeout=10)  # 10秒超时
                         
-                        # 线程安全的去重
-                        with seen_content_lock:
-                            for doc in docs:
-                                content_hash = hash(doc.page_content)
-                                if content_hash not in seen_content:
-                                    seen_content.add(content_hash)
-                                    all_documents.append(doc)
+                        for doc in docs:
+                            content_hash = hash(doc.page_content)
+                            if content_hash not in seen_content:
+                                seen_content.add(content_hash)
+                                all_documents.append(doc)
                                     
                     except concurrent.futures.TimeoutError:
-                        logger.warning(f"Query '{query}' timed out")
+                        logger.warning(f"Query  timed out")
                     except Exception as e:
-                        logger.error(f"Query '{query}' failed: {e}")
+                        logger.error(f"Query failed: {e}")
             
-            logger.info(f"Total unique documents retrieved: {len(all_documents)}")
             return all_documents
             
         except Exception as e:
             logger.error(f"Error in parallel document retrieval: {e}", exc_info=True)
-            # 如果并行检索失败，回退到串行方式
-            return self._retrieve_documents_serial(queries)
-    
-    def _retrieve_documents_serial(self, queries: List[str]) -> List[Document]:
-        """备用的串行检索方法"""
-        all_documents = []
-        seen_content = set()
-        
-        try:
-            for query in queries:
-                docs = self.vectorstore.search_similar(
-                    query=query,
-                    k=self.top_k_initial // len(queries),
-                    score_threshold=self.score_threshold
-                )
-                
-                for doc in docs:
-                    content_hash = hash(doc.page_content)
-                    if content_hash not in seen_content:
-                        seen_content.add(content_hash)
-                        all_documents.append(doc)
-                        
-                logger.info(f"Query '{query}' retrieved {len(docs)} documents")
-            
-            return all_documents
-            
-        except Exception as e:
-            logger.error(f"Error in serial document retrieval: {e}", exc_info=True)
             return []
     
     def rerank_documents(self, documents: List[Document], query: str) -> List[Document]:
@@ -200,51 +140,13 @@ class DreamAnalysisRAGRetriever:
             return documents
             
         try:
-            if self.reranker:
-                # 使用Cohere重排序器
-                reranked_docs = self.reranker.compress_documents(documents, query)
-                logger.info(f"Cohere reranker processed {len(documents)} -> {len(reranked_docs)} documents")
-                return reranked_docs[:self.top_n_final]
-            else:
-                # 回退到基于相似度的简单排序
-                return self._simple_rerank(documents, query)
-                
+            # 使用VoyageAI重排序器
+            reranked_docs = self.reranker.compress_documents(documents=documents, query=query)
+            return reranked_docs
         except Exception as e:
             logger.error(f"Error in document reranking: {e}", exc_info=True)
-            return documents[:self.top_n_final]
-    
-    def _simple_rerank(self, documents: List[Document], query: str) -> List[Document]:
-        """简单的基于关键词匹配的重排序"""
-        try:
-            query_terms = set(query.lower().split())
-            
-            def calculate_relevance_score(doc: Document) -> float:
-                content = doc.page_content.lower()
-                title = doc.metadata.get('title', '').lower()
-                
-                # 计算关键词匹配分数
-                content_matches = sum(1 for term in query_terms if term in content)
-                title_matches = sum(2 for term in query_terms if term in title)  # 标题匹配权重更高
-                
-                # 考虑文档长度
-                length_score = min(len(content) / 1000, 1.0)  # 标准化到0-1
-                
-                return content_matches + title_matches + length_score
-            
-            # 根据相关性分数排序
-            scored_docs = [(doc, calculate_relevance_score(doc)) for doc in documents]
-            scored_docs.sort(key=lambda x: x[1], reverse=True)
-            
-            reranked = [doc for doc, score in scored_docs[:self.top_n_final]]
-            logger.info(f"Simple reranking processed {len(documents)} -> {len(reranked)} documents")
-            return reranked
-            
-        except Exception as e:
-            logger.error(f"Error in simple reranking: {e}", exc_info=True)
-            return documents[:self.top_n_final]
-    
-# 移除了冗余的retrieve_for_dream_analysis方法
-    # 现在使用更简洁的retrieve_documents -> format_retrieved_knowledge流程
+            return []
+
     
     def format_retrieved_knowledge(self, documents: List[Document]) -> str:
         """
@@ -265,7 +167,6 @@ class DreamAnalysisRAGRetriever:
             title = doc.metadata.get('title', f'相关知识 {i}')
             content = doc.page_content.strip()
             
-            # 简化格式，只保留标题和内容
             section = f"**{title}**\n\n{content}"
             formatted_sections.append(section)
         

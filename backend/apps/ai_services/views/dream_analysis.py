@@ -23,7 +23,6 @@ def start_dream_analysis_view(request):
     
     请求参数:
         - dream_data: 梦境数据字典（必需）
-        - use_rag: 是否使用RAG增强（可选，默认True）
         - websocket_channel_id: WebSocket频道ID（必需）
     """
     try:
@@ -34,8 +33,6 @@ def start_dream_analysis_view(request):
         
         # 参数解析和验证
         dream_data = data.get('dream_data')
-        use_rag = data.get('use_rag', True)
-        websocket_channel_id = data.get('websocket_channel_id')
         
         # 验证必需参数
         if not dream_data:
@@ -44,17 +41,13 @@ def start_dream_analysis_view(request):
                 'error': '必须提供 dream_data'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        if not websocket_channel_id:
-            return Response({
-                'success': False,
-                'error': '必须提供 websocket_channel_id'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # 自动生成用户专属的房间组名称，与 WebSocket 消费者保持一致
+        websocket_channel_id = f"dream_analysis_group_{request.user.id}"
         
         # 执行异步分析
         result = service.start_async_analysis(
             dream_data=dream_data,
-            websocket_channel_id=websocket_channel_id,
-            use_rag=use_rag
+            websocket_channel_id=websocket_channel_id
         )
         
         # 返回响应
@@ -68,41 +61,6 @@ def start_dream_analysis_view(request):
         return Response({
             'success': False,
             'error': '服务器内部错误，请稍后重试'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_analysis_status_view(request, task_id):
-    """
-    获取分析任务状态，仅用于HTTP轮询备用机制，不用于WebSocket实时更新
-    
-    路径参数:
-        - task_id: 任务ID
-    """
-    try:
-        if not task_id:
-            return Response({
-                'success': False,
-                'error': '任务ID不能为空'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # 获取服务实例
-        service = get_dream_analysis_service()
-        
-        # 获取状态
-        status_info = service.get_analysis_status(task_id)
-        
-        return Response({
-            'success': True,
-            'status_info': status_info
-        }, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        logger.error(f"Error in get_analysis_status_view: {e}", exc_info=True)
-        return Response({
-            'success': False,
-            'error': '获取状态失败'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

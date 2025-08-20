@@ -1,16 +1,16 @@
 /* ===== Tiptap编辑器基础样式 ===== */
 .tiptap-editor-wrapper {
-    @apply relative border border-purple-300/30 rounded-lg;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    @apply relative rounded-lg;
+    background: hsl(var(--input));
+    border: 1px solid hsl(var(--border));
     transition: all 0.3s ease;
-    /* 移除overflow-hidden，允许滚动条显示 */
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 }
 
 .tiptap-editor-wrapper:focus-within {
-    @apply border-purple-400/50;
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
 }
 
 /* ===== 真正的全屏模式样式（Portal渲染到body） ===== */
@@ -41,8 +41,8 @@
 .tiptap-fullscreen-menubar {
     @apply relative border-b border-purple-300/30 flex-shrink-0;
     background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
 }
 
 .tiptap-fullscreen-toolbar {
@@ -89,24 +89,26 @@
 @keyframes fullscreenFadeIn {
     from {
         opacity: 0;
-        backdrop-filter: blur(0px);
         -webkit-backdrop-filter: blur(0px);
+        backdrop-filter: blur(0px);
     }
 
     to {
         opacity: 1;
-        backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
     }
 }
 
 /* ===== 工具栏样式 ===== */
 .tiptap-menubar {
-    @apply flex items-center justify-between gap-2 p-3 border-b border-purple-300/20;
-    background: rgba(255, 255, 255, 0.02);
+    @apply flex items-center justify-between gap-2 p-3;
+    border-bottom: 2px solid hsl(var(--border));
+    background: hsl(var(--card));
     flex-wrap: wrap;
     min-height: 60px;
     position: relative;
+    box-shadow: 0 1px 3px hsl(var(--shadow) / 0.1);
 }
 
 .tiptap-button-group {
@@ -114,24 +116,47 @@
 }
 
 .tiptap-separator {
-    @apply w-px h-6 bg-purple-300/30 mx-1;
+    @apply w-px h-6 mx-1;
+    background: hsl(var(--border));
+    opacity: 0.7;
 }
 
 .tiptap-menu-button {
-    @apply h-8 w-8 p-0 text-purple-200 hover:text-white hover:bg-purple-600/20;
+    @apply h-8 w-8 p-0 rounded;
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+    border: 1px solid transparent;
     transition: all 0.2s ease;
 }
 
+.tiptap-menu-button:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--accent));
+    border-color: hsl(var(--border));
+}
+
 .tiptap-menu-button:disabled {
-    @apply opacity-50 cursor-not-allowed;
+    @apply opacity-40 cursor-not-allowed;
 }
 
 .tiptap-active {
-    @apply bg-purple-600/30 text-purple-300 border-purple-400/50;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+}
+
+.tiptap-active:hover {
+    background: hsl(var(--primary) / 0.9);
+    color: hsl(var(--primary-foreground));
 }
 
 .tiptap-close-button {
-    @apply ml-2 border border-purple-400/30 hover:border-purple-400/60;
+    @apply ml-2;
+    border: 1px solid hsl(var(--border));
+}
+
+.tiptap-close-button:hover {
+    border-color: hsl(var(--ring));
 }
 
 /* ===== 标题按钮样式 ===== */
@@ -142,7 +167,8 @@
 
 /* ===== 统计信息样式 ===== */
 .tiptap-stats {
-    @apply flex items-center gap-3 text-xs text-purple-300 ml-auto;
+    @apply flex items-center gap-3 text-xs ml-auto;
+    color: hsl(var(--muted-foreground));
 }
 
 .tiptap-stat-item {
@@ -154,8 +180,8 @@
     @apply px-2 py-1 text-xs text-purple-200 whitespace-nowrap rounded;
     background: rgba(30, 27, 62, 0.95);
     border: 1px solid rgba(147, 51, 234, 0.4);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     animation: tooltipFadeIn 0.2s ease-out;
     pointer-events: none;
@@ -219,12 +245,10 @@
 /* ===== 编辑器内容样式 ===== */
 .tiptap-content {
     @apply p-4 focus:outline-none min-h-[300px] max-h-[400px];
-    color: #e5e7eb;
+    color: hsl(var(--foreground));
     line-height: 1.7;
     overflow-y: auto;
-    /* 确保滚动条显示 */
     scrollbar-width: thin;
-    scrollbar-color: rgba(147, 51, 234, 0.5) rgba(31, 41, 55, 0.5);
 }
 
 .tiptap-content p {
@@ -242,7 +266,7 @@
 .tiptap-content h5,
 .tiptap-content h6 {
     @apply font-bold mb-4 mt-6;
-    color: #c084fc;
+    color: hsl(var(--dream-primary));
 }
 
 .tiptap-content h1 {
@@ -283,11 +307,13 @@
 }
 
 .tiptap-content strong {
-    @apply font-bold text-purple-200;
+    @apply font-bold;
+    color: hsl(var(--foreground));
 }
 
 .tiptap-content em {
-    @apply italic text-purple-300;
+    @apply italic;
+    color: hsl(var(--muted-foreground));
 }
 
 /* ===== 图片样式 & 尺寸调整功能样式 ===== */
@@ -474,8 +500,8 @@
 
 .resizable-editor-handle {
     @apply relative w-full h-4 cursor-ns-resize flex items-center justify-center;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(147, 51, 234, 0.05));
-    border-top: 1px solid rgba(147, 51, 234, 0.2);
+    background: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.1));
+    border-top: 1px solid hsl(var(--border));
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-user-select: none;
     user-select: none;
@@ -484,14 +510,13 @@
 
 .resizable-editor-handle:hover,
 .resizable-editor-handle-hover {
-    background: linear-gradient(180deg, rgba(147, 51, 234, 0.1), rgba(147, 51, 234, 0.15));
-    border-top-color: rgba(147, 51, 234, 0.3);
+    background: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.2));
+    border-top-color: hsl(var(--ring));
 }
 
 .resizable-editor-handle-active {
-    background: linear-gradient(180deg, rgba(147, 51, 234, 0.25), rgba(147, 51, 234, 0.3)) !important;
-    border-top-color: rgba(147, 51, 234, 0.5) !important;
-    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+    background: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.3)) !important;
+    border-top-color: hsl(var(--ring)) !important;
 }
 
 .resizable-editor-handle-line {
@@ -500,47 +525,23 @@
 }
 
 .resizable-editor-handle-icon {
-    @apply w-4 h-4 text-purple-400/60;
+    @apply w-4 h-4;
+    color: hsl(var(--muted-foreground));
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resizable-editor-handle:hover .resizable-editor-handle-icon,
 .resizable-editor-handle-hover .resizable-editor-handle-icon {
-    @apply text-purple-400;
+    color: hsl(var(--foreground));
     transform: scale(1.1);
 }
 
 .resizable-editor-handle-active .resizable-editor-handle-icon {
-    @apply text-purple-300;
+    color: hsl(var(--foreground));
     transform: scale(1.25);
 }
 
-.resizable-editor-handle-tooltip {
-    @apply absolute top-full left-1/2 transform -translate-x-1/2 mt-1;
-    @apply bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap;
-    @apply opacity-0 pointer-events-none;
-    transition: opacity 0.2s ease;
-    z-index: 30;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(147, 51, 234, 0.3);
-}
 
-.resizable-editor-handle:hover .resizable-editor-handle-tooltip {
-    @apply opacity-100;
-}
-
-/* ===== 高度指示器样式 ===== */
-.resizable-editor-height-indicator {
-    @apply absolute top-full right-2 mt-1;
-    @apply bg-purple-600 text-white text-xs px-2 py-1 rounded;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(147, 51, 234, 0.5);
-    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
-    z-index: 40;
-    animation: fadeIn 0.2s ease-out;
-}
 
 @keyframes fadeIn {
     from {
@@ -576,12 +577,13 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .resizable-textarea {
-    @apply w-full rounded-md border border-purple-300/30 bg-transparent px-3 py-2;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    @apply w-full rounded-md px-3 py-2;
+    background: hsl(var(--input));
+    border: 2px solid hsl(var(--border));
+    color: hsl(var(--foreground));
     transition: all 0.3s ease;
-    color: #e5e7eb;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     line-height: 1.6;
     font-size: 0.875rem;
     outline: none;
@@ -589,48 +591,31 @@ body.resizing-editor .resizable-editor-handle {
     field-sizing: content;
     font-family: inherit;
     padding-bottom: 2rem;
-    /* 为拖拽句柄留出空间 */
+    box-shadow: 0 1px 3px hsl(var(--shadow) / 0.1);
 }
 
 .resizable-textarea:focus {
-    @apply border-purple-400/50;
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
-    background: rgba(255, 255, 255, 0.07);
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15), 0 2px 8px hsl(var(--shadow) / 0.1);
+    transform: translateY(-1px);
 }
 
 .resizable-textarea::placeholder {
-    color: #a78bfa;
-    opacity: 0.8;
+    color: hsl(var(--muted-foreground));
+    opacity: 0.7;
     font-style: italic;
 }
 
 .resizable-textarea:hover {
-    border-color: rgba(147, 51, 234, 0.5);
-    background: rgba(255, 255, 255, 0.07);
-}
-
-/* 自定义滚动条样式 */
-.resizable-textarea::-webkit-scrollbar {
-    @apply w-2;
-}
-
-.resizable-textarea::-webkit-scrollbar-track {
-    @apply bg-gray-800/50 rounded;
-}
-
-.resizable-textarea::-webkit-scrollbar-thumb {
-    @apply bg-purple-600/50 rounded;
-}
-
-.resizable-textarea::-webkit-scrollbar-thumb:hover {
-    @apply bg-purple-600/70;
+    border-color: hsl(var(--ring) / 0.6);
+    box-shadow: 0 2px 6px hsl(var(--shadow) / 0.08);
 }
 
 /* 拖拽句柄样式 */
 .resizable-textarea-handle {
     @apply absolute bottom-0 left-0 right-0 h-4 cursor-ns-resize flex items-center justify-center;
-    background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.1));
-    border-top: 1px solid rgba(147, 51, 234, 0.2);
+    background: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.1));
+    border-top: 1px solid hsl(var(--border));
     transition: all 0.2s ease;
     -webkit-user-select: none;
     user-select: none;
@@ -638,8 +623,8 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .resizable-textarea-handle:hover {
-    background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.15));
-    border-top-color: rgba(147, 51, 234, 0.3);
+    background: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.2));
+    border-top-color: hsl(var(--ring));
 }
 
 .resizable-textarea-handle-line {
@@ -648,12 +633,13 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .resizable-textarea-handle-icon {
-    @apply w-4 h-4 text-purple-400/60;
+    @apply w-4 h-4;
+    color: hsl(var(--muted-foreground));
     transition: all 0.2s ease;
 }
 
 .resizable-textarea-handle:hover .resizable-textarea-handle-icon {
-    @apply text-purple-400;
+    color: hsl(var(--foreground));
     transform: scale(1.1);
 }
 

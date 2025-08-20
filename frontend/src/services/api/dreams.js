@@ -1,7 +1,11 @@
-import api from './client';
+import apiClient from './client';
+
+// 使用别名保持向后兼容
+const api = apiClient;
 
 /**
  * 梦境相关API服务
+ * TODO: 考虑将这些服务统一到 api.js 中，以便更好地管理和复用
  */
 const dreamService = {
     /**
@@ -12,45 +16,6 @@ const dreamService = {
         const dreamsData = response.data.results || response.data;
         return Array.isArray(dreamsData) ? dreamsData : [];
     },
-
-    /**
-     * 获取梦境详情
-     * @param {string} id - 梦境ID
-     */
-    getDreamDetail: async (id) => {
-        const response = await api.get(`/dreams/${id}/`);
-        return response.data;
-    },
-
-    /**
-     * 创建新梦境
-     * @param {Object} dreamData - 梦境数据
-     */
-    createDream: async (dreamData) => {
-        const response = await api.post('/dreams/', dreamData);
-        return response.data;
-    },
-
-    /**
-     * 更新梦境
-     * @param {string} id - 梦境ID
-     * @param {Object} dreamData - 更新的梦境数据
-     */
-    updateDream: async (id, dreamData) => {
-        const response = await api.put(`/dreams/${id}/`, dreamData);
-        return response.data;
-    },
-
-    /**
-     * 删除梦境
-     * @param {string} id - 梦境ID
-     */
-    deleteDream: async (id) => {
-        const response = await api.delete(`/dreams/${id}/`);
-        return response.data;
-    },
-
-
 
     /**
      * 获取梦境分类列表

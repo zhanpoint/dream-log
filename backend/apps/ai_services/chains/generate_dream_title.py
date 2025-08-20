@@ -44,8 +44,8 @@ def create_title_generation_chain() -> Optional[Runnable]:
         logger.error(f"Error creating title generation chain: {e}", exc_info=True)
         return None
 
-# 全局的链实例，延迟加载
-title_generation_chain = create_title_generation_chain()
+# 全局的链实例，延迟加载（避免模块在导入时就创建链）
+title_generation_chain = None
 
 
 def get_title_generation_chain() -> Optional[Runnable]:

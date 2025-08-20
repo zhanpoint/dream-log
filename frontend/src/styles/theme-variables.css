@@ -37,11 +37,15 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    /* 梦境主题专用颜色 */
-    --dream-primary: 264 83% 57%;
-    --dream-secondary: 291 64% 42%;
-    --dream-accent: 262 90% 75%;
-    --dream-muted: 252 56% 57%;
+    /* 阴影 */
+    --shadow: 220 43% 11%;
+
+    /* 梦境主题专用颜色 - 深蓝色系带灰色调 */
+    --dream-primary: 215 50% 45%;
+    --dream-secondary: 210 30% 35%;
+    --dream-accent: 220 40% 75%;
+    --dream-muted: 215 25% 55%;
+    --dream-text: 280 20% 85%;
 }
 
 /* 深色模式变量 */
@@ -81,11 +85,15 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
-    /* 梦境主题专用颜色 */
-    --dream-primary: 264 83% 67%;
-    --dream-secondary: 291 64% 52%;
-    --dream-accent: 262 90% 85%;
-    --dream-muted: 252 56% 67%;
+    /* 阴影 */
+    --shadow: 217.2 32.6% 8%;
+
+    /* 梦境主题专用颜色 - 深蓝色系带灰色调 */
+    --dream-primary: 215 40% 65%;
+    --dream-secondary: 210 25% 55%;
+    --dream-accent: 220 35% 85%;
+    --dream-muted: 215 20% 75%;
+    --dream-text: 280 15% 90%;
 }
 
 /* 通用工具类 */

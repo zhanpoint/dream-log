@@ -7,8 +7,7 @@ from typing import Dict, Any, Optional
 
 
 class DreamAnalysisPrompts:
-    # 主要的梦境分析Prompt模板 - 基于专业解梦原则设计
-    # 注意：LangChain的PromptTemplate将JSON格式示例中的键名（包含换行符和引号等特殊字符）误识别为模板变量，请使用纯文本描述输出格式要求
+    # 主要的梦境分析Prompt模板 - 聚焦用户核心需求的精简版本
     COMPREHENSIVE_DREAM_ANALYSIS_PROMPT = PromptTemplate(
         input_variables=[
             "dream_title", "dream_content", "categories", "tags",
@@ -16,110 +15,76 @@ class DreamAnalysisPrompts:
             "mood_after_waking", "sleep_quality", "personal_notes", "retrieved_knowledge"
         ],
         template="""<|system|>
-你是一位经验丰富的专业解梦师和心理咨询师，深深理解梦境是做梦者内心世界的珍贵信件。你的使命是成为一位技艺精湛的"心灵翻译官"，帮助用户以安全、非评判的方式探索梦境的深层含义。
-
-你始终遵循以下专业原则：
-1. **来访者中心**: 梦境属于做梦者，你是向导而非权威。最终解释是否准确，只有做梦者内心最有感触
-2. **情境为王**: 梦境意义高度依赖于做梦者近期的生活、情绪、人际关系和内心冲突
-3. **情绪是关键线索**: 梦中的情绪往往比梦境情节本身更重要
-4. **象征的个性化**: 通用象征只是起点，需要结合个人背景进行个性化解读
-5. **关注洞察而非预测**: 目的是帮助用户理解内心世界，促进个人成长，而非预言未来
+你是一位温暖而敏锐的梦境向导。请直接切入重点，用最清晰、最浓缩的语言，为用户提炼出梦境中最有价值的信息。避免使用复杂的专业术语，让你的分析像一次启发性的对话。
 
 <|context|>
-以下是需要分析的梦境完整信息：
+以下是需要分析的梦境信息：
 
-**梦境基本信息**
-- 梦境标题：{dream_title}
-- 梦境内容：{dream_content}
+**梦境内容**
+标题：{dream_title}
+内容：{dream_content}
 
-**梦境体验特征**
-- 分类标签：{categories}
-- 相关标签：{tags}
-- 清醒度等级：{lucidity_level}/5（反映梦中意识清晰程度）
-- 清晰度等级：{vividness}/5（反映梦境记忆的生动程度）
+**梦境特征**
+分类：{categories}
+标签：{tags}
+清醒度：{lucidity_level}/5 | 清晰度：{vividness}/5
 
-**情绪脉络（最重要的分析线索）**
-- 睡前情绪：{mood_before_sleep}
-- 梦中情绪：{mood_in_dream}
-- 醒后情绪：{mood_after_waking}
+**情绪历程**
+睡前：{mood_before_sleep} → 梦中：{mood_in_dream} → 醒后：{mood_after_waking}
 
-**睡眠环境背景**
-- 睡眠质量：{sleep_quality}/5
+**补充信息**
+睡眠质量：{sleep_quality}/5
+个人笔记：{personal_notes}
 
-**个人背景线索**
-{personal_notes}
-
-**专业知识参考**
+**参考知识**
 {retrieved_knowledge}
 
 <|instructions|>
-请基于专业解梦五步法进行深度分析：
-
-**第一步：建立安全的分析基础**
-- 以尊重、非评判的态度对待梦境内容
-- 承认解释的不确定性，提供可能性而非断言
-
-**第二步：整合背景信息**
-- 深度分析情绪线索（睡前→梦中→醒后的情绪变化）
-- 结合睡眠质量和生活背景理解梦境产生的情境
-
-**第三步：解构与分析梦境**
-- 识别核心意象和象征，进行个性化解读
-- 分析梦境的叙事结构和情感主线
-- 运用心理学理论（荣格原型、弗洛伊德理论、现代神经科学、睡眠心理学）
-
-**第四步：整合与诠释**
-- 寻找梦境与现实生活的潜在联系
-- 提出假设性解释，而非绝对断言
-- 赋能做梦者，引导积极的自我发现
-
-**第五步：提供成长导向的洞察**
-- 关注个人成长和自我认知
-- 提供实用的心理健康建议
-- 鼓励持续的自我探索
+请用温暖、直接、启发性的语言进行分析。记住：
+1. 避免冗长的引言和免责声明
+2. 直击核心，提供最有价值的洞察
+3. 用具体、生动的语言代替抽象术语
+4. 每个洞察都要与梦境内容紧密相关
+5. 鼓励自我探索而非给出绝对答案
 
 <|output_format|>
-**重要输出格式要求** 
+**重要：必须返回纯JSON格式，不要使用任何markdown标记**
 
-你必须返回纯JSON格式，不要使用任何markdown标记（如```json```），直接返回JSON对象。
+请生成包含以下4个核心板块的JSON对象：
 
-请生成包含以下9个部分的JSON对象，每个部分的字段名和结构必须严格匹配：
+1. analysis_summary对象 - 梦境核心洞察（最重要）
+   - title: 字符串，"梦境核心洞察"
+   - one_sentence_insight: 字符串，用一句话概括这个梦境最核心的含义（30-60字）
+   - key_insights: 字符串数组，3-5个最重要的洞察点，每个洞察简洁有力（每条30-60字）
+   - emotional_core: 字符串，情绪变化的核心意义（50-100字）
 
-第1部分 - professional_introduction对象包含3个字段：
-analysis_approach, confidentiality_note, empathy_statement
+2. dream_narrative对象 - 梦境故事线
+   - title: 字符串，"梦境故事线"
+   - story_arc: 字符串，梦境的叙事结构和发展脉络（100-150字）
+   - turning_points: 字符串数组，2-3个关键转折点及其意义（每条40-80字）
+   - hidden_message: 字符串，梦境可能传达的潜在信息（80-120字）
 
-第2部分 - emotional_analysis对象包含3个字段：
-emotion_journey对象(含pre_sleep, during_dream, post_wake三个字段), emotional_patterns, core_emotional_message
+3. symbol_deep_dive对象 - 核心象征深挖
+   - title: 字符串，"核心象征解读"
+   - main_symbols: 对象数组，2-4个最重要的象征
+     每个象征包含：
+     - symbol: 字符串，象征元素名称
+     - personal_meaning: 字符串，个性化解读（40-80字）
+     - life_connection: 字符串，与现实生活的联系（40-80字）
+   - symbol_pattern: 字符串，象征之间的关联模式（80-120字）
 
-第3部分 - contextual_integration对象包含2个字段：
-life_context_analysis, sleep_environment_impact
+4. growth_guidance对象 - 个人成长启示
+   - title: 字符串，"个人成长启示"
+   - self_discovery: 字符串，这个梦境揭示的自我认知（80-120字）
+   - practical_actions: 字符串数组，2-3个具体可行的建议（每条40-80字）
+   - reflection_questions: 字符串数组，2-3个引发深思的问题（每条20-40字）
+   - encouraging_message: 字符串，温暖鼓励的结语（60-100字）
 
-第4部分 - symbolic_exploration对象包含3个字段：
-key_symbols对象数组(每个含symbol, universal_meaning, personalized_interpretation, emotional_resonance, life_connection五个字段), narrative_structure对象(含dream_setting, plot_development, climax_analysis, resolution_pattern四个字段), archetypal_presence
-
-第5部分 - psychological_insights对象包含4个字段：
-compensation_theory, integration_process, growth_opportunities, inner_wisdom
-
-第6部分 - gentle_interpretations对象包含3个字段：
-primary_hypothesis对象(含interpretation, confidence_level, supporting_evidence三个字段), alternative_perspectives对象数组(每个含interpretation, context两个字段), questions_for_reflection字符串数组
-
-第7部分 - growth_oriented_guidance对象包含4个字段：
-self_awareness_insights, emotional_regulation, life_integration, therapeutic_suggestions对象(含immediate_actions, long_term_practices, mindfulness_approaches三个字段)
-
-第8部分 - professional_considerations对象包含5个字段：
-theoretical_foundation, cultural_sensitivity, limitations_acknowledgment, follow_up_recommendations, professional_support_note
-
-第9部分 - empowering_conclusion对象包含4个字段：
-key_takeaways, affirmation, future_orientation, closing_reflection
-
-CRITICAL要求：
-1. alternative_perspectives必须是对象数组，不能是字符串数组
-2. key_symbols必须是对象数组，不能是字符串数组  
-3. questions_for_reflection必须是字符串数组
-4. 所有嵌套字段必须是对象，不能是字符串
-5. 所有字段名必须完全按英文名称，不能有任何变化
-
-请以温暖、专业、启发性的语言，基于提供的梦境信息生成完整的分析结果。记住，你的目标是成为一位值得信赖的心灵向导，帮助做梦者更好地理解自己，走向更完整、更和谐的人生。
+要求：
+1. 每个板块的内容必须聚焦、精炼、有价值
+2. 避免模板化语言，让每次分析都独特而贴切
+3. 所有字段名必须使用英文，内容使用中文
+4. 字数限制是为了确保精炼，不要为了凑字数而废话
 """
     )
     
@@ -137,13 +102,6 @@ CRITICAL要求：
 **相关标签：** {tags}
 **梦中情绪：** {mood_in_dream}
 
-<|instructions|>
-请分析梦境的核心元素，生成能够有效检索相关心理学知识的查询语句。重点关注：
-1. 梦境中的关键象征元素
-2. 情感主题和心理状态
-3. 行为模式和情境特征
-4. 可能的心理学理论关联
-
 <|output_format|>
 **重要输出格式要求**
 
@@ -154,7 +112,7 @@ CRITICAL要求：
 1. primary_queries：字符串数组，包含1-3个核心检索问题或关键词组合
 2. query_rationale：字符串，说明生成这些查询的理由和预期检索目标
 
-直接返回有效的JSON对象，字段名必须完全按照上述英文名称。"""
+"""
     )
     
     @classmethod

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, Wand2, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Info } from 'lucide-react';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
@@ -72,225 +72,10 @@ const TAG_TYPES = [
   { value: 'location', label: '地点' },
   { value: 'object', label: '物体' },
   { value: 'action', label: '行为' },
-  { value: 'symbol', label: '符号' },
-  { value: 'color', label: '颜色' },
-  { value: 'sound', label: '声音' },
   { value: 'weather', label: '天气' },
-  { value: 'time', label: '时间' },
-  { value: 'custom', label: '自定义' },
 ];
 
-// Enhanced WebGL Background Component
-const WavyBackground = ({ children, className }) => {
-  const canvasRef = useRef(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const gl = canvas.getContext('webgl2', { alpha: true });
-    if (!gl) return;
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.clearColor(0, 0, 0, 0);
-
-    const vertexShaderSource = `#version 300 es
-        precision mediump float;
-        in vec2 aPosition;
-        void main() {
-            gl_Position = vec4(aPosition, 0.0, 1.0);
-        }`;
-
-    const fragmentShaderSource = `#version 300 es
-        precision highp float;
-        out vec4 outColor;
-        uniform vec2 uResolution;
-        uniform float uTime;
-
-        vec3 permute(vec3 x) {
-            return mod(((x * 34.0) + 1.0) * x, 289.0);
-        }
-
-        float noise2D(vec2 v) {
-            const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-            vec2 i = floor(v + dot(v, C.yy));
-            vec2 x0 = v - i + dot(i, C.xx);
-            vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-            vec4 x12 = x0.xyxy + C.xxzz;
-            x12.xy -= i1;
-            i = mod(i, 289.0);
-            vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-            vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
-            m = m * m;
-            m = m * m;
-            vec3 x = 2.0 * fract(p * C.www) - 1.0;
-            vec3 h = abs(x) - 0.5;
-            vec3 ox = floor(x + 0.5);
-            vec3 a0 = x - ox;
-            m *= 1.792843 - 0.853734 * (a0 * a0 + h * h);
-            vec3 g;
-            g.x = a0.x * x0.x + h.x * x0.y;
-            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-            return 130.0 * dot(m, g);
-        }
-
-        float fbm(vec2 st) {
-            float value = 0.0;
-            float amplitude = 0.5;
-            float freq = 1.0;
-            for (int i = 0; i < 6; i++) {
-                value += amplitude * noise2D(st * freq);
-                freq *= 2.0;
-                amplitude *= 0.5;
-            }
-            return value;
-        }
-
-        void main() {
-            vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
-            uv.x *= uResolution.x / uResolution.y;
-            uv *= 0.3;
-            
-            float t = uTime * 0.25;
-            float waveAmp = 0.2 + 0.15 * noise2D(vec2(t, 27.7));
-            float waveX = waveAmp * sin(uv.y * 4.0 + t);
-            float waveY = waveAmp * sin(uv.x * 4.0 - t);
-            uv.x += waveX;
-            uv.y += waveY;
-            
-            float r = length(uv);
-            float angle = atan(uv.y, uv.x);
-            float swirlStrength = 1.2 * (1.0 - smoothstep(0.0, 1.0, r));
-            angle += swirlStrength * sin(uTime + r * 5.0);
-            uv = vec2(cos(angle), sin(angle)) * r;
-            
-            float n = fbm(uv);
-            float swirlEffect = 0.2 * sin(t + n * 3.0);
-            n += swirlEffect;
-            
-            float noiseVal = 0.5 * (n + 1.0);
-            
-            vec3 color1 = vec3(0.05, 0.02, 0.1);
-            vec3 color2 = vec3(0.1, 0.06, 0.2);
-            vec3 color3 = vec3(0.2, 0.2, 0.4);
-            vec3 color4 = vec3(0.3, 0.4, 0.6);
-            vec3 color5 = vec3(0.4, 0.65, 0.8);
-            
-            vec3 color;
-            if (noiseVal < 0.2) {
-                color = mix(color1, color2, noiseVal * 5.0);
-            } else if (noiseVal < 0.4) {
-                color = mix(color2, color3, (noiseVal - 0.2) * 5.0);
-            } else if (noiseVal < 0.6) {
-                color = mix(color3, color4, (noiseVal - 0.4) * 5.0);
-            } else {
-                color = mix(color4, color5, (noiseVal - 0.6) * 2.5);
-            }
-            
-            float alpha = noiseVal < 0.1 ? 0.0 : 0.6;
-            outColor = vec4(color, alpha);
-        }`;
-
-    const createShader = (type, source) => {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-
-    const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      return;
-    }
-
-    gl.useProgram(program);
-
-    const quadVertices = new Float32Array([
-      -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
-    ]);
-
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-
-    const vbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, quadVertices, gl.STATIC_DRAW);
-
-    const aPositionLoc = gl.getAttribLocation(program, 'aPosition');
-    gl.enableVertexAttribArray(aPositionLoc);
-    gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 0, 0);
-
-    const uResolutionLoc = gl.getUniformLocation(program, 'uResolution');
-    const uTimeLoc = gl.getUniformLocation(program, 'uTime');
-
-    let startTime = performance.now();
-    let animationFrameId;
-
-    const render = () => {
-      const currentTime = performance.now();
-      const elapsed = (currentTime - startTime) * 0.001;
-
-      if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        gl.viewport(0, 0, canvas.width, canvas.height);
-      }
-
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.useProgram(program);
-      gl.bindVertexArray(vao);
-      gl.uniform2f(uResolutionLoc, canvas.width, canvas.height);
-      gl.uniform1f(uTimeLoc, elapsed);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    render();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-      gl.deleteProgram(program);
-      gl.deleteBuffer(vbo);
-      gl.deleteVertexArray(vao);
-    };
-  }, []);
-
-  return (
-    <div className={cn('relative w-full min-h-screen overflow-hidden', className)}>
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'transparent' }}
-      />
-      <div className="relative z-10 w-full min-h-screen">
-        {children}
-      </div>
-    </div>
-  );
-};
 
 // Enhanced Input with Traditional Label
 const EnhancedInput = React.forwardRef(({ id, label, icon: Icon, className, required, optional, ...props }, ref) => {
@@ -406,7 +191,7 @@ const CreateDream = () => {
     mood_after_waking: '',
     privacy: 'private',
     is_favorite: false,
-    interpretation: '',
+
     personal_notes: '',
     sleep_quality: '',
     sleep_duration: '',
@@ -549,212 +334,319 @@ const CreateDream = () => {
   };
 
   return (
-    <WavyBackground>
-      <div className="create-dream-container">
-        <div className="create-dream-header animate-fade-in">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="back-button hover:scale-110 transition-transform duration-200"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="create-dream-title">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="dreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ec4899">
-                    <animate attributeName="stop-color"
-                      values="#ec4899;#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="20%" stopColor="#f472b6">
-                    <animate attributeName="stop-color"
-                      values="#f472b6;#fbbf24;#34d399;#60a5fa;#a855f7;#f472b6"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="40%" stopColor="#a855f7">
-                    <animate attributeName="stop-color"
-                      values="#a855f7;#ec4899;#f59e0b;#10b981;#3b82f6;#a855f7"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="60%" stopColor="#3b82f6">
-                    <animate attributeName="stop-color"
-                      values="#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981;#3b82f6"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="80%" stopColor="#10b981">
-                    <animate attributeName="stop-color"
-                      values="#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                  <stop offset="100%" stopColor="#f59e0b">
-                    <animate attributeName="stop-color"
-                      values="#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b"
-                      dur="3s"
-                      repeatCount="indefinite" />
-                  </stop>
-                </linearGradient>
-              </defs>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-            </svg>
-            记录梦境
-          </h1>
-        </div>
+    <div className="create-dream-container">
+      <div className="create-dream-header animate-fade-in">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="back-button hover:scale-110 transition-transform duration-200"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="create-dream-title">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="dreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ec4899">
+                  <animate attributeName="stop-color"
+                    values="#ec4899;#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+                <stop offset="20%" stopColor="#f472b6">
+                  <animate attributeName="stop-color"
+                    values="#f472b6;#fbbf24;#34d399;#60a5fa;#a855f7;#f472b6"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+                <stop offset="40%" stopColor="#a855f7">
+                  <animate attributeName="stop-color"
+                    values="#a855f7;#ec4899;#f59e0b;#10b981;#3b82f6;#a855f7"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+                <stop offset="60%" stopColor="#3b82f6">
+                  <animate attributeName="stop-color"
+                    values="#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981;#3b82f6"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+                <stop offset="80%" stopColor="#10b981">
+                  <animate attributeName="stop-color"
+                    values="#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b;#10b981"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+                <stop offset="100%" stopColor="#f59e0b">
+                  <animate attributeName="stop-color"
+                    values="#f59e0b;#10b981;#3b82f6;#8b5cf6;#ec4899;#f59e0b"
+                    dur="3s"
+                    repeatCount="indefinite" />
+                </stop>
+              </linearGradient>
+            </defs>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+          </svg>
+          记录梦境
+        </h1>
+      </div>
 
-        <Card className="create-dream-card animate-slide-up backdrop-blur-md bg-background/80">
-          <CardHeader>
-            <CardTitle className="text-center">
-              <div className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent text-2xl font-bold">
-                创建你的梦境世界
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <h3 className="section-title">
-                <FileText className="w-5 h-5 mr-2" />
-                基础信息
-              </h3>
+      <Card className="create-dream-card animate-slide-up backdrop-blur-md bg-background/80">
+        <CardHeader>
+          <CardTitle className="text-center">
+            <div className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent text-2xl font-bold">
+              创建你的梦境世界
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <h3 className="section-title">
+              <FileText className="w-5 h-5 mr-2" />
+              基础信息
+            </h3>
 
-              <div className="form-group">
-                <div className="enhanced-input-wrapper">
-                  <Label htmlFor="title" className="enhanced-label">
-                    <Text className="w-4 h-4" />
-                    梦境标题
-                    <span className="required-star">*</span>
-                  </Label>
-                  <div className="relative flex items-center gap-2">
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleFieldChange('title', e.target.value)}
-                      className={cn(
-                        'enhanced-input transition-all duration-300 pr-32', // 增加右侧内边距，为按钮和计数器留出空间
-                        validationErrors.title ? 'border-red-500' : ''
-                      )}
-                      maxLength={30} // 限制标题最多30个字符
-                      placeholder="请输入5-30字的梦境标题..."
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label htmlFor="title" className="enhanced-label">
+                  <Text className="w-4 h-4" />
+                  梦境标题
+                  <span className="required-star">*</span>
+                </Label>
+                <div className="relative flex items-center gap-2">
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleFieldChange('title', e.target.value)}
+                    className={cn(
+                      'enhanced-input transition-all duration-300 pr-32', // 增加右侧内边距，为按钮和计数器留出空间
+                      validationErrors.title ? 'border-red-500' : ''
+                    )}
+                    maxLength={30} // 限制标题最多30个字符
+                    placeholder="请输入5-30字的梦境标题..."
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <span className="text-xs text-primary font-medium">
+                      {formData.title.length}/30
+                    </span>
+                    <AiTitleGenerator
+                      dreamContent={formData.content}
+                      onTitleGenerated={(title) => handleFieldChange('title', title)}
+                      className="shrink-0"
                     />
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                      <span className="text-xs text-purple-400 font-medium">
-                        {formData.title.length}/30
-                      </span>
-                      <AiTitleGenerator
-                        dreamContent={formData.content}
-                        onTitleGenerated={(title) => handleFieldChange('title', title)}
-                        className="shrink-0"
-                      />
-                    </div>
                   </div>
                 </div>
-                {validationErrors.title && (
-                  <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.title}</p>
-                )}
               </div>
-
-              <div className="form-group">
-                <div className="enhanced-input-wrapper">
-                  <Label htmlFor="dream_date" className="enhanced-label">
-                    <Calendar className="w-4 h-4" />
-                    梦境日期
-                    <span className="required-star">*</span>
-                  </Label>
-                  <Input
-                    id="dream_date"
-                    type="date"
-                    value={formData.dream_date}
-                    onChange={(e) => handleFieldChange('dream_date', e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className={`enhanced-input transition-all duration-300 ${validationErrors.dream_date ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {validationErrors.dream_date && (
-                  <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.dream_date}</p>
-                )}
-              </div>
-
-              <div className="form-group">
-                <div className="enhanced-input-wrapper">
-                  <Label className="enhanced-label">
-                    <BookOpen className="w-4 h-4" />
-                    梦境内容
-                    <span className="required-star">*</span>
-                  </Label>
-
-                  <TiptapEditor
-                    content={formData.content}
-                    onChange={(value) => handleFieldChange('content', value || '')}
-                    placeholder="开始记录你的梦境..."
-                    onImageUpload={handleImageUpload}
-                    onImageDeleted={handleImageDeleted}
-                    className={`transition-all duration-300 ${validationErrors.content ? 'border-red-500' : ''}`}
-                  />
-                </div>
-                {validationErrors.content && (
-                  <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.content}</p>
-                )}
-              </div>
-
-
+              {validationErrors.title && (
+                <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.title}</p>
+              )}
             </div>
 
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <h3 className="section-title">
-                <Palette className="w-5 h-5 mr-2" />
-                分类和标签
-              </h3>
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label htmlFor="dream_date" className="enhanced-label">
+                  <Calendar className="w-4 h-4" />
+                  梦境日期
+                  <span className="required-star">*</span>
+                </Label>
+                <Input
+                  id="dream_date"
+                  type="date"
+                  value={formData.dream_date}
+                  onChange={(e) => handleFieldChange('dream_date', e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className={`enhanced-input transition-all duration-300 ${validationErrors.dream_date ? 'border-red-500' : ''}`}
+                />
+              </div>
+              {validationErrors.dream_date && (
+                <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.dream_date}</p>
+              )}
+            </div>
 
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label className="enhanced-label">
+                  <BookOpen className="w-4 h-4" />
+                  梦境内容
+                  <span className="required-star">*</span>
+                </Label>
+
+                <TiptapEditor
+                  content={formData.content}
+                  onChange={(value) => handleFieldChange('content', value || '')}
+                  placeholder="开始记录你的梦境..."
+                  onImageUpload={handleImageUpload}
+                  onImageDeleted={handleImageDeleted}
+                  className={`transition-all duration-300 ${validationErrors.content ? 'border-red-500' : ''}`}
+                />
+              </div>
+              {validationErrors.content && (
+                <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.content}</p>
+              )}
+            </div>
+
+
+          </div>
+
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <h3 className="section-title">
+              <Palette className="w-5 h-5 mr-2" />
+              分类和标签
+            </h3>
+
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label className="enhanced-label">
+                  <Star className="w-4 h-4" />
+                  梦境分类 <span className="optional-text">(可选)</span>
+                  <HoverCard>
+                    <HoverCardTrigger>
+                      <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold text-primary">梦境类别说明</h4>
+                        <p className="text-xs text-muted-foreground">选择最符合你梦境特点的类别：</p>
+                        <div className="max-h-60 overflow-y-auto pr-2">
+                          {DREAM_CATEGORIES.map(category => (
+                            <div key={category.value} className="mb-2 last:mb-0">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }}></div>
+                                <span className="text-xs font-medium" style={{ color: category.color }}>{category.label}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{category.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                </Label>
+                <div className="categories-grid">
+                  {DREAM_CATEGORIES.map(category => (
+                    <Badge
+                      key={category.value}
+                      variant={formData.categories.includes(category.value) ? "default" : "outline"}
+                      className="category-badge cursor-pointer transition-all duration-300 hover:scale-105"
+                      style={{
+                        backgroundColor: formData.categories.includes(category.value) ? category.color : 'transparent',
+                        borderColor: category.color,
+                        color: formData.categories.includes(category.value) ? 'white' : category.color
+                      }}
+                      onClick={() => toggleCategory(category.value)}
+                    >
+                      {category.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label className="enhanced-label">
+                  <Hash className="w-4 h-4" />
+                  标签 <span className="optional-text">(可选)</span>
+                </Label>
+                <div className="tags-input-wrapper">
+                  <Select value={newTagType} onValueChange={setNewTagType}>
+                    <SelectTrigger className="tag-type-select enhanced-input">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAG_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="添加标签..."
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                    className="tag-input enhanced-input transition-all duration-300"
+                    maxLength={50}
+                  />
+                  <Button onClick={addTag} size="sm" className="tag-add-button">
+                    添加
+                  </Button>
+                </div>
+                <div className="tags-list">
+                  {formData.tags.map((tag, index) => (
+                    <div
+                      key={`${tag.name}-${index}`}
+                      className="tag-badge animate-fade-in"
+                    >
+                      <span className="tag-type">{TAG_TYPES.find(t => t.value === tag.tag_type)?.label}:</span>
+                      <span className="tag-name">{tag.name}</span>
+                      <span
+                        onClick={() => removeTag(tag.name)}
+                        className="tag-remove"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            removeTag(tag.name);
+                          }
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <h3 className="section-title">
+              <Brain className="w-5 h-5 mr-2" />
+              梦境特征
+            </h3>
+
+            <div className="form-row">
               <div className="form-group">
                 <div className="enhanced-input-wrapper">
                   <Label className="enhanced-label">
-                    <Star className="w-4 h-4" />
-                    梦境分类 <span className="optional-text">(可选)</span>
+                    <Moon className="w-4 h-4" />
+                    清醒度等级 <span className="optional-text">(可选)</span>: {formData.lucidity_level}
                     <HoverCard>
-                      <HoverCardTrigger>
-                        <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
+                      <HoverCardTrigger asChild>
+                        <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
                       </HoverCardTrigger>
-                      <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
+                      <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
                         <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-purple-400">梦境类别说明</h4>
-                            <p className="text-xs text-gray-300">选择最符合你梦境特点的类别：</p>
-                          <div className="max-h-60 overflow-y-auto pr-2">
-                            {DREAM_CATEGORIES.map(category => (
-                              <div key={category.value} className="mb-2 last:mb-0">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }}></div>
-                                  <span className="text-xs font-medium" style={{ color: category.color }}>{category.label}</span>
-                                </div>
-                                <p className="text-xs text-gray-400 mt-0.5">{category.description}</p>
-                              </div>
-                            ))}
+                          <h4 className="text-sm font-semibold text-primary">清醒度等级说明</h4>
+                          <p className="text-xs text-muted-foreground">
+                            清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。
+                          </p>
+                          <div className="space-y-1 text-xs">
+                            <div><span className="font-medium">0级 - 完全无意识：</span> 完全不知道自己在做梦，梦境体验如同现实</div>
+                            <div><span className="font-medium">1级 - 微弱意识：</span> 偶尔怀疑现实，但很快被梦境逻辑说服</div>
+                            <div><span className="font-medium">2级 - 模糊意识：</span> 隐约感觉不对劲，但无法确定是在做梦</div>
+                            <div><span className="font-medium">3级 - 部分清醒：</span> 意识到在做梦，但控制能力有限</div>
+                            <div><span className="font-medium">4级 - 高度清醒：</span> 完全知道在做梦，能够进行一定程度的控制</div>
+                            <div><span className="font-medium">5级 - 超清醒状态：</span> 完全清醒，能够自由控制梦境内容和情节</div>
                           </div>
                         </div>
                       </HoverCardContent>
                     </HoverCard>
                   </Label>
-                  <div className="categories-grid">
-                    {DREAM_CATEGORIES.map(category => (
-                      <Badge
-                        key={category.value}
-                        variant={formData.categories.includes(category.value) ? "default" : "outline"}
-                        className="category-badge cursor-pointer transition-all duration-300 hover:scale-105"
-                        style={{
-                          backgroundColor: formData.categories.includes(category.value) ? category.color : 'transparent',
-                          borderColor: category.color,
-                          color: formData.categories.includes(category.value) ? 'white' : category.color
-                        }}
-                        onClick={() => toggleCategory(category.value)}
-                      >
-                        {category.label}
-                      </Badge>
-                    ))}
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    value={formData.lucidity_level}
+                    onChange={(e) => handleFieldChange('lucidity_level', parseInt(e.target.value))}
+                    className="lucidity-slider"
+                  />
+                  <div className="lucidity-labels">
+                    <span>完全无意识</span>
+                    <span>超清醒状态</span>
                   </div>
                 </div>
               </div>
@@ -762,436 +654,309 @@ const CreateDream = () => {
               <div className="form-group">
                 <div className="enhanced-input-wrapper">
                   <Label className="enhanced-label">
-                    <Hash className="w-4 h-4" />
-                    标签 <span className="optional-text">(可选)</span>
+                    <Sun className="w-4 h-4" />
+                    清晰度 <span className="optional-text">(可选)</span>: {formData.vividness}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold text-primary">清晰度说明</h4>
+                          <p className="text-xs text-muted-foreground">
+                            清晰度是指梦境中感官体验的生动程度和细节丰富度。
+                          </p>
+                          <div className="space-y-1 text-xs">
+                            <div><span className="font-medium">1级 - 模糊：</span> 梦境朦胧不清，细节缺失，如同雾中看花</div>
+                            <div><span className="font-medium">2级 - 较模糊：</span> 能看清大致轮廓，但细节不够清晰</div>
+                            <div><span className="font-medium">3级 - 一般：</span> 梦境相对清晰，能够辨认人物和场景</div>
+                            <div><span className="font-medium">4级 - 清晰：</span> 梦境生动清晰，细节丰富，接近现实体验</div>
+                            <div><span className="font-medium">5级 - 非常清晰：</span> 梦境极其生动，所有感官都异常清晰，甚至超越现实</div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。
+                          </p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
                   </Label>
-                  <div className="tags-input-wrapper">
-                    <Select value={newTagType} onValueChange={setNewTagType}>
-                      <SelectTrigger className="tag-type-select enhanced-input">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TAG_TYPES.map(type => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="添加标签..."
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                      className="tag-input enhanced-input transition-all duration-300"
-                      maxLength={50}
-                    />
-                    <Button onClick={addTag} size="sm" className="tag-add-button">
-                      添加
-                    </Button>
-                  </div>
-                  <div className="tags-list">
-                    {formData.tags.map((tag, index) => (
-                      <div
-                        key={`${tag.name}-${index}`}
-                        className="tag-badge animate-fade-in"
-                      >
-                        <span className="tag-type">{TAG_TYPES.find(t => t.value === tag.tag_type)?.label}:</span>
-                        <span className="tag-name">{tag.name}</span>
-                        <span
-                          onClick={() => removeTag(tag.name)}
-                          className="tag-remove"
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              removeTag(tag.name);
-                            }
-                          }}
-                        >
-                          <X className="w-3 h-3" />
-                        </span>
-                      </div>
-                    ))}
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    value={formData.vividness}
+                    onChange={(e) => handleFieldChange('vividness', parseInt(e.target.value))}
+                    className="vividness-slider"
+                  />
+                  <div className="vividness-labels">
+                    <span>模糊</span>
+                    <span>非常清晰</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <h3 className="section-title">
-                <Brain className="w-5 h-5 mr-2" />
-                梦境特征
-              </h3>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Moon className="w-4 h-4" />
-                      清醒度等级 <span className="optional-text">(可选)</span>: {formData.lucidity_level}
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-purple-400">清醒度等级说明</h4>
-                             <p className="text-xs text-gray-300">
-                              清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。
-                            </p>
-                            <div className="space-y-1 text-xs">
-                              <div><span className="font-medium">0级 - 完全无意识：</span> 完全不知道自己在做梦，梦境体验如同现实</div>
-                              <div><span className="font-medium">1级 - 微弱意识：</span> 偶尔怀疑现实，但很快被梦境逻辑说服</div>
-                              <div><span className="font-medium">2级 - 模糊意识：</span> 隐约感觉不对劲，但无法确定是在做梦</div>
-                              <div><span className="font-medium">3级 - 部分清醒：</span> 意识到在做梦，但控制能力有限</div>
-                              <div><span className="font-medium">4级 - 高度清醒：</span> 完全知道在做梦，能够进行一定程度的控制</div>
-                              <div><span className="font-medium">5级 - 超清醒状态：</span> 完全清醒，能够自由控制梦境内容和情节</div>
-                            </div>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    </Label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="5"
-                      value={formData.lucidity_level}
-                      onChange={(e) => handleFieldChange('lucidity_level', parseInt(e.target.value))}
-                      className="lucidity-slider"
-                    />
-                    <div className="lucidity-labels">
-                      <span>完全无意识</span>
-                      <span>超清醒状态</span>
-                    </div>
-                  </div>
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <div className="checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    id="is_recurring"
+                    checked={formData.is_recurring}
+                    onChange={(e) => handleFieldChange('is_recurring', e.target.checked)}
+                    className="recurring-checkbox"
+                  />
+                  <Label htmlFor="is_recurring" className="recurring-label">这是一个重复梦境</Label>
                 </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Sun className="w-4 h-4" />
-                      清晰度 <span className="optional-text">(可选)</span>: {formData.vividness}
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-purple-400">清晰度说明</h4>
-                             <p className="text-xs text-gray-300">
-                              清晰度是指梦境中感官体验的生动程度和细节丰富度。
-                            </p>
-                            <div className="space-y-1 text-xs">
-                              <div><span className="font-medium">1级 - 模糊：</span> 梦境朦胧不清，细节缺失，如同雾中看花</div>
-                              <div><span className="font-medium">2级 - 较模糊：</span> 能看清大致轮廓，但细节不够清晰</div>
-                              <div><span className="font-medium">3级 - 一般：</span> 梦境相对清晰，能够辨认人物和场景</div>
-                              <div><span className="font-medium">4级 - 清晰：</span> 梦境生动清晰，细节丰富，接近现实体验</div>
-                              <div><span className="font-medium">5级 - 非常清晰：</span> 梦境极其生动，所有感官都异常清晰，甚至超越现实</div>
-                            </div>
-                            <p className="text-xs text-gray-400 mt-2">
-                              注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。
-                            </p>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    </Label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="5"
-                      value={formData.vividness}
-                      onChange={(e) => handleFieldChange('vividness', parseInt(e.target.value))}
-                      className="vividness-slider"
+                {formData.is_recurring && (
+                  <div className="recurring-container">
+                    <textarea
+                      placeholder="描述重复出现的元素..."
+                      value={formData.recurring_elements}
+                      onChange={(e) => handleFieldChange('recurring_elements', e.target.value)}
+                      className="recurring-textarea"
+                      rows={3}
                     />
-                    <div className="vividness-labels">
-                      <span>模糊</span>
-                      <span>非常清晰</span>
-                    </div>
                   </div>
-                </div>
+                )}
               </div>
+            </div>
+          </div>
 
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <h3 className="section-title">
+              <Heart className="w-5 h-5 mr-2" />
+              情绪状态
+            </h3>
+
+            <div className="moods-grid">
               <div className="form-group">
                 <div className="enhanced-input-wrapper">
-                  <div className="checkbox-wrapper">
-                    <input
-                      type="checkbox"
-                      id="is_recurring"
-                      checked={formData.is_recurring}
-                      onChange={(e) => handleFieldChange('is_recurring', e.target.checked)}
-                      className="recurring-checkbox"
-                    />
-                    <Label htmlFor="is_recurring" className="recurring-label">这是一个重复梦境</Label>
-                  </div>
-                  {formData.is_recurring && (
-                    <div className="recurring-container">
-                      <textarea
-                        placeholder="描述重复出现的元素..."
-                        value={formData.recurring_elements}
-                        onChange={(e) => handleFieldChange('recurring_elements', e.target.value)}
-                        className="recurring-textarea"
-                        rows={3}
-                      />
-                    </div>
-                  )}
+                  <Label className="enhanced-label">
+                    <Moon className="w-4 h-4" />
+                    睡前情绪 <span className="optional-text">(可选)</span>
+                  </Label>
+                  <Select value={formData.mood_before_sleep} onValueChange={(value) => handleFieldChange('mood_before_sleep', value)}>
+                    <SelectTrigger className="enhanced-input transition-all duration-300">
+                      <SelectValue placeholder="选择情绪" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOOD_OPTIONS.map(mood => (
+                        <SelectItem key={mood.value} value={mood.value}>
+                          <span className="mood-option">
+                            <span className="mood-icon">{mood.icon}</span>
+                            {mood.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
-
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <h3 className="section-title">
-                <Heart className="w-5 h-5 mr-2" />
-                情绪状态
-              </h3>
-
-              <div className="moods-grid">
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Moon className="w-4 h-4" />
-                      睡前情绪 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Select value={formData.mood_before_sleep} onValueChange={(value) => handleFieldChange('mood_before_sleep', value)}>
-                      <SelectTrigger className="enhanced-input transition-all duration-300">
-                        <SelectValue placeholder="选择情绪" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOOD_OPTIONS.map(mood => (
-                          <SelectItem key={mood.value} value={mood.value}>
-                            <span className="mood-option">
-                              <span className="mood-icon">{mood.icon}</span>
-                              {mood.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Brain className="w-4 h-4" />
-                      梦中情绪 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Select value={formData.mood_in_dream} onValueChange={(value) => handleFieldChange('mood_in_dream', value)}>
-                      <SelectTrigger className="enhanced-input transition-all duration-300">
-                        <SelectValue placeholder="选择情绪" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOOD_OPTIONS.map(mood => (
-                          <SelectItem key={mood.value} value={mood.value}>
-                            <span className="mood-option">
-                              <span className="mood-icon">{mood.icon}</span>
-                              {mood.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Sun className="w-4 h-4" />
-                      醒后情绪 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Select value={formData.mood_after_waking} onValueChange={(value) => handleFieldChange('mood_after_waking', value)}>
-                      <SelectTrigger className="enhanced-input transition-all duration-300">
-                        <SelectValue placeholder="选择情绪" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOOD_OPTIONS.map(mood => (
-                          <SelectItem key={mood.value} value={mood.value}>
-                            <span className="mood-option">
-                              <span className="mood-icon">{mood.icon}</span>
-                              {mood.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <h3 className="section-title">
-                <Bed className="w-5 h-5 mr-2" />
-                睡眠信息
-              </h3>
-
-              <div className="sleep-grid">
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Star className="w-4 h-4" />
-                      睡眠质量 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Select value={formData.sleep_quality} onValueChange={(value) => handleFieldChange('sleep_quality', value)}>
-                      <SelectTrigger className="enhanced-input transition-all duration-300">
-                        <SelectValue placeholder="选择睡眠质量" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SLEEP_QUALITY_OPTIONS.map(quality => (
-                          <SelectItem key={quality.value} value={quality.value.toString()}>
-                            <span className="quality-option">
-                              <Star className="h-4 w-4 mr-1" />
-                              {quality.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Clock className="w-4 h-4" />
-                      睡眠时长 <span className="optional-text">(可选，小时)</span>
-                    </Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0.5"
-                      max="24"
-                      placeholder="8.5"
-                      value={getDurationHours()}
-                      onChange={(e) => handleDurationChange(e.target.value)}
-                      className="enhanced-input transition-all duration-300"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Moon className="w-4 h-4" />
-                      就寝时间 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Input
-                      type="time"
-                      value={formData.bedtime}
-                      onChange={(e) => handleFieldChange('bedtime', e.target.value)}
-                      className="enhanced-input transition-all duration-300"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="enhanced-input-wrapper">
-                    <Label className="enhanced-label">
-                      <Sun className="w-4 h-4" />
-                      醒来时间 <span className="optional-text">(可选)</span>
-                    </Label>
-                    <Input
-                      type="time"
-                      value={formData.wake_time}
-                      onChange={(e) => handleFieldChange('wake_time', e.target.value)}
-                      className="enhanced-input transition-all duration-300"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <h3 className="section-title">
-                <Wand2 className="w-5 h-5 mr-2" />
-                解析和笔记
-              </h3>
-
-              <div className="form-group">
-                <EnhancedResizableTextarea
-                  id="interpretation"
-                  label="梦境解析"
-                  icon={Brain}
-                  optional
-                  value={formData.interpretation}
-                  onChange={(e) => handleFieldChange('interpretation', e.target.value)}
-                  className="transition-all duration-300"
-                  minHeight={120}
-                  maxHeight={400}
-                  defaultHeight={120}
-                  placeholder="记录你对这个梦境的理解和解析..."
-                />
-              </div>
-
-              <div className="form-group">
-                <EnhancedResizableTextarea
-                  id="personal_notes"
-                  label="个人笔记"
-                  icon={NotebookPen}
-                  optional
-                  value={formData.personal_notes}
-                  onChange={(e) => handleFieldChange('personal_notes', e.target.value)}
-                  className="transition-all duration-300"
-                  minHeight={100}
-                  maxHeight={350}
-                  defaultHeight={100}
-                  placeholder="记录你的个人想法、感受或其他备注..."
-                />
-              </div>
-            </div>
-
-            <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
-              <h3 className="section-title">
-                <Lock className="w-5 h-5 mr-2" />
-                隐私设置
-              </h3>
 
               <div className="form-group">
                 <div className="enhanced-input-wrapper">
                   <Label className="enhanced-label">
-                    <Globe className="w-4 h-4" />
-                    谁可以查看这个梦境
+                    <Brain className="w-4 h-4" />
+                    梦中情绪 <span className="optional-text">(可选)</span>
                   </Label>
-                  <div className="privacy-options">
-                    {PRIVACY_OPTIONS.map(option => {
-                      const Icon = option.icon;
-                      return (
-                        <button
-                          key={option.value}
-                          className={`privacy-option transition-all duration-300 hover:scale-105 ${formData.privacy === option.value ? 'active' : ''}`}
-                          onClick={() => handleFieldChange('privacy', option.value)}
-                        >
-                          <Icon className="h-5 w-5" />
-                          <span>{option.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <Select value={formData.mood_in_dream} onValueChange={(value) => handleFieldChange('mood_in_dream', value)}>
+                    <SelectTrigger className="enhanced-input transition-all duration-300">
+                      <SelectValue placeholder="选择情绪" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOOD_OPTIONS.map(mood => (
+                        <SelectItem key={mood.value} value={mood.value}>
+                          <span className="mood-option">
+                            <span className="mood-icon">{mood.icon}</span>
+                            {mood.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="enhanced-input-wrapper">
+                  <Label className="enhanced-label">
+                    <Sun className="w-4 h-4" />
+                    醒后情绪 <span className="optional-text">(可选)</span>
+                  </Label>
+                  <Select value={formData.mood_after_waking} onValueChange={(value) => handleFieldChange('mood_after_waking', value)}>
+                    <SelectTrigger className="enhanced-input transition-all duration-300">
+                      <SelectValue placeholder="选择情绪" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOOD_OPTIONS.map(mood => (
+                        <SelectItem key={mood.value} value={mood.value}>
+                          <span className="mood-option">
+                            <span className="mood-icon">{mood.icon}</span>
+                            {mood.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="form-actions animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
-              <Button
-                variant="outline"
-                onClick={() => navigate(-1)}
-                disabled={isSubmitting}
-                className="cancel-button"
-              >
-                <X className="w-4 h-4 mr-2" />
-                取消
-              </Button>
-              <EnhancedSubmitButton
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                isSubmitting={isSubmitting}
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            <h3 className="section-title">
+              <Bed className="w-5 h-5 mr-2" />
+              睡眠信息
+            </h3>
+
+            <div className="sleep-grid">
+              <div className="form-group">
+                <div className="enhanced-input-wrapper">
+                  <Label className="enhanced-label">
+                    <Star className="w-4 h-4" />
+                    睡眠质量 <span className="optional-text">(可选)</span>
+                  </Label>
+                  <Select value={formData.sleep_quality} onValueChange={(value) => handleFieldChange('sleep_quality', value)}>
+                    <SelectTrigger className="enhanced-input transition-all duration-300">
+                      <SelectValue placeholder="选择睡眠质量" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SLEEP_QUALITY_OPTIONS.map(quality => (
+                        <SelectItem key={quality.value} value={quality.value.toString()}>
+                          <span className="quality-option">
+                            <Star className="h-4 w-4 mr-1" />
+                            {quality.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="enhanced-input-wrapper">
+                  <Label className="enhanced-label">
+                    <Clock className="w-4 h-4" />
+                    睡眠时长 <span className="optional-text">(可选，小时)</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0.5"
+                    max="24"
+                    placeholder="8.5"
+                    value={getDurationHours()}
+                    onChange={(e) => handleDurationChange(e.target.value)}
+                    className="enhanced-input transition-all duration-300"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="enhanced-input-wrapper">
+                  <Label className="enhanced-label">
+                    <Moon className="w-4 h-4" />
+                    就寝时间 <span className="optional-text">(可选)</span>
+                  </Label>
+                  <Input
+                    type="time"
+                    value={formData.bedtime}
+                    onChange={(e) => handleFieldChange('bedtime', e.target.value)}
+                    className="enhanced-input transition-all duration-300"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="enhanced-input-wrapper">
+                  <Label className="enhanced-label">
+                    <Sun className="w-4 h-4" />
+                    醒来时间 <span className="optional-text">(可选)</span>
+                  </Label>
+                  <Input
+                    type="time"
+                    value={formData.wake_time}
+                    onChange={(e) => handleFieldChange('wake_time', e.target.value)}
+                    className="enhanced-input transition-all duration-300"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <h3 className="section-title">
+              <NotebookPen className="w-5 h-5 mr-2" />
+              个人笔记
+              <span className="optional-text ml-auto">(可选)</span>
+            </h3>
+
+            <div className="form-group">
+              <EnhancedResizableTextarea
+                id="personal_notes"
+                value={formData.personal_notes}
+                onChange={(e) => handleFieldChange('personal_notes', e.target.value)}
+                className="transition-all duration-300"
+                minHeight={100}
+                maxHeight={350}
+                defaultHeight={100}
+                placeholder="记录你的个人想法、感受或其他备注..."
               />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </WavyBackground>
+          </div>
+
+          <div className="form-section animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
+            <h3 className="section-title">
+              <Lock className="w-5 h-5 mr-2" />
+              隐私设置
+            </h3>
+
+            <div className="form-group">
+              <div className="enhanced-input-wrapper">
+                <Label className="enhanced-label">
+                  <Globe className="w-4 h-4" />
+                  谁可以查看这个梦境
+                </Label>
+                <div className="privacy-options">
+                  {PRIVACY_OPTIONS.map(option => {
+                    const Icon = option.icon;
+                    return (
+                      <button
+                        key={option.value}
+                        className={`privacy-option transition-all duration-300 hover:scale-105 ${formData.privacy === option.value ? 'active' : ''}`}
+                        onClick={() => handleFieldChange('privacy', option.value)}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-actions animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              disabled={isSubmitting}
+              className="cancel-button"
+            >
+              <X className="w-4 h-4 mr-2" />
+              取消
+            </Button>
+            <EnhancedSubmitButton
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

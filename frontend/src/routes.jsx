@@ -9,10 +9,12 @@ import CreateDream from "./pages/CreateDream";
 import DreamDetail from "./pages/DreamDetail";
 import MyDreams from "./pages/MyDreams";
 import EditDream from "./pages/EditDream";
+import StatisticsPage from "./pages/StatisticsPage";
 import PrivateRoute from "./features/auth/components/PrivateRoute";
 
 /**
  * 应用路由配置
+ * 所有路由都在App组件下，确保功能开关在全局可用
  */
 const router = createBrowserRouter([
     {
@@ -22,6 +24,18 @@ const router = createBrowserRouter([
             {
                 index: true,
                 element: <HomePage />,
+            },
+            {
+                path: "login",
+                element: <LoginPage />,
+            },
+            {
+                path: "register",
+                element: <Register />,
+            },
+            {
+                path: "reset-password",
+                element: <ResetPasswordPage />,
             },
             {
                 path: "dreams/create",
@@ -55,21 +69,16 @@ const router = createBrowserRouter([
                     </PrivateRoute>
                 ),
             },
+            {
+                path: "statistics",
+                element: (
+                    <PrivateRoute>
+                        <StatisticsPage />
+                    </PrivateRoute>
+                ),
+            },
         ],
     },
-    {
-        path: "/register",
-        element: <Register />,
-    },
-    {
-        path: "/login",
-        element: <LoginPage />,
-    },
-    {
-        path: "/reset-password",
-        element: <ResetPasswordPage />,
-    },
-    // 其他路由将在这里添加
 ]);
 
 export default router; 

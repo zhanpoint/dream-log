@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label.jsx";
 import notification from "@/utils/notification";
 import { smsService } from "@/services/notification/sms";
 import { emailService } from "@/services/notification/email";
-import { isFeatureEnabled, getAvailableRegisterMethods } from "@/config/features";
+import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import "./css/DreamTheme.css";
+import "./css/pc-responsive.css";
 import { useAuth } from "@/hooks/useAuth";
 
 /**
@@ -20,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 export function RegisterForm() {
     const navigate = useNavigate();
     const { register } = useAuth();
+    const { isFeatureEnabled, getAvailableRegisterMethods } = useFeatureFlags();
 
     // 获取可用的注册方式
     const availableRegisterMethods = getAvailableRegisterMethods();
@@ -218,13 +220,7 @@ export function RegisterForm() {
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
-            notification.error(errorMessage);
-
-            if (error.response?.data?.field) {
-                setErrors({ ...errors, [error.response.data.field]: errorMessage });
-            } else {
-                setErrors({ ...errors, phone: errorMessage });
-            }
+            setErrors(prev => ({ ...prev, phone: errorMessage }));
         } finally {
             setIsLoading(false);
         }
@@ -255,13 +251,7 @@ export function RegisterForm() {
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
-            notification.error(errorMessage);
-
-            if (error.response?.data?.field) {
-                setErrors({ ...errors, [error.response.data.field]: errorMessage });
-            } else {
-                setErrors({ ...errors, email: errorMessage });
-            }
+            setErrors(prev => ({ ...prev, email: errorMessage }));
         } finally {
             setIsLoading(false);
         }
@@ -288,6 +278,7 @@ export function RegisterForm() {
                 notification.success("注册成功！请登录您的账户");
                 navigate("/login");
             } else {
+                // 仅设置表单错误状态
                 if (result.field) {
                     setErrors({ [result.field]: result.message });
                 } else {
@@ -322,6 +313,7 @@ export function RegisterForm() {
                 notification.success("注册成功！请登录您的账户");
                 navigate("/login");
             } else {
+                // 仅设置表单错误状态
                 if (result.field) {
                     setErrors({ [result.field]: result.message });
                 } else {

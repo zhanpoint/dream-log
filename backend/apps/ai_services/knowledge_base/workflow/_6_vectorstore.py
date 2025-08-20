@@ -5,30 +5,21 @@
 import logging
 import time
 import hashlib
-import asyncio
 from typing import List, Dict, Optional, Any, Set
-from dataclasses import dataclass
 from threading import Lock
 
 from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_voyageai import VoyageAIEmbeddings
 from langchain_core.documents import Document
 
 
 from ...config import (
-    OPENROUTER_API_KEY, OPENROUTER_BASE_URL,
+    VOYAGE_API_KEY,
     CHROMA_CLOUD_API_KEY,
-    CHROMA_COLLECTION_NAME, CHROMA_TENANT, CHROMA_DATABASE
+    CHROMA_COLLECTION_NAME, CHROMA_TENANT, CHROMA_DATABASE, EMBEDDING_MODEL
 )
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class OptimizedVectorStoreConfig:
-    """向量存储配置"""
-    collection_name: str = CHROMA_COLLECTION_NAME
-    embedding_model: str = "text-embedding-3-small"  # 走 OpenRouter，稳定且支持代理
 
 
 class DocumentHashIndex:
@@ -82,15 +73,15 @@ class DocumentHashIndex:
 
 
 class OptimizedDreamVectorStore:
-    """优化的梦境向量存储系统"""
+    """梦境向量存储系统"""
     
-    def __init__(self, config: OptimizedVectorStoreConfig = None):
+    def __init__(self):
         """初始化优化的向量存储"""
-        self.config = config or OptimizedVectorStoreConfig()
-        
         # 初始化组件
-        self.embeddings = self._initialize_embeddings()
-        self.client = None
+        self.embeddings = VoyageAIEmbeddings(
+            model=EMBEDDING_MODEL,
+            voyage_api_key=VOYAGE_API_KEY,
+        )
         self.vectorstore: Optional[Chroma] = None
         
         # 哈希索引（主要去重机制）
@@ -99,33 +90,19 @@ class OptimizedDreamVectorStore:
         # 线程安全
         self._lock = Lock()
         
-    def _initialize_embeddings(self) -> OpenAIEmbeddings:
-        """
-        初始化嵌入模型（OpenAIEmbeddings via OpenRouter）。
-        说明：Google gRPC 在代理环境下不稳定且易超时，这里改为 OpenRouter 的 HTTP 接口，
-        能完全继承 HTTP(S)_PROXY，显著降低超时与抖动。
-        """
-        # OpenAIEmbeddings 是同步 HTTP 调用，不需要事件循环兜底
-        if not OPENROUTER_API_KEY:
-            raise ValueError("OPENROUTER_API_KEY is required for OpenRouter embeddings")
-
-        return OpenAIEmbeddings(
-            model=self.config.embedding_model,
-            api_key=OPENROUTER_API_KEY,
-            base_url=OPENROUTER_BASE_URL
-        )
-        
     def _get_vectorstore(self) -> Chroma:
         """获取向量存储实例"""
         # 使用线程锁确保vectorstore的单例初始化是线程安全的
         with self._lock:
             if self.vectorstore is None:
                 self.vectorstore = Chroma(
-                    collection_name=self.config.collection_name,
+                    collection_name=CHROMA_COLLECTION_NAME,
                     embedding_function=self.embeddings,
                     chroma_cloud_api_key=CHROMA_CLOUD_API_KEY,
                     tenant=CHROMA_TENANT,
-                    database=CHROMA_DATABASE
+                    database=CHROMA_DATABASE,
+                    # 调整 efConstruction 和 M 可加快搜索速度。
+                    collection_metadata={"hnsw:space": "cosine"}
                 )
                 
                 # 首次初始化时，加载现有哈希
@@ -135,10 +112,6 @@ class OptimizedDreamVectorStore:
         
     def _load_existing_hashes(self):
         """加载现有文档哈希到索引"""
-        if not self.vectorstore:
-            logger.warning("Vectorstore not initialized, cannot load hashes.")
-            return
-
         try:
             collection = self.vectorstore._collection
             results = collection.get(include=["metadatas"]) 
@@ -150,10 +123,8 @@ class OptimizedDreamVectorStore:
                         url = metadata.get("source_url", "")
                         self.hash_index.add(doc_hash, url)
                         
-                logger.info(f"Loaded {self.hash_index.size()} existing document hashes into index.")
-                
         except Exception as e:
-            logger.warning(f"Failed to load existing hashes: {e}")
+            logger.exception(f"Failed to load existing hashes: {e}")
             
     def _generate_hash(self, content: str, url: str = "") -> str:
         """生成文档哈希"""
@@ -278,9 +249,9 @@ class OptimizedDreamVectorStore:
 # 单例实例
 _optimized_vectorstore = None
 
-def get_vectorstore(config: OptimizedVectorStoreConfig = None) -> OptimizedDreamVectorStore:
+def get_vectorstore() -> OptimizedDreamVectorStore:
     """获取优化的向量存储单例"""
     global _optimized_vectorstore
     if _optimized_vectorstore is None:
-        _optimized_vectorstore = OptimizedDreamVectorStore(config)
+        _optimized_vectorstore = OptimizedDreamVectorStore()
     return _optimized_vectorstore

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Wand2, Info } from 'lucide-react';
+import { ArrowLeft, Calendar, Hash, Lock, Moon, Sun, Cloud, Clock, Bed, Star, FileText, NotebookPen, BookOpen, Users, Globe, Heart, Brain, Palette, Text, X, Info } from 'lucide-react';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import AiTitleGenerator from '@/components/ui/ai-title-generator';
 import TiptapEditor from '@/components/ui/tiptap-editor';
@@ -114,14 +114,8 @@ const TAG_TYPES = [
     { value: 'location', label: '地点' },
     { value: 'object', label: '物体' },
     { value: 'action', label: '行为' },
-    { value: 'symbol', label: '符号' },
-    { value: 'color', label: '颜色' },
-    { value: 'sound', label: '声音' },
     { value: 'weather', label: '天气' },
-    { value: 'time', label: '时间' },
-    { value: 'custom', label: '自定义' },
 ];
-
 
 
 const EditDream = () => {
@@ -146,7 +140,7 @@ const EditDream = () => {
         mood_after_waking: '',
         privacy: 'private',
         is_favorite: false,
-        interpretation: '',
+
         personal_notes: '',
         sleep_quality: '',
         sleep_duration: '',
@@ -181,7 +175,7 @@ const EditDream = () => {
                 mood_after_waking: dream.mood_after_waking || '',
                 privacy: dream.privacy || 'private',
                 is_favorite: dream.is_favorite || false,
-                interpretation: dream.interpretation || '',
+
                 personal_notes: dream.personal_notes || '',
                 sleep_quality: dream.sleep_quality ? dream.sleep_quality.toString() : '',
                 sleep_duration: dream.sleep_duration || '',
@@ -237,7 +231,7 @@ const EditDream = () => {
 
     // 处理时长输入转换
     const handleDurationChange = (value) => {
-        if (value) {
+        if (value && !isNaN(value)) {
             const hours = parseFloat(value);
             const seconds = Math.round(hours * 3600);
             handleFieldChange('sleep_duration', seconds);
@@ -434,7 +428,7 @@ const EditDream = () => {
                                         placeholder="请输入5-30字的梦境标题..."
                                     />
                                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                        <span className="text-xs text-purple-400 font-medium">
+                                        <span className="text-xs text-primary font-medium">
                                             {formData.title.length}/30
                                         </span>
                                         <AiTitleGenerator
@@ -502,26 +496,26 @@ const EditDream = () => {
                                     <Star className="w-4 h-4" />
                                     梦境分类 <span className="optional-text">(可选)</span>
                                     <HoverCard>
-                                      <HoverCardTrigger>
-                                        <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
-                                      </HoverCardTrigger>
-                                      <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
-                                        <div className="space-y-2">
-                                          <h4 className="text-sm font-semibold text-purple-400">梦境类别说明</h4>
-                         <p className="text-xs text-gray-300">选择最符合你梦境特点的类别：</p>
-                                          <div className="max-h-60 overflow-y-auto pr-2">
-                                            {DREAM_CATEGORIES.map(category => (
-                                              <div key={category.value} className="mb-2 last:mb-0">
-                                                <div className="flex items-center gap-1.5">
-                                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }}></div>
-                                                  <span className="text-xs font-medium" style={{ color: category.color }}>{category.label}</span>
+                                        <HoverCardTrigger>
+                                            <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                                        </HoverCardTrigger>
+                                        <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
+                                            <div className="space-y-2">
+                                                <h4 className="text-sm font-semibold text-primary">梦境类别说明</h4>
+                                                <p className="text-xs text-muted-foreground">选择最符合你梦境特点的类别：</p>
+                                                <div className="max-h-60 overflow-y-auto pr-2">
+                                                    {DREAM_CATEGORIES.map(category => (
+                                                        <div key={category.value} className="mb-2 last:mb-0">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }}></div>
+                                                                <span className="text-xs font-medium" style={{ color: category.color }}>{category.label}</span>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground mt-0.5">{category.description}</p>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-0.5">{category.description}</p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      </HoverCardContent>
+                                            </div>
+                                        </HoverCardContent>
                                     </HoverCard>
                                 </Label>
                                 <div className="categories-grid">
@@ -612,25 +606,25 @@ const EditDream = () => {
                                         <Moon className="w-4 h-4" />
                                         清醒度等级 <span className="optional-text">(可选)</span>: {formData.lucidity_level}
                                         <HoverCard>
-                                          <HoverCardTrigger asChild>
-                                            <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
-                                          </HoverCardTrigger>
-                                          <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
-                                            <div className="space-y-2">
-                                              <h4 className="text-sm font-semibold text-purple-400">清醒度等级说明</h4>
-                                               <p className="text-xs text-gray-300">
-                                                清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。
-                                              </p>
-                                              <div className="space-y-1 text-xs">
-                                                <div><span className="font-medium">0级 - 完全无意识：</span> 完全不知道自己在做梦，梦境体验如同现实</div>
-                                                <div><span className="font-medium">1级 - 微弱意识：</span> 偶尔怀疑现实，但很快被梦境逻辑说服</div>
-                                                <div><span className="font-medium">2级 - 模糊意识：</span> 隐约感觉不对劲，但无法确定是在做梦</div>
-                                                <div><span className="font-medium">3级 - 部分清醒：</span> 意识到在做梦，但控制能力有限</div>
-                                                <div><span className="font-medium">4级 - 高度清醒：</span> 完全知道在做梦，能够进行一定程度的控制</div>
-                                                <div><span className="font-medium">5级 - 超清醒状态：</span> 完全清醒，能够自由控制梦境内容和情节</div>
-                                              </div>
-                                            </div>
-                                          </HoverCardContent>
+                                            <HoverCardTrigger asChild>
+                                                <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                                            </HoverCardTrigger>
+                                            <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-semibold text-primary">清醒度等级说明</h4>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。
+                                                    </p>
+                                                    <div className="space-y-1 text-xs">
+                                                        <div><span className="font-medium">0级 - 完全无意识：</span> 完全不知道自己在做梦，梦境体验如同现实</div>
+                                                        <div><span className="font-medium">1级 - 微弱意识：</span> 偶尔怀疑现实，但很快被梦境逻辑说服</div>
+                                                        <div><span className="font-medium">2级 - 模糊意识：</span> 隐约感觉不对劲，但无法确定是在做梦</div>
+                                                        <div><span className="font-medium">3级 - 部分清醒：</span> 意识到在做梦，但控制能力有限</div>
+                                                        <div><span className="font-medium">4级 - 高度清醒：</span> 完全知道在做梦，能够进行一定程度的控制</div>
+                                                        <div><span className="font-medium">5级 - 超清醒状态：</span> 完全清醒，能够自由控制梦境内容和情节</div>
+                                                    </div>
+                                                </div>
+                                            </HoverCardContent>
                                         </HoverCard>
                                     </Label>
                                     <input
@@ -654,27 +648,27 @@ const EditDream = () => {
                                         <Sun className="w-4 h-4" />
                                         清晰度 <span className="optional-text">(可选)</span>: {formData.vividness}
                                         <HoverCard>
-                                          <HoverCardTrigger asChild>
-                                            <Info className="w-4 h-4 ml-1 text-gray-400 hover:text-blue-500 cursor-help transition-colors" />
-                                          </HoverCardTrigger>
-                                          <HoverCardContent className="w-96 max-h-96 bg-white/5 backdrop-blur-md border-purple-500/30 text-white shadow-xl">
-                                            <div className="space-y-2">
-                                              <h4 className="text-sm font-semibold text-purple-400">清晰度说明</h4>
-                                               <p className="text-xs text-gray-300">
-                                                清晰度是指梦境中感官体验的生动程度和细节丰富度。
-                                              </p>
-                                              <div className="space-y-1 text-xs">
-                                                <div><span className="font-medium">1级 - 模糊：</span> 梦境朦胧不清，细节缺失，如同雾中看花</div>
-                                                <div><span className="font-medium">2级 - 较模糊：</span> 能看清大致轮廓，但细节不够清晰</div>
-                                                <div><span className="font-medium">3级 - 一般：</span> 梦境相对清晰，能够辨认人物和场景</div>
-                                                <div><span className="font-medium">4级 - 清晰：</span> 梦境生动清晰，细节丰富，接近现实体验</div>
-                                                <div><span className="font-medium">5级 - 非常清晰：</span> 梦境极其生动，所有感官都异常清晰，甚至超越现实</div>
-                                              </div>
-                                              <p className="text-xs text-gray-400 mt-2">
-                                                注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。
-                                              </p>
-                                            </div>
-                                          </HoverCardContent>
+                                            <HoverCardTrigger asChild>
+                                                <Info className="w-4 h-4 ml-1 text-muted-foreground hover:text-primary cursor-help transition-colors" />
+                                            </HoverCardTrigger>
+                                            <HoverCardContent className="w-96 max-h-96 bg-popover/95 backdrop-blur-md border border-border text-popover-foreground shadow-xl">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-semibold text-primary">清晰度说明</h4>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        清晰度是指梦境中感官体验的生动程度和细节丰富度。
+                                                    </p>
+                                                    <div className="space-y-1 text-xs">
+                                                        <div><span className="font-medium">1级 - 模糊：</span> 梦境朦胧不清，细节缺失，如同雾中看花</div>
+                                                        <div><span className="font-medium">2级 - 较模糊：</span> 能看清大致轮廓，但细节不够清晰</div>
+                                                        <div><span className="font-medium">3级 - 一般：</span> 梦境相对清晰，能够辨认人物和场景</div>
+                                                        <div><span className="font-medium">4级 - 清晰：</span> 梦境生动清晰，细节丰富，接近现实体验</div>
+                                                        <div><span className="font-medium">5级 - 非常清晰：</span> 梦境极其生动，所有感官都异常清晰，甚至超越现实</div>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground mt-2">
+                                                        注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。
+                                                    </p>
+                                                </div>
+                                            </HoverCardContent>
                                         </HoverCard>
                                     </Label>
                                     <input
@@ -884,36 +878,17 @@ const EditDream = () => {
                         </div>
                     </div>
 
-                    {/* 解析和笔记区域 */}
+                    {/* 个人笔记区域 */}
                     <div className="form-section">
                         <h3 className="section-title">
-                            <Wand2 className="w-5 h-5 mr-2" />
-                            解析和笔记
+                            <NotebookPen className="w-5 h-5 mr-2" />
+                            个人笔记
+                            <span className="optional-text ml-auto">(可选)</span>
                         </h3>
 
-                        {/* 梦境解析 */}
-                        <div className="form-group">
-                            <EnhancedResizableTextarea
-                                id="interpretation"
-                                label="梦境解析"
-                                icon={Brain}
-                                optional
-                                placeholder="记录你对这个梦境的理解和解析..."
-                                value={formData.interpretation}
-                                onChange={(e) => handleFieldChange('interpretation', e.target.value)}
-                                minHeight={120}
-                                maxHeight={400}
-                                defaultHeight={120}
-                            />
-                        </div>
-
-                        {/* 个人笔记 */}
                         <div className="form-group">
                             <EnhancedResizableTextarea
                                 id="personal_notes"
-                                label="个人笔记"
-                                icon={NotebookPen}
-                                optional
                                 placeholder="记录你的个人想法、感受或其他备注..."
                                 value={formData.personal_notes}
                                 onChange={(e) => handleFieldChange('personal_notes', e.target.value)}
