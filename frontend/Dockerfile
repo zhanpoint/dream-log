@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
 # --- 第一阶段：构建React应用 ---
-FROM node:18-alpine AS build
+# 【修复】升级到 Node.js 20 解决 React Router 7.8.2 引擎兼容性问题
+FROM node:20-alpine AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -12,14 +13,17 @@ ARG FORCE_REINSTALL_DEPS=false
 # 拷贝包管理文件
 COPY package*.json ./
 
-# 安装依赖，使用缓存挂载加速构建
-# 在需要强制重新安装时，先清除缓存
-RUN --mount=type=cache,target=/root/.npm \
-    if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
-        echo "FORCE_REINSTALL_DEPS is true, clearing npm cache..."; \
-        rm -rf /root/.npm/*; \
+# 【修复】智能依赖安装 - 根据参数决定是否强制重新安装
+RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
+        echo "强制重新安装模式：清理所有缓存和依赖..."; \
+        rm -rf node_modules package-lock.json || true; \
+        npm cache clean --force; \
+        echo "重新安装所有依赖..."; \
+        npm install --legacy-peer-deps; \
+    else \
+        echo "正常缓存安装模式..."; \
+        npm ci --legacy-peer-deps; \
     fi && \
-    npm ci --legacy-peer-deps && \
     echo "验证 React 版本..." && \
     npm list react react-dom --depth=0
 

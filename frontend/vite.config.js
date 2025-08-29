@@ -60,12 +60,14 @@ export default defineConfig({
     cssMinify: true,
     sourcemap: false,
     rollupOptions: {
-      // 【新增】确保 React 被正确处理为外部依赖
-      external: (id) => {
-        // 防止将 React 打包多次
-        return false; // 让 Vite 处理所有依赖
-      },
       output: {
+        // 【修复】确保 React 相关 chunk 优先加载
+        chunkFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'react-vendor') {
+            return 'assets/[name]-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
         // 优化的代码分割策略 - 支持路由懒加载
         manualChunks(id) {
           // 将页面组件分离到独立的 chunk
@@ -74,35 +76,24 @@ export default defineConfig({
             return `page-${pageName.toLowerCase()}`;
           }
 
-          // 【修复】React 核心库 - 确保正确分组，优先级最高
-          if (id.includes('node_modules/react/index') ||
-            id.includes('node_modules/react-dom/index') ||
-            id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/')) {
+          // 【修复】React 生态系统 - 确保所有 React 相关库在同一 chunk
+          if (id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-router-dom/') ||
+            id.includes('@radix-ui/') ||
+            id.includes('framer-motion') ||
+            id.includes('lucide-react') ||
+            id.includes('react-hook-form') ||
+            id.includes('react-i18next') ||
+            id.includes('react-markdown') ||
+            id.includes('react-day-picker') ||
+            id.includes('react-window') ||
+            id.includes('next-themes') ||
+            id.includes('sonner')) {
             return 'react-vendor';
           }
 
-          // React 路由单独分组，避免影响核心 React
-          if (id.includes('node_modules/react-router-dom/')) {
-            return 'react-router-vendor';
-          }
-
-          // UI 组件库
-          if (id.includes('@radix-ui/') ||
-            id.includes('framer-motion') ||
-            id.includes('lucide-react')) {
-            return 'ui-vendor';
-          }
-
-          // 工具库
-          if (id.includes('axios') ||
-            id.includes('clsx') ||
-            id.includes('tailwind-merge') ||
-            id.includes('date-fns')) {
-            return 'utils';
-          }
-
-          // 【修复】完整的编辑器相关依赖分组，避免 TDZ 问题
+          // 【修复】编辑器相关依赖 - 独立分组
           if (id.includes('@tiptap/') ||
             id.includes('tiptap-extension') ||
             id.includes('prosemirror-') ||
@@ -110,12 +101,30 @@ export default defineConfig({
             return 'tiptap-vendor';
           }
 
-          // 图表相关（单独拆分，避免与编辑器混合打包）
+          // 图表相关库
           if (id.includes('echarts')) {
             return 'charts-vendor';
           }
 
-          // 其他第三方库
+          // 纯工具库（不依赖 React）
+          if (id.includes('axios') ||
+            id.includes('clsx') ||
+            id.includes('tailwind-merge') ||
+            id.includes('date-fns') ||
+            id.includes('uuid') ||
+            id.includes('zod') ||
+            id.includes('i18next') ||
+            id.includes('class-variance-authority')) {
+            return 'utils';
+          }
+
+          // 表单和验证相关
+          if (id.includes('formik') ||
+            id.includes('@hookform/resolvers')) {
+            return 'form-vendor';
+          }
+
+          // 【关键修复】其他第三方库 - 严格控制范围
           if (id.includes('node_modules/')) {
             return 'vendor';
           }
