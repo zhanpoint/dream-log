@@ -15,9 +15,18 @@ export const ROUTES = {
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
 
+    // 梦境相关路由
+    CREATE_DREAM: '/dreams/create',
+    MY_DREAMS: '/my-dreams',
+    DREAMS: '/dreams',
+
     // 用户相关路由
     PROFILE: '/profile',
     SETTINGS: '/settings',
+
+    // AI助手和统计
+    ASSISTANT: '/assistant',
+    STATISTICS: '/statistics',
 
     // 搜索和探索
     SEARCH: '/search',
@@ -91,8 +100,20 @@ export const NAVIGATION_MENU = [
     },
     {
         name: '创建梦境',
-        path: ROUTES.CREATE_POST,
+        path: ROUTES.CREATE_DREAM,
         icon: 'Plus',
+        requireAuth: true,
+    },
+    {
+        name: 'AI助手',
+        path: ROUTES.ASSISTANT,
+        icon: 'Bot',
+        requireAuth: true,
+    },
+    {
+        name: '统计分析',
+        path: ROUTES.STATISTICS,
+        icon: 'BarChart',
         requireAuth: true,
     },
     {
@@ -120,10 +141,11 @@ export const AUTH_ROUTES = [
 // 需要认证的路由
 export const PROTECTED_ROUTES = [
     ROUTES.MY_DREAMS,
-    ROUTES.CREATE_POST,
     ROUTES.CREATE_DREAM,
     ROUTES.PROFILE,
     ROUTES.SETTINGS,
+    ROUTES.ASSISTANT,
+    ROUTES.STATISTICS,
     // 动态路由需要在组件中检查
 ];
 
@@ -144,10 +166,18 @@ export const BREADCRUMB_CONFIG = {
         { name: '首页', path: ROUTES.HOME },
         { name: '我的梦境', path: ROUTES.MY_DREAMS }
     ],
-    [ROUTES.CREATE_POST]: [
+    [ROUTES.CREATE_DREAM]: [
         { name: '首页', path: ROUTES.HOME },
         { name: '我的梦境', path: ROUTES.MY_DREAMS },
-        { name: '创建梦境', path: ROUTES.CREATE_POST }
+        { name: '创建梦境', path: ROUTES.CREATE_DREAM }
+    ],
+    [ROUTES.ASSISTANT]: [
+        { name: '首页', path: ROUTES.HOME },
+        { name: 'AI助手', path: ROUTES.ASSISTANT }
+    ],
+    [ROUTES.STATISTICS]: [
+        { name: '首页', path: ROUTES.HOME },
+        { name: '统计分析', path: ROUTES.STATISTICS }
     ],
     [ROUTES.PROFILE]: [
         { name: '首页', path: ROUTES.HOME },
@@ -166,7 +196,9 @@ export const PAGE_TITLES = {
     [ROUTES.REGISTER]: '注册 - Dream Log',
     [ROUTES.FORGOT_PASSWORD]: '忘记密码 - Dream Log',
     [ROUTES.MY_DREAMS]: '我的梦境 - Dream Log',
-    [ROUTES.CREATE_POST]: '创建梦境 - Dream Log',
+    [ROUTES.CREATE_DREAM]: '创建梦境 - Dream Log',
+    [ROUTES.ASSISTANT]: 'AI梦境助手 - Dream Log',
+    [ROUTES.STATISTICS]: '梦境统计 - Dream Log',
     [ROUTES.PROFILE]: '个人资料 - Dream Log',
     [ROUTES.SETTINGS]: '设置 - Dream Log',
     [ROUTES.SEARCH]: '搜索 - Dream Log',

@@ -9,7 +9,7 @@ import axios from 'axios';
  */
 const isAuthError = (url) => {
     if (!url) return false;
-    const authPaths = ['/auth/sessions/', '/users/', '/auth/tokens/', '/users/password/'];
+    const authPaths = ['/auth/sessions/', '/users/', '/auth/tokens/', '/users/me/password/'];
     return authPaths.some(path => url.includes(path));
 };
 

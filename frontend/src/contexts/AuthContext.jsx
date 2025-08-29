@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { tokenManager } from '../services/auth/tokenManager';
 import unifiedAuthService from '../services/auth/unifiedAuth';
+import { profileManager } from '@/services/auth/profileManager';
 
 // 创建认证上下文
 const AuthContext = createContext(null);
@@ -13,10 +14,19 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);  // 用户信息:当前登录用户的详细资料
     const [isLoading, setIsLoading] = useState(true);  // 加载状态:是否正在加载认证状态
 
+    // 获取当前token - 避免在useMemo中多次调用
+    const [currentToken, setCurrentToken] = useState(null);
+
+    // 监听token变化
+    useEffect(() => {
+        const token = tokenManager.getAccessToken();
+        setCurrentToken(token);
+    }, [user]); // 当用户状态变化时更新token
+
     // 计算认证状态 - 使用useMemo确保响应式更新
     const isAuthenticated = useMemo(() => {
-        return !!(user && tokenManager.isAccessTokenValid());
-    }, [user]);
+        return !!(user && currentToken && tokenManager.isAccessTokenValid());
+    }, [user, currentToken]);
 
     // 更新用户状态的统一方法
     const updateUserState = useCallback((userData) => {
@@ -26,6 +36,7 @@ export function AuthProvider({ children }) {
     // 清除认证状态的统一方法
     const clearAuthState = useCallback(() => {
         setUser(null);
+        setCurrentToken(null);
         tokenManager.clearAll();
     }, []);
 
@@ -34,10 +45,12 @@ export function AuthProvider({ children }) {
         const initAuth = async () => {
             try {
                 // 检查令牌是否有效
-                if (tokenManager.isAccessTokenValid()) {
+                const token = tokenManager.getAccessToken();
+                if (token && tokenManager.isAccessTokenValid()) {
                     const userData = tokenManager.getUserData();
                     if (userData) {
                         updateUserState(userData);
+                        setCurrentToken(token);
                     } else {
                         // 有令牌但没有用户数据，清除令牌
                         clearAuthState();
@@ -66,12 +79,21 @@ export function AuthProvider({ children }) {
         // 监听认证事件
         window.addEventListener('auth:required', handleAuthRequired);
         window.addEventListener('auth:logout', handleLogout);
+        window.addEventListener('auth:user-updated', (e) => {
+            if (e?.detail) {
+                updateUserState(e.detail);
+            } else {
+                const latest = tokenManager.getUserData();
+                if (latest) updateUserState(latest);
+            }
+        });
 
         initAuth();
 
         return () => {
             window.removeEventListener('auth:required', handleAuthRequired);
             window.removeEventListener('auth:logout', handleLogout);
+            window.removeEventListener('auth:user-updated', () => { });
         };
     }, [updateUserState, clearAuthState]);
 
@@ -84,9 +106,17 @@ export function AuthProvider({ children }) {
     const login = useCallback(async (loginType, credentials) => {
         const result = await unifiedAuthService.login(loginType, credentials);
 
-        if (result.success && result.data) {
-            // 立即更新用户状态
-            updateUserState(result.data);
+        if (result.success) {
+            const token = tokenManager.getAccessToken();
+            setCurrentToken(token);
+            // 登录成功后主动拉取用户完整资料，确保包含 backup_email/avatar 等
+            try {
+                const resp = await profileManager.getUserProfile();
+                const data = resp?.data?.data || tokenManager.getUserData();
+                if (data) updateUserState(data);
+            } catch {
+                if (result.data) updateUserState(result.data);
+            }
         }
 
         return result;
@@ -104,6 +134,9 @@ export function AuthProvider({ children }) {
         if (result.success && result.data) {
             // 立即更新用户状态
             updateUserState(result.data);
+            // 更新token状态
+            const token = tokenManager.getAccessToken();
+            setCurrentToken(token);
         }
 
         return result;
@@ -111,18 +144,19 @@ export function AuthProvider({ children }) {
 
     /**
      * 统一密码重置处理函数
-     * @param {string} resetType - 重置类型: 'sms' | 'email'
+     * @param {string} method - 重置方式: 'current_password' | 'phone' | 'email'
      * @param {Object} resetData - 重置数据
      * @returns {Promise<{success: boolean, message?: string, field?: string}>}
      */
-    const resetPassword = useCallback(async (resetType, resetData) => {
-        return await unifiedAuthService.resetPassword(resetType, resetData);
+    const resetPassword = useCallback(async (method, resetData) => {
+        return await unifiedAuthService.resetPassword(method, resetData);
     }, []);
 
     // 登出方法
     const logout = useCallback(async () => {
         await unifiedAuthService.logout();
         setUser(null);
+        setCurrentToken(null);
     }, []);
 
     // 获取当前用户信息
@@ -135,6 +169,7 @@ export function AuthProvider({ children }) {
         user,  // 用户信息
         isLoading,  // 加载状态
         isAuthenticated,  // 认证状态 - 基于user和token的计算值
+        token: currentToken,  // 访问令牌 - WebSocket连接需要
         login,  // 统一登录方法
         register,  // 统一注册方法
         resetPassword,  // 统一密码重置方法
@@ -143,7 +178,7 @@ export function AuthProvider({ children }) {
         // Token相关的便捷方法
         getTokenRemainingTime: tokenManager.getTokenRemainingTime,
         shouldRefreshToken: tokenManager.shouldRefreshToken,
-    }), [user, isLoading, isAuthenticated, login, register, resetPassword, logout, getCurrentUser]);
+    }), [user, isLoading, isAuthenticated, currentToken, login, register, resetPassword, logout, getCurrentUser]);
 
     return (
         <AuthContext.Provider value={value}>

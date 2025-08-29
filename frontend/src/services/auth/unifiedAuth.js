@@ -101,29 +101,30 @@ class UnifiedAuthService {
 
     /**
      * 统一密码重置方法
-     * @param {string} resetType - 重置类型: 'sms' | 'email'
+     * @param {string} method - 重置方式: 'current_password' | 'phone' | 'email'
      * @param {Object} resetData - 重置数据
      * @returns {Promise<{success: boolean, message?: string, field?: string}>}
      */
-    async resetPassword(resetType, resetData) {
+    async resetPassword(method, resetData) {
         try {
-            let requestData = {};
+            let requestData = { method, newPassword: resetData.newPassword };
 
-            // 根据重置类型构造请求数据
-            switch (resetType) {
-                case 'sms':
-                    requestData = {
-                        phone: resetData.phone,
-                        code: resetData.verificationCode,
-                        newPassword: resetData.newPassword
-                    };
+            // 根据重置方式构造请求数据
+            switch (method) {
+                case 'current_password':
+                    requestData.currentPassword = resetData.currentPassword;
+                    // 添加用户标识
+                    if (resetData.username) requestData.username = resetData.username;
+                    if (resetData.phone) requestData.phone = resetData.phone;
+                    if (resetData.email) requestData.email = resetData.email;
+                    break;
+                case 'phone':
+                    requestData.phone = resetData.phone;
+                    requestData.code = resetData.verificationCode;
                     break;
                 case 'email':
-                    requestData = {
-                        email: resetData.email,
-                        code: resetData.verificationCode,
-                        newPassword: resetData.newPassword
-                    };
+                    requestData.email = resetData.email;
+                    requestData.code = resetData.verificationCode;
                     break;
                 default:
                     return {
@@ -133,7 +134,7 @@ class UnifiedAuthService {
             }
 
             // 发送重置请求
-            const response = await api.put('/users/password/', requestData);
+            const response = await api.put('/users/me/password/', requestData);
 
             // 处理重置响应
             if (response.data?.code === 200) {
@@ -163,9 +164,7 @@ class UnifiedAuthService {
 
             if (accessToken) {
                 // 向后端发送注销请求
-                await api.delete('/auth/sessions/', {
-                    refresh: refreshToken
-                });
+                await api.delete('/auth/sessions/', { data: { refresh: refreshToken } });
             }
         } catch (error) {
             console.error('退出登录请求失败:', error);
@@ -175,11 +174,8 @@ class UnifiedAuthService {
             tokenManager.clearAll();
             // 触发登出事件
             window.dispatchEvent(new CustomEvent('auth:logout'));
-            toast.success('已成功退出登录');
-            // 重定向到首页
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1000);
+            // 直接重定向到首页
+            window.location.href = '/';
         }
     }
 
@@ -247,13 +243,15 @@ class UnifiedAuthService {
 
             // 如果是登录或注册操作，保存令牌和用户数据
             if (operationType.includes('login') || operationType.includes('register')) {
-                if (data.access && data.refresh) {
-                    tokenManager.setTokens(data.access, data.refresh);
+                // 后端统一返回 data={ user, access, refresh }
+                const access = data.data?.access || data.access;
+                const refresh = data.data?.refresh || data.refresh;
+                const user = data.data?.user || data.data;
 
-                    if (data.data) {
-                        tokenManager.setUserData(data.data);
-                        result.data = data.data;
-                    }
+                if (access && refresh && user) {
+                    tokenManager.setTokens(access, refresh);
+                    tokenManager.setUserData(user);
+                    result.data = user;
                 } else {
                     console.error('认证响应缺少必需的令牌字段:', data);
                     return {

@@ -1,90 +1,133 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart } from 'lucide-react';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 const CategoryPieChart = ({ data = [] }) => {
-    // 准备 ECharts 配置
-    const option = {
-        tooltip: {
-            trigger: 'item',
-            formatter: '{b}: {c} ({d}%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderColor: 'transparent',
-            textStyle: {
-                color: '#fff',
+    const { t, i18n } = useI18nContext();
+    const chartData = useMemo(() => {
+        const validData = data?.filter(item => item.value > 0) || [];
+
+        if (validData.length === 0) {
+            return { hasData: false, option: null };
+        }
+
+        // 翻译分类名称
+        const translatedData = validData.map(item => {
+            // 首先尝试dreams命名空间，然后尝试common命名空间作为备选
+            const translatedName = t(`dreams.categories.${item.name}`, {
+                ns: 'dreams',
+                defaultValue: t(`statistics.dreamCategories.${item.name}`, { defaultValue: item.name })
+            });
+
+            return {
+                ...item,
+                name: translatedName
+            };
+        });
+
+        // 使用主题兼容的颜色方案
+        const colors = [
+            '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+            '#6366f1', '#ec4899', '#84cc16', '#f97316', '#06d6a0'
+        ];
+
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                borderColor: '#06b6d4',
+                borderWidth: 1,
+                textStyle: { color: '#fff', fontSize: 12 },
+                formatter: (params) => {
+                    return `${params.name}<br/>${t('statistics.count', '次数')}: ${params.value}${t('statistics.times', '次')}<br/>${t('statistics.percentage', '占比')}: ${params.percent}%`;
+                },
             },
-        },
-        legend: {
-            orient: 'horizontal',
-            bottom: 0,
-            left: 'center',
-            textStyle: {
-                color: '#999',
-                fontSize: 12,
+            legend: {
+                orient: 'horizontal',
+                bottom: 0,
+                left: 'center',
+                textStyle: {
+                    color: 'hsl(var(--foreground) / 0.8)',
+                    fontSize: 11,
+                    fontWeight: 500,
+                },
+                itemWidth: 8,
+                itemHeight: 8,
+                itemGap: 12,
+                data: translatedData.map(item => item.name),
             },
-            itemWidth: 10,
-            itemHeight: 10,
-        },
-        series: [
-            {
-                name: '梦境类别',
+            series: [{
+                name: t('statistics.dreamCategories', '梦境类别'),
                 type: 'pie',
-                radius: ['40%', '70%'],
+                radius: ['35%', '65%'],
                 center: ['50%', '45%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
-                    borderRadius: 10,
-                    borderColor: '#1a1a1a',
-                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: 'hsl(var(--border) / 0.3)',
                 },
                 label: {
                     show: false,
-                    position: 'center',
                 },
                 emphasis: {
-                    label: {
-                        show: true,
-                        fontSize: 20,
-                        fontWeight: 'bold',
-                        color: '#fff',
-                    },
+                    scale: true,
+                    scaleSize: 5,
                     itemStyle: {
                         shadowBlur: 10,
                         shadowOffsetX: 0,
-                        shadowColor: 'rgba(0, 0, 0, 0.5)',
+                        shadowColor: 'rgba(0, 0, 0, 0.3)',
+                    },
+                    label: {
+                        show: true,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#fff',
                     },
                 },
                 labelLine: {
                     show: false,
                 },
-                data: data.map((item) => ({
+                data: translatedData.map((item, index) => ({
                     value: item.value,
                     name: item.name,
                     itemStyle: {
-                        color: item.color || '#6366f1',
+                        color: item.color || colors[index % colors.length],
                     },
                 })),
-            },
-        ],
-        darkMode: true,
-    };
+                animationDuration: 800,
+                animationEasing: 'cubicOut',
+            }],
+        };
+
+        return { hasData: true, option };
+    }, [data, t]);
 
     return (
         <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    梦境类别分布
+            <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <PieChart className="h-4 w-4 text-cyan-500" />
+                    {t('statistics.charts.categoryDistribution', '梦境类别分布')}
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <ReactECharts
-                    option={option}
-                    style={{ height: '300px' }}
-                    theme="dark"
-                    opts={{ renderer: 'svg' }}
-                />
+                {chartData.hasData ? (
+                    <ReactECharts
+                        option={chartData.option}
+                        style={{ height: '280px', width: '100%' }}
+                        opts={{ renderer: 'svg', devicePixelRatio: window.devicePixelRatio || 2 }}
+                        className="w-full theme-transition"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-[280px] text-muted-foreground">
+                        <PieChart className="h-12 w-12 mb-3 opacity-50" />
+                        <p className="text-sm">{t('statistics.noCategoryData', '暂无类别数据')}</p>
+                        <p className="text-xs mt-1">{t('statistics.recordMoreForAnalysis', '记录更多梦境后查看分析')}</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

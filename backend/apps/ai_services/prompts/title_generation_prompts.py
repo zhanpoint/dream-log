@@ -8,7 +8,7 @@ from langchain_core.prompts import PromptTemplate
 class TitleGenerationPrompts:
     """标题生成提示词管理类"""
     
-    # 标题生成主要提示模板
+    # 梦境标题生成主要提示模板
     TITLE_GENERATION_PROMPT_TEMPLATE = """
 作为一名资深的解梦专家和富有创意的作家，请为以下梦境内容生成一个引人入胜且简洁的标题。
 
@@ -26,5 +26,5 @@ class TitleGenerationPrompts:
     
     @classmethod
     def create_title_generation_prompt(cls) -> PromptTemplate:
-        """创建标题生成Prompt实例"""
+        """创建梦境标题生成Prompt实例"""
         return PromptTemplate.from_template(cls.TITLE_GENERATION_PROMPT_TEMPLATE)

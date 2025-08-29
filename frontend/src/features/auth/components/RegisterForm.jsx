@@ -10,6 +10,7 @@ import notification from "@/utils/notification";
 import { smsService } from "@/services/notification/sms";
 import { emailService } from "@/services/notification/email";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
+import { useI18nContext } from "@/contexts/I18nContext";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ export function RegisterForm() {
     const navigate = useNavigate();
     const { register } = useAuth();
     const { isFeatureEnabled, getAvailableRegisterMethods } = useFeatureFlags();
+    const { t } = useI18nContext();
 
     // 获取可用的注册方式
     const availableRegisterMethods = getAvailableRegisterMethods();
@@ -106,41 +108,41 @@ export function RegisterForm() {
 
         // 验证用户名
         if (!username.trim()) {
-            newErrors.username = "请输入用户名";
+            newErrors.username = t('auth.register.validation.usernameRequired', '请输入用户名');
         } else if (username.length < 3) {
-            newErrors.username = "用户名长度至少为3个字符";
+            newErrors.username = t('auth.register.validation.usernameMinLength', '用户名长度至少为3个字符');
         } else if (username.length > 20) {
-            newErrors.username = "用户名长度不能超过20个字符";
+            newErrors.username = t('auth.register.validation.usernameMaxLength', '用户名长度不能超过20个字符');
         }
 
         // 验证密码
         if (!password) {
-            newErrors.password = "请输入密码";
+            newErrors.password = t('auth.register.validation.passwordRequired', '请输入密码');
         } else if (password.length < 8) {
-            newErrors.password = "密码长度至少为8个字符";
+            newErrors.password = t('auth.register.validation.passwordMinLength', '密码长度至少为8个字符');
         } else if (password.length > 32) {
-            newErrors.password = "密码长度不能超过32个字符";
+            newErrors.password = t('auth.register.validation.passwordMaxLength', '密码长度不能超过32个字符');
         }
 
         // 验证确认密码
         if (!confirmPassword) {
-            newErrors.confirmPassword = "请确认密码";
+            newErrors.confirmPassword = t('auth.register.validation.confirmPasswordRequired', '请确认密码');
         } else if (confirmPassword !== password) {
-            newErrors.confirmPassword = "两次输入的密码不一致";
+            newErrors.confirmPassword = t('auth.register.validation.passwordMismatch', '两次输入的密码不一致');
         }
 
         // 验证手机号
         if (!phone) {
-            newErrors.phone = "请输入手机号";
+            newErrors.phone = t('auth.register.validation.phoneRequired', '请输入手机号');
         } else if (!/^1[3-9]\d{9}$/.test(phone)) {
-            newErrors.phone = "请输入有效的手机号";
+            newErrors.phone = t('auth.register.validation.phoneInvalid', '请输入有效的手机号');
         }
 
         // 验证验证码
         if (!verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.register.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.register.validation.codeInvalid', '验证码为6位数字');
         }
 
         setErrors(newErrors);
@@ -154,41 +156,41 @@ export function RegisterForm() {
 
         // 验证用户名
         if (!username.trim()) {
-            newErrors.username = "请输入用户名";
+            newErrors.username = t('auth.register.validation.usernameRequired', '请输入用户名');
         } else if (username.length < 3) {
-            newErrors.username = "用户名长度至少为3个字符";
+            newErrors.username = t('auth.register.validation.usernameMinLength', '用户名长度至少为3个字符');
         } else if (username.length > 20) {
-            newErrors.username = "用户名长度不能超过20个字符";
+            newErrors.username = t('auth.register.validation.usernameMaxLength', '用户名长度不能超过20个字符');
         }
 
         // 验证密码
         if (!password) {
-            newErrors.password = "请输入密码";
+            newErrors.password = t('auth.register.validation.passwordRequired', '请输入密码');
         } else if (password.length < 8) {
-            newErrors.password = "密码长度至少为8个字符";
+            newErrors.password = t('auth.register.validation.passwordMinLength', '密码长度至少为8个字符');
         } else if (password.length > 32) {
-            newErrors.password = "密码长度不能超过32个字符";
+            newErrors.password = t('auth.register.validation.passwordMaxLength', '密码长度不能超过32个字符');
         }
 
         // 验证确认密码
         if (!confirmPassword) {
-            newErrors.confirmPassword = "请确认密码";
+            newErrors.confirmPassword = t('auth.register.validation.confirmPasswordRequired', '请确认密码');
         } else if (confirmPassword !== password) {
-            newErrors.confirmPassword = "两次输入的密码不一致";
+            newErrors.confirmPassword = t('auth.register.validation.passwordMismatch', '两次输入的密码不一致');
         }
 
         // 验证邮箱
         if (!email) {
-            newErrors.email = "请输入邮箱地址";
+            newErrors.email = t('auth.register.validation.emailRequired', '请输入邮箱地址');
         } else if (!emailService.validateEmail(email)) {
-            newErrors.email = "请输入有效的邮箱地址";
+            newErrors.email = t('auth.register.validation.emailInvalid', '请输入有效的邮箱地址');
         }
 
         // 验证验证码
         if (!verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.register.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.register.validation.codeInvalid', '验证码为6位数字');
         }
 
         setErrors(newErrors);
@@ -198,12 +200,12 @@ export function RegisterForm() {
     // 发送手机验证码
     const handleSendPhoneVerificationCode = async () => {
         if (!phoneFormData.phone) {
-            setErrors(prev => ({ ...prev, phone: "请输入手机号" }));
+            setErrors(prev => ({ ...prev, phone: t('auth.register.validation.phoneRequired', '请输入手机号') }));
             return;
         }
 
         if (!/^1[3-9]\d{9}$/.test(phoneFormData.phone)) {
-            setErrors(prev => ({ ...prev, phone: "请输入有效的手机号" }));
+            setErrors(prev => ({ ...prev, phone: t('auth.register.validation.phoneInvalid', '请输入有效的手机号') }));
             return;
         }
 
@@ -229,12 +231,12 @@ export function RegisterForm() {
     // 发送邮箱验证码
     const handleSendEmailVerificationCode = async () => {
         if (!emailFormData.email) {
-            setErrors(prev => ({ ...prev, email: "请输入邮箱地址" }));
+            setErrors(prev => ({ ...prev, email: t('auth.register.validation.emailRequired', '请输入邮箱地址') }));
             return;
         }
 
         if (!emailService.validateEmail(emailFormData.email)) {
-            setErrors(prev => ({ ...prev, email: "请输入有效的邮箱地址" }));
+            setErrors(prev => ({ ...prev, email: t('auth.register.validation.emailInvalid', '请输入有效的邮箱地址') }));
             return;
         }
 
@@ -275,7 +277,7 @@ export function RegisterForm() {
             });
 
             if (result.success) {
-                notification.success("注册成功！请登录您的账户");
+                notification.success(t('auth.messages.success.registerSuccess', '注册成功！请登录您的账户'));
                 navigate("/login");
             } else {
                 // 仅设置表单错误状态
@@ -286,7 +288,7 @@ export function RegisterForm() {
                 }
             }
         } catch (error) {
-            setErrors({ general: "注册失败，请重试" });
+            setErrors({ general: t('auth.messages.error.registerFailed', '注册失败，请重试') });
         } finally {
             setIsLoading(false);
         }
@@ -310,7 +312,7 @@ export function RegisterForm() {
             });
 
             if (result.success) {
-                notification.success("注册成功！请登录您的账户");
+                notification.success(t('auth.messages.success.registerSuccess', '注册成功！请登录您的账户'));
                 navigate("/login");
             } else {
                 // 仅设置表单错误状态
@@ -321,7 +323,7 @@ export function RegisterForm() {
                 }
             }
         } catch (error) {
-            setErrors({ general: "注册失败，请重试" });
+            setErrors({ general: t('auth.messages.error.registerFailed', '注册失败，请重试') });
         } finally {
             setIsLoading(false);
         }
@@ -335,9 +337,9 @@ export function RegisterForm() {
     return (
         <Card className="w-full max-w-md mx-auto card">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold text-center card-title">创建账户</CardTitle>
+                <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.register.title', '创建账户')}</CardTitle>
                 <CardDescription className="text-center">
-                    注册一个账户，开始您的梦想之旅
+                    {t('auth.register.subtitle', '注册一个账户，开始您的梦境探索之旅')}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -357,7 +359,7 @@ export function RegisterForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Phone className="w-4 h-4" />
-                                手机注册
+                                {t('auth.register.tabs.phone', '手机注册')}
                             </TabsTrigger>
                         )}
                         {isFeatureEnabled('EMAIL_SERVICE_ENABLED') && (
@@ -367,7 +369,7 @@ export function RegisterForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Mail className="w-4 h-4" />
-                                邮箱注册
+                                {t('auth.register.tabs.email', '邮箱注册')}
                             </TabsTrigger>
                         )}
                     </TabsList>
@@ -377,14 +379,14 @@ export function RegisterForm() {
                         <TabsContent value="phone" className="space-y-4">
                             <form onSubmit={handlePhoneSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-username">用户名</Label>
+                                    <Label htmlFor="phone-username">{t('auth.register.form.username', '用户名')}</Label>
                                     <div className="input-container">
                                         <User className="input-icon" />
                                         <Input
                                             id="phone-username"
                                             name="username"
                                             type="text"
-                                            placeholder="请输入用户名"
+                                            placeholder={t('auth.register.placeholders.username', '请输入用户名')}
                                             value={phoneFormData.username}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.username ? 'input-error' : ''}`}
@@ -396,14 +398,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-password">密码</Label>
+                                    <Label htmlFor="phone-password">{t('auth.register.form.password', '密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="phone-password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请输入密码"
+                                            placeholder={t('auth.register.placeholders.password', '请输入密码')}
                                             value={phoneFormData.password}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.password ? 'input-error' : ''}`}
@@ -419,7 +421,7 @@ export function RegisterForm() {
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        密码需包含至少8个字符，包括字母、数字
+                                        密码需包含至少8个字符，包括字母、数字、符号
                                     </p>
                                     {errors.password && (
                                         <p className="error-message">{errors.password}</p>
@@ -427,14 +429,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-confirmPassword">确认密码</Label>
+                                    <Label htmlFor="phone-confirmPassword">{t('auth.register.form.confirmPassword', '确认密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="phone-confirmPassword"
                                             name="confirmPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请再次输入密码"
+                                            placeholder={t('auth.register.placeholders.confirmPassword', '请再次输入密码')}
                                             value={phoneFormData.confirmPassword}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.confirmPassword ? 'input-error' : ''}`}
@@ -446,14 +448,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">手机号</Label>
+                                    <Label htmlFor="phone">{t('auth.register.form.phone', '手机号')}</Label>
                                     <div className="input-container">
                                         <Phone className="input-icon" />
                                         <Input
                                             id="phone"
                                             name="phone"
                                             type="text"
-                                            placeholder="请输入手机号"
+                                            placeholder={t('auth.register.placeholders.phone', '请输入手机号')}
                                             value={phoneFormData.phone}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.phone ? 'input-error' : ''}`}
@@ -465,7 +467,7 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-verificationCode">验证码</Label>
+                                    <Label htmlFor="phone-verificationCode">{t('auth.register.form.verificationCode', '验证码')}</Label>
                                     <div className="verification-container">
                                         <div className="input-container flex-1">
                                             <Shield className="input-icon" />
@@ -473,7 +475,7 @@ export function RegisterForm() {
                                                 id="phone-verificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.register.placeholders.verificationCode', '请输入验证码')}
                                                 value={phoneFormData.verificationCode}
                                                 onChange={handlePhoneFormChange}
                                                 className={`verification-input ${errors.verificationCode ? 'input-error' : ''}`}
@@ -485,7 +487,7 @@ export function RegisterForm() {
                                             disabled={phoneCountdown > 0 || isLoading}
                                             className="verification-button"
                                         >
-                                            {phoneCountdown > 0 ? `${phoneCountdown}s` : "获取验证码"}
+                                            {phoneCountdown > 0 ? `${phoneCountdown}s` : t('auth.register.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -500,7 +502,7 @@ export function RegisterForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "注册中..." : "注册"}
+                                    {isLoading ? t('auth.register.form.registering', '注册中...') : t('auth.register.form.registerButton', '注册')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -511,7 +513,7 @@ export function RegisterForm() {
                         <TabsContent value="email" className="space-y-4">
                             <form onSubmit={handleEmailSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-username">用户名</Label>
+                                    <Label htmlFor="email-username">{t('auth.register.form.username', '用户名')}</Label>
                                     <div className="input-container">
                                         <User className="input-icon" />
                                         <Input
@@ -553,7 +555,7 @@ export function RegisterForm() {
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        密码需包含至少8个字符，包括字母、数字
+                                        密码需包含至少8个字符，包括字母、数字、符号
                                     </p>
                                     {errors.password && (
                                         <p className="error-message">{errors.password}</p>
@@ -643,14 +645,14 @@ export function RegisterForm() {
             </CardContent>
             <CardFooter>
                 <div className="text-center w-full login-link">
-                    <span className="text-sm text-muted-foreground">已有账户？</span>
+                    <span className="text-sm text-muted-foreground">{t('auth.register.links.hasAccount', '已有账户？')}</span>
                     <a
                         href="#"
                         onClick={(e) => { e.preventDefault(); handleGoToLogin(); }}
                         className="dream-link ml-1"
                     >
                         <Star className="w-3 h-3 inline mr-1" />
-                        立即登录
+                        {t('auth.register.links.login', '立即登录')}
                     </a>
                 </div>
             </CardFooter>

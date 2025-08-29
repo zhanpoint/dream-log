@@ -226,21 +226,7 @@ class DreamViewSet(viewsets.ModelViewSet):
         serializer = DreamListSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False)
-    def statistics(self, request):
-        """获取梦境统计信息"""
-        queryset = self.get_queryset()
-        total_dreams = queryset.count()
-        lucid_dreams = queryset.filter(lucidity_level__gte=3).count()
-        favorite_dreams = queryset.filter(is_favorite=True).count()
-        recurring_dreams = queryset.filter(is_recurring=True).count()
-        
-        return Response({
-            'total_dreams': total_dreams,
-            'lucid_dreams': lucid_dreams,
-            'favorite_dreams': favorite_dreams,
-            'recurring_dreams': recurring_dreams,
-        })
+
 
     @action(detail=False)
     def categories(self, request):

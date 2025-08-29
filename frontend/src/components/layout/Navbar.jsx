@@ -1,10 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Book, Compass, Users, Moon, BarChart3 } from "lucide-react";
+import { Book, Compass, Users, Moon, BarChart3, Bot } from "lucide-react";
 import "./Navbar.css";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/user/UserAvatar";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import ThemeToggle from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { useTranslation } from 'react-i18next';
 
 import {
     NavigationMenu,
@@ -24,38 +26,41 @@ const Navbar = ({
         src: "/assets/logo.svg",
         alt: "Dream Log",
         title: "Dream Log",
-    },
-    menu = [
-        { title: "首页", url: "/" },
+    }
+}) => {
+    const navigate = useNavigate();
+    const { isAuthenticated, isLoading } = useAuth();
+    const { t } = useTranslation();
+
+    // 动态生成菜单项
+    const menu = [
+        { title: t('navigation.home'), url: "/" },
         {
-            title: "知识中心",
+            title: t('navigation.knowledge'),
             url: "#",
             icon: <Book className="size-5 shrink-0" />,
             items: [
                 {
-                    title: "梦境科学",
-                    description: "了解梦境背后的科学原理",
+                    title: t('knowledge.science.title', '梦境科学'),
+                    description: t('knowledge.science.description', '了解梦境背后的科学原理'),
                     icon: <Book className="size-5 shrink-0" />,
                     url: "/knowledge/science",
                 },
                 {
-                    title: "梦境符号学",
-                    description: "探索梦境中符号的含义",
+                    title: t('knowledge.symbols.title', '梦境符号学'),
+                    description: t('knowledge.symbols.description', '探索梦境中符号的含义'),
                     icon: <Book className="size-5 shrink-0" />,
                     url: "/knowledge/symbols",
                 },
                 {
-                    title: "梦境技巧",
-                    description: "学习记忆和控制梦境的技巧",
+                    title: t('knowledge.techniques.title', '梦境技巧'),
+                    description: t('knowledge.techniques.description', '学习记忆和控制梦境的技巧'),
                     icon: <Book className="size-5 shrink-0" />,
                     url: "/knowledge/techniques",
                 },
             ],
         },
-    ],
-}) => {
-    const navigate = useNavigate();
-    const { isAuthenticated, isLoading } = useAuth();
+    ];
 
     // 渲染桌面端菜单项
     const renderMenuItem = (item) => {
@@ -118,7 +123,7 @@ const Navbar = ({
                 className="my-dreams-btn"
                 onClick={() => navigate('/my-dreams')}
             >
-                我的梦境
+                {t('navigation.myDreams')}
             </Button>
         );
     };
@@ -129,7 +134,7 @@ const Navbar = ({
                 {/* Logo */}
                 <div className="navbar-logo">
                     <a href={logo.url} className="flex items-center gap-2">
-                        <img src={logo.src} className="h-8 w-8" alt={logo.alt} />
+                        <img src={logo.src} className="h-12 w-12" alt={logo.alt} />
                         <span className="navbar-logo-text">
                             {logo.title}
                         </span>
@@ -147,6 +152,9 @@ const Navbar = ({
 
                 {/* 用户工具栏 */}
                 <div className="navbar-tools">
+                    {/* 语言选择器 */}
+                    <LanguageSelector variant="ghost" size="sm" showFlag={true} />
+
                     {/* 主题切换按钮 */}
                     <ThemeToggle />
 
@@ -159,10 +167,19 @@ const Navbar = ({
                                     variant="ghost"
                                     size="sm"
                                     className="my-dreams-btn"
+                                    onClick={() => navigate('/assistant')}
+                                >
+                                    <Bot className="h-4 w-4 mr-1" />
+                                    {t('navigation.assistant')}
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="my-dreams-btn"
                                     onClick={() => navigate('/statistics')}
                                 >
                                     <BarChart3 className="h-4 w-4 mr-1" />
-                                    统计
+                                    {t('navigation.statistics')}
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -170,7 +187,7 @@ const Navbar = ({
                                     className="my-dreams-btn"
                                     onClick={() => navigate('/dreams/create')}
                                 >
-                                    创建梦境
+                                    {t('navigation.createDream')}
                                 </Button>
                                 <UserAvatar />
                             </div>
@@ -182,14 +199,14 @@ const Navbar = ({
                                     className="login-btn"
                                     onClick={() => navigate('/login')}
                                 >
-                                    登录
+                                    {t('navigation.login')}
                                 </Button>
                                 <Button
                                     size="sm"
                                     className="register-btn"
                                     onClick={() => navigate('/register')}
                                 >
-                                    注册
+                                    {t('navigation.register')}
                                 </Button>
                             </div>
                         )

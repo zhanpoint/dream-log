@@ -11,6 +11,7 @@ import { smsService } from "@/services/notification/sms";
 import { emailService } from "@/services/notification/email";
 import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
+import { useI18nContext } from "@/contexts/I18nContext";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
 
@@ -23,6 +24,7 @@ export function DualLoginForm() {
     const location = useLocation();
     const { login } = useAuth();
     const { isFeatureEnabled, getAvailableLoginMethods } = useFeatureFlags();
+    const { t } = useI18nContext();
 
     // 获取重定向地址（如果有）
     const from = location.state?.from?.pathname || "/";
@@ -119,19 +121,19 @@ export function DualLoginForm() {
         const newErrors = {};
 
         if (!passwordForm.username.trim()) {
-            newErrors.username = "请输入用户名";
+            newErrors.username = t('auth.login.validation.usernameRequired', '请输入用户名');
         } else if (passwordForm.username.length < 3) {
-            newErrors.username = "用户名长度至少为3个字符";
+            newErrors.username = t('auth.login.validation.usernameMinLength', '用户名长度至少为3个字符');
         } else if (passwordForm.username.length > 20) {
-            newErrors.username = "用户名长度不能超过20个字符";
+            newErrors.username = t('auth.login.validation.usernameMaxLength', '用户名长度不能超过20个字符');
         }
 
         if (!passwordForm.password) {
-            newErrors.password = "请输入密码";
+            newErrors.password = t('auth.login.validation.passwordRequired', '请输入密码');
         } else if (passwordForm.password.length < 8) {
-            newErrors.password = "密码长度至少为8个字符";
+            newErrors.password = t('auth.login.validation.passwordMinLength', '密码长度至少为8个字符');
         } else if (passwordForm.password.length > 32) {
-            newErrors.password = "密码长度不能超过32个字符";
+            newErrors.password = t('auth.login.validation.passwordMaxLength', '密码长度不能超过32个字符');
         }
 
         setErrors(newErrors);
@@ -143,15 +145,15 @@ export function DualLoginForm() {
         const newErrors = {};
 
         if (!smsForm.phone) {
-            newErrors.phone = "请输入手机号码";
+            newErrors.phone = t('auth.login.validation.phoneRequired', '请输入手机号码');
         } else if (!/^1[3-9]\d{9}$/.test(smsForm.phone)) {
-            newErrors.phone = "请输入有效的手机号码";
+            newErrors.phone = t('auth.login.validation.phoneInvalid', '请输入有效的手机号码');
         }
 
         if (!smsForm.verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.login.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(smsForm.verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.login.validation.codeInvalid', '验证码为6位数字');
         }
 
         setErrors(newErrors);
@@ -163,15 +165,15 @@ export function DualLoginForm() {
         const newErrors = {};
 
         if (!emailForm.email) {
-            newErrors.email = "请输入邮箱地址";
+            newErrors.email = t('auth.login.validation.emailRequired', '请输入邮箱地址');
         } else if (!emailService.validateEmail(emailForm.email)) {
-            newErrors.email = "请输入有效的邮箱地址";
+            newErrors.email = t('auth.login.validation.emailInvalid', '请输入有效的邮箱地址');
         }
 
         if (!emailForm.verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.login.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(emailForm.verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.login.validation.codeInvalid', '验证码为6位数字');
         }
 
         setErrors(newErrors);
@@ -182,10 +184,10 @@ export function DualLoginForm() {
     const handleSendSmsVerificationCode = async () => {
         // 验证手机号
         if (!smsForm.phone) {
-            setErrors({ ...errors, phone: "请输入手机号码" });
+            setErrors({ ...errors, phone: t('auth.login.validation.phoneRequired', '请输入手机号码') });
             return;
         } else if (!/^1[3-9]\d{9}$/.test(smsForm.phone)) {
-            setErrors({ ...errors, phone: "请输入有效的手机号码" });
+            setErrors({ ...errors, phone: t('auth.login.validation.phoneInvalid', '请输入有效的手机号码') });
             return;
         }
 
@@ -212,10 +214,10 @@ export function DualLoginForm() {
     const handleSendEmailVerificationCode = async () => {
         // 验证邮箱
         if (!emailForm.email) {
-            setErrors({ ...errors, email: "请输入邮箱地址" });
+            setErrors({ ...errors, email: t('auth.login.validation.emailRequired', '请输入邮箱地址') });
             return;
         } else if (!emailService.validateEmail(emailForm.email)) {
-            setErrors({ ...errors, email: "请输入有效的邮箱地址" });
+            setErrors({ ...errors, email: t('auth.login.validation.emailInvalid', '请输入有效的邮箱地址') });
             return;
         }
 
@@ -279,7 +281,7 @@ export function DualLoginForm() {
             const result = await login(loginType, credentials);
 
             if (result.success) {
-                notification.success("登录成功！");
+                notification.success(t('auth.messages.success.loginSuccess', '登录成功！'));
                 navigate(from, { replace: true });
             } else {
                 // 仅设置表单错误状态
@@ -290,7 +292,7 @@ export function DualLoginForm() {
                 }
             }
         } catch (error) {
-            setErrors({ general: "登录失败，请重试" });
+            setErrors({ general: t('auth.messages.error.loginFailed', '登录失败，请重试') });
         } finally {
             setIsLoading(false);
         }
@@ -313,12 +315,10 @@ export function DualLoginForm() {
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">
                     <div className="flex items-center justify-center gap-2">
-                        <Sparkles className="w-6 h-6 text-purple-500" />
-                        梦境门户
-                        <Star className="w-5 h-5 text-yellow-400" />
+                        Dreamlog
                     </div>
                 </CardTitle>
-                <CardDescription className="text-center">登录您的账户，开始梦想之旅</CardDescription>
+                <CardDescription className="text-center">{t('auth.login.subtitle', '登录您的账户，开始梦境探索之旅')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs value={loginMode} onValueChange={setLoginMode} className="w-full">
@@ -337,7 +337,7 @@ export function DualLoginForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Lock className="w-4 h-4" />
-                                账号密码
+                                {t('auth.login.tabs.password', '账号密码')}
                             </TabsTrigger>
                         )}
                         {isFeatureEnabled('SMS_SERVICE_ENABLED') && (
@@ -347,7 +347,7 @@ export function DualLoginForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Phone className="w-4 h-4" />
-                                手机验证
+                                {t('auth.login.tabs.sms', '手机验证')}
                             </TabsTrigger>
                         )}
                         {isFeatureEnabled('EMAIL_SERVICE_ENABLED') && (
@@ -357,7 +357,7 @@ export function DualLoginForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Mail className="w-4 h-4" />
-                                邮箱验证
+                                {t('auth.login.tabs.email', '邮箱验证')}
                             </TabsTrigger>
                         )}
                     </TabsList>
@@ -367,14 +367,14 @@ export function DualLoginForm() {
                         <TabsContent value="password" className="space-y-4">
                             <form onSubmit={(e) => handleLogin(e, 'password')} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="username">用户名</Label>
+                                    <Label htmlFor="username">{t('auth.login.form.username', '用户名')}</Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="username"
                                             name="username"
                                             type="text"
-                                            placeholder="请输入用户名"
+                                            placeholder={t('auth.login.placeholders.username', '请输入用户名')}
                                             value={passwordForm.username}
                                             onChange={handlePasswordFormChange}
                                             className={`pl-10 input ${errors.username ? 'error-input' : ''}`}
@@ -386,14 +386,14 @@ export function DualLoginForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="password">密码</Label>
+                                    <Label htmlFor="password">{t('auth.login.form.password', '密码')}</Label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请输入密码"
+                                            placeholder={t('auth.login.placeholders.password', '请输入密码')}
                                             value={passwordForm.password}
                                             onChange={handlePasswordFormChange}
                                             className={`pl-10 pr-10 input ${errors.password ? 'error-input' : ''}`}
@@ -424,7 +424,7 @@ export function DualLoginForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "登录中..." : "登录"}
+                                    {isLoading ? t('auth.login.form.loggingIn', '登录中...') : t('auth.login.form.loginButton', '登录')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -435,14 +435,14 @@ export function DualLoginForm() {
                         <TabsContent value="sms" className="space-y-4">
                             <form onSubmit={(e) => handleLogin(e, 'sms')} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">手机号</Label>
+                                    <Label htmlFor="phone">{t('auth.login.form.phone', '手机号')}</Label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="phone"
                                             name="phone"
                                             type="text"
-                                            placeholder="请输入手机号"
+                                            placeholder={t('auth.login.placeholders.phone', '请输入手机号')}
                                             value={smsForm.phone}
                                             onChange={handleSmsFormChange}
                                             className={`pl-10 input ${errors.phone ? 'error-input' : ''}`}
@@ -454,7 +454,7 @@ export function DualLoginForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="verificationCode">验证码</Label>
+                                    <Label htmlFor="verificationCode">{t('auth.login.form.verificationCode', '验证码')}</Label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-1">
                                             <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -462,7 +462,7 @@ export function DualLoginForm() {
                                                 id="verificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.login.placeholders.verificationCode', '请输入验证码')}
                                                 value={smsForm.verificationCode}
                                                 onChange={handleSmsFormChange}
                                                 className={`pl-10 input ${errors.verificationCode ? 'error-input' : ''}`}
@@ -470,12 +470,11 @@ export function DualLoginForm() {
                                         </div>
                                         <Button
                                             type="button"
-                                            variant="outline"
                                             onClick={handleSendSmsVerificationCode}
                                             disabled={smsCountdown > 0 || isLoading}
-                                            className="whitespace-nowrap"
+                                            className="verification-button"
                                         >
-                                            {smsCountdown > 0 ? `${smsCountdown}s` : "获取验证码"}
+                                            {smsCountdown > 0 ? `${smsCountdown}s` : t('auth.login.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -490,7 +489,7 @@ export function DualLoginForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "登录中..." : "登录"}
+                                    {isLoading ? t('auth.login.form.loggingIn', '登录中...') : t('auth.login.form.loginButton', '登录')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -501,14 +500,14 @@ export function DualLoginForm() {
                         <TabsContent value="email" className="space-y-4">
                             <form onSubmit={(e) => handleLogin(e, 'email')} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">邮箱地址</Label>
+                                    <Label htmlFor="email">{t('auth.login.form.email', '邮箱地址')}</Label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="email"
                                             name="email"
                                             type="email"
-                                            placeholder="请输入邮箱地址"
+                                            placeholder={t('auth.login.placeholders.email', '请输入邮箱地址')}
                                             value={emailForm.email}
                                             onChange={handleEmailFormChange}
                                             className={`pl-10 input ${errors.email ? 'error-input' : ''}`}
@@ -520,7 +519,7 @@ export function DualLoginForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="emailVerificationCode">验证码</Label>
+                                    <Label htmlFor="emailVerificationCode">{t('auth.login.form.verificationCode', '验证码')}</Label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-1">
                                             <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -528,7 +527,7 @@ export function DualLoginForm() {
                                                 id="emailVerificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.login.placeholders.verificationCode', '请输入验证码')}
                                                 value={emailForm.verificationCode}
                                                 onChange={handleEmailFormChange}
                                                 className={`pl-10 input ${errors.verificationCode ? 'error-input' : ''}`}
@@ -536,12 +535,11 @@ export function DualLoginForm() {
                                         </div>
                                         <Button
                                             type="button"
-                                            variant="outline"
                                             onClick={handleSendEmailVerificationCode}
                                             disabled={emailCountdown > 0 || isLoading}
-                                            className="whitespace-nowrap"
+                                            className="verification-button"
                                         >
-                                            {emailCountdown > 0 ? `${emailCountdown}s` : "获取验证码"}
+                                            {emailCountdown > 0 ? `${emailCountdown}s` : t('auth.login.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -556,7 +554,7 @@ export function DualLoginForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "登录中..." : "登录"}
+                                    {isLoading ? t('auth.login.form.loggingIn', '登录中...') : t('auth.login.form.loginButton', '登录')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -572,18 +570,18 @@ export function DualLoginForm() {
                             className="dream-link text-sm"
                         >
                             <Sparkles className="w-3 h-3 inline mr-1" />
-                            忘记密码？
+                            {t('auth.login.form.forgotPassword', '忘记密码？')}
                         </a>
                     </div>
                     <div className="text-center login-link">
-                        <span className="text-sm text-muted-foreground">还没有账户？</span>
+                        <span className="text-sm text-muted-foreground">{t('auth.login.links.noAccount', '还没有账户？')}</span>
                         <a
                             href="#"
                             onClick={handleGoToRegister}
                             className="text-primary dream-link ml-1"
                         >
                             <Star className="w-3 h-3 inline mr-1" />
-                            立即注册
+                            {t('auth.login.links.register', '立即注册')}
                         </a>
                     </div>
                 </div>

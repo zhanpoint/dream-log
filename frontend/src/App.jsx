@@ -1,10 +1,14 @@
 import React, { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar";
-import Footer from "./components/layout/Footer";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { FeatureFlagProvider } from "./contexts/FeatureFlagContext";
+import { I18nProvider } from "./contexts/I18nContext";
+import PagePreloader from "./components/ui/PagePreloader";
+import { LayoutController } from "./components/i18n/LayoutController";
+import "./styles/i18n/layout.css";
 
 /**
  * 全局加载组件
@@ -16,7 +20,7 @@ function AppLoadingFallback() {
             <div className="flex flex-col items-center space-y-3">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 <div className="text-center">
-                    <h2 className="text-lg font-semibold text-foreground">梦境门户</h2>
+                    <h2 className="text-lg font-semibold text-foreground">Dreamlog</h2>
                     <p className="text-sm text-muted-foreground">正在启动...</p>
                 </div>
             </div>
@@ -46,23 +50,29 @@ function AppContent() {
             <main className="main-content">
                 <Outlet />
             </main>
-            {/* Footer组件仅在首页显示 */}
-            {isHomePage && <Footer />}
+            {/* 页面预加载器 - 智能预加载用户可能访问的页面 */}
+            <PagePreloader />
         </div>
     );
 }
 
 function App() {
     return (
-        <ThemeProvider>
-            <Suspense fallback={<AppLoadingFallback />}>
-                <FeatureFlagProvider>
-                    <AuthProvider>
-                        <AppContent />
-                    </AuthProvider>
-                </FeatureFlagProvider>
-            </Suspense>
-        </ThemeProvider>
+        <ErrorBoundary>
+            <ThemeProvider>
+                <Suspense fallback={<AppLoadingFallback />}>
+                    <I18nProvider>
+                        <LayoutController>
+                            <FeatureFlagProvider>
+                                <AuthProvider>
+                                    <AppContent />
+                                </AuthProvider>
+                            </FeatureFlagProvider>
+                        </LayoutController>
+                    </I18nProvider>
+                </Suspense>
+            </ThemeProvider>
+        </ErrorBoundary>
     );
 }
 

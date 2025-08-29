@@ -53,8 +53,9 @@ DATABASE = {
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT'),
         'OPTIONS': {
+            # 确保 Django 与 MySQL 之间的连接使用 utf8mb4 字符集，但并不会影响数据库本身的默认字符集
             'charset': 'utf8mb4',
-            'init_command': 'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
+            'init_command': "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_0900_ai_ci'",
         }
     }
 }

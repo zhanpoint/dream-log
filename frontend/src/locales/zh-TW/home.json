@@ -1,0 +1,34 @@
+{
+    "title": "Dream Log - 夢境日誌",
+    "description": "Dream Log - 記錄、分析和解釋您的夢境",
+    "keywords": "夢境,日誌,AI,心理學,夢境解釋",
+    "welcome": "歡迎來到 Dream Log",
+    "subtitle": "探索夢境的神祕世界，解鎖潛意識的智慧",
+    "badge": "AI驅動的夢境解析平台",
+    "cta": {
+        "primary": "開始記錄夢境",
+        "secondary": "了解更多"
+    },
+    "features": {
+        "title": "為什麼選擇 Dream Log",
+        "subtitle": "專業的夢境分析工具，助您深入理解夢境世界",
+        "items": {
+            "record": {
+                "title": "智能記錄",
+                "description": "使用AI輔助工具輕鬆記錄和分類您的夢境體驗"
+            },
+            "analyze": {
+                "title": "深度解析",
+                "description": "運用心理學和神經科學方法深度解讀夢境含義"
+            },
+            "assistant": {
+                "title": "AI助手",
+                "description": "個人化AI夢境解析師為您提供專業見解和建議"
+            },
+            "statistics": {
+                "title": "數據統計",
+                "description": "視覺化展示您的夢境模式、頻率和主題趨勢"
+            }
+        }
+    }
+}

@@ -126,7 +126,17 @@ class EmailService:
                 'subject': 'DreamLog 密码重置',
                 'html': 'user/email/user_reset_password.html',
                 'text': 'user/email/user_reset_password.txt',
-            }
+            },
+            'change_email': {
+                'subject': 'DreamLog 更换邮箱验证',
+                'html': 'user/email/user_change_email.html',
+                'text': 'user/email/user_change_email.txt',
+            },
+            'backup_email': {
+                'subject': 'DreamLog 设置备用邮箱验证',
+                'html': 'user/email/user_backup_email.html',
+                'text': 'user/email/user_backup_email.txt',
+            },
         }
         
         # 2. 获取当前场景的配置

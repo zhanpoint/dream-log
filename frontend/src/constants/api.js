@@ -9,10 +9,8 @@ export const API_BASE_URL = '/api';
 // 认证相关端点 (Prefix: /api/auth)
 export const AUTH_ENDPOINTS = {
     SESSIONS: `${API_BASE_URL}/auth/sessions/`,
-    TOKEN_OBTAIN: `${API_BASE_URL}/auth/tokens/`,
     TOKEN_REFRESH: `${API_BASE_URL}/auth/tokens/refresh/`,
     TOKEN_VERIFY: `${API_BASE_URL}/auth/tokens/verify/`,
-    PASSWORD_RESET: `${API_BASE_URL}/auth/password/reset/`,
 };
 
 // 用户管理相关端点 (Prefix: /api/users)
@@ -21,6 +19,9 @@ export const USER_ENDPOINTS = {
     // POST /api/users/
     USER_DETAIL: (userId) => `${API_BASE_URL}/users/${userId}/`,
     USER_LIST: `${API_BASE_URL}/users/`,
+    ME_PRIMARY_EMAIL: `${API_BASE_URL}/users/me/primary-email/`,
+    ME_PASSWORD: `${API_BASE_URL}/users/me/password/`,
+    ME_BACKUP_EMAIL: `${API_BASE_URL}/users/me/backup-email/`,
 };
 
 // 验证码相关端点 (Prefix: /api/verifications)

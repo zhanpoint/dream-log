@@ -230,3 +230,6 @@ def _save_analysis_to_database(dream_data: Dict[str, Any], analysis_result: Dict
     except Exception as e:
         logger.error(f"Failed to save AI analysis result: {e}")
         raise
+
+
+# 删除了手动触发的Celery任务，现在只使用实时分析

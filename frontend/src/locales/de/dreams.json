@@ -1,0 +1,234 @@
+{
+    "list": {
+        "title": "Meine Träume"
+    },
+    "categories": {
+        "normal": "Normaler Traum",
+        "lucid": "Luzider Traum",
+        "nightmare": "Albtraum",
+        "recurring": "Wiederkehrender Traum",
+        "prophetic": "Prophetischer Traum",
+        "healing": "Heilender Traum",
+        "spiritual": "Spiritueller Traum",
+        "creative": "Kreativer Traum",
+        "hypnagogic": "Einschlaf-Halluzination",
+        "hypnopompic": "Aufwach-Halluzination",
+        "sleep_paralysis": "Schlaflähmung",
+        "false_awakening": "Falsches Erwachen",
+        "anxiety": "Angsttraum",
+        "joyful": "Freudiger Traum",
+        "melancholic": "Melancholischer Traum",
+        "adventure": "Abenteuertraum"
+    },
+    "create": {
+        "pageTitle": "Traum Erstellen - Dream Log",
+        "pageDescription": "Einen neuen Traum-Eintrag erstellen",
+        "pageKeywords": "Träume, Aufzeichnung, erstellen, Analyse",
+        "title": "Traum Aufzeichnen",
+        "subtitle": "Erstellen Sie Ihre Traumwelt",
+        "button": "Neuen Traum Aufzeichnen",
+        "failed": "Traumerstellung fehlgeschlagen",
+        "imageUploadNoUrl": "Bild erfolgreich hochgeladen, aber URL nicht verfügbar",
+        "imageUploadFailed": "Bild-Upload fehlgeschlagen",
+        "tagNameRequired": "Tag-Name darf nicht leer sein",
+        "tagExists": "Tag existiert bereits",
+        "form": {
+            "basicInfo": "Grundinformationen",
+            "dreamTitle": "Traumtitel",
+            "dreamTitlePlaceholder": "Geben Sie Ihrem Traum einen Namen...",
+            "dreamDate": "Traumdatum",
+            "content": "Trauminhalt",
+            "contentPlaceholder": "Beginnen Sie Ihren Traum aufzuzeichnen...",
+            "categories": "Kategorien",
+            "tags": "Tags"
+        }
+    },
+    "detail": {
+        "pageTitle": "Traum-Details - Dream Log",
+        "loading": "Lädt...",
+        "notFound": "Traum nicht gefunden",
+        "backButton": "Zurück",
+        "actions": {
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "analyze": "KI-Analyse"
+        },
+        "emotion": {
+            "beforeSleep": "Vor dem Schlaf",
+            "inDream": "Im Traum",
+            "afterWaking": "Nach dem Aufwachen"
+        },
+        "sleepQuality": "Schlafqualität",
+        "sleepTime": "Schlafzeit",
+        "sleepDuration": "Schlafdauer",
+        "lucidity": "Klarheit",
+        "clarity": "Deutlichkeit",
+        "sleepEmotion": "Schlaf & Emotionen",
+        "emotionTrack": "Emotionsspur",
+        "sleepStatus": "Schlafstatus",
+        "perception": "Sensorische Erfahrung",
+        "personalNotes": "Persönliche Notizen",
+        "aiAnalysis": "KI-Smart-Analyse",
+        "myAnalysis": "Meine Interpretation",
+        "addAnalysis": "Interpretation hinzufügen",
+        "analysisPlaceholder": "Beziehen Sie sich auf KI-Analyseergebnisse und kombinieren Sie mit Ihren Lebenserfahrungen, um Ihre einzigartigen Erkenntnisse über diesen Traum aufzuschreiben...",
+        "recurringElements": "Wiederkehrende Elemente",
+        "recurringDescription": "Dies ist ein wiederkehrender Traum",
+        "recurringDream": "Wiederkehrender Traum",
+        "hoverDetails": "Für Details hovern",
+        "analysisPrompt": "Beziehen Sie sich auf KI-Analyseergebnisse und kombinieren Sie mit Ihren Lebenserfahrungen, um Ihre einzigartigen Erkenntnisse über diesen Traum aufzuzeichnen",
+        "deleteConfirmation": "Sind Sie sicher, dass Sie diesen Traum-Eintrag löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "assistant": {
+        "pageTitle": "Traum-Assistent - Dream Log",
+        "pageDescription": "Chatten Sie mit dem KI-Traum-Assistenten und erkunden Sie die Geheimnisse der Träume",
+        "pageKeywords": "Traum-Assistent,KI-Chat,Traum-Analyse",
+        "newChatTitle": "Neuer Chat",
+        "search": {
+            "placeholder": "Gespräche suchen..."
+        },
+        "button": {
+            "newChat": "Neuen Chat starten",
+            "sendFirstMessage": "Bitte senden Sie zuerst eine Nachricht, um einen neuen Chat zu erstellen",
+            "uploadImage": "Bild hochladen",
+            "voiceInput": "Spracheingabe",
+            "sendMessage": "Nachricht senden"
+        },
+        "connection": {
+            "connected": "Verbunden",
+            "connecting": "Verbinde",
+            "failed": "Verbindung fehlgeschlagen"
+        },
+        "welcome": {
+            "title": "Beginnen Sie Ihre Traum-Erkundungsreise",
+            "subtitle": "Beschreiben Sie Ihre Träume oder fragen Sie nach Traumwissen"
+        },
+        "thinking": "Denke...",
+        "input": {
+            "placeholder": "Fragen Sie den Traum-Assistenten..."
+        },
+        "error": {
+            "emptyMessage": "Nachrichteninhalt darf nicht leer sein, bitte geben Sie Text ein oder wählen Sie ein Bild aus",
+            "connectionLost": "Netzwerkverbindung verloren, bitte versuchen Sie es später erneut",
+            "chatStateError": "Chat-Statusfehler, bitte aktualisieren und erneut versuchen",
+            "voiceNotSupported": "Ihr Browser unterstützt keine Spracheingabe",
+            "voiceRecognitionError": "Spracherkennungsfehler: ",
+            "invalidTitle": "Bitte geben Sie einen gültigen Chat-Titel ein",
+            "titleTooLong": "Chat-Titel darf 100 Zeichen nicht überschreiten"
+        },
+        "memorySaved": "Erinnerung gespeichert",
+        "chatRenamed": "Chat umbenannt",
+        "rename": {
+            "dialogTitle": "Chat umbenennen",
+            "title": "Geben Sie einen neuen Titel für den Chat ein",
+            "placeholder": "Chat-Titel eingeben"
+        },
+        "delete": {
+            "dialogTitle": "Chat löschen",
+            "confirmation": "Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+        },
+        "settings": {
+            "description": "KI-Assistenten-Einstellungen konfigurieren",
+            "personalizeTab": "Personalisieren",
+            "dataTab": "Datenverwaltung",
+            "securityTab": "Sicherheit",
+            "helpTab": "Hilfe",
+            "personalize": "KI-Assistent-Verhalten und -Einstellungen anpassen",
+            "data": "Verwalten Sie Ihre Gesprächsdaten und Exportoptionen",
+            "security": "Datenschutz- und Sicherheitseinstellungen",
+            "help": "Holen Sie sich Hilfe und Support-Informationen",
+            "dataExport": "Daten exportieren",
+            "dataExportDescription": "Exportieren Sie Ihre Gesprächsaufzeichnungen",
+            "privacyTitle": "Datenschutz & Sicherheit",
+            "privacy": "Datenschutzeinstellungen verwalten",
+            "helpAndSupport": "Hilfe & Support",
+            "helpAndSupportDescription": "Benutzerhandbücher und FAQs anzeigen",
+            "defaultName": "Traumassistent",
+            "assistantName": "Assistentenname",
+            "assistantNamePlaceholder": "Geben Sie Ihrem Assistenten einen Namen",
+            "interpretationStyle": "Interpretationsstil",
+            "preferredDimensions": "Bevorzugte Interpretationsdimensionen",
+            "responseLength": "Antwortlänge",
+            "autoImageGeneration": "Traumbilder automatisch generieren",
+            "enableFollowUpQuestions": "Nachfragen aktivieren",
+            "saving": "Speichern...",
+            "saveSettings": "Einstellungen speichern",
+            "configUpdated": "Konfiguration aktualisiert",
+            "updateConfigFailed": "Konfiguration konnte nicht aktualisiert werden",
+            "styles": {
+                "professional": "Professionell Akademisch",
+                "friendly": "Freundlich & Warm",
+                "poetic": "Poetisch & Romantisch",
+                "balanced": "Ausgewogen & Umfassend"
+            },
+            "responseStyles": {
+                "concise": "Prägnant",
+                "moderate": "Moderat",
+                "detailed": "Detailliert"
+            },
+            "dimensions": {
+                "psychological": "Psychologische Analyse",
+                "symbolic": "Symbolische Interpretation",
+                "biological": "Biomedizinische Perspektive",
+                "spiritual": "Spirituelle Dimension",
+                "personalGrowth": "Persönliches Wachstum"
+            }
+        },
+        "deleteAll": {
+            "title": "Alle Chats löschen",
+            "description": "Alle Chat-Aufzeichnungen löschen, nicht wiederherstellbar",
+            "confirmation": "Sind Sie sicher, dass Sie alle {count} Chats löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden!",
+            "noChats": "Keine Chats zum Löschen",
+            "button": "Alle löschen"
+        },
+        "image": {
+            "selectedAlt": "Selected {index}"
+        }
+    },
+    "filters": {
+        "mood": "Stimmung",
+        "sleepQuality": "Schlafqualität",
+        "removeCategory": "{category} Kategorie entfernen",
+        "categories": "Kategorien",
+        "categoriesCount": "{count} Kategorien",
+        "allMoods": "Alle Stimmungen",
+        "dateRange": "Datumsbereich",
+        "dateFrom": "Von {date}",
+        "clearDate": "Datum löschen",
+        "allSleepQualities": "Alle Qualitäten",
+        "recurringDream": "Wiederkehrender Traum",
+        "activeFiltersCount": "{count} Filter",
+        "moreFilters": "Mehr Filter",
+        "reset": "Zurücksetzen",
+        "lucidity": "Klarheit",
+        "clarity": "Deutlichkeit",
+        "sleepDuration": "Schlafdauer",
+        "hours": "Stunden",
+        "hoursRange": "0 Stunden",
+        "hoursRangeMax": "24 Stunden",
+        "tags": "Tags",
+        "tagsSeparator": "durch Kommas getrennt",
+        "tagsPlaceholder": "z.B.: fliegen, Schule, Familie",
+        "modeUnion": "Vereinigung",
+        "modeUnionLabel": "Vereinigungsmodus",
+        "modeIntersection": "Schnittmenge",
+        "modeIntersectionLabel": "Schnittmengenmodus",
+        "modeAndDescription": "Enthält alle Kategorien",
+        "modeOrDescription": "Enthält beliebige Kategorie"
+    },
+    "detail": {
+        "content": "Trauminhalt",
+        "aiAnalysisResult": "KI-Traumanalyse Ergebnisse",
+        "aiAnalysisDescription": "Traumanalyse basierend auf psychologischen Theorien und KI-Technologie, nur zur Referenz und Selbsterforschung.",
+        "aiAnalysisButton": "KI-Traumanalyse",
+        "aiAnalysisDescriptionText": "Verwendung fortschrittlicher KI-Technologie in Kombination mit psychologischen Theorien zur tiefgehenden Analyse Ihrer Träume",
+        "aiAnalysisCompleted": "KI-Traumanalyse abgeschlossen!",
+        "aiAnalysisError": "Fehler während der Analyse aufgetreten",
+        "aiAnalysisFailed": "Analyse fehlgeschlagen",
+        "aiAnalysisStartFailed": "Analyse konnte nicht gestartet werden",
+        "aiAnalysisCancelFailed": "Analyse konnte nicht abgebrochen werden",
+        "aiAnalysisCancelled": "Analyse abgebrochen",
+        "aiAnalysisProgress": "KI-Traumanalyse Fortschritt",
+        "reAnalyze": "Erneut analysieren"
+    }
+}

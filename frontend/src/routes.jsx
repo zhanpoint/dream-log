@@ -1,19 +1,35 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import Register from "./pages/RegisterPage";
-import { LoginPage } from "./pages/LoginPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import HomePage from "./pages/HomePage";
-import CreateDream from "./pages/CreateDream";
-import DreamDetail from "./pages/DreamDetail";
-import MyDreams from "./pages/MyDreams";
-import EditDream from "./pages/EditDream";
-import StatisticsPage from "./pages/StatisticsPage";
 import PrivateRoute from "./features/auth/components/PrivateRoute";
+import RouteLoadingSpinner from "./components/ui/RouteLoadingSpinner";
+
+// 懒加载页面组件 - 提升首次访问性能
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage").then(module => ({ default: module.LoginPage })));
+const Register = lazy(() => import("./pages/RegisterPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+
+// 需要认证的页面组件 - 按需加载
+const CreateDream = lazy(() => import("./pages/CreateDream"));
+const DreamDetail = lazy(() => import("./pages/DreamDetail"));
+const MyDreams = lazy(() => import("./pages/MyDreams"));
+const EditDream = lazy(() => import("./pages/EditDream"));
+const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
+const DreamAssistantPage = lazy(() => import("./pages/DreamAssistantPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 /**
- * 应用路由配置
+ * 懒加载组件包装器 - 提供统一的加载状态
+ */
+const LazyWrapper = ({ children }) => (
+    <Suspense fallback={<RouteLoadingSpinner />}>
+        {children}
+    </Suspense>
+);
+
+/**
+ * 应用路由配置 - 懒加载优化版本
  * 所有路由都在App组件下，确保功能开关在全局可用
  */
 const router = createBrowserRouter([
@@ -23,25 +39,43 @@ const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <HomePage />,
+                element: (
+                    <LazyWrapper>
+                        <HomePage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: "login",
-                element: <LoginPage />,
+                element: (
+                    <LazyWrapper>
+                        <LoginPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: "register",
-                element: <Register />,
+                element: (
+                    <LazyWrapper>
+                        <Register />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: "reset-password",
-                element: <ResetPasswordPage />,
+                element: (
+                    <LazyWrapper>
+                        <ResetPasswordPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: "dreams/create",
                 element: (
                     <PrivateRoute>
-                        <CreateDream />
+                        <LazyWrapper>
+                            <CreateDream />
+                        </LazyWrapper>
                     </PrivateRoute>
                 ),
             },
@@ -49,7 +83,9 @@ const router = createBrowserRouter([
                 path: "my-dreams",
                 element: (
                     <PrivateRoute>
-                        <MyDreams />
+                        <LazyWrapper>
+                            <MyDreams />
+                        </LazyWrapper>
                     </PrivateRoute>
                 ),
             },
@@ -57,7 +93,9 @@ const router = createBrowserRouter([
                 path: "dreams/:id",
                 element: (
                     <PrivateRoute>
-                        <DreamDetail />
+                        <LazyWrapper>
+                            <DreamDetail />
+                        </LazyWrapper>
                     </PrivateRoute>
                 ),
             },
@@ -65,7 +103,9 @@ const router = createBrowserRouter([
                 path: "dreams/:id/edit",
                 element: (
                     <PrivateRoute>
-                        <EditDream />
+                        <LazyWrapper>
+                            <EditDream />
+                        </LazyWrapper>
                     </PrivateRoute>
                 ),
             },
@@ -73,7 +113,29 @@ const router = createBrowserRouter([
                 path: "statistics",
                 element: (
                     <PrivateRoute>
-                        <StatisticsPage />
+                        <LazyWrapper>
+                            <StatisticsPage />
+                        </LazyWrapper>
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: "assistant",
+                element: (
+                    <PrivateRoute>
+                        <LazyWrapper>
+                            <DreamAssistantPage />
+                        </LazyWrapper>
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: "settings",
+                element: (
+                    <PrivateRoute>
+                        <LazyWrapper>
+                            <SettingsPage />
+                        </LazyWrapper>
                     </PrivateRoute>
                 ),
             },

@@ -1,0 +1,417 @@
+{
+    "list": {
+        "title": "我的梦境",
+        "subtitle": "浏览和管理你的梦境记录",
+        "keywords": "梦境,记录,管理",
+        "noDreams": "还没有梦境记录",
+        "noResults": "没有找到匹配的梦境，试试调整筛选条件",
+        "startRecording": "开始记录你的第一个梦境吧",
+        "confirmDeleteDescription": "确定要删除梦境 \"{title}\" 吗？此操作无法撤销。"
+    },
+    "search": {
+        "placeholder": "搜索梦境标题或内容..."
+    },
+    "sort": {
+        "default": "默认排序",
+        "newest": "最新优先",
+        "oldest": "最早优先",
+        "title": "标题排序"
+    },
+    "stats": {
+        "total": "总梦境数",
+        "today": "今日梦境",
+        "viewDetails": "查看详细统计"
+    },
+    "create": {
+        "pageTitle": "创建梦境 - Dream Log",
+        "pageDescription": "创建新的梦境记录",
+        "pageKeywords": "梦境,记录,创建,分析",
+        "title": "记录梦境",
+        "subtitle": "创建你的梦境世界",
+        "button": "记录新梦境",
+        "failed": "梦境创建失败",
+        "imageUploadNoUrl": "图片上传成功，但无法获取URL",
+        "imageUploadFailed": "图片上传失败",
+        "tagNameRequired": "标签名称不能为空",
+        "tagExists": "标签已存在",
+        "form": {
+            "basicInfo": "基础信息",
+            "dreamTitle": "梦境标题",
+            "dreamTitlePlaceholder": "给你的梦境起个名字...",
+            "dreamDate": "梦境日期",
+            "content": "梦境内容",
+            "contentPlaceholder": "开始记录你的梦境...",
+            "categories": "分类",
+            "tags": "标签",
+            "lucidity": "清醒度",
+            "vividness": "清晰度",
+            "moodBeforeSleep": "睡前情绪",
+            "moodInDream": "梦中情绪",
+            "moodAfterWaking": "醒后情绪",
+            "sleepQuality": "睡眠质量",
+            "sleepDuration": "睡眠时长",
+            "hours": "小时",
+            "bedtime": "就寝时间",
+            "wakeTime": "醒来时间",
+            "personalNotesPlaceholder": "记录你的个人想法、感受或其他备注...",
+            "isRecurring": "这是一个重复梦境",
+            "recurringPlaceholder": "描述重复出现的元素...",
+            "recurringLimitError": "重复元素不能超过10字符",
+            "generateTitle": "AI生成梦境标题",
+            "generate": "AI生成",
+            "titleGenContentTooShort": "梦境内容字数过少，无法生成高匹配的标题",
+            "titleGenSuccess": "AI标题生成成功！",
+            "titleGenFailed": "标题生成失败",
+            "titleGenFailedRetry": "AI生成标题失败，请重试",
+            "selectMood": "选择情绪",
+            "selectSleepQuality": "选择睡眠质量",
+            "sleepInfo": "睡眠信息",
+            "sleepInformation": "睡眠信息",
+            "personalNotesLabel": "个人笔记",
+            "categoryHelp": {
+                "title": "梦境类别说明",
+                "description": "选择最符合你梦境特点的类别："
+            },
+            "lucidityHelp": {
+                "title": "清醒度等级说明",
+                "description": "清醒度等级是指在梦境中对自己正在做梦这一事实的意识程度。",
+                "level0": "0级 - 完全无意识：",
+                "level0Desc": "完全不知道自己在做梦，梦境体验如同现实",
+                "level1": "1级 - 微弱意识：",
+                "level1Desc": "偶尔怀疑现实，但很快被梦境逻辑说服",
+                "level2": "2级 - 模糊意识：",
+                "level2Desc": "隐约感觉不对劲，但无法确定是在做梦",
+                "level3": "3级 - 部分清醒：",
+                "level3Desc": "意识到在做梦，但控制能力有限",
+                "level4": "4级 - 高度清醒：",
+                "level4Desc": "完全知道在做梦，能够进行一定程度的控制",
+                "level5": "5级 - 超清醒状态：",
+                "level5Desc": "完全清醒，能够自由控制梦境内容和情节"
+            },
+            "lucidityLabels": {
+                "min": "完全无意识",
+                "max": "超清醒状态"
+            },
+            "vividnessHelp": {
+                "title": "清晰度说明",
+                "description": "清晰度是指梦境中感官体验的生动程度和细节丰富度。",
+                "level1": "1级 - 模糊：",
+                "level1Desc": "梦境朦胧不清，细节缺失，如同雾中看花",
+                "level2": "2级 - 较模糊：",
+                "level2Desc": "能看清大致轮廓，但细节不够清晰",
+                "level3": "3级 - 一般：",
+                "level3Desc": "梦境相对清晰，能够辨认人物和场景",
+                "level4": "4级 - 清晰：",
+                "level4Desc": "梦境生动清晰，细节丰富，接近现实体验",
+                "level5": "5级 - 非常清晰：",
+                "level5Desc": "梦境极其生动，所有感官都异常清晰，甚至超越现实",
+                "note": "注意：清晰度与清醒度是两个不同的概念。清晰度关注感官体验，清醒度关注意识状态。"
+            },
+            "vividnessLabels": {
+                "min": "模糊",
+                "max": "非常清晰"
+            }
+        }
+    },
+    "detail": {
+        "pageTitle": "梦境详情 - Dream Log",
+        "loading": "加载中...",
+        "notFound": "梦境未找到",
+        "backButton": "返回",
+        "actions": {
+            "edit": "编辑",
+            "delete": "删除",
+            "analyze": "AI分析"
+        },
+        "emotion": {
+            "beforeSleep": "睡前",
+            "inDream": "梦中",
+            "afterWaking": "醒后"
+        },
+        "sleepQuality": "睡眠质量",
+        "sleepTime": "睡眠时间",
+        "sleepDuration": "睡眠时长",
+        "lucidity": "清醒度",
+        "clarity": "清晰度",
+        "sleepEmotion": "睡眠与情绪",
+        "emotionTrack": "情绪轨迹",
+        "sleepStatus": "睡眠状态",
+        "perception": "感知体验",
+        "personalNotes": "个人笔记",
+        "aiAnalysis": "AI智能分析",
+        "myAnalysis": "我的解析",
+        "addAnalysis": "添加解析",
+        "analysisPlaceholder": "参考AI分析结果，结合你的生活经历，写下你对这个梦境的理解和感悟...",
+        "recurringElements": "重复元素",
+        "recurringDescription": "这是一个重复出现的梦境",
+        "recurringDream": "重复梦境",
+        "hoverDetails": "悬停查看详情",
+        "analysisPrompt": "参考AI分析结果，结合你的生活经历，记录你对这个梦境的独特见解",
+        "deleteConfirmation": "确定要删除这个梦境记录吗？此操作无法撤销。",
+        "content": "梦境内容",
+        "aiAnalysisResult": "AI梦境分析结果",
+        "aiAnalysisDescription": "基于心理学理论和AI技术为您提供梦境解析，仅供参考和自我探索。",
+        "aiAnalysisButton": "AI解梦分析",
+        "aiAnalysisDescriptionText": "使用先进的AI技术，结合心理学理论对你的梦境进行深度分析",
+        "aiAnalysisCompleted": "AI梦境分析完成！",
+        "aiAnalysisError": "分析过程中出现错误",
+        "aiAnalysisFailed": "分析失败",
+        "aiAnalysisStartFailed": "启动分析失败",
+        "aiAnalysisCancelFailed": "取消分析失败",
+        "aiAnalysisCancelled": "已取消分析",
+        "aiAnalysisProgress": "AI梦境解析进度",
+        "reAnalyze": "重新分析"
+    },
+    "assistant": {
+        "pageTitle": "梦境助手 - Dream Log",
+        "pageDescription": "与AI梦境助手对话，探索梦境的奥秘",
+        "pageKeywords": "梦境助手,AI对话,梦境解析",
+        "newChatTitle": "新对话",
+        "search": {
+            "placeholder": "搜索对话..."
+        },
+        "button": {
+            "newChat": "发起新对话",
+            "sendFirstMessage": "请先发送消息后再创建新对话",
+            "uploadImage": "上传图片",
+            "voiceInput": "语音输入",
+            "sendMessage": "发送消息"
+        },
+        "connection": {
+            "connected": "已连接",
+            "connecting": "连接中",
+            "failed": "连接失败"
+        },
+        "welcome": {
+            "title": "开始您的梦境探索之旅",
+            "subtitle": "描述您的梦境，或询问梦境相关知识"
+        },
+        "thinking": "正在思考...",
+        "input": {
+            "placeholder": "请向梦境助手提问吧..."
+        },
+        "error": {
+            "emptyMessage": "消息内容不能为空，请输入文字或选择图片",
+            "connectionLost": "网络连接中断，请稍后重试",
+            "chatStateError": "对话状态异常，请刷新页面重试",
+            "voiceNotSupported": "您的浏览器不支持语音输入",
+            "voiceRecognitionError": "语音识别错误: ",
+            "invalidTitle": "请输入有效的对话标题",
+            "titleTooLong": "对话标题不能超过100个字符"
+        },
+        "memorySaved": "记忆已保存",
+        "chatRenamed": "对话已重命名",
+        "rename": {
+            "dialogTitle": "重命名对话",
+            "title": "为对话输入一个新的标题",
+            "placeholder": "输入对话标题"
+        },
+        "delete": {
+            "dialogTitle": "删除对话",
+            "confirmation": "确定要删除这个对话吗？此操作无法撤销。"
+        },
+        "settings": {
+            "description": "配置AI助手设置",
+            "personalizeTab": "个性化",
+            "dataTab": "数据管理",
+            "securityTab": "安全",
+            "helpTab": "帮助",
+            "personalize": "自定义AI助手的行为和偏好",
+            "data": "管理您的对话数据和导出选项",
+            "security": "隐私和安全相关设置",
+            "help": "获取帮助和支持信息",
+            "dataExport": "导出数据",
+            "dataExportDescription": "导出您的对话记录",
+            "privacyTitle": "隐私与安全",
+            "privacy": "管理数据隐私设置",
+            "helpAndSupport": "帮助与支持",
+            "helpAndSupportDescription": "查看使用指南和常见问题",
+            "defaultName": "梦境助手",
+            "assistantName": "助手名称",
+            "assistantNamePlaceholder": "给您的助手起个名字",
+            "interpretationStyle": "解读风格",
+            "preferredDimensions": "偏好解读维度",
+            "responseLength": "回复长度",
+            "autoImageGeneration": "自动生成梦境图像",
+            "enableFollowUpQuestions": "启用追问功能",
+            "saving": "保存中...",
+            "saveSettings": "保存设置",
+            "configUpdated": "配置已更新",
+            "updateConfigFailed": "更新配置失败",
+            "styles": {
+                "professional": "专业学术",
+                "friendly": "亲切友好",
+                "poetic": "诗意浪漫",
+                "balanced": "平衡综合"
+            },
+            "responseStyles": {
+                "concise": "简洁",
+                "moderate": "适中",
+                "detailed": "详细"
+            },
+            "dimensions": {
+                "psychological": "心理学分析",
+                "symbolic": "象征学解读",
+                "biological": "生物医学角度",
+                "spiritual": "灵性维度",
+                "personalGrowth": "个人成长"
+            }
+        },
+        "deleteAll": {
+            "title": "删除所有对话",
+            "description": "清空所有聊天记录，无法恢复",
+            "confirmation": "确定要删除所有 {count} 个对话吗？此操作无法撤销！",
+            "noChats": "没有对话可删除",
+            "button": "全部删除"
+        },
+        "image": {
+            "selectedAlt": "Selected {index}"
+        }
+    },
+    "settings": {
+        "profile": {
+            "title": "个人资料",
+            "basicInfo": "基本信息",
+            "username": "用户名",
+            "usernamePlaceholder": "请输入用户名",
+            "primaryEmail": "主邮箱",
+            "emailEditHint": "在\"账号与安全\"中修改",
+            "saveChanges": "保存更改",
+            "errors": {
+                "usernameRequired": "用户名不能为空",
+                "usernameTooShort": "用户名至少需要3个字符",
+                "usernameTooLong": "用户名不能超过20个字符",
+                "usernameInvalid": "用户名只能包含字母、数字、下划线和中文"
+            },
+            "usernameAvailable": "用户名可用",
+            "usernameTaken": "用户名已被占用"
+        },
+        "security": {
+            "title": "账号与安全"
+        },
+        "pageTitle": "账户设置",
+        "pageDescription": "管理您的账户设置和个人资料",
+        "pageKeywords": "设置,个人资料,安全",
+        "avatar": {
+            "title": "头像设置",
+            "userAvatar": "用户头像",
+            "uploadHint": "点击上传或拖拽图片至此",
+            "formatHint": "支持 PNG、JPG、WebP 格式，最大 2MB",
+            "uploading": "上传中...",
+            "saveAvatar": "保存头像",
+            "errors": {
+                "unsupportedFormat": "只支持 PNG、JPG、JPEG、WebP 格式的图片",
+                "fileTooLarge": "图片大小不能超过 2MB"
+            }
+        }
+    },
+    "statistics": {
+        "title": "梦境统计",
+        "subtitle": "查看你的梦境数据统计和分析",
+        "keywords": "梦境,统计,分析,数据",
+        "noData": "暂无统计数据",
+        "summary": {
+            "totalDreams": "梦境总数",
+            "totalTags": "标签总数",
+            "recurringDreams": "重复梦境",
+            "avgLucidity": "平均清醒度",
+            "avgClarity": "平均清晰度"
+        },
+        "timeFilter": {
+            "all": "所有时间",
+            "year": "今年",
+            "month": "本月",
+            "week": "本周",
+            "day": "今天"
+        },
+        "charts": {
+            "categoryDistribution": "梦境类别分布",
+            "moodDistribution": "情绪分布",
+            "moodAnalysis": "梦境情绪分析",
+            "lucidityDistribution": "清醒度分布",
+            "dreamClarity": "梦境清晰度",
+            "clarityTrend": "梦境清晰度趋势"
+        },
+        "count": "次数",
+        "times": "次",
+        "percentage": "占比",
+        "noCategoryData": "暂无类别数据",
+        "recordMoreForAnalysis": "记录更多梦境后查看分析"
+    },
+    "categories": {
+        "normal": "普通梦境",
+        "lucid": "清醒梦",
+        "nightmare": "噩梦",
+        "recurring": "重复梦",
+        "prophetic": "预知梦",
+        "healing": "治愈梦",
+        "spiritual": "灵性梦境",
+        "creative": "创意梦境",
+        "hypnagogic": "入睡幻觉",
+        "hypnopompic": "醒前幻觉",
+        "sleep_paralysis": "睡眠瘫痪",
+        "false_awakening": "假醒",
+        "anxiety": "焦虑梦",
+        "joyful": "快乐梦境",
+        "melancholic": "忧郁梦境",
+        "adventure": "冒险梦境"
+    },
+    "moods": {
+        "very_negative": "非常消极",
+        "negative": "消极",
+        "neutral": "中性",
+        "positive": "积极",
+        "very_positive": "非常积极"
+    },
+    "sleepQuality": {
+        "very_poor": "很差",
+        "poor": "较差",
+        "average": "一般",
+        "good": "良好",
+        "excellent": "很好"
+    },
+    "privacy": {
+        "private": "私人",
+        "public": "公开",
+        "friends": "好友可见"
+    },
+    "tagTypes": {
+        "emotion": "情感",
+        "character": "角色",
+        "location": "地点",
+        "object": "物体",
+        "action": "行为",
+        "weather": "天气"
+    },
+    "filters": {
+        "mood": "情绪",
+        "sleepQuality": "睡眠质量",
+        "removeCategory": "移除 {category} 分类",
+        "categories": "分类",
+        "categoriesCount": "{count} 个分类",
+        "allMoods": "全部情绪",
+        "dateRange": "日期范围",
+        "dateFrom": "从 {date}",
+        "clearDate": "清除日期",
+        "allSleepQualities": "全部质量",
+        "recurringDream": "重复梦",
+        "activeFiltersCount": "{count} 个筛选",
+        "moreFilters": "更多筛选",
+        "reset": "重置",
+        "lucidity": "清醒度",
+        "clarity": "清晰度",
+        "sleepDuration": "睡眠时长",
+        "hours": "小时",
+        "hoursRange": "0小时",
+        "hoursRangeMax": "24小时",
+        "tags": "标签",
+        "tagsSeparator": "用逗号分隔",
+        "tagsPlaceholder": "例如: 飞行, 学校, 家人",
+        "modeUnion": "并集",
+        "modeUnionLabel": "并集模式",
+        "modeIntersection": "交集",
+        "modeIntersectionLabel": "交集模式",
+        "modeAndDescription": "包含所有分类",
+        "modeOrDescription": "包含任一分类"
+    }
+}

@@ -10,20 +10,22 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import DreamProgressIndicator from '@/components/ui/dream-progress-indicator';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18nContext } from '@/contexts/I18nContext';
 import api from '@/services/api';
 import notification from '@/utils/notification';
 import { cn } from '@/lib/utils';
 import './css/ai-dream-analyzer.css';
 
 // 分析状态配置 - 简化版本
-const ANALYSIS_STATUS = {
-    analyzing: { label: 'AI正在深度解析你的梦境...', icon: Brain, color: '#6366f1' },
-    completed: { label: '分析完成', icon: CheckCircle, color: '#06b6d4' },
-    error: { label: '分析失败', icon: AlertCircle, color: '#ef4444' }
-};
+const getAnalysisStatus = (t) => ({
+    analyzing: { label: t('ai.analyzing', 'AI正在深度解析你的梦境...'), icon: Brain, color: '#6366f1' },
+    completed: { label: t('ai.completed', '分析完成'), icon: CheckCircle, color: '#06b6d4' },
+    error: { label: t('ai.error', '分析失败'), icon: AlertCircle, color: '#ef4444' }
+});
 
 const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
     const { user } = useAuth();
+    const { t } = useI18nContext();
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisStatus, setAnalysisStatus] = useState('idle');
     const [progress, setProgress] = useState(0);
@@ -64,8 +66,15 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
         }
 
         try {
+            // 获取JWT Token（使用统一的键名）
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                setError('未找到认证Token，请重新登录');
+                return;
+            }
+
             const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${wsProtocol}//${window.location.host}/ws/dream/analysis/`;
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/dream/analysis/?token=${token}`;
 
             console.log('建立WebSocket连接...');
             const socket = new WebSocket(wsUrl);
@@ -137,9 +146,9 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             if (onAnalysisComplete) {
                 onAnalysisComplete(data.data.analysis_result);
             }
-            notification.success('AI梦境分析完成！');
+            notification.success(t('dreams:detail.aiAnalysisCompleted', 'AI梦境分析完成！'));
         } else if (data.status === 'error') {
-            handleAnalysisError(data.data?.error || '分析过程中出现错误');
+            handleAnalysisError(data.data?.error || t('dreams:detail.aiAnalysisError', '分析过程中出现错误'));
         }
     };
 
@@ -149,7 +158,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
         setAnalysisStatus('error');
         // 分析出错时也断开WebSocket连接
         disconnectWebSocket();
-        notification.error(`分析失败: ${errorMessage}`);
+        notification.error(`${t('dreams:detail.aiAnalysisFailed', '分析失败')}: ${errorMessage}`);
     };
 
     // 前端数据验证函数
@@ -249,11 +258,11 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             if (response.data.success) {
                 setTaskId(response.data.task_id);
             } else {
-                throw new Error(response.data.error || '启动分析失败');
+                throw new Error(response.data.error || t('dreams:detail.aiAnalysisStartFailed', '启动分析失败'));
             }
 
         } catch (error) {
-            handleAnalysisError(error.message || '启动分析失败');
+            handleAnalysisError(error.message || t('dreams:detail.aiAnalysisStartFailed', '启动分析失败'));
         }
     };
 
@@ -268,10 +277,10 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             setProgress(0);
             setCurrentMessage('');
             setTaskId(null);
-            notification.info('已取消分析');
+            notification.info(t('dreams:detail.aiAnalysisCancelled', '已取消分析'));
 
         } catch (error) {
-            notification.error('取消分析失败');
+            notification.error(t('dreams:detail.aiAnalysisCancelFailed', '取消分析失败'));
         }
     };
 
@@ -303,7 +312,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
 
                     {/* 关键洞察列表 */}
                     <div className="key-insights">
-                        <h4>关键发现</h4>
+                        <h4>{t('ai.keyFindings', '关键发现')}</h4>
                         <ul className="insights-list">
                             {summary.key_insights.map((insight, index) => (
                                 <li key={index} className="insight-item">
@@ -316,7 +325,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
 
                     {/* 情绪核心 */}
                     <div className="emotional-core">
-                        <h4>情绪洞察</h4>
+                        <h4>{t('ai.emotionalInsights', '情绪洞察')}</h4>
                         <p>{summary.emotional_core}</p>
                     </div>
                 </CardContent>
@@ -358,12 +367,12 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
     const renderDreamNarrative = (narrative) => (
         <div className="dream-narrative-content">
             <div className="story-arc">
-                <h4>故事脉络</h4>
+                <h4>{t('ai.storyArc', '故事脉络')}</h4>
                 <p>{narrative.story_arc}</p>
             </div>
 
             <div className="turning-points">
-                <h4>关键转折</h4>
+                <h4>{t('ai.keyTurningPoints', '关键转折')}</h4>
                 <ul>
                     {narrative.turning_points.map((point, index) => (
                         <li key={index}>{point}</li>
@@ -372,7 +381,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             </div>
 
             <div className="hidden-message">
-                <h4>潜在信息</h4>
+                <h4>{t('ai.hiddenMessage', '潜在信息')}</h4>
                 <p>{narrative.hidden_message}</p>
             </div>
         </div>
@@ -382,18 +391,18 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
     const renderSymbolDeepDive = (symbols) => (
         <div className="symbol-deep-dive-content">
             <div className="main-symbols">
-                <h4>核心象征</h4>
+                <h4>{t('ai.coreSymbols', '核心象征')}</h4>
                 {symbols.main_symbols.map((symbol, index) => (
                     <div key={index} className="symbol-item">
                         <h5>{symbol.symbol}</h5>
-                        <p><strong>个人意义：</strong>{symbol.personal_meaning}</p>
-                        <p><strong>生活联系：</strong>{symbol.life_connection}</p>
+                        <p><strong>{t('ai.personalMeaning', '个人意义：')}</strong>{symbol.personal_meaning}</p>
+                        <p><strong>{t('ai.lifeConnection', '生活联系：')}</strong>{symbol.life_connection}</p>
                     </div>
                 ))}
             </div>
 
             <div className="symbol-pattern">
-                <h4>象征关联</h4>
+                <h4>{t('ai.symbolConnections', '象征关联')}</h4>
                 <p>{symbols.symbol_pattern}</p>
             </div>
         </div>
@@ -403,12 +412,12 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
     const renderGrowthGuidance = (guidance) => (
         <div className="growth-guidance-content">
             <div className="self-discovery">
-                <h4>自我发现</h4>
+                <h4>{t('ai.selfDiscovery', '自我发现')}</h4>
                 <p>{guidance.self_discovery}</p>
             </div>
 
             <div className="practical-actions">
-                <h4>实践建议</h4>
+                <h4>{t('ai.practicalAdvice', '实践建议')}</h4>
                 <ul>
                     {guidance.practical_actions.map((action, index) => (
                         <li key={index}>{action}</li>
@@ -443,16 +452,16 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
                         disabled={!dream?.content}
                     >
                         <Brain className="h-5 w-5" />
-                        AI解梦分析
+                        {t('dreams:detail.aiAnalysisButton', 'AI解梦分析')}
                         <Sparkles className="h-4 w-4" />
                     </Button>
                     <p className="analyzer-description">
-                        使用先进的AI技术，结合心理学理论对你的梦境进行深度分析
+                        {t('dreams:detail.aiAnalysisDescriptionText', '使用先进的AI技术，结合心理学理论对你的梦境进行深度分析')}
                     </p>
                 </div>
             )}
 
-            {/* AI梦境解析进度 - 简洁版本 */}
+            {/* {t('dreams:detail.aiAnalysisProgress', 'AI梦境解析进度')} - 简洁版本 */}
             {isAnalyzing && (
                 <Card className="analysis-progress-card">
                     <CardContent className="progress-container">
@@ -509,7 +518,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
                     <div className="results-header">
                         <h3 className="results-title">
                             <Brain className="h-5 w-5" />
-                            AI梦境分析结果
+                            {t('dreams:detail.aiAnalysisResult', 'AI梦境分析结果')}
                         </h3>
                         <Button
                             variant="outline"
@@ -517,13 +526,13 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
                             onClick={startAnalysis}
                         >
                             <Brain className="h-4 w-4 mr-1" />
-                            重新分析
+                            {t('dreams:detail.reAnalyze', '重新分析')}
                         </Button>
                     </div>
 
                     {/* 专业说明 - 静态文本 */}
                     <div className="professional-note">
-                        <p>基于心理学理论和AI技术为您提供梦境解析，仅供参考和自我探索。</p>
+                        <p>{t('dreams:detail.aiAnalysisDescription', '基于心理学理论和AI技术为您提供梦境解析，仅供参考和自我探索。')}</p>
                     </div>
 
                     <div className="results-content">

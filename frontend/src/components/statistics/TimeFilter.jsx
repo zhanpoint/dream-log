@@ -1,14 +1,16 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, CalendarDays, CalendarRange, Clock, Infinity } from 'lucide-react';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 const TimeFilter = ({ period, onPeriodChange }) => {
+    const { t } = useI18nContext();
     const timeOptions = [
-        { value: 'all', label: '所有时间', icon: Infinity },
-        { value: 'year', label: '今年', icon: CalendarRange },
-        { value: 'month', label: '本月', icon: CalendarDays },
-        { value: 'week', label: '本周', icon: Calendar },
-        { value: 'day', label: '今天', icon: Clock },
+        { value: 'all', label: t('statistics.timeFilter.all', '所有时间'), icon: Infinity },
+        { value: 'year', label: t('statistics.timeFilter.year', '今年'), icon: CalendarRange },
+        { value: 'month', label: t('statistics.timeFilter.month', '本月'), icon: CalendarDays },
+        { value: 'week', label: t('statistics.timeFilter.week', '本周'), icon: Calendar },
+        { value: 'day', label: t('statistics.timeFilter.day', '今天'), icon: Clock },
     ];
 
     return (
@@ -23,7 +25,9 @@ const TimeFilter = ({ period, onPeriodChange }) => {
                         variant={isActive ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => onPeriodChange(option.value)}
-                        className={`flex items-center gap-2 transition-all ${isActive ? 'shadow-md' : ''
+                        className={`flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md ${isActive
+                            ? 'shadow-md bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20'
                             }`}
                     >
                         <Icon className="h-4 w-4" />

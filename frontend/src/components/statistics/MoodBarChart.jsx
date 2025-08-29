@@ -1,110 +1,209 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { useI18nContext } from '@/contexts/I18nContext';
 
-const MoodBarChart = ({ data = { categories: [], series: [] } }) => {
-    // 情绪对应的颜色
-    const moodColors = [
-        '#ef4444', // 非常消极 - 红色
-        '#f97316', // 消极 - 橙色
-        '#eab308', // 中性 - 黄色
-        '#22c55e', // 积极 - 绿色
-        '#10b981', // 非常积极 - 深绿色
-    ];
+const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
+    const { t } = useI18nContext();
 
-    const option = {
-        tooltip: {
-            trigger: 'item',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderColor: 'transparent',
-            textStyle: {
-                color: '#fff',
-            },
-            formatter: '{b}: {c} 次',
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true,
-        },
-        xAxis: {
-            type: 'category',
-            data: data.categories,
-            axisTick: {
-                alignWithLabel: true,
-            },
-            axisLabel: {
-                color: '#999',
-                fontSize: 11,
-                rotate: 0,
-            },
-            axisLine: {
-                lineStyle: {
-                    color: '#333',
+    // 数据预处理和验证 - 优化性能
+    const chartData = useMemo(() => {
+        const validData = data.series?.filter(val => typeof val === 'number' && !isNaN(val)) || [];
+        const hasValidData = validData.length > 0 && data.categories?.length > 0;
+
+        if (!hasValidData) {
+            return { hasData: false, option: null, stats: null };
+        }
+
+        // 计算合理的最大值
+        const dataMax = Math.max(...validData);
+        const maxValue = Math.max(dataMax * 1.1, 5); // 比最大值多10%，最小为5
+        const normalizedMax = Math.ceil(maxValue / 5) * 5;
+
+        // 翻译情绪类别标签
+        const translatedCategories = data.categories.map(category => {
+            // 后端现在返回英文key，直接使用进行翻译
+            if (typeof category === 'string') {
+                // 将英文key映射到翻译键
+                const emotionKeyMap = {
+                    'very_positive': 'veryPositive',
+                    'positive': 'positive',
+                    'negative': 'negative',
+                    'very_negative': 'veryNegative',
+                    'neutral': 'neutral',
+                    // 向后兼容：保留中文映射以防数据中仍有中文
+                    '非常积极': 'veryPositive',
+                    '积极': 'positive',
+                    '消极': 'negative',
+                    '很消极': 'veryNegative',
+                    '中性': 'neutral'
+                };
+
+                const emotionKey = emotionKeyMap[category];
+                if (emotionKey) {
+                    return t(`statistics.emotions.${emotionKey}`, category);
+                }
+            }
+            // 如果找不到对应的翻译，返回原值
+            return category;
+        });
+
+        // 计算统计信息
+        const total = validData.reduce((sum, val) => sum + val, 0);
+        const dominantEmotion = translatedCategories[validData.indexOf(dataMax)];
+
+        const stats = {
+            dominantEmotion,
+            emotions: translatedCategories.map((cat, idx) => ({
+                name: cat,
+                value: validData[idx],
+                percentage: ((validData[idx] / total) * 100).toFixed(1)
+            })).sort((a, b) => b.value - a.value)
+        };
+
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                borderColor: '#06b6d4',
+                borderWidth: 1,
+                textStyle: { color: '#fff', fontSize: 12 },
+                formatter: (params) => {
+                    const percentage = ((params.value / normalizedMax) * 100).toFixed(1);
+                    return `${params.name}<br/>${t('statistics.occurrences', '出现次数')}: ${params.value}${t('statistics.occurrencesTimes', '次')}<br/>${t('statistics.proportion', '占比')}: ${percentage}%`;
                 },
             },
-        },
-        yAxis: {
-            type: 'value',
-            axisLabel: {
-                color: '#999',
-            },
-            axisLine: {
-                lineStyle: {
-                    color: '#333',
-                },
-            },
-            splitLine: {
-                lineStyle: {
-                    color: '#333',
-                    type: 'dashed',
-                },
-            },
-        },
-        series: [
-            {
-                name: '情绪分布',
-                type: 'bar',
-                barWidth: '60%',
-                data: data.series.map((value, index) => ({
-                    value,
-                    itemStyle: {
-                        color: moodColors[index],
-                        borderRadius: [4, 4, 0, 0],
-                    },
+            dataZoom: window.innerWidth < 768 ? [
+                {
+                    type: 'inside',
+                    disabled: true
+                }
+            ] : undefined,
+            radar: {
+                indicator: translatedCategories.map((category) => ({
+                    name: category,
+                    max: normalizedMax,
                 })),
-                emphasis: {
-                    itemStyle: {
-                        opacity: 0.8,
-                        shadowBlur: 8,
-                        shadowColor: 'rgba(0, 0, 0, 0.3)',
-                    },
+                center: ['50%', '50%'],
+                radius: '70%',
+                startAngle: 90,
+                splitNumber: 4,
+                shape: 'polygon',
+                axisName: {
+                    color: 'hsl(var(--foreground) / 0.8)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    formatter: (value) => value.length > 6 ? value.substring(0, 6) + '...' : value,
+                },
+                axisLine: {
+                    lineStyle: { color: 'hsl(var(--border))' },
+                },
+                splitLine: {
+                    lineStyle: { color: 'hsl(var(--border) / 0.3)', width: 1 },
+                },
+                splitArea: {
+                    show: true,
+                    areaStyle: { color: ['rgba(6, 182, 212, 0.02)', 'rgba(6, 182, 212, 0.05)'] },
                 },
             },
-        ],
-        darkMode: true,
-    };
+            series: [{
+                type: 'radar',
+                data: [{
+                    value: data.series.map(val => typeof val === 'number' && !isNaN(val) ? val : 0),
+                    name: t('statistics.charts.moodDistribution', '情绪分布'),
+                    itemStyle: { color: '#06b6d4' },
+                    lineStyle: { color: '#06b6d4', width: 2.5 },
+                    areaStyle: {
+                        color: {
+                            type: 'radial',
+                            x: 0.5, y: 0.5, r: 0.5,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(6, 182, 212, 0.3)' },
+                                { offset: 1, color: 'rgba(6, 182, 212, 0.05)' }
+                            ]
+                        }
+                    },
+                    symbol: 'circle',
+                    symbolSize: 5,
+                    emphasis: {
+                        itemStyle: { color: '#0891b2', shadowBlur: 10, shadowColor: 'rgba(6, 182, 212, 0.6)' },
+                        lineStyle: { color: '#0891b2', width: 3 },
+                        areaStyle: {
+                            color: {
+                                type: 'radial',
+                                x: 0.5, y: 0.5, r: 0.5,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(6, 182, 212, 0.4)' },
+                                    { offset: 1, color: 'rgba(6, 182, 212, 0.1)' }
+                                ]
+                            }
+                        },
+                    },
+                }],
+                animationDuration: 800,
+                animationEasing: 'cubicOut',
+            }],
+        };
+
+        return { hasData: true, option, stats };
+    }, [data, t]);
 
     return (
         <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    梦境情绪分布
+            <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <Heart className="h-4 w-4 text-cyan-500" />
+                    {t('statistics.charts.moodAnalysis', '梦境情绪分析')}
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <ReactECharts
-                    option={option}
-                    style={{ height: '300px' }}
-                    theme="dark"
-                    opts={{ renderer: 'svg' }}
-                />
+                {chartData.hasData ? (
+                    <div className="space-y-4">
+                        <ReactECharts
+                            option={chartData.option}
+                            style={{
+                                height: window.innerWidth < 768 ? '200px' : '240px',
+                                width: '100%'
+                            }}
+                            opts={{ renderer: 'svg', devicePixelRatio: window.devicePixelRatio || 2 }}
+                            className="w-full theme-transition"
+                        />
+
+                        {/* 情绪分析信息 */}
+                        <div className="grid grid-cols-1 gap-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">{t('statistics.dominantEmotion', '主导情绪')}</span>
+                                <span className="font-medium">{chartData.stats.dominantEmotion}</span>
+                            </div>
+
+                            {/* 前3情绪排行 */}
+                            <div className="space-y-1.5">
+                                <div className="text-xs text-muted-foreground">{t('statistics.emotionRanking', '情绪排行')}</div>
+                                {chartData.stats.emotions.slice(0, 3).map((emotion, idx) => (
+                                    <div key={emotion.name} className="flex items-center justify-between text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] font-bold">
+                                                {idx + 1}
+                                            </span>
+                                            <span>{emotion.name}</span>
+                                        </div>
+                                        <span className="text-muted-foreground">{emotion.percentage}%</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-[280px] text-muted-foreground">
+                        <Heart className="h-12 w-12 mb-3 opacity-50" />
+                        <p className="text-sm">{t('statistics.noMoodData', '暂无情绪数据')}</p>
+                        <p className="text-xs mt-1">{t('statistics.recordMoreForAnalysis', '记录更多梦境后查看分析')}</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
 };
 
-export default MoodBarChart;
+export default MoodRadarChart;

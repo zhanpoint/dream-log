@@ -443,74 +443,66 @@
     transform: scale(1.1);
 }
 
-/* 滑块样式 */
-.lucidity-slider,
-.vividness-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 8px;
-    background: hsl(var(--muted));
-    border-radius: 4px;
-    outline: none;
-    transition: all 0.3s ease;
-    border: 1px solid hsl(var(--border));
-}
-
-.lucidity-slider:hover,
-.vividness-slider:hover {
-    background: hsl(var(--muted) / 0.8);
-}
-
-.lucidity-slider::-webkit-slider-thumb,
-.vividness-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: hsl(var(--primary));
-    cursor: pointer;
-    border-radius: 50%;
-    border: 3px solid hsl(var(--background));
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px hsl(var(--shadow) / 0.2), 0 0 0 1px hsl(var(--border));
-}
-
-.lucidity-slider::-webkit-slider-thumb:hover,
-.vividness-slider::-webkit-slider-thumb:hover {
-    background: hsl(var(--primary) / 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px hsl(var(--shadow) / 0.3), 0 0 0 1px hsl(var(--ring));
-}
-
-/* Firefox 滑块样式 */
-.lucidity-slider::-moz-range-thumb,
-.vividness-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: hsl(var(--primary));
-    cursor: pointer;
-    border-radius: 50%;
-    border: 3px solid hsl(var(--background));
-    box-shadow: 0 2px 8px hsl(var(--shadow) / 0.2);
-}
-
-.lucidity-slider::-moz-range-track,
-.vividness-slider::-moz-range-track {
-    height: 8px;
-    background: hsl(var(--muted));
-    border-radius: 4px;
-    border: 1px solid hsl(var(--border));
-}
-
+/* 滑块标签样式 */
 .lucidity-labels,
 .vividness-labels {
     display: flex;
     justify-content: space-between;
     font-size: 0.75rem;
     color: hsl(var(--foreground) / 0.7);
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     font-weight: 500;
+}
+
+/* 优化滑块样式 */
+[data-radix-slider-root] {
+    padding: 0.5rem 0;
+}
+
+[data-radix-slider-track] {
+    background: hsl(var(--muted)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    height: 6px !important;
+    box-shadow: 0 1px 3px hsl(var(--shadow) / 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-radix-slider-track]:hover {
+    background: hsl(var(--muted) / 0.8) !important;
+    border-color: hsl(var(--ring) / 0.5) !important;
+}
+
+[data-radix-slider-range] {
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.8)) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 2px hsl(var(--primary) / 0.2) !important;
+}
+
+[data-radix-slider-thumb] {
+    width: 16px !important;
+    height: 16px !important;
+    background: hsl(var(--background)) !important;
+    border: 2px solid hsl(var(--primary)) !important;
+    box-shadow: 0 2px 8px hsl(var(--shadow) / 0.15), 0 0 0 1px hsl(var(--border)) !important;
+    transition: all 0.2s ease !important;
+    cursor: grab !important;
+}
+
+[data-radix-slider-thumb]:hover {
+    background: hsl(var(--background)) !important;
+    border-color: hsl(var(--primary)) !important;
+    box-shadow: 0 4px 12px hsl(var(--shadow) / 0.25), 0 0 0 2px hsl(var(--ring) / 0.2) !important;
+    transform: scale(1.1) !important;
+}
+
+[data-radix-slider-thumb]:active {
+    cursor: grabbing !important;
+    transform: scale(1.05) !important;
+}
+
+[data-radix-slider-thumb]:focus-visible {
+    outline: none !important;
+    box-shadow: 0 4px 12px hsl(var(--shadow) / 0.25), 0 0 0 3px hsl(var(--ring) / 0.3) !important;
 }
 
 /* 重复梦境样式 */
@@ -731,48 +723,51 @@
     font-weight: 500 !important;
 }
 
-/* 复选框样式优化 */
+/* 重复梦境选择框样式 - 主题适配版本 */
 .recurring-checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid hsl(var(--border));
-    border-radius: 6px;
-    background: hsl(var(--input));
-    cursor: pointer;
-    position: relative;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-.recurring-checkbox:checked {
-    background: hsl(var(--primary));
-    border-color: hsl(var(--primary));
-}
-
-.recurring-checkbox:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: hsl(var(--primary-foreground));
-    font-size: 12px;
-    font-weight: bold;
+    width: 20px !important;
+    height: 20px !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 6px !important;
+    background: hsl(var(--background)) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    transition: all 0.3s ease !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 1px 3px hsl(var(--shadow) / 0.1) !important;
 }
 
 .recurring-checkbox:hover {
-    border-color: hsl(var(--ring));
-    background: hsl(var(--accent));
-    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+    border-color: hsl(var(--primary) / 0.8) !important;
+    background: hsl(var(--muted) / 0.5) !important;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2), 0 2px 8px hsl(var(--shadow) / 0.15) !important;
+    transform: scale(1.05) !important;
 }
 
-.recurring-checkbox:focus {
-    outline: none;
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+.recurring-checkbox:focus-visible {
+    outline: none !important;
+    border-color: hsl(var(--primary)) !important;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.25), 0 2px 8px hsl(var(--shadow) / 0.15) !important;
+    transform: scale(1.05) !important;
+}
+
+.recurring-checkbox[data-state="checked"] {
+    background: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    box-shadow: 0 0 0 1px hsl(var(--primary)), 0 2px 6px hsl(var(--primary) / 0.3) !important;
+}
+
+.recurring-checkbox[data-state="checked"]:hover {
+    background: hsl(var(--primary) / 0.9) !important;
+    border-color: hsl(var(--primary) / 0.9) !important;
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.9), 0 3px 10px hsl(var(--primary) / 0.4) !important;
+}
+
+/* 勾选图标样式 */
+.recurring-checkbox[data-state="checked"] svg {
+    color: hsl(var(--primary-foreground)) !important;
+    stroke: hsl(var(--primary-foreground)) !important;
 }
 
 /* 响应式设计 */

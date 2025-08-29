@@ -1,32 +1,34 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen, Hash, RefreshCw, Brain, Eye } from 'lucide-react';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 const SummaryCards = ({ summary = {} }) => {
+    const { t } = useI18nContext();
     const cards = [
         {
-            title: '梦境总数',
+            title: t('statistics.summary.totalDreams', '梦境总数'),
             value: summary.total_dreams || 0,
             icon: BookOpen,
             color: 'text-blue-500',
             bgColor: 'bg-blue-500/10',
         },
         {
-            title: '标签总数',
+            title: t('statistics.summary.totalTags', '标签总数'),
             value: summary.total_tags || 0,
             icon: Hash,
             color: 'text-green-500',
             bgColor: 'bg-green-500/10',
         },
         {
-            title: '重复梦境',
+            title: t('statistics.summary.recurringDreams', '重复梦境'),
             value: `${summary.recurring_percentage || 0}%`,
             icon: RefreshCw,
             color: 'text-purple-500',
             bgColor: 'bg-purple-500/10',
         },
         {
-            title: '平均清醒度',
+            title: t('statistics.summary.avgLucidity', '平均清醒度'),
             value: summary.avg_lucidity || 0,
             icon: Brain,
             color: 'text-orange-500',
@@ -34,7 +36,7 @@ const SummaryCards = ({ summary = {} }) => {
             suffix: '/5',
         },
         {
-            title: '平均清晰度',
+            title: t('statistics.summary.avgClarity', '平均清晰度'),
             value: summary.avg_vividness || 0,
             icon: Eye,
             color: 'text-cyan-500',
@@ -49,7 +51,7 @@ const SummaryCards = ({ summary = {} }) => {
                 const Icon = card.icon;
                 return (
                     <Card key={index} className="hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
+                        <CardContent className="p-3">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">

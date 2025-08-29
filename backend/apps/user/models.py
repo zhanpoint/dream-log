@@ -53,6 +53,12 @@ class User(AbstractUser):
         verbose_name='梦境默认隐私设置'
     )
 
+    # 头像URL（存储OSS访问URL或相对路径）
+    avatar = models.URLField(max_length=500, null=True, blank=True, verbose_name='头像地址')
+
+    # 备用邮箱：仅用于找回密码
+    backup_email = models.EmailField('备用邮箱', null=True, blank=True, default=None, unique=False)
+
     class Meta:
         verbose_name = _('用户')
         verbose_name_plural = verbose_name
@@ -71,6 +77,10 @@ class User(AbstractUser):
             existing_user = User.objects.filter(email=self.email).exclude(pk=self.pk).first()
             if existing_user:
                 raise ValidationError({'email': '该邮箱地址已被注册'})
+
+        # 备用邮箱不能与主邮箱相同
+        if self.backup_email and self.email and self.backup_email == self.email:
+            raise ValidationError({'backup_email': '备用邮箱不能与主邮箱相同'})
 
     def __str__(self):
         return self.username or self.phone_number or self.email

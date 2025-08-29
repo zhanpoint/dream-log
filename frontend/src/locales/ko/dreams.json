@@ -1,0 +1,355 @@
+{
+    "list": {
+        "title": "내 꿈",
+        "subtitle": "꿈 기록을 찾아보고 관리하세요",
+        "keywords": "꿈, 기록, 관리",
+        "noDreams": "아직 꿈 기록이 없습니다",
+        "noResults": "일치하는 꿈을 찾을 수 없습니다. 필터를 조정해보세요",
+        "startRecording": "첫 번째 꿈을 기록하기 시작하세요"
+    },
+    "categories": {
+        "normal": "일반 꿈",
+        "lucid": "자각몽",
+        "nightmare": "악몽",
+        "recurring": "반복 꿈",
+        "prophetic": "예언 꿈",
+        "healing": "치유 꿈",
+        "spiritual": "영적 꿈",
+        "creative": "창의적 꿈",
+        "hypnagogic": "수면 전 환각",
+        "hypnopompic": "각성 후 환각",
+        "sleep_paralysis": "수면 마비",
+        "false_awakening": "가짜 각성",
+        "anxiety": "불안 꿈",
+        "joyful": "즐거운 꿈",
+        "melancholic": "우울한 꿈",
+        "adventure": "모험 꿈"
+    },
+    "search": {
+        "placeholder": "꿈 제목이나 내용 검색..."
+    },
+    "sort": {
+        "default": "기본 정렬",
+        "newest": "최신순",
+        "oldest": "오래된순",
+        "title": "제목순"
+    },
+    "stats": {
+        "total": "총 꿈 수",
+        "today": "오늘의 꿈",
+        "viewDetails": "상세 통계 보기"
+    },
+    "create": {
+        "pageTitle": "꿈 생성 - Dream Log",
+        "pageDescription": "새로운 꿈 기록 만들기",
+        "pageKeywords": "꿈, 기록, 생성, 분석",
+        "title": "꿈 기록",
+        "subtitle": "당신만의 꿈 세계를 만들어보세요",
+        "button": "새 꿈 기록하기",
+        "failed": "꿈 생성에 실패했습니다",
+        "imageUploadNoUrl": "이미지 업로드는 성공했지만 URL을 가져올 수 없습니다",
+        "imageUploadFailed": "이미지 업로드에 실패했습니다",
+        "tagNameRequired": "태그 이름은 비워둘 수 없습니다",
+        "tagExists": "태그가 이미 존재합니다",
+        "form": {
+            "basicInfo": "기본 정보",
+            "dreamTitle": "꿈 제목",
+            "dreamTitlePlaceholder": "꿈의 제목을 지어보세요...",
+            "dreamDate": "꿈꾼 날짜",
+            "content": "꿈 내용",
+            "contentPlaceholder": "꿈 기록을 시작해보세요...",
+            "categories": "분류",
+            "tags": "태그",
+            "lucidity": "자각도",
+            "vividness": "선명도",
+            "moodBeforeSleep": "잠들기 전 기분",
+            "moodInDream": "꿈 속 기분",
+            "moodAfterWaking": "깨어난 후 기분",
+            "sleepQuality": "수면 품질",
+            "sleepDuration": "수면 시간",
+            "hours": "시간",
+            "bedtime": "취침 시간",
+            "wakeTime": "기상 시간",
+            "personalNotesPlaceholder": "개인적인 생각, 감정 또는 기타 메모를 기록하세요...",
+            "isRecurring": "이것은 반복되는 꿈입니다",
+            "recurringPlaceholder": "반복해서 나타나는 요소를 설명...",
+            "recurringLimitError": "반복 요소는 10자 이내여야 합니다",
+            "generateTitle": "AI로 꿈 제목 생성",
+            "generate": "AI 생성",
+            "titleGenContentTooShort": "꿈 내용이 너무 짧아 고품질 제목을 생성할 수 없습니다",
+            "titleGenSuccess": "AI 제목 생성 성공!",
+            "titleGenFailed": "제목 생성 실패",
+            "titleGenFailedRetry": "제목 생성 실패, 다시 시도하세요",
+            "selectMood": "기분 선택",
+            "selectSleepQuality": "수면 품질 선택",
+            "categoryHelp": {
+                "title": "꿈 카테고리 가이드",
+                "description": "꿈의 특징에 가장 잘 맞는 카테고리를 선택하세요:"
+            },
+            "lucidityHelp": {
+                "title": "자각도 레벨 가이드",
+                "description": "자각도는 꿈 속에서 자신이 꿈을 꾸고 있다는 사실에 대한 의식의 정도를 의미합니다.",
+                "level0": "레벨 0 - 완전 무의식:",
+                "level0Desc": "꿈을 꾸고 있다는 사실을 전혀 모르고, 꿈 경험이 현실처럼 느껴짐",
+                "level1": "레벨 1 - 희미한 의식:",
+                "level1Desc": "가끔 현실을 의심하지만 꿈의 논리에 빠르게 설득됨",
+                "level2": "레벨 2 - 모호한 의식:",
+                "level2Desc": "뭔가 잘못되었다는 느낌이 있지만 꿈을 꾸고 있는지 확인할 수 없음",
+                "level3": "레벨 3 - 부분 자각:",
+                "level3Desc": "꿈을 꾸고 있다는 사실을 알지만 통제력이 제한적임",
+                "level4": "레벨 4 - 높은 자각:",
+                "level4Desc": "꿈을 꾸고 있다는 사실을 완전히 알고 어느 정도 통제 가능",
+                "level5": "레벨 5 - 초자각:",
+                "level5Desc": "완전히 자각하고 꿈의 내용과 줄거리를 자유롭게 통제할 수 있음"
+            },
+            "lucidityLabels": {
+                "min": "완전 무의식",
+                "max": "초자각"
+            },
+            "vividnessHelp": {
+                "title": "선명도 가이드",
+                "description": "선명도는 꿈 속에서 감각 경험의 생생함과 세부 묘사의 풍부함 정도를 의미합니다.",
+                "level1": "레벨 1 - 흐림:",
+                "level1Desc": "꿈이 흐릿하고 불분명하며 세부 사항이 누락됨, 안개 속을 보는 것처럼",
+                "level2": "레벨 2 - 약간 흐림:",
+                "level2Desc": "대략적인 윤곽은 볼 수 있지만 세부 사항이 명확하지 않음",
+                "level3": "레벨 3 - 보통:",
+                "level3Desc": "꿈이 상대적으로 선명하며 사람과 장면을 식별할 수 있음",
+                "level4": "레벨 4 - 선명:",
+                "level4Desc": "꿈이 생생하고 선명하며 세부 묘사가 풍부하고 현실 경험에 가까움",
+                "level5": "레벨 5 - 초선명:",
+                "level5Desc": "꿈이 극도로 생생하며 모든 감각이 예외적으로 선명하고 현실을 초월함",
+                "note": "참고: 선명도와 자각도는 서로 다른 개념입니다. 선명도는 감각 경험에 중점을 두고 자각도는 의식 상태에 중점을 둡니다."
+            },
+            "vividnessLabels": {
+                "min": "흐림",
+                "max": "초선명"
+            }
+        }
+    },
+    "privacy": {
+        "private": "비공개",
+        "public": "공개",
+        "friends": "친구만"
+    },
+    "tagTypes": {
+        "emotion": "감정",
+        "character": "인물",
+        "location": "장소",
+        "object": "사물",
+        "action": "행동",
+        "weather": "날씨"
+    },
+    "detail": {
+        "pageTitle": "꿈 세부사항 - Dream Log",
+        "loading": "로딩 중...",
+        "notFound": "꿈을 찾을 수 없습니다",
+        "backButton": "뒤로",
+        "actions": {
+            "edit": "편집",
+            "delete": "삭제",
+            "analyze": "AI 분석"
+        },
+        "emotion": {
+            "beforeSleep": "잠들기 전",
+            "inDream": "꿈 속",
+            "afterWaking": "깨어난 후"
+        },
+        "sleepQuality": "수면 품질",
+        "sleepTime": "수면 시간",
+        "sleepDuration": "수면 시간",
+        "lucidity": "자각도",
+        "clarity": "선명도",
+        "hoverDetails": "세부사항을 보려면 마우스를 올려놓으세요",
+        "analysisPrompt": "AI 분석 결과를 참고하여 귀하의 삶 경험과 결합하여 이 꿈에 대한 독특한 통찰을 기록하십시오",
+        "deleteConfirmation": "이 꿈 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    },
+    "categories": {
+        "normal": "일반 꿈",
+        "lucid": "자각 꿈",
+        "nightmare": "악몽",
+        "recurring": "반복 꿈",
+        "prophetic": "예언 꿈",
+        "healing": "치유 꿈",
+        "spiritual": "영적 꿈",
+        "creative": "창의적 꿈",
+        "hypnagogic": "수면 전 환각",
+        "hypnopompic": "각성 후 환각",
+        "sleep_paralysis": "수면 마비",
+        "false_awakening": "거짓 각성",
+        "anxiety": "불안 꿈",
+        "joyful": "기쁜 꿈",
+        "melancholic": "우울한 꿈",
+        "adventure": "모험 꿈"
+    },
+    "moods": {
+        "very_negative": "매우 부정적",
+        "negative": "부정적",
+        "neutral": "중립적",
+        "positive": "긍정적",
+        "very_positive": "매우 긍정적"
+    },
+    "sleepQuality": {
+        "very_poor": "매우 나쁨",
+        "poor": "나쁨",
+        "average": "보통",
+        "good": "좋음",
+        "excellent": "우수"
+    },
+    "filters": {
+        "mood": "기분",
+        "sleepQuality": "수면 품질",
+        "removeCategory": "{category} 카테고리 제거",
+        "categories": "카테고리",
+        "categoriesCount": "{count}개 카테고리",
+        "allMoods": "모든 기분",
+        "dateRange": "날짜 범위",
+        "dateFrom": "{date}부터",
+        "clearDate": "날짜 지우기",
+        "allSleepQualities": "모든 품질",
+        "recurringDream": "반복 꿈",
+        "activeFiltersCount": "{count}개 필터",
+        "moreFilters": "더 많은 필터",
+        "reset": "초기화",
+        "lucidity": "명확성",
+        "clarity": "선명도",
+        "sleepDuration": "수면 시간",
+        "hours": "시간",
+        "hoursRange": "0시간",
+        "hoursRangeMax": "24시간",
+        "tags": "태그",
+        "tagsSeparator": "쉼표로 구분",
+        "tagsPlaceholder": "예: 비행, 학교, 가족",
+        "modeUnion": "합집합",
+        "modeUnionLabel": "합집합 모드",
+        "modeIntersection": "교집합",
+        "modeIntersectionLabel": "교집합 모드",
+        "modeAndDescription": "모든 카테고리 포함",
+        "modeOrDescription": "어떤 카테고리든 포함"
+    },
+    "detail": {
+        "pageTitle": "꿈 세부사항 - Dream Log",
+        "loading": "로딩 중...",
+        "notFound": "꿈을 찾을 수 없습니다",
+        "backButton": "뒤로",
+        "actions": {
+            "edit": "편집",
+            "delete": "삭제",
+            "analyze": "AI 분석"
+        },
+        "emotion": {
+            "beforeSleep": "수면 전",
+            "inDream": "꿈 속에서",
+            "afterWaking": "깨어난 후"
+        },
+        "sleepQuality": "수면 품질",
+        "sleepTime": "수면 시간",
+        "sleepDuration": "수면 시간",
+        "lucidity": "명확성",
+        "clarity": "선명도",
+        "sleepEmotion": "수면과 감정",
+        "emotionTrack": "감정 궤적",
+        "sleepStatus": "수면 상태",
+        "perception": "감각 경험",
+        "personalNotes": "개인 메모",
+        "aiAnalysis": "AI 스마트 분석",
+        "myAnalysis": "내 해석",
+        "addAnalysis": "해석 추가",
+        "analysisPlaceholder": "AI 분석 결과를 참조하고 생활 경험과 결합하여 이 꿈에 대한 이해와 통찰을 작성하세요...",
+        "recurringElements": "반복 요소",
+        "recurringDescription": "이것은 반복 꿈입니다",
+        "recurringDream": "반복 꿈",
+        "hoverDetails": "세부사항을 보려면 호버",
+        "analysisPrompt": "AI 분석 결과를 참조하고 생활 경험과 결합하여 이 꿈에 대한 독특한 통찰을 기록하세요",
+        "deleteConfirmation": "이 꿈 기록을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+        "content": "꿈 내용",
+        "aiAnalysisResult": "AI 꿈 분석 결과",
+        "aiAnalysisDescription": "심리학 이론과 AI 기술을 기반으로 한 꿈 분석, 참고 및 자기 탐구만을 목적으로 합니다.",
+        "aiAnalysisButton": "AI 꿈 분석",
+        "aiAnalysisDescriptionText": "심리학 이론과 결합된 첨단 AI 기술을 사용하여 귀하의 꿈을 심층 분석합니다",
+        "aiAnalysisCompleted": "AI 꿈 분석이 완료되었습니다!",
+        "aiAnalysisError": "분석 중 오류가 발생했습니다",
+        "aiAnalysisFailed": "분석에 실패했습니다",
+        "aiAnalysisStartFailed": "분석 시작에 실패했습니다",
+        "aiAnalysisCancelFailed": "분석 취소에 실패했습니다",
+        "aiAnalysisCancelled": "분석이 취소되었습니다",
+        "aiAnalysisProgress": "AI 꿈 분석 진행률",
+        "reAnalyze": "재분석"
+    },
+    "assistant": {
+        "pageTitle": "꿈 어시스턴트 - Dream Log",
+        "pageDescription": "AI 꿈 어시스턴트와 채팅하고 꿈의 신비를 탐구하세요",
+        "pageKeywords": "꿈 어시스턴트,AI 채팅,꿈 분석",
+        "newChatTitle": "새 채팅",
+        "search": {
+            "placeholder": "대화 검색..."
+        },
+        "button": {
+            "newChat": "새 채팅 시작",
+            "sendFirstMessage": "새 채팅을 만들려면 먼저 메시지를 보내주세요",
+            "uploadImage": "이미지 업로드",
+            "voiceInput": "음성 입력",
+            "sendMessage": "메시지 보내기"
+        },
+        "connection": {
+            "connected": "연결됨",
+            "connecting": "연결 중",
+            "failed": "연결 실패"
+        },
+        "welcome": {
+            "title": "꿈 탐험 여행을 시작하세요",
+            "subtitle": "꿈을 설명하거나 꿈 관련 지식에 대해 질문하세요"
+        },
+        "thinking": "생각 중...",
+        "input": {
+            "placeholder": "꿈 어시스턴트에게 질문하세요..."
+        },
+        "settings": {
+            "description": "AI 어시스턴트 설정 구성",
+            "personalizeTab": "개인 설정",
+            "dataTab": "데이터 관리",
+            "securityTab": "보안",
+            "helpTab": "도움말",
+            "personalize": "AI 어시스턴트 동작 및 환경설정 사용자 정의",
+            "data": "대화 데이터 및 내보내기 옵션 관리",
+            "security": "개인정보 보호 및 보안 설정",
+            "help": "도움말 및 지원 정보 얻기",
+            "dataExport": "데이터 내보내기",
+            "dataExportDescription": "대화 기록 내보내기",
+            "privacyTitle": "개인정보 보호 및 보안",
+            "privacy": "데이터 개인정보 설정 관리",
+            "helpAndSupport": "도움말 및 지원",
+            "helpAndSupportDescription": "사용자 가이드 및 FAQ 보기",
+            "defaultName": "꿈 어시스턴트",
+            "assistantName": "어시스턴트 이름",
+            "assistantNamePlaceholder": "어시스턴트에게 이름을 지어주세요",
+            "interpretationStyle": "해석 스타일",
+            "preferredDimensions": "선호하는 해석 차원",
+            "responseLength": "응답 길이",
+            "autoImageGeneration": "꿈 이미지 자동 생성",
+            "enableFollowUpQuestions": "후속 질문 활성화",
+            "saving": "저장 중...",
+            "saveSettings": "설정 저장",
+            "configUpdated": "구성이 업데이트되었습니다",
+            "updateConfigFailed": "구성 업데이트에 실패했습니다",
+            "styles": {
+                "professional": "전문 학술적",
+                "friendly": "친근하고 따뜻한",
+                "poetic": "시적이고 로맨틱한",
+                "balanced": "균형잡힌 종합적"
+            },
+            "responseStyles": {
+                "concise": "간결한",
+                "moderate": "보통",
+                "detailed": "상세한"
+            },
+            "dimensions": {
+                "psychological": "심리학적 분석",
+                "symbolic": "상징적 해석",
+                "biological": "생의학적 관점",
+                "spiritual": "영적 차원",
+                "personalGrowth": "개인 성장"
+            }
+        }
+    }
+}

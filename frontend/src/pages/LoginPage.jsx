@@ -2,12 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { DualLoginForm } from "@/features/auth/components/DualLoginForm";
+import { useI18nContext } from "@/contexts/I18nContext";
+import { AuthLanguageSwitcher } from "@/components/auth/AuthLanguageSwitcher";
 import "@/styles/features/auth.css";
 
 /**
  * 登录页面组件
  */
 function LoginPage() {
+    const { t } = useI18nContext();
+
     return (
         <div className="auth-page">
             {/* 简化版导航栏，包含返回按钮和品牌logo */}
@@ -15,13 +19,15 @@ function LoginPage() {
                 <div className="auth-header-container">
                     <Link to="/" className="auth-back-button">
                         <ArrowLeft />
-                        返回首页
+                        {t('auth.login.links.backToHome', '返回首页')}
                     </Link>
 
                     <Link to="/" className="auth-logo">
-                        <img src="/assets/logo.svg" className="auth-logo-image" alt="梦境门户" />
-                        <span className="auth-logo-text">梦境门户</span>
+                        <img src="/assets/logo.svg" className="auth-logo-image" alt="Dreamlog" />
+                        <span className="auth-logo-text">Dreamlog</span>
                     </Link>
+
+                    <AuthLanguageSwitcher />
                 </div>
             </header>
 

@@ -159,6 +159,10 @@
     color: hsl(var(--dream-primary));
 }
 
+.verification-input::placeholder {
+    color: hsl(var(--muted-foreground));
+}
+
 /* 验证码按钮样式 */
 .verification-button {
     padding: 12px 16px;

@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* ===== Tiptap编辑器基础样式 ===== */
 .tiptap-editor-wrapper {
     @apply relative rounded-lg;
@@ -646,14 +648,15 @@ body.resizing-editor .resizable-editor-handle {
 /* ===== 优化的迷你画板样式 ===== */
 .mini-canvas-overlay {
     @apply fixed inset-0 z-[100000] flex items-center justify-center;
-    background: rgba(0, 0, 0, 0.85);
+    background: hsl(var(--background) / 0.8);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
 .mini-canvas-modal {
-    @apply bg-gray-900 rounded-lg shadow-2xl w-full mx-4;
-    border: 1px solid rgba(147, 51, 234, 0.3);
+    @apply rounded-lg shadow-2xl w-full mx-4;
+    background: hsl(var(--popover));
+    border: 1px solid hsl(var(--border));
     max-width: min(95vw, 1200px);
     max-height: min(95vh, 800px);
     overflow: hidden;
@@ -662,21 +665,28 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .mini-canvas-header {
-    @apply flex items-center justify-between p-4 border-b border-purple-300/20;
+    @apply flex items-center justify-between p-4 border-b;
+    border-color: hsl(var(--border));
     flex-shrink: 0;
 }
 
 .mini-canvas-header h3 {
-    @apply text-lg font-semibold text-purple-200;
+    @apply text-lg font-semibold;
+    color: hsl(var(--foreground));
 }
 
 .mini-canvas-close {
-    @apply text-gray-400 hover:text-white;
+    color: hsl(var(--muted-foreground));
+}
+
+.mini-canvas-close:hover {
+    color: hsl(var(--foreground));
 }
 
 .mini-canvas-toolbar {
-    @apply flex items-center gap-4 p-4 border-b border-purple-300/20 flex-wrap;
-    background: rgba(255, 255, 255, 0.02);
+    @apply flex items-center gap-4 p-4 border-b flex-wrap;
+    border-color: hsl(var(--border));
+    background: hsl(var(--card));
     flex-shrink: 0;
 }
 
@@ -689,19 +699,23 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .mini-canvas-label {
-    @apply text-sm text-purple-300 whitespace-nowrap;
+    @apply text-sm whitespace-nowrap;
+    color: hsl(var(--foreground));
 }
 
 .mini-canvas-slider {
-    @apply w-20 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer;
+    @apply w-20 h-2 rounded-lg appearance-none cursor-pointer;
+    background: hsl(var(--muted));
 }
 
 .mini-canvas-slider::-webkit-slider-thumb {
-    @apply appearance-none w-4 h-4 bg-purple-500 rounded-full cursor-pointer;
+    @apply appearance-none w-4 h-4 rounded-full cursor-pointer;
+    background: hsl(var(--primary));
 }
 
 .mini-canvas-size-display {
-    @apply text-sm text-purple-300 min-w-[2rem] text-center;
+    @apply text-sm min-w-[2rem] text-center;
+    color: hsl(var(--foreground));
 }
 
 .mini-canvas-color-palette {
@@ -718,7 +732,8 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .mini-canvas-color-active {
-    @apply border-purple-400 ring-2 ring-purple-400/50;
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
 }
 
 /* 背景颜色选择器样式 */
@@ -728,22 +743,23 @@ body.resizing-editor .resizable-editor-handle {
 
 .mini-canvas-background-swatch {
     @apply w-5 h-5 rounded border cursor-pointer;
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: hsl(var(--border));
     transition: all 0.2s ease;
 }
 
 .mini-canvas-background-swatch:hover {
     @apply scale-110;
-    border-color: rgba(147, 51, 234, 0.6);
+    border-color: hsl(var(--ring));
 }
 
 .mini-canvas-background-active {
-    border-color: rgba(147, 51, 234, 0.8) !important;
-    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.3);
+    border-color: hsl(var(--ring)) !important;
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
 }
 
 .mini-canvas-container {
-    @apply p-4 bg-gray-800 flex-1 overflow-auto;
+    @apply p-4 flex-1 overflow-auto;
+    background: hsl(var(--muted) / 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -751,22 +767,26 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 .mini-canvas {
-    @apply border border-gray-600 rounded cursor-crosshair;
+    @apply border rounded cursor-crosshair;
+    border-color: hsl(var(--border));
     background: white;
     max-width: 100%;
     max-height: 100%;
     width: auto;
     height: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px hsl(var(--shadow) / 0.3);
 }
 
 .mini-canvas-footer {
-    @apply p-4 border-t border-purple-300/20 flex items-center justify-between;
+    @apply p-4 border-t flex items-center justify-between;
+    border-color: hsl(var(--border));
+    background: hsl(var(--card));
     flex-shrink: 0;
 }
 
 .mini-canvas-hints {
-    @apply text-xs text-gray-400;
+    @apply text-xs;
+    color: hsl(var(--muted-foreground));
 }
 
 .mini-canvas-actions {

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18nContext } from '@/contexts/I18nContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Save, X, Undo, Redo, Eraser } from 'lucide-react';
 
 const MiniCanvas = ({ onComplete, onCancel }) => {
+    const { t } = useI18nContext();
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -16,9 +18,9 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
 
     const canvasSizes = [
-        { width: 600, height: 400, label: '小 (600x400)' },
-        { width: 800, height: 600, label: '中 (800x600)' },
-        { width: 1000, height: 700, label: '大 (1000x700)' },
+        { width: 600, height: 400, label: t('canvas.sizeSmall', '小 (600x400)') },
+        { width: 800, height: 600, label: t('canvas.sizeMedium', '中 (800x600)') },
+        { width: 1000, height: 700, label: t('canvas.sizeLarge', '大 (1000x700)') },
     ];
 
     const colorPalette = ['#000000', '#FFFFFF', '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#5AC8FA', '#007AFF', '#5856D6'];
@@ -113,7 +115,7 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
     };
 
     const clearCanvas = () => {
-        if (window.confirm('您确定要清空画板吗？所有未保存的进度都将丢失。')) {
+        if (window.confirm(t('canvas.clearConfirm', '您确定要清空画板吗？所有未保存的进度都将丢失。'))) {
             initializeCanvas();
         }
     };
@@ -160,7 +162,7 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
         <div className="mini-canvas-overlay" onClick={onCancel}>
             <div className="mini-canvas-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="mini-canvas-header">
-                    <h3>梦境画板</h3>
+                    <h3>{t('canvas.title', '梦境画板')}</h3>
                     <Button variant="ghost" size="sm" onClick={onCancel} className="mini-canvas-close">
                         <X className="w-4 h-4" />
                     </Button>
@@ -168,7 +170,7 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
 
                 <div className="mini-canvas-toolbar">
                     <div className="mini-canvas-tool-group">
-                        <span className="mini-canvas-label">画笔颜色:</span>
+                        <span className="mini-canvas-label">{t('canvas.brushColor', '画笔颜色:')}</span>
                         <div className="mini-canvas-color-palette">
                             {colorPalette.map(c => (
                                 <button
@@ -176,13 +178,13 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
                                     className={cn('mini-canvas-color-swatch', color === c && 'mini-canvas-color-active')}
                                     style={{ backgroundColor: c }}
                                     onClick={() => setColor(c)}
-                                    title={`画笔颜色: ${c}`}
+                                    title={`${t('canvas.brushColorTitle', '画笔颜色:')} ${c}`}
                                 />
                             ))}
                         </div>
                     </div>
                     <div className="mini-canvas-tool-group">
-                        <span className="mini-canvas-label">画笔大小:</span>
+                        <span className="mini-canvas-label">{t('canvas.brushSize', '画笔大小:')}</span>
                         <input
                             type="range"
                             min="1"
@@ -190,12 +192,12 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
                             value={brushSize}
                             onChange={(e) => setBrushSize(e.target.value)}
                             className="mini-canvas-slider"
-                            title={`画笔大小: ${brushSize}`}
+                            title={`${t('canvas.brushSizeTitle', '画笔大小:')} ${brushSize}`}
                         />
                         <span className="mini-canvas-size-display">{brushSize}</span>
                     </div>
                     <div className="mini-canvas-tool-group">
-                        <span className="mini-canvas-label">画布背景:</span>
+                        <span className="mini-canvas-label">{t('canvas.canvasBackground', '画布背景:')}</span>
                         <div className="mini-canvas-background-palette">
                             {backgroundPalette.map(bg => (
                                 <button
@@ -211,7 +213,7 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
                                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                                         saveState();
                                     }}
-                                    title={`背景颜色: ${bg}`}
+                                    title={`${t('canvas.backgroundColorTitle', '背景颜色:')} ${bg}`}
                                 />
                             ))}
                         </div>
@@ -242,7 +244,7 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
 
                 <div className="mini-canvas-footer">
                     <div className="flex items-center gap-2">
-                        <span className="mini-canvas-label">画布尺寸:</span>
+                        <span className="mini-canvas-label">{t('canvas.canvasSize', '画布尺寸:')}</span>
                         <div className="flex gap-1">
                             {canvasSizes.map(size => (
                                 <Button
@@ -257,21 +259,21 @@ const MiniCanvas = ({ onComplete, onCancel }) => {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={clearCanvas} title="清空画板">
+                        <Button variant="outline" size="sm" onClick={clearCanvas} title={t('canvas.clearCanvas', '清空画板')}>
                             <Eraser className="w-4 h-4 mr-1" />
-                            清空
+                            {t('canvas.clear', '清空')}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={undo} disabled={historyIndex <= 0} title="撤销 (Ctrl+Z)">
+                        <Button variant="outline" size="sm" onClick={undo} disabled={historyIndex <= 0} title={t('canvas.undo', '撤销 (Ctrl+Z)')}>
                             <Undo className="w-4 h-4 mr-1" />
-                            撤销
+                            {t('canvas.undo', '撤销')}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={redo} disabled={historyIndex >= history.length - 1} title="重做 (Ctrl+Y)">
+                        <Button variant="outline" size="sm" onClick={redo} disabled={historyIndex >= history.length - 1} title={t('canvas.redo', '重做 (Ctrl+Y)')}>
                             <Redo className="w-4 h-4 mr-1" />
-                            重做
+                            {t('canvas.redo', '重做')}
                         </Button>
                         <Button onClick={handleComplete} className="mini-canvas-complete">
                             <Save className="w-4 h-4 mr-2" />
-                            完成并插入
+                            {t('canvas.completeAndInsert', '完成并插入')}
                         </Button>
                     </div>
                 </div>

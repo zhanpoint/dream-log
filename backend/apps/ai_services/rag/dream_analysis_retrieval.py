@@ -1,12 +1,12 @@
 """
-梦境分析专用RAG检索器
+RAG检索器
 实现查询扩展、向量检索和重排序的完整RAG流程
 """
 import logging
 from typing import List, Optional
 
 from langchain_core.documents import Document
-from langchain_voyageai import VoyageAIRerank, VoyageAIEmbeddings
+from langchain_voyageai import VoyageAIRerank
 
 from ..config import VOYAGE_API_KEY
 from ..knowledge_base.workflow._6_vectorstore import get_vectorstore
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class DreamAnalysisRAGRetriever:
-    """梦境分析专用RAG检索器"""
+    """RAG检索器"""
     
     def __init__(self, 
                  top_k_initial: int = 15,

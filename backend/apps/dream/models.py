@@ -193,7 +193,7 @@ class Dream(models.Model):
     
     # 梦境特性
     is_recurring = models.BooleanField(default=False, verbose_name="是否重复梦")
-    recurring_elements = models.TextField(blank=True, verbose_name="重复元素")
+    recurring_elements = models.CharField(max_length=10, blank=True, verbose_name="重复元素")
     vividness = models.IntegerField(
         choices=[(i, str(i)) for i in range(1, 6)],
         null=True,

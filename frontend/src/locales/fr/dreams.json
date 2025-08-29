@@ -1,0 +1,385 @@
+{
+    "list": {
+        "title": "Mes Rêves",
+        "subtitle": "Parcourez et gérez vos enregistrements de rêves",
+        "keywords": "rêves, enregistrements, gestion",
+        "noDreams": "Aucun rêve enregistré pour le moment",
+        "noResults": "Aucun rêve correspondant trouvé, essayez d'ajuster les filtres",
+        "startRecording": "Commencez à enregistrer votre premier rêve"
+    },
+    "categories": {
+        "normal": "Rêve Normal",
+        "lucid": "Rêve Lucide",
+        "nightmare": "Cauchemar",
+        "recurring": "Rêve Récurrent",
+        "prophetic": "Rêve Prophétique",
+        "healing": "Rêve Guérisseur",
+        "spiritual": "Rêve Spirituel",
+        "creative": "Rêve Créatif",
+        "hypnagogic": "Hallucination Hypnagogique",
+        "hypnopompic": "Hallucination Hypnopompique",
+        "sleep_paralysis": "Paralysie du Sommeil",
+        "false_awakening": "Faux Réveil",
+        "anxiety": "Rêve d'Anxiété",
+        "joyful": "Rêve Joyeux",
+        "melancholic": "Rêve Mélancolique",
+        "adventure": "Rêve d'Aventure"
+    },
+    "search": {
+        "placeholder": "Rechercher des titres ou contenu de rêves..."
+    },
+    "sort": {
+        "default": "Tri par défaut",
+        "newest": "Plus récent d'abord",
+        "oldest": "Plus ancien d'abord",
+        "title": "Trier par titre"
+    },
+    "stats": {
+        "total": "Total des rêves",
+        "today": "Rêves d'aujourd'hui",
+        "viewDetails": "Voir les statistiques détaillées"
+    },
+    "create": {
+        "pageTitle": "Créer un Rêve - Dream Log",
+        "pageDescription": "Créer un nouveau enregistrement de rêve",
+        "pageKeywords": "rêves, enregistrement, créer, analyse",
+        "title": "Enregistrer un Rêve",
+        "subtitle": "Créez votre monde de rêves",
+        "button": "Enregistrer un Nouveau Rêve",
+        "failed": "Échec de la création du rêve",
+        "imageUploadNoUrl": "Image téléchargée avec succès, mais URL indisponible",
+        "imageUploadFailed": "Échec du téléchargement de l'image",
+        "tagNameRequired": "Le nom du tag ne peut pas être vide",
+        "tagExists": "Le tag existe déjà",
+        "form": {
+            "basicInfo": "Informations de Base",
+            "dreamTitle": "Titre du Rêve",
+            "dreamTitlePlaceholder": "Donnez un nom à votre rêve...",
+            "dreamDate": "Date du Rêve",
+            "content": "Contenu du Rêve",
+            "contentPlaceholder": "Commencez à enregistrer votre rêve...",
+            "categories": "Catégories",
+            "tags": "Tags",
+            "lucidity": "Lucidité",
+            "vividness": "Vividité",
+            "moodBeforeSleep": "Humeur Avant le Sommeil",
+            "moodInDream": "Humeur dans le Rêve",
+            "moodAfterWaking": "Humeur au Réveil",
+            "sleepQuality": "Qualité du Sommeil",
+            "sleepDuration": "Durée du Sommeil",
+            "hours": "heures",
+            "bedtime": "Heure du Coucher",
+            "wakeTime": "Heure du Réveil",
+            "personalNotesPlaceholder": "Enregistrez vos pensées personnelles, sentiments ou autres notes...",
+            "isRecurring": "Ceci est un rêve récurrent",
+            "recurringPlaceholder": "Décrivez les éléments récurrents...",
+            "recurringLimitError": "Les éléments récurrents ne peuvent pas dépasser 10 caractères",
+            "generateTitle": "Générer le titre du rêve avec l'IA",
+            "generate": "Générer IA",
+            "titleGenContentTooShort": "Le contenu du rêve est trop court pour générer un titre de haute qualité",
+            "titleGenSuccess": "Titre généré par IA avec succès !",
+            "titleGenFailed": "Échec de la génération du titre",
+            "titleGenFailedRetry": "Échec de la génération du titre, veuillez réessayer",
+            "selectMood": "Sélectionner l'humeur",
+            "selectSleepQuality": "Sélectionner la qualité du sommeil",
+            "categoryHelp": {
+                "title": "Guide des Catégories de Rêves",
+                "description": "Choisissez la catégorie qui correspond le mieux aux caractéristiques de votre rêve:"
+            },
+            "lucidityHelp": {
+                "title": "Guide des Niveaux de Lucidité",
+                "description": "Le niveau de lucidité fait référence au degré de conscience de rêver dans le rêve.",
+                "level0": "Niveau 0 - Inconscience Complète:",
+                "level0Desc": "Complètement inconscient de rêver, l'expérience du rêve semble réelle",
+                "level1": "Niveau 1 - Conscience Faible:",
+                "level1Desc": "Doute occasionnellement de la réalité, mais est rapidement convaincu par la logique du rêve",
+                "level2": "Niveau 2 - Conscience Diffuse:",
+                "level2Desc": "Sent vaguement que quelque chose ne va pas, mais ne peut pas confirmer si il rêve",
+                "level3": "Niveau 3 - Lucidité Partielle:",
+                "level3Desc": "Sait qu'il rêve, mais le contrôle est limité",
+                "level4": "Niveau 4 - Haute Lucidité:",
+                "level4Desc": "Complètement conscient de rêver et peut exercer un certain contrôle",
+                "level5": "Niveau 5 - Ultra Lucide:",
+                "level5Desc": "Complètement lucide et peut contrôler librement le contenu et l'intrigue du rêve"
+            },
+            "lucidityLabels": {
+                "min": "Inconscience Complète",
+                "max": "Ultra Lucide"
+            },
+            "vividnessHelp": {
+                "title": "Guide de Vividité",
+                "description": "La vivacité fait référence à la vivacité des expériences sensorielles et à la richesse des détails dans les rêves.",
+                "level1": "Niveau 1 - Flou:",
+                "level1Desc": "Le rêve est flou et indéfini, les détails manquent, comme voir à travers le brouillard",
+                "level2": "Niveau 2 - Légèrement Flou:",
+                "level2Desc": "On peut voir les contours généraux, mais les détails ne sont pas clairs",
+                "level3": "Niveau 3 - Moyen:",
+                "level3Desc": "Le rêve est relativement net, on peut identifier les personnes et les scènes",
+                "level4": "Niveau 4 - Net:",
+                "level4Desc": "Le rêve est vif et net, riche en détails, proche de l'expérience réelle",
+                "level5": "Niveau 5 - Ultra Net:",
+                "level5Desc": "Le rêve est extrêmement vif, tous les sens sont exceptionnellement clairs, même au-delà de la réalité",
+                "note": "Note: La vivacité et la lucidité sont des concepts différents. La vivacité se concentre sur l'expérience sensorielle, la lucidité sur l'état de conscience."
+            },
+            "vividnessLabels": {
+                "min": "Flou",
+                "max": "Ultra Net"
+            }
+        }
+    },
+    "privacy": {
+        "private": "Privé",
+        "public": "Public",
+        "friends": "Amis uniquement"
+    },
+    "tagTypes": {
+        "emotion": "Émotion",
+        "character": "Personnage",
+        "location": "Lieu",
+        "object": "Objet",
+        "action": "Action",
+        "weather": "Météo"
+    },
+    "detail": {
+        "pageTitle": "Détails du Rêve - Dream Log",
+        "loading": "Chargement...",
+        "notFound": "Rêve non trouvé",
+        "backButton": "Retour",
+        "actions": {
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "analyze": "Analyse IA"
+        },
+        "emotion": {
+            "beforeSleep": "Avant le Sommeil",
+            "inDream": "Dans le Rêve",
+            "afterWaking": "Après le Réveil"
+        },
+        "sleepQuality": "Qualité du Sommeil",
+        "sleepTime": "Heure du Sommeil",
+        "sleepDuration": "Durée du Sommeil",
+        "lucidity": "Lucidité",
+        "clarity": "Clarté",
+        "hoverDetails": "Survoler pour les détails",
+        "analysisPrompt": "Consultez les résultats de l'analyse IA et combinez avec votre expérience de vie pour enregistrer vos idées uniques sur ce rêve",
+        "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement de rêve ? Cette action ne peut pas être annulée."
+    },
+    "categories": {
+        "normal": "Rêve Normal",
+        "lucid": "Rêve Lucide",
+        "nightmare": "Cauchemar",
+        "recurring": "Rêve Récurrent",
+        "prophetic": "Rêve Prophétique",
+        "healing": "Rêve Curatif",
+        "spiritual": "Rêve Spirituel",
+        "creative": "Rêve Créatif",
+        "hypnagogic": "Hallucination Hypnagogique",
+        "hypnopompic": "Hallucination Hypnopomique",
+        "sleep_paralysis": "Paralysie du Sommeil",
+        "false_awakening": "Faux Réveil",
+        "anxiety": "Rêve d'Anxiété",
+        "joyful": "Rêve Joyeux",
+        "melancholic": "Rêve Mélancolique",
+        "adventure": "Rêve d'Aventure"
+    },
+    "moods": {
+        "very_negative": "Très Négatif",
+        "negative": "Négatif",
+        "neutral": "Neutre",
+        "positive": "Positif",
+        "very_positive": "Très Positif"
+    },
+    "sleepQuality": {
+        "very_poor": "Très Mauvaise",
+        "poor": "Mauvaise",
+        "average": "Moyenne",
+        "good": "Bonne",
+        "excellent": "Excellente"
+    },
+    "filters": {
+        "mood": "Humeur",
+        "sleepQuality": "Qualité du Sommeil",
+        "removeCategory": "Supprimer la catégorie {category}",
+        "categories": "Catégories",
+        "categoriesCount": "{count} catégories",
+        "allMoods": "Toutes les Humeurs",
+        "dateRange": "Période",
+        "dateFrom": "À partir de {date}",
+        "clearDate": "Effacer la Date",
+        "allSleepQualities": "Toutes les Qualités",
+        "recurringDream": "Rêve Récurrent",
+        "activeFiltersCount": "{count} filtres",
+        "moreFilters": "Plus de Filtres",
+        "reset": "Réinitialiser",
+        "lucidity": "Clarté",
+        "clarity": "Netteté",
+        "sleepDuration": "Durée du Sommeil",
+        "hours": "heures",
+        "hoursRange": "0 heures",
+        "hoursRangeMax": "24 heures",
+        "tags": "Étiquettes",
+        "tagsSeparator": "séparées par des virgules",
+        "tagsPlaceholder": "ex.: voler, école, famille",
+        "modeUnion": "Union",
+        "modeUnionLabel": "Mode union",
+        "modeIntersection": "Intersection",
+        "modeIntersectionLabel": "Mode intersection",
+        "modeAndDescription": "Contient toutes les catégories",
+        "modeOrDescription": "Contient n'importe quelle catégorie"
+    },
+    "detail": {
+        "pageTitle": "Détails du Rêve - Dream Log",
+        "loading": "Chargement...",
+        "notFound": "Rêve non trouvé",
+        "backButton": "Retour",
+        "actions": {
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "analyze": "Analyse IA"
+        },
+        "emotion": {
+            "beforeSleep": "Avant le Sommeil",
+            "inDream": "Dans le Rêve",
+            "afterWaking": "Après le Réveil"
+        },
+        "sleepQuality": "Qualité du Sommeil",
+        "sleepTime": "Heure du Sommeil",
+        "sleepDuration": "Durée du Sommeil",
+        "lucidity": "Clarté",
+        "clarity": "Netteté",
+        "sleepEmotion": "Sommeil et Émotions",
+        "emotionTrack": "Trace Émotionnelle",
+        "sleepStatus": "État du Sommeil",
+        "perception": "Expérience Sensorielle",
+        "personalNotes": "Notes Personnelles",
+        "aiAnalysis": "Analyse Intelligente IA",
+        "myAnalysis": "Mon Interprétation",
+        "addAnalysis": "Ajouter une Interprétation",
+        "analysisPlaceholder": "Référez-vous aux résultats d'analyse IA et combinez avec vos expériences de vie pour écrire votre compréhension et insights sur ce rêve...",
+        "recurringElements": "Éléments Récurrents",
+        "recurringDescription": "Ceci est un rêve récurrent",
+        "recurringDream": "Rêve Récurrent",
+        "hoverDetails": "Survolez pour les détails",
+        "analysisPrompt": "Référez-vous aux résultats d'analyse IA et combinez avec vos expériences de vie pour enregistrer vos insights uniques sur ce rêve",
+        "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement de rêve ? Cette action ne peut pas être annulée.",
+        "content": "Contenu du Rêve",
+        "aiAnalysisResult": "Résultats de l'Analyse IA des Rêves",
+        "aiAnalysisDescription": "Analyse des rêves basée sur les théories psychologiques et la technologie IA, pour référence et auto-exploration uniquement.",
+        "aiAnalysisButton": "Analyse IA des Rêves",
+        "aiAnalysisDescriptionText": "Utilisation de technologies IA avancées combinées aux théories psychologiques pour une analyse approfondie de vos rêves",
+        "aiAnalysisCompleted": "Analyse IA des rêves terminée !",
+        "aiAnalysisError": "Erreur survenue pendant l'analyse",
+        "aiAnalysisFailed": "Échec de l'analyse",
+        "aiAnalysisStartFailed": "Échec du démarrage de l'analyse",
+        "aiAnalysisCancelFailed": "Échec de l'annulation de l'analyse",
+        "aiAnalysisCancelled": "Analyse annulée",
+        "aiAnalysisProgress": "Progression de l'Analyse IA des Rêves",
+        "reAnalyze": "Réanalyser"
+    },
+    "assistant": {
+        "pageTitle": "Assistant IA - Dream Log",
+        "pageDescription": "Chattez avec l'assistant IA des rêves et explorez les mystères des rêves",
+        "pageKeywords": "assistant de rêves,chat IA,analyse de rêves",
+        "newChatTitle": "Nouveau Chat",
+        "search": {
+            "placeholder": "Rechercher des conversations..."
+        },
+        "button": {
+            "newChat": "Démarrer un Nouveau Chat",
+            "sendFirstMessage": "Veuillez d'abord envoyer un message pour créer un nouveau chat",
+            "uploadImage": "Télécharger une Image",
+            "voiceInput": "Entrée Vocale",
+            "sendMessage": "Envoyer un Message"
+        },
+        "connection": {
+            "connected": "Connecté",
+            "connecting": "Connexion",
+            "failed": "Échec de Connexion"
+        },
+        "welcome": {
+            "title": "Commencez Votre Voyage d'Exploration des Rêves",
+            "subtitle": "Décrivez vos rêves ou posez des questions sur les connaissances des rêves"
+        },
+        "thinking": "Réflexion...",
+        "input": {
+            "placeholder": "Demandez à l'assistant de rêves..."
+        },
+        "error": {
+            "emptyMessage": "Le contenu du message ne peut pas être vide, veuillez saisir du texte ou sélectionner une image",
+            "connectionLost": "Connexion réseau perdue, veuillez réessayer plus tard",
+            "chatStateError": "Erreur d'état du chat, veuillez actualiser et réessayer",
+            "voiceNotSupported": "Votre navigateur ne prend pas en charge l'entrée vocale",
+            "voiceRecognitionError": "Erreur de reconnaissance vocale: ",
+            "invalidTitle": "Veuillez saisir un titre de chat valide",
+            "titleTooLong": "Le titre du chat ne peut pas dépasser 100 caractères"
+        },
+        "memorySaved": "Mémoire sauvegardée",
+        "chatRenamed": "Chat renommé",
+        "rename": {
+            "dialogTitle": "Renommer le Chat",
+            "title": "Saisissez un nouveau titre pour le chat",
+            "placeholder": "Saisir le titre du chat"
+        },
+        "delete": {
+            "dialogTitle": "Supprimer le Chat",
+            "confirmation": "Êtes-vous sûr de vouloir supprimer ce chat ? Cette action ne peut pas être annulée."
+        },
+        "settings": {
+            "description": "Configurer les paramètres de l'assistant IA",
+            "personalizeTab": "Personnaliser",
+            "dataTab": "Gestion des Données",
+            "securityTab": "Sécurité",
+            "helpTab": "Aide",
+            "personalize": "Personnaliser le comportement et les préférences de l'assistant IA",
+            "data": "Gérer vos données de conversation et options d'exportation",
+            "security": "Paramètres de confidentialité et de sécurité",
+            "help": "Obtenir des informations d'aide et de support",
+            "dataExport": "Exporter les Données",
+            "dataExportDescription": "Exporter vos enregistrements de conversation",
+            "privacyTitle": "Confidentialité et Sécurité",
+            "privacy": "Gérer les paramètres de confidentialité des données",
+            "helpAndSupport": "Aide et Support",
+            "helpAndSupportDescription": "Voir les guides utilisateur et FAQ",
+            "defaultName": "Assistant de Rêves",
+            "assistantName": "Nom de l'Assistant",
+            "assistantNamePlaceholder": "Donnez un nom à votre assistant",
+            "interpretationStyle": "Style d'Interprétation",
+            "preferredDimensions": "Dimensions d'Interprétation Préférées",
+            "responseLength": "Longueur de Réponse",
+            "autoImageGeneration": "Générer Automatiquement des Images de Rêves",
+            "enableFollowUpQuestions": "Activer les Questions de Suivi",
+            "saving": "Sauvegarde...",
+            "saveSettings": "Sauvegarder les Paramètres",
+            "configUpdated": "Configuration mise à jour",
+            "updateConfigFailed": "Échec de mise à jour de la configuration",
+            "styles": {
+                "professional": "Académique Professionnel",
+                "friendly": "Amical et Chaleureux",
+                "poetic": "Poétique et Romantique",
+                "balanced": "Équilibré et Complet"
+            },
+            "responseStyles": {
+                "concise": "Concis",
+                "moderate": "Modéré",
+                "detailed": "Détaillé"
+            },
+            "dimensions": {
+                "psychological": "Analyse Psychologique",
+                "symbolic": "Interprétation Symbolique",
+                "biological": "Perspective Biomédicale",
+                "spiritual": "Dimension Spirituelle",
+                "personalGrowth": "Croissance Personnelle"
+            }
+        },
+        "deleteAll": {
+            "title": "Supprimer Tous les Chats",
+            "description": "Effacer tous les enregistrements de chat, ne peut pas être récupéré",
+            "confirmation": "Êtes-vous sûr de vouloir supprimer tous les {count} chats ? Cette action ne peut pas être annulée !",
+            "noChats": "Aucun chat à supprimer",
+            "button": "Tout Supprimer"
+        },
+        "image": {
+            "selectedAlt": "Sélectionné {index}"
+        }
+    }
+}

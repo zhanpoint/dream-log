@@ -1,0 +1,34 @@
+{
+    "title": "Dream Log - Traumtagebuch",
+    "description": "Dream Log - Zeichnen Sie Ihre Träume auf, analysieren und interpretieren Sie sie",
+    "keywords": "Träume, Tagebuch, KI, Psychologie, Traumdeutung",
+    "welcome": "Willkommen bei Dream Log",
+    "subtitle": "Erkunden Sie die geheimnisvolle Welt der Träume und entschlüsseln Sie die Weisheit des Unterbewusstseins",
+    "badge": "KI-betriebene Traumdeutungs-Plattform",
+    "cta": {
+        "primary": "Träume Aufzeichnen Beginnen",
+        "secondary": "Mehr Erfahren"
+    },
+    "features": {
+        "title": "Warum Dream Log wählen",
+        "subtitle": "Professionelle Traumanalyse-Tools, die Ihnen helfen, die Traumwelt tiefgehend zu verstehen",
+        "items": {
+            "record": {
+                "title": "Intelligente Aufzeichnung",
+                "description": "Verwenden Sie KI-unterstützte Tools, um Ihre Traumerfahrungen einfach aufzuzeichnen und zu kategorisieren"
+            },
+            "analyze": {
+                "title": "Tiefgehende Analyse",
+                "description": "Nutzen Sie Psychologie- und Neurowissenschaftsmethoden, um die Bedeutung von Träumen tiefgehend zu interpretieren"
+            },
+            "assistant": {
+                "title": "KI-Assistent",
+                "description": "Ein personalisierter KI-Traumdeuter bietet Ihnen professionelle Einsichten und Beratung"
+            },
+            "statistics": {
+                "title": "Datenstatistiken",
+                "description": "Zeigt visuell Ihre Traummuster, Häufigkeit und thematische Trends an"
+            }
+        }
+    }
+}

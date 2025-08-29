@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useI18nContext } from '@/contexts/I18nContext';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -12,26 +13,27 @@ import './css/theme-toggle.css';
 
 const ThemeToggle = () => {
     const { theme, setTheme } = useTheme();
+    const { t } = useI18nContext();
     const [isOpen, setIsOpen] = useState(false);
 
     const themes = [
         {
             value: 'light',
-            label: '浅色',
+            label: t('theme.light', '浅色'),
             icon: Sun,
-            description: '明亮清晰的界面'
+            description: t('theme.lightDesc', '明亮清晰的界面')
         },
         {
             value: 'dark',
-            label: '深色',
+            label: t('theme.dark', '深色'),
             icon: Moon,
-            description: '舒适护眼的暗色界面'
+            description: t('theme.darkDesc', '舒适护眼的暗色界面')
         },
         {
             value: 'system',
-            label: '跟随系统',
+            label: t('theme.system', '跟随系统'),
             icon: Monitor,
-            description: '自动适应系统设置'
+            description: t('theme.systemDesc', '自动适应系统设置')
         }
     ];
 
@@ -48,12 +50,12 @@ const ThemeToggle = () => {
                     variant="ghost"
                     size="icon"
                     className="theme-toggle-btn relative overflow-hidden"
-                    aria-label="切换主题"
+                    aria-label={t('theme.toggleLabel', '切换主题')}
                 >
                     <div className="theme-icon-container">
                         {getCurrentThemeIcon()}
                     </div>
-                    <span className="sr-only">切换主题</span>
+                    <span className="sr-only">{t('theme.toggleLabel', '切换主题')}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -91,4 +93,4 @@ const ThemeToggle = () => {
     );
 };
 
-export { ThemeToggle }; 
+export default ThemeToggle; 

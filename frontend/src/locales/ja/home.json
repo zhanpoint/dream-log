@@ -1,0 +1,66 @@
+{
+    "pageTitle": "Dream Log - あなたの夢の旅を記録",
+    "pageDescription": "AIを活用した夢日記で、あなたの潜在意識を探索し、夢の意味を発見しましょう",
+    "pageKeywords": "夢日記、夢分析、AI、潜在意識、夢の解釈",
+    "welcome": "Dream Logへようこそ",
+    "subtitle": "あなたの夢の旅を記録し、発見しましょう",
+    "description": "AIを活用した夢日記で、あなたの潜在意識を探索し、夢の意味を発見しましょう",
+    "cta": {
+        "getStarted": "始める",
+        "learnMore": "詳しく見る",
+        "signUp": "無料で始める",
+        "login": "ログイン"
+    },
+    "features": {
+        "title": "Dream Logの特徴",
+        "ai": {
+            "title": "AI夢分析",
+            "description": "高度なAIが夢の象徴や意味を分析し、深い洞察を提供します"
+        },
+        "journal": {
+            "title": "デジタル夢日記",
+            "description": "美しく直感的なインターフェースで夢を記録し、整理できます"
+        },
+        "insights": {
+            "title": "パーソナル洞察",
+            "description": "夢のパターンを追跡し、個人的な成長と自己発見をサポートします"
+        },
+        "community": {
+            "title": "コミュニティ",
+            "description": "他の夢愛好家と体験を共有し、学び合いましょう"
+        },
+        "privacy": {
+            "title": "プライバシー重視",
+            "description": "あなたの夢は安全に保護され、プライバシーが守られます"
+        },
+        "statistics": {
+            "title": "統計とトレンド",
+            "description": "夢の傾向を視覚化し、パターンを発見できます"
+        }
+    },
+    "testimonials": {
+        "title": "ユーザーの声",
+        "user1": {
+            "name": "田中さん",
+            "quote": "Dream Logのおかげで、自分の夢のパターンが見えるようになりました。"
+        },
+        "user2": {
+            "name": "佐藤さん",
+            "quote": "AI分析がとても興味深く、夢の新しい意味を発見できました。"
+        },
+        "user3": {
+            "name": "山田さん",
+            "quote": "使いやすくて美しいインターフェースが気に入っています。"
+        }
+    },
+    "stats": {
+        "users": "ユーザー数",
+        "dreams": "記録された夢",
+        "analyses": "AI分析回数",
+        "countries": "対応国・地域"
+    },
+    "footer": {
+        "tagline": "夢の無限の可能性を探索",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
+    }
+}

@@ -13,7 +13,13 @@ class LLMScenario(Enum):
     """LLM使用场景枚举"""
     DREAM_ANALYSIS = "dream_analysis"      # 梦境深度分析
     QUERY_EXPANSION = "query_expansion"    # RAG查询扩展  
-    TITLE_GENERATION = "title_generation"  # AI标题生成
+    TITLE_GENERATION = "title_generation"  # 梦境标题生成
+    CONVERSATION_TITLE = "conversation_title"  # 对话标题生成
+    INTENT_ANALYSIS = "intent_analysis"    # 意图分析
+    DREAM_INTERPRETATION = "dream_interpretation"  # 梦境解读
+    KNOWLEDGE_QA = "knowledge_qa"          # 知识问答
+    IMAGE_PROMPT = "image_prompt"          # 图像提示词优化
+    PATTERN_ANALYSIS = "pattern_analysis"  # 梦境模式分析
 
 
 @dataclass
@@ -30,14 +36,14 @@ class LLMConfig:
 
 # OpenRouter
 OPENROUTER_API_KEY = config('OPENROUTER_API_KEY', default='', cast=str)
-OPENROUTER_MODELS = config(
-    'OPENROUTER_MODELS'
-)
-# OpenRouter的Base URL
+OPENROUTER_MODELS = config('OPENROUTER_MODELS', default='google/gemini-2.5-flash-lite', cast=str)
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # 嵌入模型
 EMBEDDING_MODEL=config('EMBEDDING_MODEL', default='voyage-3.5-lite', cast=str)
+
+# Google API 配置
+GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='', cast=str)
 
 # Tavily搜索API配置
 TAVILY_API_KEY = config('TAVILY_API_KEY', default='', cast=str)
@@ -121,7 +127,7 @@ class LLMManager:
                 description="RAG查询扩展 - 快速、精确的查询生成"
             ),
             
-            # AI标题生成 - 需要简洁、准确
+            # 梦境标题生成 - 需要简洁、准确、有创意
             LLMScenario.TITLE_GENERATION: LLMConfig(
                 model=primary_model,
                 temperature=0.6,
@@ -129,7 +135,76 @@ class LLMManager:
                 max_tokens=128,
                 presence_penalty=0.1,
                 frequency_penalty=0.1,
-                description="AI标题生成 - 简洁、创意、准确"
+                description="梦境标题生成 - 简洁、创意、准确"
+            ),
+            
+            # 对话标题生成 - 需要快速、精确、简洁
+            LLMScenario.CONVERSATION_TITLE: LLMConfig(
+                model=primary_model,
+                temperature=0.2,  # 很低的温度确保精确和一致性
+                top_p=0.7,        # 更聚焦的输出，减少随机性
+                max_tokens=48,    # 进一步减少token数量以提高速度
+                presence_penalty=0.0,  # 无需惩罚重复，提高速度
+                frequency_penalty=0.0, # 无需频率惩罚，提高速度
+                description="对话标题生成 - 极速、精确、简洁"
+            ),
+            
+            # 意图分析 - 需要准确、快速
+            LLMScenario.INTENT_ANALYSIS: LLMConfig(
+                model=primary_model,
+                temperature=0.1,
+                top_p=0.8,
+                max_tokens=256,
+                presence_penalty=0.0,
+                frequency_penalty=0.0,
+                response_format={"type": "json_object"},
+                description="意图分析 - 准确、结构化输出"
+            ),
+            
+            # 梦境解读 - 需要深度、创造性
+            LLMScenario.DREAM_INTERPRETATION: LLMConfig(
+                model=primary_model,
+                temperature=0.7,
+                top_p=0.85,
+                max_tokens=3072,
+                presence_penalty=0.2,
+                frequency_penalty=0.1,
+                response_format={"type": "json_object"},
+                description="梦境解读 - 深入、专业、有洞察力"
+            ),
+            
+            # 知识问答 - 需要准确、可靠
+            LLMScenario.KNOWLEDGE_QA: LLMConfig(
+                model=primary_model,
+                temperature=0.3,
+                top_p=0.8,
+                max_tokens=2048,
+                presence_penalty=0.1,
+                frequency_penalty=0.1,
+                description="知识问答 - 准确、可靠、基于事实"
+            ),
+            
+            # 图像提示词优化 - 需要创造性、详细
+            LLMScenario.IMAGE_PROMPT: LLMConfig(
+                model=primary_model,
+                temperature=0.8,
+                top_p=0.9,
+                max_tokens=512,
+                presence_penalty=0.2,
+                frequency_penalty=0.2,
+                description="图像提示词 - 创意、详细、画面感强"
+            ),
+            
+            # 梦境模式分析 - 需要精确、一致
+            LLMScenario.PATTERN_ANALYSIS: LLMConfig(
+                model=primary_model,
+                temperature=0.2,
+                top_p=0.8,
+                max_tokens=1024,
+                presence_penalty=0.0,
+                frequency_penalty=0.0,
+                response_format={"type": "json_object"},
+                description="模式分析 - 精确、一致、结构化"
             )
         }
         self._initialized = True
@@ -209,5 +284,35 @@ def get_query_expansion_llm() -> Optional[ChatOpenAI]:
 
 
 def get_title_generation_llm() -> Optional[ChatOpenAI]:
-    """获取标题生成专用LLM实例"""
+    """获取梦境标题生成专用LLM实例"""
     return _llm_manager.get_llm_for_scenario(LLMScenario.TITLE_GENERATION)
+
+
+def get_conversation_title_llm() -> Optional[ChatOpenAI]:
+    """获取对话标题生成专用LLM实例 - 快速、精确配置"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.CONVERSATION_TITLE)
+
+
+def get_intent_analysis_llm() -> Optional[ChatOpenAI]:
+    """获取意图分析专用LLM实例"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.INTENT_ANALYSIS)
+
+
+def get_dream_interpretation_llm() -> Optional[ChatOpenAI]:
+    """获取梦境解读专用LLM实例"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.DREAM_INTERPRETATION)
+
+
+def get_knowledge_qa_llm() -> Optional[ChatOpenAI]:
+    """获取知识问答专用LLM实例"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.KNOWLEDGE_QA)
+
+
+def get_image_prompt_llm() -> Optional[ChatOpenAI]:
+    """获取图像提示词优化专用LLM实例"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.IMAGE_PROMPT)
+
+
+def get_pattern_analysis_llm() -> Optional[ChatOpenAI]:
+    """获取梦境模式分析专用LLM实例"""
+    return _llm_manager.get_llm_for_scenario(LLMScenario.PATTERN_ANALYSIS)

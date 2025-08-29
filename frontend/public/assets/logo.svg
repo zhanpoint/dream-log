@@ -1,8 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon-star">
-  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="#4F46E5" stroke="#4F46E5"/>
-  <path d="M19 3v4" stroke="#F59E0B"/>
-  <path d="M21 5h-4" stroke="#F59E0B"/>
-  <circle cx="9" cy="8" r="1" fill="#FFFFFF"/>
-  <circle cx="6" cy="11" r="0.5" fill="#FFFFFF"/>
-  <circle cx="15" cy="9" r="0.75" fill="#FFFFFF"/>
-</svg> 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dream Log logo" focusable="false" shape-rendering="geometricPrecision">
+  <title>Dream Log</title>
+  <defs>
+    <mask id="crescent" maskUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#fff" />
+      <circle cx="30" cy="24" r="16" fill="#000" />
+    </mask>
+  </defs>
+  <circle cx="32" cy="32" r="32" fill="#0C2A4A" />
+  <circle cx="36" cy="28" r="16" fill="#E6F0FA" mask="url(#crescent)" />
+  <circle cx="19" cy="18" r="1.5" fill="#BFD4F7" />
+  <circle cx="46" cy="18" r="1" fill="#BFD4F7" />
+  <circle cx="44" cy="40" r="1.2" fill="#BFD4F7" />
+</svg>

@@ -1,0 +1,34 @@
+{
+    "title": "Dream Log - Journal des Rêves",
+    "description": "Dream Log - Enregistrez, analysez et interprétez vos rêves",
+    "keywords": "rêves, journal, IA, psychologie, interprétation des rêves",
+    "welcome": "Bienvenue sur Dream Log",
+    "subtitle": "Explorez le monde mystérieux des rêves et déverrouillez la sagesse du subconscient",
+    "badge": "Plateforme d'Interprétation des Rêves Alimentée par l'IA",
+    "cta": {
+        "primary": "Commencer à Enregistrer les Rêves",
+        "secondary": "En Savoir Plus"
+    },
+    "features": {
+        "title": "Pourquoi choisir Dream Log",
+        "subtitle": "Outils professionnels d'analyse des rêves pour vous aider à comprendre profondément le monde des rêves",
+        "items": {
+            "record": {
+                "title": "Enregistrement Intelligent",
+                "description": "Utilisez des outils assistés par l'IA pour enregistrer et catégoriser facilement vos expériences de rêves"
+            },
+            "analyze": {
+                "title": "Analyse Approfondie",
+                "description": "Utilisez des méthodes de psychologie et de neuroscience pour interpréter profondément la signification des rêves"
+            },
+            "assistant": {
+                "title": "Assistant IA",
+                "description": "Un interprète de rêves IA personnalisé vous fournit des insights et des conseils professionnels"
+            },
+            "statistics": {
+                "title": "Statistiques de Données",
+                "description": "Affiche visuellement les modèles, la fréquence et les tendances thématiques de vos rêves"
+            }
+        }
+    }
+}

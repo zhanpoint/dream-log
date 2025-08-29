@@ -1,0 +1,241 @@
+{
+    "navigation": {
+        "home": "Startseite",
+        "knowledge": "Wissenszentrum",
+        "assistant": "KI-Assistent",
+        "statistics": "Statistiken",
+        "myDreams": "Meine Träume",
+        "createDream": "Traum Erstellen",
+        "login": "Anmelden",
+        "register": "Registrieren",
+        "logout": "Abmelden"
+    },
+    "common": {
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "edit": "Bearbeiten",
+        "confirm": "Bestätigen",
+        "loading": "Laden...",
+        "submit": "Senden",
+        "back": "Zurück",
+        "close": "Schließen",
+        "search": "Suchen",
+        "filter": "Filtern",
+        "settings": "Einstellungen",
+        "optional": "Optional"
+    },
+    "validation": {
+        "required": "Dieses Feld ist erforderlich",
+        "dateNotFuture": "Das Datum kann nicht in der Zukunft liegen"
+    },
+    "editor": {
+        "bold": "Fett",
+        "italic": "Kursiv",
+        "strikethrough": "Durchgestrichen",
+        "strike": "Durchgestrichen",
+        "heading1": "Überschrift 1",
+        "heading2": "Überschrift 2",
+        "heading3": "Überschrift 3",
+        "bulletList": "Aufzählungsliste",
+        "orderedList": "Nummerierte Liste",
+        "uploadImage": "Bild hochladen",
+        "insertCanvas": "Leinwand einfügen",
+        "insertDreamSeparator": "Traumtrennzeichen einfügen",
+        "insertHorizontalRule": "Horizontale Linie einfügen",
+        "fullscreen": "Vollbild bearbeiten",
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "exitFullscreen": "Vollbild beenden (ESC)",
+        "loading": "Editor wird geladen...",
+        "maxImagesReached": "Maximal 5 Bilder können eingefügt werden",
+        "unsupportedImageFormat": "Nur JPG, PNG, WebP, GIF Formate werden unterstützt",
+        "imageTooLarge": "Bildgröße darf 5MB nicht überschreiten",
+        "preparingUpload": "Upload wird vorbereitet...",
+        "uploadFailed": "Bild-Upload fehlgeschlagen, bitte versuchen Sie es erneut"
+    },
+    "canvas": {
+        "title": "Traum-Leinwand",
+        "sizeSmall": "Klein (600x400)",
+        "sizeMedium": "Mittel (800x600)",
+        "sizeLarge": "Groß (1000x700)",
+        "brushColor": "Pinsel-Farbe:",
+        "brushColorTitle": "Pinsel-Farbe:",
+        "brushSize": "Pinsel-Größe:",
+        "brushSizeTitle": "Pinsel-Größe:",
+        "canvasBackground": "Leinwand-Hintergrund:",
+        "backgroundColorTitle": "Hintergrundfarbe:",
+        "canvasSize": "Leinwand-Größe:",
+        "clearCanvas": "Leinwand löschen",
+        "clear": "Löschen",
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "completeAndInsert": "Vollständig und einfügen",
+        "clearConfirm": "Sind Sie sicher, dass Sie die Leinwand löschen möchten? Alle nicht gespeicherten Fortschritte gehen verloren."
+    },
+    "error": {
+        "generic": "Vorgang fehlgeschlagen, bitte versuchen Sie es erneut",
+        "fetchFailed": "Datenabruf fehlgeschlagen",
+        "deleteFailed": "Löschen fehlgeschlagen",
+        "fixFormErrors": "Bitte korrigieren Sie die Fehler im Formular"
+    },
+    "success": {
+        "saved": "Erfolgreich gespeichert",
+        "deleted": "Erfolgreich gelöscht",
+        "created": "Erfolgreich erstellt",
+        "settingsUpdated": "Einstellungen aktualisiert"
+    },
+    "settings": {
+        "profile": {
+            "title": "Profil"
+        },
+        "security": {
+            "title": "Konto und Sicherheit",
+            "emailManagement": "E-Mail-Verwaltung",
+            "primaryEmail": "Primäre E-Mail",
+            "verified": "Verifiziert",
+            "noEmailSet": "Keine E-Mail festgelegt",
+            "changePrimaryEmail": "Primäre E-Mail ändern",
+            "backupEmail": "Backup-E-Mail",
+            "passwordManagement": "Passwortverwaltung",
+            "lastChanged": "Zuletzt geändert",
+            "changePassword": "Passwort ändern",
+            "newEmail": "Neue E-Mail-Adresse",
+            "verificationCode": "Verifizierungscode",
+            "sendCode": "Code senden",
+            "backupEmailAddress": "Backup-E-Mail-Adresse",
+            "setBackupEmail": "Backup-E-Mail festlegen",
+            "changeBackupEmail": "Backup-E-Mail ändern",
+            "backupEmailDescription": "Wird nur für Passwortwiederherstellung verwendet, erfordert Verifizierungscode",
+            "currentPassword": "Aktuelles Passwort",
+            "newPassword": "Neues Passwort",
+            "confirmPassword": "Passwort bestätigen",
+            "verificationMethod": "Verifizierungsmethode"
+        },
+        "data": {
+            "title": "Datenverwaltung"
+        },
+        "privacy": {
+            "title": "Datenschutz und Sicherheit"
+        },
+        "help": {
+            "title": "Hilfe"
+        }
+    },
+    "statistics": {
+        "sleepQuality": "Schlafqualität",
+        "sleepDuration": "Schlafdauer",
+        "sleepDurationHours": "Schlafdauer (Stunden)",
+        "theme": {
+            "light": "Hell",
+            "lightDesc": "Helle und klare Oberfläche",
+            "dark": "Dunkel",
+            "darkDesc": "Augenfreundliche dunkle Oberfläche",
+            "system": "System",
+            "systemDesc": "Automatisch an Systemeinstellungen anpassen",
+            "toggleLabel": "Theme wechseln"
+        },
+        "sleepTrend": "Schlafqualität und -dauer Trend",
+        "noSleepData": "Keine Schlafdaten verfügbar",
+        "noClarityData": "Keine Klarheitsdaten verfügbar",
+        "noLucidityData": "Keine Luziditätsdaten verfügbar",
+        "noCategoryData": "Keine Kategoriedaten verfügbar",
+        "noMoodData": "Keine Stimmungsdaten verfügbar",
+        "noRecurringElementsData": "Keine wiederkehrenden Elementdaten verfügbar",
+        "noTagData": "Keine Tag-Daten verfügbar",
+        "dreamCategories": "Traumkategorien",
+        "nightmare": "Albtraum",
+        "pleasantDream": "Angenehmer Traum",
+        "ordinaryDream": "Gewöhnlicher Traum",
+        "lucidDream": "Luzider Traum",
+        "recurringDream": "Wiederkehrender Traum",
+        "propheticDream": "Prophetischer Traum",
+        "flyingDream": "Flugtraum",
+        "chaseDream": "Verfolgungsjagdtraum",
+        "examDream": "Prüfungstraum",
+        "nakedDream": "Nacktheitstraum",
+        "fallingDream": "Sturztraum",
+        "other": "Andere",
+        "count": "Anzahl",
+        "times": "",
+        "percentage": "Prozentsatz",
+        "recordMoreForAnalysis": "Zeichnen Sie mehr Träume auf, um die Analyse zu sehen",
+        "charts": {
+            "moodDistribution": "Stimmungsverteilung",
+            "moodAnalysis": "Traumstimmungsanalyse",
+            "lucidityDistribution": "Luziditätsverteilung",
+            "dreamClarity": "Traumklarheit",
+            "clarityTrend": "Traumklarheitstrend",
+            "categoryDistribution": "Traumkategorienverteilung",
+            "recurringElementsAnalysis": "Wiederkehrende Traumelemente Analyse"
+        },
+        "summary": {
+            "totalDreams": "Gesamtträume",
+            "totalTags": "Gesamt-Tags",
+            "recurringDreams": "Wiederkehrende Träume",
+            "avgLucidity": "Durchschnittliche Luzidität",
+            "avgClarity": "Durchschnittliche Klarheit"
+        },
+        "clarity": {
+            "veryClear": "Sehr klar",
+            "clear": "Klar",
+            "blurry": "Verschwommen",
+            "veryBlurry": "Sehr verschwommen",
+            "clarity": "Klarheit",
+            "average": "Durchschnitt"
+        },
+        "recurringElements": "Wiederkehrende Elemente",
+        "tagLeaderboard": "Tag-Rangliste",
+        "dominantEmotion": "Dominante Emotion",
+        "emotionRanking": "Emotionsrangliste",
+        "noData": "Keine Daten verfügbar",
+        "occurrences": "Vorkommen",
+        "occurrencesTimes": "",
+        "proportion": "Anteil",
+        "tags": {
+            "emotion": "Emotion",
+            "character": "Charakter",
+            "location": "Ort",
+            "object": "Objekt",
+            "action": "Aktion",
+            "weather": "Wetter"
+        },
+        "emotions": {
+            "veryPositive": "Sehr Positiv",
+            "positive": "Positiv",
+            "negative": "Negativ",
+            "veryNegative": "Sehr Negativ",
+            "neutral": "Neutral",
+            "happy": "Glücklich",
+            "sad": "Traurig",
+            "angry": "Wütend",
+            "fearful": "Ängstlich",
+            "anxious": "Besorgt",
+            "excited": "Aufgeregt",
+            "peaceful": "Friedlich",
+            "confused": "Verwirrt",
+            "surprised": "Überrascht",
+            "disgusted": "Angeekelt",
+            "loving": "Liebend",
+            "jealous": "Eifersüchtig"
+        },
+        "lucidityLevels": {
+            "level0": "Vollständig Luzid",
+            "level1": "Hohe Luzidität",
+            "level2": "Mittlere Luzidität",
+            "level3": "Niedrige Luzidität",
+            "level4": "Minimale Luzidität",
+            "level5": "Keine Luzidität"
+        },
+        "timeFilter": {
+            "all": "Alle Zeit",
+            "year": "Dieses Jahr",
+            "month": "Dieser Monat",
+            "week": "Diese Woche",
+            "day": "Heute"
+        },
+        "title": "Traumstatistiken",
+        "subtitle": "Sehen Sie Ihre Traumdatenstatistiken und -analyse",
+        "keywords": "Träume,Statistiken,Analyse,Daten"
+    }
+}

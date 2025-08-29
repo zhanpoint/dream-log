@@ -1,42 +1,10 @@
 /* 梦境详情页面 - 沉浸式单页滚动体验 */
 .dream-detail-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, #1e293b 0%, #1f2937 50%, #111827 100%);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     position: relative;
     overflow-x: hidden;
-}
-
-/* 星空背景效果 */
-.dream-detail-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image:
-        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-        radial-gradient(2px 2px at 40px 70px, #eee, transparent),
-        radial-gradient(1px 1px at 50px 90px, #eee, transparent),
-        radial-gradient(1px 1px at 130px 80px, #eee, transparent),
-        radial-gradient(2px 2px at 80px 10px, #eee, transparent);
-    background-repeat: repeat;
-    background-size: 200px 200px;
-    opacity: 0.3;
-    animation: sparkle 10s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes sparkle {
-
-    0%,
-    100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
 }
 
 /* 页面头部 */
@@ -56,39 +24,22 @@
     gap: 0.75rem;
     font-size: 1.375rem;
     font-weight: 600;
-    color: #fff;
+    color: hsl(var(--foreground));
     margin: 0;
-}
-
-.light .dream-detail-title {
-    color: #1f2937;
-    font-weight: 700;
 }
 
 .back-button {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #fff;
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
     transition: all 0.2s ease;
 }
 
 .back-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: hsl(var(--accent));
+    border-color: hsl(var(--ring));
+    color: hsl(var(--accent-foreground));
     transform: translateX(-2px);
-}
-
-/* 浅色模式下的返回按钮样式 */
-.light .back-button {
-    background: transparent;
-    border: 1px solid rgba(51, 65, 85, 0.3);
-    color: #1f2937;
-}
-
-.light .back-button:hover {
-    background: rgba(51, 65, 85, 0.05);
-    border-color: rgba(51, 65, 85, 0.5);
-    color: #111827;
 }
 
 
@@ -98,14 +49,12 @@
     max-width: 1000px;
     margin: 0 auto;
     padding: 2rem;
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.08) 0%, rgba(75, 85, 99, 0.05) 100%);
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
     border-radius: 24px;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    box-shadow:
-        0 8px 32px rgba(15, 23, 42, 0.6),
-        inset 0 1px 0 rgba(203, 213, 225, 0.1);
+    box-shadow: 0 8px 32px hsl(var(--shadow) / 0.1);
 }
 
 /* 通用section样式 */
@@ -114,7 +63,7 @@
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    border-bottom: 2px solid rgba(148, 163, 184, 0.4);
+    border-bottom: 2px solid hsl(var(--border));
     position: relative;
 }
 
@@ -131,21 +80,13 @@
     left: 10%;
     right: 10%;
     height: 4px;
-    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--muted-foreground) / 0.3), transparent);
     border-radius: 2px;
 }
 
 /* AI智能解读区域不显示伪元素分割线 */
 .dream-ai-section::after {
     display: none;
-}
-
-.light .dream-section {
-    border-bottom: 2px solid rgba(51, 65, 85, 0.25);
-}
-
-.light .dream-section::after {
-    background: linear-gradient(90deg, transparent, rgba(51, 65, 85, 0.35), transparent);
 }
 
 /* 第一屏特殊间距 */
@@ -192,40 +133,22 @@
 
 .action-button {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #fff;
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
     transition: all 0.2s ease;
 }
 
 .action-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: hsl(var(--accent));
+    border-color: hsl(var(--ring));
+    color: hsl(var(--accent-foreground));
     transform: translateY(-1px);
 }
 
 .delete-button:hover {
-    border-color: #ef4444;
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-}
-
-/* 浅色模式下的操作按钮样式 */
-.light .action-button {
-    background: transparent;
-    border: 1px solid rgba(51, 65, 85, 0.3);
-    color: #1f2937;
-}
-
-.light .action-button:hover {
-    background: rgba(51, 65, 85, 0.05);
-    border-color: rgba(51, 65, 85, 0.5);
-    color: #111827;
-}
-
-.light .delete-button:hover {
-    border-color: #dc2626;
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.05);
+    border-color: hsl(var(--destructive));
+    color: hsl(var(--destructive));
+    background: hsl(var(--destructive) / 0.1);
 }
 
 .overview-content {
@@ -270,18 +193,18 @@
 }
 
 .ai-analysis-btn {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, hsl(var(--dream-primary)), hsl(var(--dream-secondary)));
     border: none;
-    color: white;
+    color: hsl(var(--primary-foreground));
     font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px hsl(var(--dream-primary) / 0.3);
 }
 
 .ai-analysis-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-    background: linear-gradient(135deg, #5855eb, #7c3aed);
+    box-shadow: 0 6px 20px hsl(var(--dream-primary) / 0.4);
+    background: linear-gradient(135deg, hsl(var(--dream-primary) / 0.9), hsl(var(--dream-secondary) / 0.9));
 }
 
 .meta-badge,

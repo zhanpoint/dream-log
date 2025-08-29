@@ -11,7 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'phone_number', 'email', 'date_joined', 'last_login')
+        fields = (
+            'id', 'username', 'phone_number', 'email', 'backup_email', 'avatar',
+            'date_joined', 'last_login'
+        )
         read_only_fields = ('id', 'date_joined', 'last_login')
         extra_kwargs = {
             'username': {
@@ -23,6 +26,76 @@ class UserSerializer(serializers.ModelSerializer):
                 }
             }
         }
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """用户资料更新（头像、用户名）"""
+    class Meta:
+        model = User
+        fields = ('username', 'avatar')
+
+    def validate_username(self, value):
+        if not value:
+            raise serializers.ValidationError('用户名不能为空')
+        if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
+            raise serializers.ValidationError('该用户名已被注册')
+        return value
+
+
+class BackupEmailSerializer(serializers.ModelSerializer):
+    """备用邮箱设置，仅用于找回密码"""
+    class Meta:
+        model = User
+        fields = ('backup_email',)
+
+    def validate_backup_email(self, value):
+        if value and self.instance.email and value == self.instance.email:
+            raise serializers.ValidationError('备用邮箱不能与主邮箱相同')
+        return value
+
+
+class ChangeEmailSerializer(serializers.Serializer):
+    """更换主邮箱"""
+    new_email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+
+    def validate_new_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('该邮箱已被注册')
+        return value
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """已登录状态修改密码"""
+    currentPassword = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    newPassword = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        style={'input_type': 'password'},
+        error_messages={
+            'min_length': '密码长度不能少于8个字符',
+        }
+    )
+
+    def validate_newPassword(self, value):
+        """验证新密码复杂度"""
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError('密码必须包含至少一个数字')
+        if not any(char.isalpha() for char in value):
+            raise serializers.ValidationError('密码必须包含至少一个字母')
+        return value
+
+
+class BackupEmailVerificationSerializer(serializers.Serializer):
+    """备用邮箱验证码校验"""
+    backup_email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+
+    def validate_backup_email(self, value):
+        # 备用邮箱不能与已存在的主邮箱重复
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('该邮箱已被他人注册为主邮箱')
+        return value
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -276,8 +349,15 @@ class EmailLoginSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     """
-    密码重置序列化器 - 支持手机号和邮箱重置
+    密码重置序列化器 - 统一重置接口
+    支持三种方式：
+    - method = 'current_password'：已登录用户，提供 currentPassword + newPassword
+    - method = 'phone'：手机号 + 验证码 + newPassword
+    - method = 'email'：邮箱 + 验证码 + newPassword
     """
+    method = serializers.ChoiceField(
+        choices=['current_password', 'phone', 'email'], required=False
+    )
     phone = serializers.CharField(
         max_length=11,
         required=False,
@@ -301,6 +381,13 @@ class PasswordResetSerializer(serializers.Serializer):
         }
     )
     
+    currentPassword = serializers.CharField(
+        required=False,
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+    username = serializers.CharField(required=False)
+    
     code = serializers.CharField(
         max_length=6,
         min_length=6,
@@ -323,14 +410,41 @@ class PasswordResetSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        """验证数据"""
+        """验证数据，根据 method 做必填校验"""
+        method = data.get('method')
         phone = data.get('phone')
         email = data.get('email')
         new_password = data.get('newPassword', '')
+        current_password = data.get('currentPassword')
 
-        # 确保提供了手机号或邮箱
-        if not phone and not email:
-            raise serializers.ValidationError('请提供手机号或邮箱地址')
+        # 若未提供 method，自动推断
+        if not method:
+            if current_password:
+                method = 'current_password'
+            elif phone:
+                method = 'phone'
+            elif email:
+                method = 'email'
+            data['method'] = method
+
+        if method == 'current_password':
+            if not current_password:
+                raise serializers.ValidationError({'currentPassword': '当前密码不能为空'})
+            # 需要提供一个可定位用户的标识（username/email/phone）
+            if not (data.get('username') or phone or email):
+                raise serializers.ValidationError({'identifier': '请提供用户名、手机号或邮箱其一'})
+        elif method == 'phone':
+            if not phone:
+                raise serializers.ValidationError({'phone': '请提供手机号'})
+            if not data.get('code'):
+                raise serializers.ValidationError({'code': '请提供验证码'})
+        elif method == 'email':
+            if not email:
+                raise serializers.ValidationError({'email': '请提供邮箱地址'})
+            if not data.get('code'):
+                raise serializers.ValidationError({'code': '请提供验证码'})
+        else:
+            raise serializers.ValidationError({'method': '不支持的重置方式'})
         
         # 验证密码复杂度
         if len(new_password) < 8:
@@ -349,7 +463,7 @@ class VerificationCodeRequestSerializer(serializers.Serializer):
     phone = serializers.CharField(required=False)
     email = serializers.EmailField(required=False) 
     scene = serializers.ChoiceField(
-        choices=['register', 'login', 'reset_password'],
+        choices=['register', 'login', 'reset_password', 'change_email', 'backup_email'],
         required=True
     )
     

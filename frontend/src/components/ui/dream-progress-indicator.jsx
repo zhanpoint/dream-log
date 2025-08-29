@@ -63,8 +63,8 @@ const DreamProgressIndicator = ({
                     </filter>
 
                     <filter id="innerShadow">
-                        <feGaussianBlur stdDeviation="1" result="coloredBlur" />
-                        <feComposite in="coloredBlur" in2="SourceGraphic" operator="multiply" />
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
+                        <feComposite in="blur" in2="SourceGraphic" operator="over" result="composite" />
                     </filter>
                 </defs>
 

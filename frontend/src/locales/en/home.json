@@ -1,0 +1,44 @@
+{
+    "title": "Dream Log - Dream Journal",
+    "description": "Dream Log - Record, analyze and interpret your dreams, explore the mysterious world of the subconscious",
+    "keywords": "dreams,journal,AI,psychology,dream analysis,subconscious,sleep",
+    "welcome": "Welcome to Dream Log",
+    "badge": "AI-Powered Dream Analysis Platform",
+    "subtitle": "Explore the mysterious world of dreams and unlock the wisdom of the subconscious",
+    "cta": {
+        "primary": "Start Recording Dreams",
+        "secondary": "Learn More"
+    },
+    "features": {
+        "title": "Why Choose Dream Log",
+        "subtitle": "Professional dream analysis tools to help you understand the world of dreams",
+        "items": {
+            "record": {
+                "title": "Smart Recording",
+                "description": "Easily record and categorize your dream experiences with AI-assisted tools"
+            },
+            "analyze": {
+                "title": "Deep Analysis",
+                "description": "In-depth interpretation of dream meanings using psychology and neuroscience methods"
+            },
+            "assistant": {
+                "title": "AI Assistant",
+                "description": "Personalized AI dream interpreter provides professional insights and advice"
+            },
+            "statistics": {
+                "title": "Data Statistics",
+                "description": "Visualize your dream patterns, frequency and theme trends"
+            }
+        }
+    },
+    "stats": {
+        "users": "Active Users",
+        "dreams": "Dreams Recorded",
+        "analysis": "AI Analyses",
+        "accuracy": "Analysis Accuracy"
+    },
+    "testimonials": {
+        "title": "User Reviews",
+        "subtitle": "See how other users explore their dream world through Dream Log"
+    }
+}

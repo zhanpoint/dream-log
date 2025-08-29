@@ -10,6 +10,7 @@ import { emailService } from "@/services/notification/email";
 import { smsService } from "@/services/notification/sms";
 import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
+import { useI18nContext } from "@/contexts/I18nContext";
 import { useAuth } from "@/hooks/useAuth";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
@@ -22,6 +23,7 @@ export function ResetPasswordForm() {
     const navigate = useNavigate();
     const { resetPassword } = useAuth();
     const { isFeatureEnabled, getAvailableResetMethods } = useFeatureFlags();
+    const { t } = useI18nContext();
 
     // 获取可用的重置方式
     const availableResetMethods = getAvailableResetMethods();
@@ -104,32 +106,32 @@ export function ResetPasswordForm() {
 
         // 验证手机号
         if (!phone) {
-            newErrors.phone = "请输入手机号";
+            newErrors.phone = t('auth.resetPassword.validation.phoneRequired', '请输入手机号');
         } else if (!/^1[3-9]\d{9}$/.test(phone)) {
-            newErrors.phone = "请输入有效的手机号";
+            newErrors.phone = t('auth.resetPassword.validation.phoneInvalid', '请输入有效的手机号');
         }
 
         // 验证验证码
         if (!verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.resetPassword.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.resetPassword.validation.codeInvalid', '验证码为6位数字');
         }
 
         // 验证新密码
         if (!newPassword) {
-            newErrors.newPassword = "请输入新密码";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordRequired', '请输入新密码');
         } else if (newPassword.length < 8) {
-            newErrors.newPassword = "密码长度至少为8个字符";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordMinLength', '密码长度至少为8个字符');
         } else if (newPassword.length > 32) {
-            newErrors.newPassword = "密码长度不能超过32个字符";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordMaxLength', '密码长度不能超过32个字符');
         }
 
         // 验证确认密码
         if (!confirmPassword) {
-            newErrors.confirmPassword = "请确认新密码";
+            newErrors.confirmPassword = t('auth.resetPassword.validation.confirmPasswordRequired', '请确认新密码');
         } else if (confirmPassword !== newPassword) {
-            newErrors.confirmPassword = "两次输入的密码不一致";
+            newErrors.confirmPassword = t('auth.resetPassword.validation.passwordMismatch', '两次输入的密码不一致');
         }
 
         setErrors(newErrors);
@@ -143,32 +145,32 @@ export function ResetPasswordForm() {
 
         // 验证邮箱
         if (!email) {
-            newErrors.email = "请输入邮箱地址";
+            newErrors.email = t('auth.resetPassword.validation.emailRequired', '请输入邮箱地址');
         } else if (!emailService.validateEmail(email)) {
-            newErrors.email = "请输入有效的邮箱地址";
+            newErrors.email = t('auth.resetPassword.validation.emailInvalid', '请输入有效的邮箱地址');
         }
 
         // 验证验证码
         if (!verificationCode) {
-            newErrors.verificationCode = "请输入验证码";
+            newErrors.verificationCode = t('auth.resetPassword.validation.codeRequired', '请输入验证码');
         } else if (!/^\d{6}$/.test(verificationCode)) {
-            newErrors.verificationCode = "验证码为6位数字";
+            newErrors.verificationCode = t('auth.resetPassword.validation.codeInvalid', '验证码为6位数字');
         }
 
         // 验证新密码
         if (!newPassword) {
-            newErrors.newPassword = "请输入新密码";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordRequired', '请输入新密码');
         } else if (newPassword.length < 8) {
-            newErrors.newPassword = "密码长度至少为8个字符";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordMinLength', '密码长度至少为8个字符');
         } else if (newPassword.length > 32) {
-            newErrors.newPassword = "密码长度不能超过32个字符";
+            newErrors.newPassword = t('auth.resetPassword.validation.newPasswordMaxLength', '密码长度不能超过32个字符');
         }
 
         // 验证确认密码
         if (!confirmPassword) {
-            newErrors.confirmPassword = "请确认新密码";
+            newErrors.confirmPassword = t('auth.resetPassword.validation.confirmPasswordRequired', '请确认新密码');
         } else if (confirmPassword !== newPassword) {
-            newErrors.confirmPassword = "两次输入的密码不一致";
+            newErrors.confirmPassword = t('auth.resetPassword.validation.passwordMismatch', '两次输入的密码不一致');
         }
 
         setErrors(newErrors);
@@ -249,14 +251,14 @@ export function ResetPasswordForm() {
         setErrors({});
 
         try {
-            const result = await resetPassword('sms', {
+            const result = await resetPassword('phone', {
                 phone: phoneFormData.phone,
                 verificationCode: phoneFormData.verificationCode,
                 newPassword: phoneFormData.newPassword,
             });
 
             if (result.success) {
-                notification.success("密码重置成功！请使用新密码登录");
+                notification.success(t('auth.messages.success.passwordResetSuccess', '密码重置成功！请使用新密码登录'));
                 navigate("/login");
             } else {
                 // 仅设置表单错误状态
@@ -267,7 +269,7 @@ export function ResetPasswordForm() {
                 }
             }
         } catch (error) {
-            setErrors({ general: "重置密码失败，请重试" });
+            setErrors({ general: t('auth.messages.error.passwordResetFailed', '重置密码失败，请重试') });
         } finally {
             setIsLoading(false);
         }
@@ -290,7 +292,7 @@ export function ResetPasswordForm() {
             });
 
             if (result.success) {
-                notification.success("密码重置成功！请使用新密码登录");
+                notification.success(t('auth.messages.success.passwordResetSuccess', '密码重置成功！请使用新密码登录'));
                 navigate("/login");
             } else {
                 // 仅设置表单错误状态
@@ -301,7 +303,7 @@ export function ResetPasswordForm() {
                 }
             }
         } catch (error) {
-            setErrors({ general: "重置密码失败，请重试" });
+            setErrors({ general: t('auth.messages.error.passwordResetFailed', '重置密码失败，请重试') });
         } finally {
             setIsLoading(false);
         }
@@ -315,9 +317,9 @@ export function ResetPasswordForm() {
     return (
         <Card className="w-full max-w-md mx-auto card">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold text-center card-title">重置密码</CardTitle>
+                <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.resetPassword.title', '重置密码')}</CardTitle>
                 <CardDescription className="text-center">
-                    通过手机号或邮箱重置您的密码
+                    {t('auth.resetPassword.subtitle', '找回你的 Dream Log 账号')}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -337,7 +339,7 @@ export function ResetPasswordForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Phone className="w-4 h-4" />
-                                手机重置
+                                {t('auth.resetPassword.tabs.phone', '手机重置')}
                             </TabsTrigger>
                         )}
                         {isFeatureEnabled('EMAIL_SERVICE_ENABLED') && (
@@ -347,7 +349,7 @@ export function ResetPasswordForm() {
                                 style={{ flex: 1, minWidth: 0 }}
                             >
                                 <Mail className="w-4 h-4" />
-                                邮箱重置
+                                {t('auth.resetPassword.tabs.email', '邮箱重置')}
                             </TabsTrigger>
                         )}
                     </TabsList>
@@ -357,14 +359,14 @@ export function ResetPasswordForm() {
                         <TabsContent value="phone" className="space-y-4">
                             <form onSubmit={handlePhoneSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">手机号</Label>
+                                    <Label htmlFor="phone">{t('auth.resetPassword.form.phone', '手机号')}</Label>
                                     <div className="input-container">
                                         <Phone className="input-icon" />
                                         <Input
                                             id="phone"
                                             name="phone"
                                             type="text"
-                                            placeholder="请输入手机号"
+                                            placeholder={t('auth.resetPassword.placeholders.phone', '请输入手机号')}
                                             value={phoneFormData.phone}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.phone ? 'input-error' : ''}`}
@@ -396,7 +398,7 @@ export function ResetPasswordForm() {
                                             disabled={phoneCountdown > 0 || isLoading}
                                             className="verification-button"
                                         >
-                                            {phoneCountdown > 0 ? `${phoneCountdown}s` : "获取验证码"}
+                                            {phoneCountdown > 0 ? `${phoneCountdown}s` : t('auth.resetPassword.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -458,7 +460,7 @@ export function ResetPasswordForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "重置中..." : "重置密码"}
+                                    {isLoading ? t('auth.resetPassword.form.resetting', '重置中...') : t('auth.resetPassword.form.resetButton', '重置密码')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -470,6 +472,9 @@ export function ResetPasswordForm() {
                             <form onSubmit={handleEmailSubmit} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="email-address">邮箱地址</Label>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                        支持使用主邮箱或备用邮箱重置密码
+                                    </p>
                                     <div className="input-container">
                                         <Mail className="input-icon" />
                                         <Input
@@ -508,7 +513,7 @@ export function ResetPasswordForm() {
                                             disabled={emailCountdown > 0 || isLoading}
                                             className="verification-button"
                                         >
-                                            {emailCountdown > 0 ? `${emailCountdown}s` : "获取验证码"}
+                                            {emailCountdown > 0 ? `${emailCountdown}s` : t('auth.resetPassword.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -570,7 +575,7 @@ export function ResetPasswordForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "重置中..." : "重置密码"}
+                                    {isLoading ? t('auth.resetPassword.form.resetting', '重置中...') : t('auth.resetPassword.form.resetButton', '重置密码')}
                                 </Button>
                             </form>
                         </TabsContent>
@@ -579,14 +584,14 @@ export function ResetPasswordForm() {
             </CardContent>
             <CardFooter>
                 <div className="text-center w-full login-link">
-                    <span className="text-sm text-muted-foreground">想起密码了？</span>
+                    <span className="text-sm text-muted-foreground">{t('auth.resetPassword.links.rememberPassword', '想起密码了？')}</span>
                     <a
                         href="#"
                         onClick={(e) => { e.preventDefault(); handleGoToLogin(); }}
                         className="dream-link ml-1"
                     >
                         <Star className="w-3 h-3 inline mr-1" />
-                        返回登录
+                        {t('auth.resetPassword.links.backToLogin', '返回登录')}
                     </a>
                 </div>
             </CardFooter>

@@ -1,5 +1,5 @@
 import React, { createContext } from 'react';
-import apiClient from '@/services/api/client';
+import api from '@/services/api';
 
 /**
  * 默认功能开关配置
@@ -14,7 +14,7 @@ const DEFAULT_FEATURE_FLAGS = {
  * 创建功能开关Promise
  * 在应用启动时创建一次，全局共享
  */
-const featureFlagsPromise = apiClient.get('/system/features/')
+const featureFlagsPromise = api.get('/system/features/')
     .then(response => {
         if (response.data && response.data.code === 200 && response.data.data) {
             return response.data.data;

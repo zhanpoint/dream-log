@@ -35,8 +35,11 @@
 }
 
 .navbar-logo img {
-    height: 32px;
-    width: 32px;
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    image-rendering: -webkit-optimize-contrast;
 }
 
 .navbar-logo-text {

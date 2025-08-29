@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useI18nContext } from '@/contexts/I18nContext';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import ImageResize from 'tiptap-extension-resize-image'; // <-- 1. 导入新的扩展
@@ -35,6 +36,7 @@ const TEXT_CONFIG = {
 
 // 上传进度组件
 const UploadProgress = ({ progress, onCancel }) => {
+    const { t } = useI18nContext();
     if (!progress) return null;
 
     const { step, progress: percent, message, error } = progress;
@@ -65,7 +67,7 @@ const UploadProgress = ({ progress, onCancel }) => {
                     <button
                         onClick={onCancel}
                         className="upload-cancel-btn"
-                        title="取消上传"
+                        title={t('common.cancel', '取消上传')}
                     >
                         <X className="w-3 h-3" />
                     </button>
@@ -135,6 +137,7 @@ const FullscreenEditor = ({
     imageCount,
     children
 }) => {
+    const { t } = useI18nContext();
     const [showCanvasModal, setShowCanvasModal] = useState(false);
     const [notification, setNotification] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(null);
@@ -149,23 +152,23 @@ const FullscreenEditor = ({
     // 统一图片上传处理
     const handleImageUpload = async (file, source = 'upload') => {
         if (imageCount >= IMAGE_CONFIG.maxCount) {
-            showNotification(`最多只能插入${IMAGE_CONFIG.maxCount}张图片`);
+            showNotification(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
             return false;
         }
 
         if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            showNotification('仅支持 JPG、PNG、WebP、GIF 格式的图片');
+            showNotification(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
             return false;
         }
 
         if (file.size > IMAGE_CONFIG.maxSize) {
-            showNotification('图片大小不能超过5MB');
+            showNotification(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
             return false;
         }
 
         try {
             // 显示上传进度
-            setUploadProgress({ step: 'preprocessing', progress: 0, message: '准备上传...' });
+            setUploadProgress({ step: 'preprocessing', progress: 0, message: t('common:editor.preparingUpload', '准备上传...') });
 
             if (onImageUpload) {
                 const url = await onImageUpload(file, (progress) => {
@@ -186,7 +189,7 @@ const FullscreenEditor = ({
             return false;
         } catch (error) {
             console.error(`${source}图片上传失败:`, error);
-            showNotification('图片上传失败，请重试');
+            showNotification(t('common:editor.uploadFailed', '图片上传失败，请重试'));
             setUploadProgress(null);
             return false;
         }
@@ -219,9 +222,9 @@ const FullscreenEditor = ({
     };
 
     const headingOptions = [
-        { level: 1, label: '一级标题' },
-        { level: 2, label: '二级标题' },
-        { level: 3, label: '三级标题' },
+        { level: 1, label: t('common:editor.heading1', '一级标题') },
+        { level: 2, label: t('common:editor.heading2', '二级标题') },
+        { level: 3, label: t('common:editor.heading3', '三级标题') },
     ];
 
     useEffect(() => {
@@ -262,7 +265,7 @@ const FullscreenEditor = ({
                     <div className="tiptap-fullscreen-toolbar">
                         {/* 基础格式化工具 */}
                         <div className="tiptap-button-group">
-                            <SimpleTooltip content="加粗">
+                            <SimpleTooltip content={t('common:editor.bold', '加粗')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -273,7 +276,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="斜体">
+                            <SimpleTooltip content={t('common:editor.italic', '斜体')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -284,7 +287,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="删除线">
+                            <SimpleTooltip content={t('common:editor.strike', '删除线')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -321,7 +324,7 @@ const FullscreenEditor = ({
 
                         {/* 列表 */}
                         <div className="tiptap-button-group">
-                            <SimpleTooltip content="项目符号列表">
+                            <SimpleTooltip content={t('common:editor.bulletList', '项目符号列表')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -332,7 +335,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="编号列表">
+                            <SimpleTooltip content={t('common:editor.orderedList', '编号列表')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -348,7 +351,7 @@ const FullscreenEditor = ({
 
                         {/* 图片和媒体 */}
                         <div className="tiptap-button-group">
-                            <SimpleTooltip content="上传图片">
+                            <SimpleTooltip content={t('common:editor.uploadImage', '上传图片')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -360,7 +363,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="插入画板">
+                            <SimpleTooltip content={t('common:editor.insertCanvas', '插入画板')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -377,7 +380,7 @@ const FullscreenEditor = ({
 
                         {/* 梦境专用功能 */}
                         <div className="tiptap-button-group">
-                            <SimpleTooltip content="插入梦境分隔符">
+                            <SimpleTooltip content={t('common:editor.insertDreamSeparator', '插入梦境分隔符')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -388,7 +391,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="插入水平分割线">
+                            <SimpleTooltip content={t('common:editor.insertHorizontalRule', '插入水平分割线')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -404,7 +407,7 @@ const FullscreenEditor = ({
 
                         {/* 撤销重做 */}
                         <div className="tiptap-button-group">
-                            <SimpleTooltip content="撤销">
+                            <SimpleTooltip content={t('common:editor.undo', '撤销')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -416,7 +419,7 @@ const FullscreenEditor = ({
                                 </Button>
                             </SimpleTooltip>
 
-                            <SimpleTooltip content="重做">
+                            <SimpleTooltip content={t('common:editor.redo', '重做')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -441,7 +444,7 @@ const FullscreenEditor = ({
                                 </span>
                             </div>
 
-                            <SimpleTooltip content="退出全屏 (ESC)">
+                            <SimpleTooltip content={t('common:editor.exitFullscreen', '退出全屏 (ESC)')}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -484,12 +487,16 @@ const FullscreenEditor = ({
 
 // 普通模式的工具栏
 const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCount, imageCount }) => {
+    const { t } = useI18nContext();
     const [showCanvasModal, setShowCanvasModal] = useState(false);
     const [notification, setNotification] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(null);
     const fileInputRef = useRef(null);
 
-    if (!editor) return null;
+    // 确保 hooks 调用顺序一致
+    if (!editor) {
+        return null;
+    }
 
     // 显示通知
     const showNotification = (message, type = 'error') => {
@@ -500,23 +507,23 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
     // 统一图片上传处理
     const handleImageUpload = async (file, source = 'upload') => {
         if (imageCount >= IMAGE_CONFIG.maxCount) {
-            showNotification(`最多只能插入${IMAGE_CONFIG.maxCount}张图片`);
+            showNotification(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
             return false;
         }
 
         if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            showNotification('仅支持 JPG、PNG、WebP、GIF 格式的图片');
+            showNotification(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
             return false;
         }
 
         if (file.size > IMAGE_CONFIG.maxSize) {
-            showNotification('图片大小不能超过5MB');
+            showNotification(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
             return false;
         }
 
         try {
             // 显示上传进度
-            setUploadProgress({ step: 'preprocessing', progress: 0, message: '准备上传...' });
+            setUploadProgress({ step: 'preprocessing', progress: 0, message: t('common:editor.preparingUpload', '准备上传...') });
 
             if (onImageUpload) {
                 const url = await onImageUpload(file, (progress) => {
@@ -537,7 +544,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
             return false;
         } catch (error) {
             console.error(`${source}图片上传失败:`, error);
-            showNotification('图片上传失败，请重试');
+            showNotification(t('common:editor.uploadFailed', '图片上传失败，请重试'));
             setUploadProgress(null);
             return false;
         }
@@ -570,9 +577,9 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
     };
 
     const headingOptions = [
-        { level: 1, label: '一级标题' },
-        { level: 2, label: '二级标题' },
-        { level: 3, label: '三级标题' },
+        { level: 1, label: t('common:editor.heading1', '一级标题') },
+        { level: 2, label: t('common:editor.heading2', '二级标题') },
+        { level: 3, label: t('common:editor.heading3', '三级标题') },
     ];
 
     return (
@@ -599,7 +606,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 基础格式化工具 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="加粗">
+                    <SimpleTooltip content={t('common:editor.bold', '加粗')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -610,7 +617,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="斜体">
+                    <SimpleTooltip content={t('common:editor.italic', '斜体')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -621,7 +628,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="删除线">
+                    <SimpleTooltip content={t('common:editor.strike', '删除线')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -658,7 +665,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 列表 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="项目符号列表">
+                    <SimpleTooltip content={t('common:editor.bulletList', '项目符号列表')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -669,7 +676,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="编号列表">
+                    <SimpleTooltip content={t('common:editor.orderedList', '编号列表')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -685,7 +692,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 图片和媒体 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="上传图片">
+                    <SimpleTooltip content={t('common:editor.uploadImage', '上传图片')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -697,7 +704,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="插入画板">
+                    <SimpleTooltip content={t('common:editor.insertCanvas', '插入画板')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -714,7 +721,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 梦境专用功能 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="插入梦境分隔符">
+                    <SimpleTooltip content={t('common:editor.insertDreamSeparator', '插入梦境分隔符')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -725,7 +732,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="插入水平分割线">
+                    <SimpleTooltip content={t('common:editor.insertHorizontalRule', '插入水平分割线')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -741,7 +748,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 撤销重做 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="撤销">
+                    <SimpleTooltip content={t('common:editor.undo', '撤销')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -753,7 +760,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                         </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content="重做">
+                    <SimpleTooltip content={t('common:editor.redo', '重做')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -770,7 +777,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
 
                 {/* 全屏 */}
                 <div className="tiptap-button-group">
-                    <SimpleTooltip content="全屏编辑">
+                    <SimpleTooltip content={t('common:editor.fullscreen', '全屏编辑')}>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -830,6 +837,9 @@ const TiptapEditor = ({
     const [previousImages, setPreviousImages] = useState(new Set()); // 新增: 跟踪之前的图片
     const editorRef = useRef(null);
 
+    // 将 i18n hook 移到顶部，确保始终被调用
+    const { t } = useI18nContext();
+
     // 新增: 从HTML中提取图片URL的工具函数
     const extractImageUrls = useCallback((html) => {
         if (!html) return [];
@@ -838,6 +848,67 @@ const TiptapEditor = ({
         const images = doc.querySelectorAll('img');
         return Array.from(images).map(img => img.src).filter(src => src && src.trim());
     }, []);
+
+    // 图片上传处理回调
+    const handleImageDrop = useCallback((editor, files, pos) => {
+        files.forEach(async (file) => {
+            const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
+            if (menuBar) {
+                const event = new CustomEvent('imageUpload', { detail: { file, source: '拖拽' } });
+                menuBar.dispatchEvent(event);
+            }
+        });
+    }, []);
+
+    const handleImagePaste = useCallback((editor, files) => {
+        files.forEach(async (file) => {
+            const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
+            if (menuBar) {
+                const event = new CustomEvent('imageUpload', { detail: { file, source: '粘贴' } });
+                menuBar.dispatchEvent(event);
+            }
+        });
+    }, []);
+
+    // 编辑器更新处理回调
+    const handleEditorUpdate = useCallback(({ editor }) => {
+        const html = editor.getHTML();
+        const count = editor.storage.characterCount?.characters() || 0;
+
+        // 计算图片数量
+        const imgCount = (html.match(/<img/g) || []).length;
+
+        // 新增: 检测删除的图片
+        if (onImageDeleted) {
+            const currentImages = new Set(extractImageUrls(html));
+            const deletedImages = Array.from(previousImages).filter(url => !currentImages.has(url));
+
+            // 调用删除回调
+            deletedImages.forEach(url => {
+                console.log('检测到图片被删除:', url);
+                onImageDeleted(url);
+            });
+
+            // 更新图片集合
+            setPreviousImages(currentImages);
+        }
+
+        setCharacterCount(count);
+        setImageCount(imgCount);
+
+        // 文本长度限制
+        if (count > TEXT_CONFIG.maxLength) {
+            return false;
+        }
+
+        onChange?.(html);
+    }, [onImageDeleted, extractImageUrls, previousImages, onChange]);
+
+    // 编辑器创建处理回调
+    const handleEditorCreate = useCallback(({ editor }) => {
+        // 编辑器创建时确保状态正确
+        editor.setEditable(editable !== false);
+    }, [editable]);
 
     const editor = useEditor({
         extensions: [
@@ -874,24 +945,8 @@ const TiptapEditor = ({
             }),
             FileHandler.configure({
                 allowedMimeTypes: IMAGE_CONFIG.allowedTypes,
-                onDrop: (editor, files, pos) => {
-                    files.forEach(async (file) => {
-                        const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
-                        if (menuBar) {
-                            const event = new CustomEvent('imageUpload', { detail: { file, source: '拖拽' } });
-                            menuBar.dispatchEvent(event);
-                        }
-                    });
-                },
-                onPaste: (editor, files) => {
-                    files.forEach(async (file) => {
-                        const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
-                        if (menuBar) {
-                            const event = new CustomEvent('imageUpload', { detail: { file, source: '粘贴' } });
-                            menuBar.dispatchEvent(event);
-                        }
-                    });
-                },
+                onDrop: handleImageDrop,
+                onPaste: handleImagePaste,
             }),
             DreamSeparator,
         ],
@@ -899,42 +954,8 @@ const TiptapEditor = ({
         editable,
         immediatelyRender: false, // 改为false，避免渲染冲突
         shouldRerenderOnTransaction: false,
-        onCreate: ({ editor }) => {
-            // 编辑器创建时确保状态正确
-            editor.setEditable(editable !== false);
-        },
-        onUpdate: ({ editor }) => {
-            const html = editor.getHTML();
-            const count = editor.storage.characterCount?.characters() || 0;
-
-            // 计算图片数量
-            const imgCount = (html.match(/<img/g) || []).length;
-
-            // 新增: 检测删除的图片
-            if (onImageDeleted) {
-                const currentImages = new Set(extractImageUrls(html));
-                const deletedImages = Array.from(previousImages).filter(url => !currentImages.has(url));
-
-                // 调用删除回调
-                deletedImages.forEach(url => {
-                    console.log('检测到图片被删除:', url);
-                    onImageDeleted(url);
-                });
-
-                // 更新图片集合
-                setPreviousImages(currentImages);
-            }
-
-            setCharacterCount(count);
-            setImageCount(imgCount);
-
-            // 文本长度限制
-            if (count > TEXT_CONFIG.maxLength) {
-                return false;
-            }
-
-            onChange?.(html);
-        },
+        onCreate: handleEditorCreate,
+        onUpdate: handleEditorUpdate,
         editorProps: {
             attributes: {
                 class: 'tiptap-content',
@@ -962,7 +983,7 @@ const TiptapEditor = ({
             setPreviousImages(initialImages);
             console.log('初始化图片列表:', Array.from(initialImages));
         }
-    }, [editor, content, extractImageUrls]);
+    }, [editor, content]); // 移除 extractImageUrls 依赖，因为它有稳定引用
 
     // 确保编辑器在模式切换后保持可编辑状态
     useEffect(() => {
@@ -982,8 +1003,9 @@ const TiptapEditor = ({
         }
     }, [isFullscreen, editor, editable]);
 
+    // 加载状态渲染
     if (!editor) {
-        return <div className="tiptap-loading">编辑器加载中...</div>;
+        return <div className="tiptap-loading">{t('common:editor.loading', '编辑器加载中...')}</div>;
     }
 
     return (

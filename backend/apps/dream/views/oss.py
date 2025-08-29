@@ -47,6 +47,9 @@ def complete_upload(request):
     if not file_key or not access_url:
         return Response({'detail': '缺少 file_key 或 access_url'}, status=status.HTTP_400_BAD_REQUEST)
 
+    if access_url.startswith('data:'):
+        return Response({'detail': '不支持base64编码的图片数据，请先上传到云存储获取URL'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
         image, created = UploadedImage.objects.get_or_create(
             user=request.user,

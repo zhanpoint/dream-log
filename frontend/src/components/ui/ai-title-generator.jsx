@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import api from '@/services/api';
 import notification from '@/utils/notification';
 import './css/ai-title-generator.css';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 /**
  * AI生成梦境标题按钮组件
@@ -21,11 +22,12 @@ const AiTitleGenerator = ({
     disabled = false
 }) => {
     const [isGenerating, setIsGenerating] = useState(false);
+    const { t } = useI18nContext();
 
     const handleGenerateTitle = async () => {
         // 验证梦境内容
         if (!dreamContent || dreamContent.trim().length < 25) {
-            notification.error('梦境内容字数过少，无法生成高匹配的标题');
+            notification.error(t('dreams:create.form.titleGenContentTooShort', '梦境内容字数过少，无法生成高匹配的标题'));
             return;
         }
 
@@ -41,9 +43,9 @@ const AiTitleGenerator = ({
                 if (onTitleGenerated) {
                     onTitleGenerated(response.data.title);
                 }
-                notification.success('AI标题生成成功！');
+                notification.success(t('dreams:create.form.titleGenSuccess', 'AI标题生成成功！'));
             } else {
-                notification.error(response.data.error || '标题生成失败');
+                notification.error(response.data.error || t('dreams:create.form.titleGenFailed', '标题生成失败'));
             }
         } catch (error) {
             console.error('AI生成标题失败:', error);
@@ -51,11 +53,11 @@ const AiTitleGenerator = ({
             if (error.response?.data?.error) {
                 notification.error(error.response.data.error);
             } else if (error.response?.status === 401) {
-                notification.error('请先登录后再使用AI功能');
+                notification.error(t('auth.loginRequired', '请先登录后再使用AI功能'));
             } else if (error.response?.status >= 500) {
-                notification.error('服务器暂时不可用，请稍后再试');
+                notification.error(t('common.serverUnavailable', '服务器暂时不可用，请稍后再试'));
             } else {
-                notification.error('AI生成标题失败，请重试');
+                notification.error(t('dreams:create.form.titleGenFailedRetry', 'AI生成标题失败，请重试'));
             }
         } finally {
             setIsGenerating(false);
@@ -81,17 +83,17 @@ const AiTitleGenerator = ({
                 'text-xs', // 确保文字大小一致
                 className
             )}
-            title='AI生成梦境标题'
+            title={t('dreams:create.form.generateTitle', 'AI生成梦境标题')}
         >
             {isGenerating ? (
                 <>
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    <span className="text-xs">生成中...</span>
+                    <span className="text-xs">{t('common.saving', '生成中...')}</span>
                 </>
             ) : (
                 <>
                     <Wand2 className="h-3 w-3" />
-                    <span className="text-xs">AI生成</span>
+                    <span className="text-xs">{t('dreams:create.form.generate', 'AI生成')}</span>
                 </>
             )}
         </Button>

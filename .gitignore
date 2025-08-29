@@ -3,6 +3,87 @@
 .vscode/
 .trae/
 .env/
+.cursorignore
+
+# ===backend===
+# Python
+backend/__pycache__/
+backend/*.py[cod]
+backend/$py.class
+backend/*.so
+backend/.Python
+backend/env/
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/*.egg-info/
+backend/.installed.cfg
+backend/*.egg
+
+# Django
+backend/*.log
+backend/local_settings.py
+backend/db.sqlite3
+backend/db.sqlite3-journal
+
+# 虚拟环境
+backend/venv/
+backend/.venv/
+backend/ENV/
+
+# 编辑器和IDE
+backend/.idea/
+backend/.vscode/
+backend/*.swp
+backend/*.swo
+
+# 操作系统
+backend/.DS_Store
+backend/Thumbs.db
+
+# 环境变量和敏感信息
+backend/.env
+backend/.env.*
+backend/.env.example
+backend/secrets.py
+backend/credentials.py
+
+# 忽略日志文件
+backend/logs/
+
+# ===frontend===
+# Logs
+frontend/logs
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
+frontend/*.local
+
+# Editor directories and files
+frontend/.vscode/*
+frontend/.vscode/extensions.json
+frontend/.idea
+frontend/.DS_Store
+frontend/*.suo
+frontend/*.ntvs*
+frontend/*.njsproj
+frontend/*.sln
+frontend/*.sw?
 
 
 

@@ -1,43 +1,10 @@
 /* 我的梦境页面样式 */
 .my-dreams-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     padding: 2rem;
-    position: relative;
-    overflow: hidden;
-}
-
-/* 星空背景效果 */
-.my-dreams-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image:
-        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-        radial-gradient(2px 2px at 40px 70px, #eee, transparent),
-        radial-gradient(1px 1px at 50px 90px, #eee, transparent),
-        radial-gradient(1px 1px at 130px 80px, #eee, transparent),
-        radial-gradient(2px 2px at 80px 10px, #eee, transparent);
-    background-repeat: repeat;
-    background-size: 200px 200px;
-    opacity: 0.3;
-    animation: sparkle 10s ease-in-out infinite;
-    pointer-events: none;
-}
-
-@keyframes sparkle {
-
-    0%,
-    100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
+    transition: all 0.3s ease;
 }
 
 /* 头部样式 */
@@ -57,106 +24,68 @@
     gap: 0.75rem;
     font-size: 2.5rem;
     font-weight: 700;
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(147, 51, 234, 0.5);
+    color: hsl(var(--foreground));
+    text-shadow: 0 2px 10px hsl(var(--dream-primary) / 0.3);
 }
 
 .create-dream-button {
-    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-    color: white;
+    background: linear-gradient(135deg, hsl(var(--dream-primary)) 0%, hsl(var(--dream-secondary)) 100%);
+    color: hsl(var(--primary-foreground));
     border: none;
     padding: 0.75rem 1.5rem;
     font-weight: 500;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+    box-shadow: 0 4px 15px hsl(var(--dream-primary) / 0.3);
 }
 
 .create-dream-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(147, 51, 234, 0.4);
+    box-shadow: 0 8px 20px hsl(var(--dream-primary) / 0.4);
 }
 
-/* 搜索和筛选栏 */
-.search-filter-bar {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+/* 梦境统计包装器 - 与梦境卡片对齐 */
+.dreams-stats-wrapper {
     max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-    flex-wrap: wrap;
+    margin: 0 auto;
+    margin-top: 1rem;
 }
 
-.search-wrapper {
-    flex: 1;
-    min-width: 300px;
-    position: relative;
-}
-
-.search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.5);
-    width: 1.25rem;
-    height: 1.25rem;
-}
-
-.search-input {
-    padding-left: 3rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(147, 51, 234, 0.3);
-    color: #fff;
-}
-
-.search-input:focus {
-    border-color: #9333ea;
-    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
-}
-
-.search-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.filter-controls {
+/* 紧凑的梦境统计样式 */
+.dreams-stats-compact {
     display: flex;
     gap: 0.75rem;
-}
-
-.filter-select {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(147, 51, 234, 0.3);
-    color: #fff;
-    min-width: 150px;
-}
-
-/* 梦境统计 */
-.dreams-stats {
-    display: flex;
-    gap: 1.5rem;
     margin-bottom: 2rem;
-    max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
+    justify-content: flex-start;
 }
 
-.stat-item {
+.stat-item-compact {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 0.6rem;
+    padding: 0.875rem 1rem;
+    background: hsl(var(--card));
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 120px;
+    flex: 0 0 auto;
+}
+
+.stat-item-compact:hover {
+    background: hsl(var(--card));
+    border-color: hsl(var(--ring));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px hsl(var(--shadow) / 0.1);
 }
 
 .stat-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    color: #9333ea;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: hsl(var(--dream-primary));
+    flex-shrink: 0;
 }
 
 .stat-content {
@@ -165,14 +94,16 @@
 }
 
 .stat-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #e9d5ff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    line-height: 1.2;
 }
 
 .stat-label {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+    margin-top: 0.125rem;
 }
 
 /* 梦境网格 */
@@ -186,10 +117,10 @@
 
 /* 梦境卡片 */
 .dream-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: hsl(var(--card));
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid hsl(var(--border));
     transition: all 0.3s ease;
     overflow: hidden;
     height: 100%;
@@ -199,12 +130,13 @@
 
 .dream-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    border-color: rgba(147, 51, 234, 0.3);
+    box-shadow: 0 12px 24px hsl(var(--shadow) / 0.15);
+    border-color: hsl(var(--ring));
 }
 
 .dream-card-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 1.5rem;
 }
 
 .dream-card-title-row {
@@ -217,7 +149,7 @@
 .dream-card-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #e9d5ff;
+    color: hsl(var(--foreground));
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -240,20 +172,21 @@
 .action-icon {
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
     transition: all 0.2s ease;
 }
 
 .action-icon:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--ring));
 }
 
 .delete-icon:hover {
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: hsl(var(--destructive));
+    color: hsl(var(--destructive));
 }
 
 .dream-card-meta {
@@ -262,7 +195,7 @@
     gap: 1rem;
     margin-top: 0.5rem;
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: hsl(var(--muted-foreground));
 }
 
 .meta-item {
@@ -272,13 +205,18 @@
 }
 
 .meta-item.lucidity {
-    color: #9333ea;
+    color: hsl(var(--dream-primary));
+}
+
+.meta-item.vividness {
+    color: hsl(var(--dream-accent));
 }
 
 .dream-card-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    padding: 1.5rem;
 }
 
 /* 分类标签 */
@@ -296,11 +234,14 @@
     font-weight: 500;
     border: 1px solid;
     transition: all 0.2s ease;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border-color: hsl(var(--border));
 }
 
 /* 梦境预览 */
 .dream-preview {
-    color: rgba(255, 255, 255, 0.8);
+    color: hsl(var(--foreground));
     line-height: 1.6;
     font-size: 0.9375rem;
     margin-bottom: 1rem;
@@ -314,23 +255,23 @@
     align-items: center;
     margin-top: auto;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid hsl(var(--border));
 }
 
 .dream-tags {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: hsl(var(--muted-foreground));
     font-size: 0.875rem;
 }
 
 .tag-name {
-    color: #e9d5ff;
+    color: hsl(var(--foreground));
 }
 
 .tag-more {
-    color: #9333ea;
+    color: hsl(var(--dream-primary));
     font-weight: 500;
 }
 
@@ -360,19 +301,19 @@
 .empty-icon {
     width: 5rem;
     height: 5rem;
-    color: rgba(147, 51, 234, 0.3);
+    color: hsl(var(--muted-foreground));
     margin: 0 auto 1.5rem;
 }
 
 .empty-title {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #e9d5ff;
+    color: hsl(var(--foreground));
     margin-bottom: 0.5rem;
 }
 
 .empty-description {
-    color: rgba(255, 255, 255, 0.6);
+    color: hsl(var(--muted-foreground));
     margin-bottom: 1.5rem;
 }
 
@@ -396,25 +337,30 @@
         width: 100%;
     }
 
-    .search-filter-bar {
+    .dreams-stats-wrapper {
+        max-width: none;
+        margin: 0;
+        margin-top: 1rem;
+    }
+
+    .dreams-stats-compact {
         flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
     }
 
-    .search-wrapper {
-        min-width: auto;
+    .stat-item-compact {
+        padding: 0.75rem 0.875rem;
+        gap: 0.5rem;
+        min-width: 150px;
     }
 
-    .filter-controls {
-        width: 100%;
-        justify-content: space-between;
+    .stat-value {
+        font-size: 1.375rem;
     }
 
-    .filter-select {
-        flex: 1;
-    }
-
-    .dreams-stats {
-        flex-direction: column;
+    .stat-label {
+        font-size: 0.75rem;
     }
 
     .dreams-grid {

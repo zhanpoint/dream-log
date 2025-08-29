@@ -1,62 +1,58 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 const RecurringElementsChart = ({ data = [] }) => {
-    if (data.length === 0) {
-        return (
-            <Card className="h-full">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <RefreshCw className="h-5 w-5" />
-                        重复梦境元素分析
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground text-center py-8">
-                        暂无重复梦境元素数据
-                    </p>
-                </CardContent>
-            </Card>
-        );
-    }
+    const { t } = useI18nContext();
+    const chartData = useMemo(() => {
+        const validData = data?.filter(item => item.value > 0) || [];
 
-    // 为不同元素分配不同颜色
-    const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+        if (validData.length === 0) {
+            return { hasData: false, option: null };
+        }
 
-    const option = {
-        tooltip: {
-            trigger: 'item',
-            formatter: '{b}: {c} 次 ({d}%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderColor: 'transparent',
-            textStyle: {
-                color: '#fff',
+        // 使用主题兼容的颜色方案
+        const colors = [
+            '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+            '#6366f1', '#ec4899', '#84cc16', '#f97316', '#06d6a0'
+        ];
+
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                borderColor: '#06b6d4',
+                borderWidth: 1,
+                textStyle: { color: '#fff', fontSize: 12 },
+                formatter: (params) => {
+                    return `${params.name}<br/>${t('statistics.occurrences', '出现次数')}: ${params.value}${t('statistics.occurrencesTimes', '次')}<br/>${t('statistics.proportion', '占比')}: ${params.percent}%`;
+                },
             },
-        },
-        legend: {
-            orient: 'horizontal',
-            bottom: 0,
-            left: 'center',
-            textStyle: {
-                color: '#999',
-                fontSize: 11,
+            legend: {
+                orient: 'horizontal',
+                bottom: 0,
+                left: 'center',
+                textStyle: {
+                    color: 'hsl(var(--foreground) / 0.8)',
+                    fontSize: 11,
+                    fontWeight: 500,
+                },
+                itemWidth: 8,
+                itemHeight: 8,
+                itemGap: 12,
             },
-            itemWidth: 8,
-            itemHeight: 8,
-        },
-        series: [
-            {
-                name: '重复元素',
+            series: [{
+                name: t('statistics.recurringElements', '重复元素'),
                 type: 'pie',
-                radius: ['30%', '70%'],
+                radius: ['30%', '65%'],
                 center: ['50%', '45%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
-                    borderRadius: 6,
-                    borderColor: '#1a1a1a',
+                    borderRadius: 8,
                     borderWidth: 1,
+                    borderColor: 'hsl(var(--border) / 0.3)',
                 },
                 label: {
                     show: false,
@@ -65,40 +61,58 @@ const RecurringElementsChart = ({ data = [] }) => {
                     scale: true,
                     scaleSize: 5,
                     itemStyle: {
-                        shadowBlur: 8,
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
                         shadowColor: 'rgba(0, 0, 0, 0.3)',
+                    },
+                    label: {
+                        show: true,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#fff',
                     },
                 },
                 labelLine: {
                     show: false,
                 },
-                data: data.map((item, index) => ({
+                data: validData.map((item, index) => ({
                     value: item.value,
                     name: item.name,
                     itemStyle: {
-                        color: colors[index % colors.length],
+                        color: item.color || colors[index % colors.length],
                     },
                 })),
-            },
-        ],
-        darkMode: true,
-    };
+                animationDuration: 800,
+                animationEasing: 'cubicOut',
+            }],
+        };
+
+        return { hasData: true, option };
+    }, [data, t]);
 
     return (
         <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <RefreshCw className="h-5 w-5" />
-                    重复梦境元素分析
+            <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <RefreshCw className="h-4 w-4 text-cyan-500" />
+                    {t('statistics.charts.recurringElementsAnalysis', '重复梦境元素分析')}
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <ReactECharts
-                    option={option}
-                    style={{ height: '300px' }}
-                    theme="dark"
-                    opts={{ renderer: 'svg' }}
-                />
+                {chartData.hasData ? (
+                    <ReactECharts
+                        option={chartData.option}
+                        style={{ height: '280px', width: '100%' }}
+                        opts={{ renderer: 'svg', devicePixelRatio: window.devicePixelRatio || 2 }}
+                        className="w-full theme-transition"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-[280px] text-muted-foreground">
+                        <RefreshCw className="h-12 w-12 mb-3 opacity-50" />
+                        <p className="text-sm">{t('statistics.noRecurringElementsData', '暂无重复元素数据')}</p>
+                        <p className="text-xs mt-1">{t('statistics.recordMoreForAnalysis', '记录更多梦境后查看分析')}</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

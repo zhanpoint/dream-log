@@ -1,0 +1,34 @@
+{
+    "title": "Dream Log - Diario de Sueños",
+    "description": "Dream Log - Registra, analiza e interpreta tus sueños",
+    "keywords": "sueños, diario, IA, psicología, interpretación de sueños",
+    "welcome": "Bienvenido a Dream Log",
+    "subtitle": "Explora el mundo misterioso de los sueños y desbloquea la sabiduría del subconsciente",
+    "badge": "Plataforma de Interpretación de Sueños Impulsada por IA",
+    "cta": {
+        "primary": "Comenzar a Registrar Sueños",
+        "secondary": "Saber Más"
+    },
+    "features": {
+        "title": "Por qué elegir Dream Log",
+        "subtitle": "Herramientas profesionales de análisis de sueños para ayudarte a entender profundamente el mundo de los sueños",
+        "items": {
+            "record": {
+                "title": "Registro Inteligente",
+                "description": "Usa herramientas asistidas por IA para registrar y categorizar fácilmente tus experiencias de sueños"
+            },
+            "analyze": {
+                "title": "Análisis Profundo",
+                "description": "Utiliza métodos de psicología y neurociencia para interpretar profundamente el significado de los sueños"
+            },
+            "assistant": {
+                "title": "Asistente IA",
+                "description": "Un intérprete de sueños IA personalizado te proporciona conocimientos y consejos profesionales"
+            },
+            "statistics": {
+                "title": "Estadísticas de Datos",
+                "description": "Muestra visualmente los patrones, frecuencia y tendencias temáticas de tus sueños"
+            }
+        }
+    }
+}
