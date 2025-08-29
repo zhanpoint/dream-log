@@ -27,9 +27,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // 【修复】确保 React 模块正确解析，解决 createContext undefined 问题
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
     // 【新增】确保正确解析 ES 模块，防止重复导入
     dedupe: ['react', 'react-dom', 'react-router-dom'],
