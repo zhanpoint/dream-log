@@ -13,13 +13,15 @@ const CategoryPieChart = ({ data = [] }) => {
             return { hasData: false, option: null };
         }
 
-        // 翻译分类名称
+        // 翻译分类名称 - 修复翻译逻辑
         const translatedData = validData.map(item => {
-            // 首先尝试dreams命名空间，然后尝试common命名空间作为备选
-            const translatedName = t(`dreams.categories.${item.name}`, {
-                ns: 'dreams',
-                defaultValue: t(`statistics.dreamCategories.${item.name}`, { defaultValue: item.name })
-            });
+            const categoryKey = item.name;
+
+            // 使用正确的命名空间分隔符 ":"
+            const translatedName = t(
+                `dreams:categories.${categoryKey}`,
+                { defaultValue: item.name } // 如果找不到，则使用原始值
+            );
 
             return {
                 ...item,
@@ -103,7 +105,7 @@ const CategoryPieChart = ({ data = [] }) => {
         };
 
         return { hasData: true, option };
-    }, [data, t]);
+    }, [data, t, i18n.language]);
 
     return (
         <Card className="h-full">

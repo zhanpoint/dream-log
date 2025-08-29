@@ -132,15 +132,15 @@ const AIConfigPanel = ({ config, onUpdate }) => {
                 >
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="concise" id="concise" />
-                        <Label htmlFor="concise">{t('assistant.settings.responseStyles.concise', '简洁')}</Label>
+                        <Label htmlFor="concise">{t('assistant.settings.lengths.concise', '简洁')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="moderate" id="moderate" />
-                        <Label htmlFor="moderate">{t('assistant.settings.responseStyles.moderate', '适中')}</Label>
+                        <Label htmlFor="moderate">{t('assistant.settings.lengths.medium', '适中')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="detailed" id="detailed" />
-                        <Label htmlFor="detailed">{t('assistant.settings.responseStyles.detailed', '详细')}</Label>
+                        <Label htmlFor="detailed">{t('assistant.settings.lengths.detailed', '详细')}</Label>
                     </div>
                 </RadioGroup>
             </div>
@@ -149,7 +149,7 @@ const AIConfigPanel = ({ config, onUpdate }) => {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="auto-image" className="cursor-pointer">
-                        {t('assistant.settings.autoImageGeneration', '自动生成梦境图像')}
+                        {t('assistant.settings.autoGenerateImage', '自动生成梦境图像')}
                     </Label>
                     <Switch
                         id="auto-image"
@@ -162,7 +162,7 @@ const AIConfigPanel = ({ config, onUpdate }) => {
 
                 <div className="flex items-center justify-between">
                     <Label htmlFor="follow-up" className="cursor-pointer">
-                        {t('assistant.settings.enableFollowUpQuestions', '启用追问功能')}
+                        {t('assistant.settings.enableFollowUp', '启用追问功能')}
                     </Label>
                     <Switch
                         id="follow-up"
@@ -183,7 +183,7 @@ const AIConfigPanel = ({ config, onUpdate }) => {
                 {loading ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t('assistant.settings.saving', '保存中...')}
+                        {t('common.saving', '保存中...')}
                     </>
                 ) : (
                     t('assistant.settings.saveSettings', '保存设置')

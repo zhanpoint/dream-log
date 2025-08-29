@@ -60,6 +60,7 @@
             "contentPlaceholder": "꿈 기록을 시작해보세요...",
             "categories": "분류",
             "tags": "태그",
+            "tagPlaceholder": "태그 추가...",
             "lucidity": "자각도",
             "vividness": "선명도",
             "moodBeforeSleep": "잠들기 전 기분",
@@ -80,8 +81,16 @@
             "titleGenSuccess": "AI 제목 생성 성공!",
             "titleGenFailed": "제목 생성 실패",
             "titleGenFailedRetry": "제목 생성 실패, 다시 시도하세요",
-            "selectMood": "기분 선택",
+            "characteristics": "꿈 특징",
+            "mood": "감정",
+            "sleepInfo": "수면 정보",
+            "privacy": "개인정보 설정",
+            "whoCanView": "누가 이 꿈을 볼 수 있나요",
+            "personalNotes": "개인 메모",
+            "selectMood": "감정 선택",
             "selectSleepQuality": "수면 품질 선택",
+            "sleepInformation": "수면 정보",
+            "personalNotesLabel": "개인 메모",
             "categoryHelp": {
                 "title": "꿈 카테고리 가이드",
                 "description": "꿈의 특징에 가장 잘 맞는 카테고리를 선택하세요:"
@@ -140,48 +149,6 @@
         "action": "행동",
         "weather": "날씨"
     },
-    "detail": {
-        "pageTitle": "꿈 세부사항 - Dream Log",
-        "loading": "로딩 중...",
-        "notFound": "꿈을 찾을 수 없습니다",
-        "backButton": "뒤로",
-        "actions": {
-            "edit": "편집",
-            "delete": "삭제",
-            "analyze": "AI 분석"
-        },
-        "emotion": {
-            "beforeSleep": "잠들기 전",
-            "inDream": "꿈 속",
-            "afterWaking": "깨어난 후"
-        },
-        "sleepQuality": "수면 품질",
-        "sleepTime": "수면 시간",
-        "sleepDuration": "수면 시간",
-        "lucidity": "자각도",
-        "clarity": "선명도",
-        "hoverDetails": "세부사항을 보려면 마우스를 올려놓으세요",
-        "analysisPrompt": "AI 분석 결과를 참고하여 귀하의 삶 경험과 결합하여 이 꿈에 대한 독특한 통찰을 기록하십시오",
-        "deleteConfirmation": "이 꿈 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-    },
-    "categories": {
-        "normal": "일반 꿈",
-        "lucid": "자각 꿈",
-        "nightmare": "악몽",
-        "recurring": "반복 꿈",
-        "prophetic": "예언 꿈",
-        "healing": "치유 꿈",
-        "spiritual": "영적 꿈",
-        "creative": "창의적 꿈",
-        "hypnagogic": "수면 전 환각",
-        "hypnopompic": "각성 후 환각",
-        "sleep_paralysis": "수면 마비",
-        "false_awakening": "거짓 각성",
-        "anxiety": "불안 꿈",
-        "joyful": "기쁜 꿈",
-        "melancholic": "우울한 꿈",
-        "adventure": "모험 꿈"
-    },
     "moods": {
         "very_negative": "매우 부정적",
         "negative": "부정적",
@@ -228,6 +195,9 @@
         "modeOrDescription": "어떤 카테고리든 포함"
     },
     "detail": {
+        "title": "꿈 세부사항",
+        "subtitle": "꿈의 상세 내용과 분석 보기",
+        "keywords": "꿈,상세,분석",
         "pageTitle": "꿈 세부사항 - Dream Log",
         "loading": "로딩 중...",
         "notFound": "꿈을 찾을 수 없습니다",

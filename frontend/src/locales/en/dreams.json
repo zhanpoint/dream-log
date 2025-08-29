@@ -215,6 +215,9 @@
         "weather": "Weather"
     },
     "detail": {
+        "title": "Dream Details",
+        "subtitle": "View dream details and analysis",
+        "keywords": "dream,details,analysis",
         "pageTitle": "Dream Details - Dream Log",
         "loading": "Loading...",
         "notFound": "Dream not found",

@@ -10,6 +10,20 @@
         "register": "注册",
         "logout": "退出登录"
     },
+    "knowledge": {
+        "science": {
+            "title": "梦境科学",
+            "description": "了解梦境背后的科学原理"
+        },
+        "symbols": {
+            "title": "梦境符号学",
+            "description": "探索梦境中符号的含义"
+        },
+        "techniques": {
+            "title": "梦境技巧",
+            "description": "学习记忆和控制梦境的技巧"
+        }
+    },
     "common": {
         "save": "保存",
         "saving": "保存中...",
@@ -27,6 +41,8 @@
         "settings": "设置",
         "optional": "可选",
         "manage": "管理",
+        "export": "导出",
+        "export": "导出",
         "viewDetails": "查看详情",
         "add": "添加"
     },
@@ -251,24 +267,6 @@
             "level4": "微弱清醒",
             "level5": "无清醒"
         },
-        "dreamCategories": {
-            "normal": "普通梦境",
-            "lucid": "清醒梦",
-            "nightmare": "噩梦",
-            "recurring": "重复梦",
-            "prophetic": "预知梦",
-            "healing": "治愈梦",
-            "spiritual": "灵性梦境",
-            "creative": "创意梦境",
-            "hypnagogic": "入睡幻觉",
-            "hypnopompic": "醒前幻觉",
-            "sleep_paralysis": "睡眠瘫痪",
-            "false_awakening": "假醒",
-            "anxiety": "焦虑梦",
-            "joyful": "快乐梦境",
-            "melancholic": "忧郁梦境",
-            "adventure": "冒险梦境"
-        },
         "timeFilter": {
             "all": "所有时间",
             "year": "今年",
@@ -281,12 +279,152 @@
         "keywords": "梦境,统计,分析,数据"
     },
     "assistant": {
+        "memorySaved": "记忆已保存",
+        "chatRenamed": "对话已重命名",
+        "newChatTitle": "新对话",
         "thinking": "正在思考...",
+        "search": {
+            "placeholder": "搜索对话..."
+        },
+        "button": {
+            "newChat": "发起新对话",
+            "sendFirstMessage": "请先发送消息后再创建新对话",
+            "uploadImage": "上传图片",
+            "voiceInput": "语音输入",
+            "sendMessage": "发送消息"
+        },
+        "connection": {
+            "connected": "已连接",
+            "connecting": "连接中",
+            "failed": "连接失败"
+        },
+        "welcome": {
+            "title": "开始您的梦境探索之旅",
+            "subtitle": "描述您的梦境，或询问梦境相关知识"
+        },
+        "image": {
+            "selectedAlt": "已选择 {index}"
+        },
+        "input": {
+            "placeholder": "请向梦境助手提问吧..."
+        },
+        "rename": {
+            "dialogTitle": "重命名对话",
+            "title": "为对话输入一个新的标题",
+            "placeholder": "输入对话标题"
+        },
+        "delete": {
+            "dialogTitle": "删除对话",
+            "confirmation": "确定要删除这个对话吗？此操作无法撤销。"
+        },
         "settings": {
+            "description": "配置AI助手设置",
+            "personalizeTab": "个性化",
+            "dataTab": "数据管理",
+            "securityTab": "安全",
+            "helpTab": "帮助",
+            "personalize": "自定义AI助手的行为和偏好",
+            "data": "管理您的对话数据和导出选项",
+            "security": "隐私和安全相关设置",
+            "help": "获取帮助和支持信息",
             "dataExport": "导出数据",
             "dataExportDescription": "导出您的对话记录",
+            "privacyTitle": "隐私与安全",
+            "privacy": "管理数据隐私设置",
             "helpAndSupport": "帮助与支持",
-            "helpAndSupportDescription": "查看使用指南和常见问题"
+            "helpAndSupportDescription": "查看使用指南和常见问题",
+            "defaultName": "梦境助手",
+            "configUpdated": "配置已更新",
+            "updateConfigFailed": "更新配置失败",
+            "assistantName": "助手名称",
+            "assistantNamePlaceholder": "给您的助手起个名字",
+            "interpretationStyle": "解读风格",
+            "styles": {
+                "professional": "专业学术",
+                "friendly": "亲切友好",
+                "poetic": "诗意浪漫",
+                "balanced": "平衡综合"
+            },
+            "preferredDimensions": "偏好解读维度",
+            "preferredDimensionsDescription": "选择梦境分析时重点解读的维度（可多选）",
+            "dimensions": {
+                "psychological": "心理学分析",
+                "symbolic": "象征学解读",
+                "biological": "生物医学角度",
+                "spiritual": "灵性维度",
+                "personalGrowth": "个人成长"
+            },
+            "languagePreference": "语言偏好",
+            "languagePreferenceDescription": "选择AI助手回应时使用的语言",
+            "languages": {
+                "auto": "自动检测",
+                "zh-CN": "简体中文",
+                "en": "英文"
+            },
+            "creativityLevel": "创造力水平",
+            "responseLength": "回复长度",
+            "lengths": {
+                "concise": "简洁",
+                "medium": "适中",
+                "detailed": "详细"
+            },
+            "autoGenerateImage": "自动生成梦境图像",
+            "enableFollowUp": "启用追问功能",
+            "saveSettings": "保存设置"
+        },
+        "deleteAll": {
+            "title": "删除所有对话",
+            "description": "清空所有聊天记录，无法恢复",
+            "noChats": "没有对话可删除",
+            "confirmation": "确定要删除所有 {count} 个对话吗？此操作无法撤销！",
+            "button": "全部删除"
+        },
+        "error": {
+            "invalidTitle": "请输入有效的对话标题",
+            "titleTooLong": "对话标题不能超过100个字符",
+            "emptyMessage": "消息内容不能为空，请输入文字或选择图片",
+            "connectionLost": "网络连接中断，请稍后重试",
+            "chatStateError": "对话状态异常，请刷新页面重试",
+            "voiceNotSupported": "您的浏览器不支持语音输入",
+            "voiceRecognitionError": "语音识别错误: "
+        }
+    },
+    "footer": {
+        "product": {
+            "title": "产品功能",
+            "smartRecord": "智能记录",
+            "dreamAnalysis": "梦境解析",
+            "aiAssistant": "AI助手",
+            "statistics": "数据统计",
+            "dreamManagement": "梦境管理"
+        },
+        "support": {
+            "title": "帮助支持",
+            "userGuide": "使用指南",
+            "faq": "常见问题",
+            "contact": "联系我们",
+            "feedback": "反馈建议",
+            "onlineSupport": "在线客服"
+        },
+        "legal": {
+            "title": "法律信息",
+            "privacy": "隐私政策",
+            "terms": "服务条款",
+            "cookies": "Cookie政策",
+            "disclaimer": "免责声明"
+        },
+        "social": {
+            "title": "关注我们",
+            "weibo": "官方微博",
+            "wechat": "微信公众号",
+            "qq": "QQ群",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "探索梦境的无限可能"
+        },
+        "copyright": {
+            "tech": "基于React 19与AI技术构建"
         }
     }
 }

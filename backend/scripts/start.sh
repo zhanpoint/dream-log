@@ -25,14 +25,8 @@ while not db_conn:
 # --- 数据库和应用初始化 ---
 python manage.py migrate
 
-# 在这里按顺序添加所有需要一次性执行的自定义命令
-# get_or_create 保证了这些命令是幂等的，重复执行是安全的
-python manage.py create_categories
-# 从 Celery 配置中强制初始化或更新数据库中的定时任务
-python manage.py setup_periodic_tasks --overwrite
-
-# 如果有其他命令，像这样继续添加:
-# python manage.py another_custom_command
+# --- 自动执行所有标记为安全的初始化命令 ---
+python manage.py auto_deploy_setup
 
 # --- 静态文件处理 ---
 # python manage.py collectstatic --no-input

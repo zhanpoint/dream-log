@@ -16,6 +16,8 @@ env = environ.Env(
     REDIS_PORT=(int, 6379),
     REDIS_DB=(int, 0),
     RABBITMQ_PORT=(int, 5672),
+    # PostgreSQL相关配置
+    LANGGRAPH_DB_PORT=(int, 5432),
     JWT_ACCESS_TOKEN_LIFETIME_MINUTES=(int, 1440),  # 24小时
     JWT_REFRESH_TOKEN_LIFETIME_DAYS=(int, 30),      # 30天
     EMAIL_PORT=(int, 465),

@@ -1,17 +1,46 @@
 {
-    "title": "Dream Log - Journal des Rêves",
-    "description": "Dream Log - Enregistrez, analysez et interprétez vos rêves",
-    "keywords": "rêves, journal, IA, psychologie, interprétation des rêves",
+    "pageTitle": "Dream Log - Enregistrez Votre Voyage de Rêves",
+    "pageDescription": "Journal de rêves alimenté par IA pour explorer votre subconscient et découvrir les significations des rêves",
+    "pageKeywords": "journal de rêves,analyse de rêves,IA,subconscient,interprétation des rêves",
     "welcome": "Bienvenue sur Dream Log",
-    "subtitle": "Explorez le monde mystérieux des rêves et déverrouillez la sagesse du subconscient",
+    "subtitle": "Enregistrez et découvrez votre voyage de rêves",
+    "description": "Journal de rêves alimenté par IA pour explorer votre subconscient et découvrir les significations des rêves",
     "badge": "Plateforme d'Interprétation des Rêves Alimentée par l'IA",
     "cta": {
         "primary": "Commencer à Enregistrer les Rêves",
-        "secondary": "En Savoir Plus"
+        "secondary": "En Savoir Plus",
+        "getStarted": "Commencer",
+        "learnMore": "En Savoir Plus",
+        "signUp": "Commencer Gratuitement",
+        "login": "Se Connecter"
     },
     "features": {
-        "title": "Pourquoi choisir Dream Log",
+        "title": "Fonctionnalités de Dream Log",
         "subtitle": "Outils professionnels d'analyse des rêves pour vous aider à comprendre profondément le monde des rêves",
+        "ai": {
+            "title": "Analyse de Rêves IA",
+            "description": "IA avancée analyse les symboles et significations des rêves, fournissant des insights profonds"
+        },
+        "journal": {
+            "title": "Journal Numérique de Rêves",
+            "description": "Interface belle et intuitive pour enregistrer et organiser les rêves"
+        },
+        "insights": {
+            "title": "Perspectives Personnelles",
+            "description": "Suit les modèles de rêves, soutient la croissance personnelle et l'autodécouverte"
+        },
+        "community": {
+            "title": "Communauté",
+            "description": "Partagez des expériences avec d'autres passionnés de rêves et apprenez ensemble"
+        },
+        "privacy": {
+            "title": "Axé sur la Confidentialité",
+            "description": "Vos rêves sont sécurisés et la confidentialité est respectée"
+        },
+        "statistics": {
+            "title": "Statistiques et Tendances",
+            "description": "Visualise les tendances des rêves et découvre des modèles"
+        },
         "items": {
             "record": {
                 "title": "Enregistrement Intelligent",
@@ -30,5 +59,33 @@
                 "description": "Affiche visuellement les modèles, la fréquence et les tendances thématiques de vos rêves"
             }
         }
+    },
+    "testimonials": {
+        "title": "Témoignages d'Utilisateurs",
+        "subtitle": "Découvrez comment d'autres utilisateurs explorent leur monde de rêves grâce à Dream Log",
+        "user1": {
+            "name": "M. Dubois",
+            "quote": "Dream Log m'a aidé à voir mes modèles de rêves."
+        },
+        "user2": {
+            "name": "Mme. Martin",
+            "quote": "L'analyse IA est très intéressante, j'ai découvert de nouvelles significations dans les rêves."
+        },
+        "user3": {
+            "name": "M. Bernard",
+            "quote": "Facile à utiliser et belle interface, je suis très satisfait."
+        }
+    },
+    "stats": {
+        "users": "Utilisateurs Actifs",
+        "dreams": "Rêves Enregistrés",
+        "analysis": "Analyses IA",
+        "accuracy": "Précision d'Analyse",
+        "analyses": "Analyses IA",
+        "countries": "Pays/Régions Supportés"
+    },
+    "footer": {
+        "tagline": "Explorez les possibilités infinies des rêves",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
     }
 }

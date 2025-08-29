@@ -13,15 +13,15 @@
     "knowledge": {
         "science": {
             "title": "夢の科学",
-            "description": "夢の背後にある科学を理解する"
+            "description": "夢の背後にある科学的原理を理解する"
         },
         "symbols": {
-            "title": "夢の象徴",
-            "description": "夢の象徴の意味を探索する"
+            "title": "夢のシンボル学",
+            "description": "夢の中のシンボルの意味を探る"
         },
         "techniques": {
             "title": "夢のテクニック",
-            "description": "夢を記憶し制御するテクニックを学ぶ"
+            "description": "夢を記憶し、コントロールするテクニックを学ぶ"
         }
     },
     "common": {
@@ -52,6 +52,7 @@
         "terms": "利用規約",
         "optional": "オプション",
         "manage": "管理",
+        "export": "エクスポート",
         "viewDetails": "詳細を表示",
         "filtersReset": "フィルターリセット",
         "add": "追加"
@@ -133,23 +134,28 @@
         "data": {
             "title": "データ管理"
         },
+        "ai": {
+            "analyzing": "AIが夢を深く分析中...",
+            "completed": "分析完了",
+            "error": "分析失敗",
+            "keyFindings": "主要な発見",
+            "emotionalInsights": "感情の洞察",
+            "storyArc": "ストーリーアーク",
+            "keyTurningPoints": "重要な転換点",
+            "hiddenMessage": "隠されたメッセージ",
+            "coreSymbols": "コアシンボル",
+            "personalMeaning": "個人的意味:",
+            "lifeConnection": "人生のつながり:",
+            "symbolConnections": "シンボルのつながり",
+            "selfDiscovery": "自己発見",
+            "practicalAdvice": "実践的なアドバイス"
+        },
         "privacy": {
             "title": "プライバシーとセキュリティ"
         },
         "help": {
             "title": "ヘルプ"
         }
-    },
-    "time": {
-        "today": "今日",
-        "yesterday": "昨日",
-        "thisWeek": "今週",
-        "thisMonth": "今月",
-        "thisYear": "今年",
-        "morning": "朝",
-        "afternoon": "午後",
-        "evening": "夕方",
-        "night": "夜"
     },
     "validation": {
         "required": "この項目は必須です",
@@ -176,55 +182,114 @@
         "settingsUpdated": "設定が更新されました"
     },
     "assistant": {
-        "pageTitle": "夢アシスタント - Dream Log",
-        "pageDescription": "AI駆動の夢分析と会話アシスタント",
-        "pageKeywords": "夢アシスタント, AI分析, 夢の対話",
-        "welcome": {
-            "title": "夢の探索の旅を始めましょう",
-            "subtitle": "夢を説明するか、夢に関する知識をお尋ねください"
+        "memorySaved": "メモリが保存されました",
+        "chatRenamed": "チャットの名前が変更されました",
+        "newChatTitle": "新しいチャット",
+        "thinking": "考え中...",
+        "search": {
+            "placeholder": "会話を検索..."
         },
         "button": {
-            "newChat": "新しい会話を開始",
-            "sendFirst": "新しい会話を作成する前に、まずメッセージを送信してください",
+            "newChat": "新しいチャット",
+            "sendFirstMessage": "新しいチャットを作成する前に、まずメッセージを送信してください",
+            "uploadImage": "画像をアップロード",
             "voiceInput": "音声入力",
             "sendMessage": "メッセージを送信"
         },
+        "connection": {
+            "connected": "接続済み",
+            "connecting": "接続中...",
+            "failed": "接続に失敗しました"
+        },
+        "welcome": {
+            "title": "夢の探求の旅を始めましょう",
+            "subtitle": "あなたの夢を説明するか、夢に関する知識を尋ねてください"
+        },
+        "image": {
+            "selectedAlt": "選択済み {index}"
+        },
         "input": {
-            "placeholder": "夢アシスタントに質問してください..."
+            "placeholder": "夢のアシスタントに質問してください..."
         },
         "rename": {
-            "dialogTitle": "会話の名前を変更",
-            "title": "会話の新しいタイトルを入力してください",
-            "placeholder": "会話のタイトルを入力"
+            "dialogTitle": "チャットの名前を変更",
+            "title": "チャットの新しいタイトルを入力してください",
+            "placeholder": "チャットのタイトルを入力"
         },
         "delete": {
-            "dialogTitle": "会話を削除",
-            "confirmation": "この会話を削除してもよろしいですか？この操作は元に戻せません。"
-        },
-        "deleteAll": {
-            "title": "すべての会話を削除",
-            "description": "すべてのチャット記録をクリア、復元不可",
-            "button": "すべて削除",
-            "noChats": "削除する会話がありません",
-            "confirmation": "すべての{count}個の会話を削除してもよろしいですか？この操作は元に戻せません！"
+            "dialogTitle": "チャットを削除",
+            "confirmation": "このチャットを削除してもよろしいですか？この操作は元に戻せません。"
         },
         "settings": {
-            "personalizeTab": "パーソナライゼーション",
+            "description": "AIアシスタントの設定を構成します",
+            "personalizeTab": "パーソナライズ",
             "dataTab": "データ管理",
             "securityTab": "セキュリティ",
             "helpTab": "ヘルプ",
-            "personalize": "AIアシスタントの動作と設定をカスタマイズ",
-            "data": "会話データとエクスポートオプションを管理",
+            "personalize": "AIアシスタントの動作と設定をカスタマイズします",
+            "data": "会話データとエクスポートオプションを管理します",
             "security": "プライバシーとセキュリティ関連の設定",
-            "help": "ヘルプとサポート情報を取得",
+            "help": "ヘルプとサポート情報を取得します",
+            "dataExport": "データをエクスポート",
+            "dataExportDescription": "会話記録をエクスポートします",
             "privacyTitle": "プライバシーとセキュリティ",
-            "privacy": "データプライバシー設定を管理"
+            "privacy": "データプライバシー設定を管理します",
+            "helpAndSupport": "ヘルプとサポート",
+            "helpAndSupportDescription": "ユーザーガイドとFAQを表示します",
+            "defaultName": "夢のアシスタント",
+            "configUpdated": "構成が更新されました",
+            "updateConfigFailed": "構成の更新に失敗しました",
+            "assistantName": "アシスタント名",
+            "assistantNamePlaceholder": "アシスタントに名前を付けてください",
+            "interpretationStyle": "解釈スタイル",
+            "styles": {
+                "professional": "プロフェッショナル/学術的",
+                "friendly": "フレンドリー/親しみやすい",
+                "poetic": "詩的/ロマンチック",
+                "balanced": "バランスの取れた/包括的"
+            },
+            "preferredDimensions": "優先解釈次元",
+            "preferredDimensionsDescription": "夢分析中に焦点を当てる次元を選択します（複数選択可）",
+            "dimensions": {
+                "psychological": "心理学的分析",
+                "symbolic": "象徴的解釈",
+                "biological": "生物医学的視点",
+                "spiritual": "精神的次元",
+                "personalGrowth": "自己成長"
+            },
+            "languagePreference": "言語設定",
+            "languagePreferenceDescription": "AIアシスタントの応答に使用する言語を選択します",
+            "languages": {
+                "auto": "自動検出",
+                "zh-CN": "簡体字中国語",
+                "en": "英語"
+            },
+            "creativityLevel": "創造性レベル",
+            "responseLength": "応答の長さ",
+            "lengths": {
+                "concise": "簡潔",
+                "medium": "中程度",
+                "detailed": "詳細"
+            },
+            "autoGenerateImage": "夢の画像を自動生成",
+            "enableFollowUp": "フォローアップの質問を有効にする",
+            "saveSettings": "設定を保存"
+        },
+        "deleteAll": {
+            "title": "すべてのチャットを削除",
+            "description": "すべてのチャット履歴を消去し、回復できません",
+            "noChats": "削除するチャットはありません",
+            "confirmation": "すべての{count}個のチャットを削除してもよろしいですか？この操作は元に戻せません！",
+            "button": "すべて削除"
         },
         "error": {
-            "emptyMessage": "メッセージ内容を空にすることはできません。テキストを入力するか画像を選択してください",
+            "invalidTitle": "有効なチャットタイトルを入力してください",
+            "titleTooLong": "チャットのタイトルは100文字を超えることはできません",
+            "emptyMessage": "メッセージの内容は空にできません。テキストを入力するか、画像を選択してください",
+            "connectionLost": "ネットワーク接続が失われました。後でもう一度お試しください",
+            "chatStateError": "チャットの状態が異常です。ページを更新してもう一度お試しください",
             "voiceNotSupported": "お使いのブラウザは音声入力をサポートしていません",
-            "invalidTitle": "有効な会話タイトルを入力してください",
-            "titleTooLong": "会話タイトルは100文字を超えることはできません"
+            "voiceRecognitionError": "音声認識エラー： "
         }
     },
     "statistics": {
@@ -264,145 +329,42 @@
         "percentage": "割合",
         "recordMoreForAnalysis": "分析を表示するにはより多くの夢を記録してください"
     },
-    "assistant": {
-        "thinking": "考え中...",
-        "settings": {
-            "dataExport": "データエクスポート",
-            "dataExportDescription": "会話記録をエクスポート",
-            "helpAndSupport": "ヘルプとサポート",
-            "helpAndSupportDescription": "ユーザーガイドとFAQを表示"
+    "footer": {
+        "product": {
+            "title": "製品機能",
+            "smartRecord": "スマート記録",
+            "dreamAnalysis": "夢分析",
+            "aiAssistant": "AIアシスタント",
+            "statistics": "統計",
+            "dreamManagement": "夢管理"
+        },
+        "support": {
+            "title": "ヘルプとサポート",
+            "userGuide": "ユーザーガイド",
+            "faq": "よくある質問",
+            "contact": "お問い合わせ",
+            "feedback": "フィードバック",
+            "onlineSupport": "オンラインサポート"
+        },
+        "legal": {
+            "title": "法的情報",
+            "privacy": "プライバシーポリシー",
+            "terms": "利用規約",
+            "cookies": "Cookieポリシー",
+            "disclaimer": "免責事項"
+        },
+        "social": {
+            "title": "フォローする",
+            "weibo": "公式Weibo",
+            "wechat": "WeChat公式アカウント",
+            "qq": "QQグループ",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "夢の無限の可能性を探求"
+        },
+        "copyright": {
+            "tech": "React 19とAI技術で構築"
         }
-    },
-    "ai": {
-        "analyzing": "AIが夢を深く分析中...",
-        "completed": "分析完了",
-        "error": "分析失敗",
-        "keyFindings": "主要な発見",
-        "emotionalInsights": "感情の洞察",
-        "storyArc": "ストーリーアーク",
-        "keyTurningPoints": "重要な転換点",
-        "hiddenMessage": "隠されたメッセージ",
-        "coreSymbols": "コアシンボル",
-        "personalMeaning": "個人的意味:",
-        "lifeConnection": "人生のつながり:",
-        "symbolConnections": "シンボルのつながり",
-        "selfDiscovery": "自己発見",
-        "practicalAdvice": "実践的なアドバイス"
-    },
-    "statistics": {
-        "sleepQuality": "睡眠の質",
-        "sleepDuration": "睡眠時間",
-        "sleepDurationHours": "睡眠時間（時間）",
-        "theme": {
-            "light": "ライト",
-            "lightDesc": "明るくクリアなインターフェース",
-            "dark": "ダーク",
-            "darkDesc": "目に優しいダークインターフェース",
-            "system": "システム",
-            "systemDesc": "システム設定に自動的に適応",
-            "toggleLabel": "テーマを切り替え"
-        },
-        "sleepTrend": "睡眠の質と時間のトレンド",
-        "noSleepData": "睡眠データがありません",
-        "noClarityData": "明瞭度データがありません",
-        "noLucidityData": "明晰度データがありません",
-        "noCategoryData": "カテゴリデータがありません",
-        "noMoodData": "気分データがありません",
-        "noRecurringElementsData": "繰り返し要素データがありません",
-        "noTagData": "タグデータがありません",
-        "dreamCategories": "夢のカテゴリ",
-        "nightmare": "悪夢",
-        "pleasantDream": "楽しい夢",
-        "ordinaryDream": "普通の夢",
-        "lucidDream": "明晰夢",
-        "recurringDream": "繰り返しの夢",
-        "propheticDream": "予知夢",
-        "flyingDream": "飛行夢",
-        "chaseDream": "追跡夢",
-        "examDream": "試験夢",
-        "nakedDream": "裸の夢",
-        "fallingDream": "落下夢",
-        "other": "その他",
-        "count": "カウント",
-        "times": "回",
-        "percentage": "割合",
-        "recordMoreForAnalysis": "分析を表示するには、より多くの夢を記録してください",
-        "charts": {
-            "moodDistribution": "気分分布",
-            "moodAnalysis": "夢の気分分析",
-            "lucidityDistribution": "明晰度分布",
-            "dreamClarity": "夢の明瞭度",
-            "clarityTrend": "夢の明瞭度トレンド",
-            "categoryDistribution": "夢のカテゴリ分布",
-            "recurringElementsAnalysis": "繰り返し夢要素分析"
-        },
-        "summary": {
-            "totalDreams": "総夢数",
-            "totalTags": "総タグ数",
-            "recurringDreams": "繰り返し夢",
-            "avgLucidity": "平均明晰度",
-            "avgClarity": "平均明瞭度"
-        },
-        "clarity": {
-            "veryClear": "非常に明確",
-            "clear": "明確",
-            "blurry": "ぼやけている",
-            "veryBlurry": "非常にぼやけている",
-            "clarity": "明瞭度",
-            "average": "平均"
-        },
-        "recurringElements": "繰り返し要素",
-        "tagLeaderboard": "タグランキング",
-        "dominantEmotion": "支配的な感情",
-        "emotionRanking": "感情ランキング",
-        "noData": "データがありません",
-        "occurrences": "出現回数",
-        "occurrencesTimes": "回",
-        "proportion": "割合",
-        "tags": {
-            "emotion": "感情",
-            "character": "キャラクター",
-            "location": "場所",
-            "object": "物体",
-            "action": "行動",
-            "weather": "天気"
-        },
-        "emotions": {
-            "veryPositive": "非常にポジティブ",
-            "positive": "ポジティブ",
-            "negative": "ネガティブ",
-            "veryNegative": "非常にネガティブ",
-            "neutral": "ニュートラル",
-            "happy": "幸せ",
-            "sad": "悲しい",
-            "angry": "怒り",
-            "fearful": "恐れ",
-            "anxious": "不安",
-            "excited": "興奮",
-            "peaceful": "平和",
-            "confused": "混乱",
-            "surprised": "驚き",
-            "disgusted": "嫌悪",
-            "loving": "愛情",
-            "jealous": "嫉妬"
-        },
-        "lucidityLevels": {
-            "level0": "完全に明晰",
-            "level1": "高い明晰度",
-            "level2": "中程度の明晰度",
-            "level3": "低い明晰度",
-            "level4": "最小限の明晰度",
-            "level5": "明晰度なし"
-        },
-        "timeFilter": {
-            "all": "すべての時間",
-            "year": "今年",
-            "month": "今月",
-            "week": "今週",
-            "day": "今日"
-        },
-        "title": "夢統計",
-        "subtitle": "夢データの統計と分析を表示",
-        "keywords": "夢,統計,分析,データ"
     }
 }

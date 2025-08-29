@@ -5,6 +5,8 @@ from django.db import connection
 class Command(BaseCommand):
     help = "将当前数据库中的所有表转换为 utf8mb4 字符集及 0900 排序规则（MySQL 8）。"
 
+    SAFE_FOR_DEPLOYMENT = True
+
     def add_arguments(self, parser):
         parser.add_argument(
             "--collation",

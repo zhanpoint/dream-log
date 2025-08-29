@@ -520,7 +520,7 @@ export function RegisterForm() {
                                             id="email-username"
                                             name="username"
                                             type="text"
-                                            placeholder="请输入用户名"
+                                            placeholder={t('auth.register.placeholders.username', '请输入用户名')}
                                             value={emailFormData.username}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.username ? 'input-error' : ''}`}
@@ -532,14 +532,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-password">密码</Label>
+                                    <Label htmlFor="email-password">{t('auth.register.form.password', '密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="email-password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请输入密码"
+                                            placeholder={t('auth.register.placeholders.password', '请输入密码')}
                                             value={emailFormData.password}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.password ? 'input-error' : ''}`}
@@ -555,7 +555,7 @@ export function RegisterForm() {
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        密码需包含至少8个字符，包括字母、数字、符号
+                                        {t('auth.register.form.passwordTip', '密码需包含至少8个字符，包括字母、数字、符号')}
                                     </p>
                                     {errors.password && (
                                         <p className="error-message">{errors.password}</p>
@@ -563,14 +563,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-confirmPassword">确认密码</Label>
+                                    <Label htmlFor="email-confirmPassword">{t('auth.register.form.confirmPassword', '确认密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="email-confirmPassword"
                                             name="confirmPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请再次输入密码"
+                                            placeholder={t('auth.register.placeholders.confirmPassword', '请再次输入密码')}
                                             value={emailFormData.confirmPassword}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.confirmPassword ? 'input-error' : ''}`}
@@ -582,14 +582,14 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-address">邮箱地址</Label>
+                                    <Label htmlFor="email-address">{t('auth.register.form.email', '邮箱地址')}</Label>
                                     <div className="input-container">
                                         <Mail className="input-icon" />
                                         <Input
                                             id="email-address"
                                             name="email"
                                             type="email"
-                                            placeholder="请输入邮箱地址"
+                                            placeholder={t('auth.register.placeholders.email', '请输入邮箱地址')}
                                             value={emailFormData.email}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.email ? 'input-error' : ''}`}
@@ -601,7 +601,7 @@ export function RegisterForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-verificationCode">验证码</Label>
+                                    <Label htmlFor="email-verificationCode">{t('auth.register.form.verificationCode', '验证码')}</Label>
                                     <div className="verification-container">
                                         <div className="input-container flex-1">
                                             <Shield className="input-icon" />
@@ -609,7 +609,7 @@ export function RegisterForm() {
                                                 id="email-verificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.register.placeholders.verificationCode', '请输入验证码')}
                                                 value={emailFormData.verificationCode}
                                                 onChange={handleEmailFormChange}
                                                 className={`verification-input ${errors.verificationCode ? 'input-error' : ''}`}
@@ -621,7 +621,7 @@ export function RegisterForm() {
                                             disabled={emailCountdown > 0 || isLoading}
                                             className="verification-button"
                                         >
-                                            {emailCountdown > 0 ? `${emailCountdown}s` : "获取验证码"}
+                                            {emailCountdown > 0 ? `${emailCountdown}s` : t('auth.register.form.sendCode', '获取验证码')}
                                         </Button>
                                     </div>
                                     {errors.verificationCode && (
@@ -636,7 +636,7 @@ export function RegisterForm() {
                                 )}
 
                                 <Button type="submit" className="w-full btn-primary" disabled={isLoading}>
-                                    {isLoading ? "注册中..." : "注册"}
+                                    {isLoading ? t('auth.register.form.registering', '注册中...') : t('auth.register.form.registerButton', '注册')}
                                 </Button>
                             </form>
                         </TabsContent>

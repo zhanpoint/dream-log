@@ -10,12 +10,27 @@
         "register": "註冊",
         "logout": "登出"
     },
+    "knowledge": {
+        "science": {
+            "title": "夢境科學",
+            "description": "了解夢境背後的科學原理"
+        },
+        "symbols": {
+            "title": "夢境符號學",
+            "description": "探索夢境中符號的含義"
+        },
+        "techniques": {
+            "title": "夢境技巧",
+            "description": "學習記憶和控制夢境的技巧"
+        }
+    },
     "common": {
         "save": "儲存",
         "cancel": "取消",
         "delete": "刪除",
         "edit": "編輯",
         "confirm": "確認",
+        "confirmDelete": "確認刪除",
         "loading": "載入中...",
         "submit": "提交",
         "back": "返回",
@@ -23,7 +38,10 @@
         "search": "搜尋",
         "filter": "篩選",
         "settings": "設定",
-        "optional": "可選"
+        "optional": "可選",
+        "export": "匯出",
+        "add": "添加",
+        "saving": "儲存中..."
     },
     "validation": {
         "required": "此欄位為必填項",
@@ -200,5 +218,210 @@
         "title": "夢境統計",
         "subtitle": "檢視你的夢境資料統計和分析",
         "keywords": "夢境,統計,分析,資料"
+    },
+    "settings": {
+        "pageTitle": "帳戶設定",
+        "pageDescription": "管理您的帳戶設定和個人資料",
+        "pageKeywords": "設定,個人資料,安全性",
+        "profile": {
+            "title": "個人資料"
+        },
+        "security": {
+            "title": "帳戶與安全性",
+            "emailManagement": "電子郵件管理",
+            "primaryEmail": "主要電子郵件",
+            "verified": "已驗證",
+            "noEmailSet": "未設定電子郵件",
+            "changePrimaryEmail": "變更主要電子郵件",
+            "backupEmail": "備用電子郵件",
+            "passwordManagement": "密碼管理",
+            "lastChanged": "上次變更",
+            "changePassword": "變更密碼",
+            "newEmail": "新電子郵件地址",
+            "verificationCode": "驗證碼",
+            "sendCode": "發送驗證碼",
+            "backupEmailAddress": "備用電子郵件地址",
+            "setBackupEmail": "設定備用電子郵件",
+            "changeBackupEmail": "變更備用電子郵件",
+            "backupEmailDescription": "僅用於密碼恢復，需要驗證碼",
+            "currentPassword": "目前密碼",
+            "newPassword": "新密碼",
+            "confirmPassword": "確認新密碼",
+            "verificationMethod": "驗證方式"
+        },
+        "data": {
+            "title": "資料管理"
+        },
+        "ai": {
+            "analyzing": "AI正在深入分析您的夢境...",
+            "completed": "分析完成",
+            "error": "分析失敗",
+            "keyFindings": "主要發現",
+            "emotionalInsights": "情感洞察",
+            "storyArc": "故事弧線",
+            "keyTurningPoints": "關鍵轉折點",
+            "hiddenMessage": "隱藏訊息",
+            "coreSymbols": "核心符號",
+            "personalMeaning": "個人意義：",
+            "lifeConnection": "生命連結：",
+            "symbolConnections": "符號連結",
+            "selfDiscovery": "自我發現",
+            "practicalAdvice": "實用建議"
+        },
+        "privacy": {
+            "title": "隱私與安全性"
+        },
+        "help": {
+            "title": "幫助"
+        }
+    },
+    "assistant": {
+        "memorySaved": "記憶已儲存",
+        "chatRenamed": "對話已重新命名",
+        "newChatTitle": "新對話",
+        "thinking": "正在思考...",
+        "search": {
+            "placeholder": "搜尋對話..."
+        },
+        "button": {
+            "newChat": "發起新對話",
+            "sendFirstMessage": "請先傳送訊息後再建立新對話",
+            "uploadImage": "上傳圖片",
+            "voiceInput": "語音輸入",
+            "sendMessage": "傳送訊息"
+        },
+        "connection": {
+            "connected": "已連線",
+            "connecting": "連線中",
+            "failed": "連線失敗"
+        },
+        "welcome": {
+            "title": "開始您的夢境探索之旅",
+            "subtitle": "描述您的夢境，或詢問夢境相關知識"
+        },
+        "image": {
+            "selectedAlt": "已選取 {index}"
+        },
+        "input": {
+            "placeholder": "請向夢境助理提問吧..."
+        },
+        "rename": {
+            "dialogTitle": "重新命名對話",
+            "title": "為對話輸入一個新的標題",
+            "placeholder": "輸入對話標題"
+        },
+        "delete": {
+            "dialogTitle": "刪除對話",
+            "confirmation": "確定要刪除這個對話嗎？此操作無法復原。"
+        },
+        "settings": {
+            "description": "設定AI助理",
+            "personalizeTab": "個人化",
+            "dataTab": "資料管理",
+            "securityTab": "安全",
+            "helpTab": "幫助",
+            "personalize": "自訂AI助理的行為和偏好",
+            "data": "管理您的對話資料和匯出選項",
+            "security": "隱私和安全相關設定",
+            "help": "取得幫助和支援資訊",
+            "dataExport": "匯出資料",
+            "dataExportDescription": "匯出您的對話記錄",
+            "privacyTitle": "隱私與安全",
+            "privacy": "管理資料隱私設定",
+            "helpAndSupport": "幫助與支援",
+            "helpAndSupportDescription": "檢視使用指南和常見問題",
+            "defaultName": "夢境助理",
+            "configUpdated": "設定已更新",
+            "updateConfigFailed": "更新設定失敗",
+            "assistantName": "助理名稱",
+            "assistantNamePlaceholder": "給您的助理取個名字",
+            "interpretationStyle": "解讀風格",
+            "styles": {
+                "professional": "專業學術",
+                "friendly": "親切友好",
+                "poetic": "詩意浪漫",
+                "balanced": "平衡綜合"
+            },
+            "preferredDimensions": "偏好解讀維度",
+            "preferredDimensionsDescription": "選擇夢境分析時重點解讀的維度（可多選）",
+            "dimensions": {
+                "psychological": "心理學分析",
+                "symbolic": "象徵學解讀",
+                "biological": "生物醫學角度",
+                "spiritual": "靈性維度",
+                "personalGrowth": "個人成長"
+            },
+            "languagePreference": "語言偏好",
+            "languagePreferenceDescription": "選擇AI助理回應時使用的語言",
+            "languages": {
+                "auto": "自動偵測",
+                "zh-CN": "簡體中文",
+                "en": "英文"
+            },
+            "creativityLevel": "創造力水平",
+            "responseLength": "回覆長度",
+            "lengths": {
+                "concise": "簡潔",
+                "medium": "適中",
+                "detailed": "詳細"
+            },
+            "autoGenerateImage": "自動生成夢境圖像",
+            "enableFollowUp": "啟用追問功能",
+            "saveSettings": "儲存設定"
+        },
+        "deleteAll": {
+            "title": "刪除所有對話",
+            "description": "清空所有聊天記錄，無法恢復",
+            "noChats": "沒有可刪除的對話",
+            "confirmation": "確定要刪除所有 {count} 個對話嗎？此操作無法復原！",
+            "button": "全部刪除"
+        },
+        "error": {
+            "invalidTitle": "請輸入有效的對話標題",
+            "titleTooLong": "對話標題不能超過100個字元",
+            "emptyMessage": "訊息內容不能為空，請輸入文字或選擇圖片",
+            "connectionLost": "網路連線中斷，請稍後再試",
+            "chatStateError": "對話狀態異常，請重新整理頁面再試",
+            "voiceNotSupported": "您的瀏覽器不支援語音輸入",
+            "voiceRecognitionError": "語音辨識錯誤："
+        }
+    },
+    "footer": {
+        "product": {
+            "title": "產品功能",
+            "smartRecord": "智能記錄",
+            "dreamAnalysis": "夢境解析",
+            "aiAssistant": "AI助手",
+            "statistics": "數據統計",
+            "dreamManagement": "夢境管理"
+        },
+        "support": {
+            "title": "幫助支持",
+            "userGuide": "使用指南",
+            "faq": "常見問題",
+            "contact": "聯繫我們",
+            "feedback": "反饋建議",
+            "onlineSupport": "線上客服"
+        },
+        "legal": {
+            "title": "法律資訊",
+            "privacy": "隱私政策",
+            "terms": "服務條款",
+            "cookies": "Cookie政策",
+            "disclaimer": "免責聲明"
+        },
+        "social": {
+            "title": "關注我們",
+            "weibo": "官方微博",
+            "wechat": "微信公眾號",
+            "qq": "QQ群",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "探索夢境的無限可能"
+        },
+        "copyright": {
+            "tech": "基於React 19與AI技術構建"
+        }
     }
 }

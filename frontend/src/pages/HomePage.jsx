@@ -265,45 +265,6 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* CTA区域 */}
-            <section className="relative py-24 px-6">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    className="max-w-4xl mx-auto text-center"
-                >
-                    <div className="relative p-12 rounded-3xl bg-gradient-to-r from-purple-600/20 to-pink-600/20 dark:from-purple-900/30 dark:to-pink-900/30 backdrop-blur-sm border border-white/10 dark:border-gray-700/30">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white dark:text-white light:text-gray-900 mb-6">
-                            {t('home.welcome', '欢迎来到 Dream Log')}
-                        </h2>
-                        <p className="text-xl text-gray-300 dark:text-gray-400 light:text-gray-600 mb-10 max-w-2xl mx-auto">
-                            {t('home.subtitle', '探索梦境的神秘世界，解锁潜意识的智慧')}
-                        </p>
-                        <motion.button
-                            onClick={handleExploreClick}
-                            disabled={isPending}
-                            whileHover={!isPending ? { scale: 1.05 } : {}}
-                            whileTap={!isPending ? { scale: 0.95 } : {}}
-                            className={`px-10 py-4 rounded-xl bg-white text-gray-900 font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ${isPending ? 'opacity-75' : ''
-                                }`}
-                        >
-                            <span className="flex items-center gap-2">
-                                {isPending && (
-                                    <motion.div
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                        className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full"
-                                    />
-                                )}
-                                {isPending ? t('common.loading', '正在跳转...') : t('home.cta.primary', '开始记录梦境')}
-                            </span>
-                        </motion.button>
-                    </div>
-                </motion.div>
-            </section>
-
             {/* 现代化页脚 */}
             <ModernFooter />
         </div>

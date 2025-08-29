@@ -70,13 +70,25 @@
             "bedtime": "就寝時間",
             "wakeTime": "起床時間",
             "personalNotesPlaceholder": "個人的な考え、感情、その他のメモを記録...",
-            "personalNotes": "個人メモ",
+            "isRecurring": "これは繰り返しの夢です",
+            "recurringPlaceholder": "繰り返し現れる要素を説明...",
+            "recurringLimitError": "繰り返し要素は10文字を超えることはできません",
+            "generateTitle": "AIで夢のタイトルを生成",
+            "generate": "AI生成",
+            "titleGenContentTooShort": "夢の内容が短すぎて、高品質なタイトルを生成できません",
+            "titleGenSuccess": "AIタイトル生成成功！",
+            "titleGenFailed": "タイトルの生成に失敗しました",
+            "titleGenFailedRetry": "タイトルの生成に失敗しました、再試行してください",
             "characteristics": "夢の特徴",
-            "mood": "感情",
+            "mood": "気分",
             "sleepInfo": "睡眠情報",
             "privacy": "プライバシー設定",
-            "whoCanView": "この夢を誰が見ることができますか",
-            "isRecurring": "これは繰り返しの夢です",
+            "whoCanView": "誰がこの夢を見ることができますか",
+            "personalNotes": "個人メモ",
+            "selectMood": "気分を選択",
+            "selectSleepQuality": "睡眠の質を選択",
+            "sleepInformation": "睡眠情報",
+            "personalNotesLabel": "個人メモ",
             "recurringPlaceholder": "繰り返し要素を説明...",
             "recurringLimitError": "繰り返し要素は10文字以内である必要があります",
             "generateTitle": "AIで夢のタイトルを生成",
@@ -131,58 +143,6 @@
                 "max": "超鮮明"
             }
         }
-    },
-    "detail": {
-        "pageTitle": "夢の詳細 - Dream Log",
-        "loading": "読み込み中...",
-        "notFound": "夢が見つかりません",
-        "backButton": "戻る",
-        "actions": {
-            "edit": "編集",
-            "delete": "削除",
-            "analyze": "AI分析"
-        },
-        "sections": {
-            "overview": "概要",
-            "content": "内容",
-            "emotions": "感情",
-            "details": "詳細",
-            "interpretation": "解釈",
-            "analysis": "AI分析"
-        },
-        "sleep": {
-            "duration": "睡眠時間",
-            "bedtime": "就寝時間",
-            "wakeupTime": "起床時間",
-            "quality": "睡眠の質"
-        },
-        "interpretation": {
-            "title": "あなたの解釈",
-            "placeholder": "この夢についてのあなたの考えや感じたことを書いてください...",
-            "edit": "編集",
-            "save": "保存",
-            "cancel": "キャンセル",
-            "empty": "まだ解釈がありません",
-            "emptyDescription": "この夢についてのあなたの考えを追加してください"
-        }
-    },
-    "categories": {
-        "normal": "普通の夢",
-        "lucid": "明晰夢",
-        "nightmare": "悪夢",
-        "recurring": "繰り返しの夢",
-        "prophetic": "予知夢",
-        "healing": "癒しの夢",
-        "spiritual": "霊的な夢",
-        "creative": "創造的な夢",
-        "hypnagogic": "入眠幻覚",
-        "hypnopompic": "覚醒幻覚",
-        "sleep_paralysis": "睡眠麻痺",
-        "false_awakening": "偽の目覚め",
-        "anxiety": "不安の夢",
-        "joyful": "喜びの夢",
-        "melancholic": "憂鬱な夢",
-        "adventure": "冒険の夢"
     },
     "categoryDescriptions": {
         "normal": "特別な特徴のない通常の夢",
@@ -248,6 +208,9 @@
         "modeOrDescription": "いずれかのカテゴリを含む"
     },
     "detail": {
+        "title": "夢の詳細",
+        "subtitle": "夢の詳細と分析を表示",
+        "keywords": "夢,詳細,分析",
         "pageTitle": "夢の詳細 - Dream Log",
         "loading": "読み込み中...",
         "notFound": "夢が見つかりません",

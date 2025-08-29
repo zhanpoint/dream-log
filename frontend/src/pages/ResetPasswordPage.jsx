@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
 import { useI18nContext } from "@/contexts/I18nContext";
-import { AuthLanguageSwitcher } from "@/components/auth/AuthLanguageSwitcher";
 import "@/styles/features/auth.css";
 
 /**
@@ -27,7 +26,7 @@ export function ResetPasswordPage() {
                         <span className="auth-logo-text">Dreamlog</span>
                     </Link>
 
-                    <AuthLanguageSwitcher />
+                    <div className="w-20" />
                 </div>
             </header>
 

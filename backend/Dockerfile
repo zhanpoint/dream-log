@@ -8,6 +8,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libmariadb-dev \
+    libpq-dev \
     pkg-config \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -41,6 +42,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     dos2unix \
     libmariadb3 \
+    libpq5 \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

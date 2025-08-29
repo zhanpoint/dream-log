@@ -180,12 +180,12 @@ export function ResetPasswordForm() {
     // 发送手机验证码
     const handleSendPhoneVerificationCode = async () => {
         if (!phoneFormData.phone) {
-            setErrors(prev => ({ ...prev, phone: "请输入手机号" }));
+            setErrors(prev => ({ ...prev, phone: t('auth.resetPassword.validation.phoneRequired', '请输入手机号') }));
             return;
         }
 
         if (!/^1[3-9]\d{9}$/.test(phoneFormData.phone)) {
-            setErrors(prev => ({ ...prev, phone: "请输入有效的手机号" }));
+            setErrors(prev => ({ ...prev, phone: t('auth.resetPassword.validation.phoneInvalid', '请输入有效的手机号') }));
             return;
         }
 
@@ -194,14 +194,14 @@ export function ResetPasswordForm() {
             const response = await smsService.sendVerificationCode(phoneFormData.phone, 'reset_password');
 
             if (response.data.code === 200) {
-                notification.success("验证码发送成功，请查收短信");
+                notification.success(t('auth.messages.success.codeSent', '验证码发送成功，请查收短信'));
                 setPhoneCountdown(60);
                 setErrors(prev => ({ ...prev, phone: "" }));
             } else {
-                notification.warning(response.data.message || "验证码发送可能失败，请稍后再试");
+                notification.warning(response.data.message || t('auth.messages.error.codeSendFailed', '验证码发送可能失败，请稍后再试'));
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
+            const errorMessage = error.response?.data?.message || t('auth.messages.error.codeSendGenericFail', '发送验证码失败，请稍后再试');
             notification.error(errorMessage);
             setErrors(prev => ({ ...prev, phone: errorMessage }));
         } finally {
@@ -212,12 +212,12 @@ export function ResetPasswordForm() {
     // 发送邮箱验证码
     const handleSendEmailVerificationCode = async () => {
         if (!emailFormData.email) {
-            setErrors(prev => ({ ...prev, email: "请输入邮箱地址" }));
+            setErrors(prev => ({ ...prev, email: t('auth.resetPassword.validation.emailRequired', '请输入邮箱地址') }));
             return;
         }
 
         if (!emailService.validateEmail(emailFormData.email)) {
-            setErrors(prev => ({ ...prev, email: "请输入有效的邮箱地址" }));
+            setErrors(prev => ({ ...prev, email: t('auth.resetPassword.validation.emailInvalid', '请输入有效的邮箱地址') }));
             return;
         }
 
@@ -226,14 +226,14 @@ export function ResetPasswordForm() {
             const response = await emailService.sendVerificationCode(emailFormData.email, 'reset_password');
 
             if (response.data.code === 200) {
-                notification.success("验证码发送成功，请查收邮箱");
+                notification.success(t('auth.messages.success.codeSent', '验证码发送成功，请查收邮箱'));
                 setEmailCountdown(60);
                 setErrors(prev => ({ ...prev, email: "" }));
             } else {
-                notification.warning(response.data.message || "验证码发送可能失败，请稍后再试");
+                notification.warning(response.data.message || t('auth.messages.error.codeSendFailed', '验证码发送可能失败，请稍后再试'));
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "发送验证码失败，请稍后再试";
+            const errorMessage = error.response?.data?.message || t('auth.messages.error.codeSendFailed', '发送验证码失败，请稍后再试');
             notification.error(errorMessage);
             setErrors(prev => ({ ...prev, email: errorMessage }));
         } finally {
@@ -378,7 +378,7 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-verificationCode">验证码</Label>
+                                    <Label htmlFor="phone-verificationCode">{t('auth.resetPassword.form.verificationCode', '验证码')}</Label>
                                     <div className="verification-container">
                                         <div className="input-container flex-1">
                                             <Shield className="input-icon" />
@@ -386,7 +386,7 @@ export function ResetPasswordForm() {
                                                 id="phone-verificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.resetPassword.placeholders.verificationCode', '请输入验证码')}
                                                 value={phoneFormData.verificationCode}
                                                 onChange={handlePhoneFormChange}
                                                 className={`verification-input ${errors.verificationCode ? 'input-error' : ''}`}
@@ -407,14 +407,14 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-newPassword">新密码</Label>
+                                    <Label htmlFor="phone-newPassword">{t('auth.resetPassword.form.newPassword', '新密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="phone-newPassword"
                                             name="newPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请输入新密码"
+                                            placeholder={t('auth.resetPassword.placeholders.newPassword', '请输入新密码')}
                                             value={phoneFormData.newPassword}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.newPassword ? 'input-error' : ''}`}
@@ -435,14 +435,14 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone-confirmPassword">确认新密码</Label>
+                                    <Label htmlFor="phone-confirmPassword">{t('auth.resetPassword.form.confirmPassword', '确认新密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="phone-confirmPassword"
                                             name="confirmPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请再次输入新密码"
+                                            placeholder={t('auth.resetPassword.placeholders.confirmPassword', '请再次输入新密码')}
                                             value={phoneFormData.confirmPassword}
                                             onChange={handlePhoneFormChange}
                                             className={`input ${errors.confirmPassword ? 'input-error' : ''}`}
@@ -471,9 +471,9 @@ export function ResetPasswordForm() {
                         <TabsContent value="email" className="space-y-4">
                             <form onSubmit={handleEmailSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-address">邮箱地址</Label>
+                                    <Label htmlFor="email-address">{t('auth.resetPassword.form.email', '邮箱地址')}</Label>
                                     <p className="text-sm text-muted-foreground mb-2">
-                                        支持使用主邮箱或备用邮箱重置密码
+                                        {t('auth.resetPassword.form.supportNote', '支持使用主邮箱或备用邮箱重置密码')}
                                     </p>
                                     <div className="input-container">
                                         <Mail className="input-icon" />
@@ -481,7 +481,7 @@ export function ResetPasswordForm() {
                                             id="email-address"
                                             name="email"
                                             type="email"
-                                            placeholder="请输入邮箱地址"
+                                            placeholder={t('auth.resetPassword.placeholders.email', '请输入邮箱地址')}
                                             value={emailFormData.email}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.email ? 'input-error' : ''}`}
@@ -493,7 +493,7 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-verificationCode">验证码</Label>
+                                    <Label htmlFor="email-verificationCode">{t('auth.resetPassword.form.verificationCode', '验证码')}</Label>
                                     <div className="verification-container">
                                         <div className="input-container flex-1">
                                             <Shield className="input-icon" />
@@ -501,7 +501,7 @@ export function ResetPasswordForm() {
                                                 id="email-verificationCode"
                                                 name="verificationCode"
                                                 type="text"
-                                                placeholder="请输入验证码"
+                                                placeholder={t('auth.resetPassword.placeholders.verificationCode', '请输入验证码')}
                                                 value={emailFormData.verificationCode}
                                                 onChange={handleEmailFormChange}
                                                 className={`verification-input ${errors.verificationCode ? 'input-error' : ''}`}
@@ -522,14 +522,14 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-newPassword">新密码</Label>
+                                    <Label htmlFor="email-newPassword">{t('auth.resetPassword.form.newPassword', '新密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="email-newPassword"
                                             name="newPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请输入新密码"
+                                            placeholder={t('auth.resetPassword.placeholders.newPassword', '请输入新密码')}
                                             value={emailFormData.newPassword}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.newPassword ? 'input-error' : ''}`}
@@ -550,14 +550,14 @@ export function ResetPasswordForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-confirmPassword">确认新密码</Label>
+                                    <Label htmlFor="email-confirmPassword">{t('auth.resetPassword.form.confirmPassword', '确认新密码')}</Label>
                                     <div className="input-container">
                                         <Lock className="input-icon" />
                                         <Input
                                             id="email-confirmPassword"
                                             name="confirmPassword"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="请再次输入新密码"
+                                            placeholder={t('auth.resetPassword.placeholders.confirmPassword', '请再次输入新密码')}
                                             value={emailFormData.confirmPassword}
                                             onChange={handleEmailFormChange}
                                             className={`input ${errors.confirmPassword ? 'input-error' : ''}`}

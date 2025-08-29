@@ -20,6 +20,9 @@ class Command(BaseCommand):
     python manage.py setup_periodic_tasks --overwrite
     """
     help = "Sets up the periodic tasks for Celery Beat from the project's configuration."
+    
+    # 标记此命令对部署安全（支持幂等性操作和重试机制）
+    SAFE_FOR_DEPLOYMENT = False
 
     def add_arguments(self, parser):
         parser.add_argument(

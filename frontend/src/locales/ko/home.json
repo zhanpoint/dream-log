@@ -1,17 +1,46 @@
 {
-    "title": "Dream Log - 꿈 일기",
-    "description": "Dream Log - 꿈을 기록, 분석 및 해석하세요",
-    "keywords": "꿈, 일기, AI, 심리학, 꿈 해석",
+    "pageTitle": "Dream Log - 꿈의 여행을 기록하세요",
+    "pageDescription": "AI를 활용한 꿈 일기로 잠재의식을 탐험하고 꿈의 의미를 발견하세요",
+    "pageKeywords": "꿈 일기, 꿈 분석, AI, 잠재의식, 꿈 해석",
     "welcome": "Dream Log에 오신 것을 환영합니다",
-    "subtitle": "꿈의 신비한 세계를 탐험하고 잠재의식의 지혜를 발견하세요",
+    "subtitle": "꿈의 여행을 기록하고 발견하세요",
+    "description": "AI를 활용한 꿈 일기로 잠재의식을 탐험하고 꿈의 의미를 발견하세요",
     "badge": "AI 기반 꿈 해석 플랫폼",
     "cta": {
         "primary": "꿈 기록 시작하기",
-        "secondary": "자세히 알아보기"
+        "secondary": "자세히 알아보기",
+        "getStarted": "시작하기",
+        "learnMore": "자세히 보기",
+        "signUp": "무료로 시작하기",
+        "login": "로그인"
     },
     "features": {
-        "title": "Dream Log를 선택하는 이유",
+        "title": "Dream Log의 특징",
         "subtitle": "전문적인 꿈 분석 도구로 꿈의 세계를 깊이 이해하세요",
+        "ai": {
+            "title": "AI 꿈 분석",
+            "description": "고급 AI가 꿈의 상징과 의미를 분석하여 깊은 통찰을 제공합니다"
+        },
+        "journal": {
+            "title": "디지털 꿈 일기",
+            "description": "아름답고 직관적인 인터페이스로 꿈을 기록하고 정리할 수 있습니다"
+        },
+        "insights": {
+            "title": "개인 통찰",
+            "description": "꿈의 패턴을 추적하고 개인 성장과 자기 발견을 지원합니다"
+        },
+        "community": {
+            "title": "커뮤니티",
+            "description": "다른 꿈 애호가들과 경험을 공유하고 함께 배우세요"
+        },
+        "privacy": {
+            "title": "프라이버시 중시",
+            "description": "귀하의 꿈은 안전하게 보호되고 프라이버시가 지켜집니다"
+        },
+        "statistics": {
+            "title": "통계 및 트렌드",
+            "description": "꿈의 경향을 시각화하고 패턴을 발견할 수 있습니다"
+        },
         "items": {
             "record": {
                 "title": "스마트 기록",
@@ -30,5 +59,32 @@
                 "description": "꿈의 패턴, 빈도 및 주제 트렌드를 시각적으로 표시합니다"
             }
         }
+    },
+    "testimonials": {
+        "title": "사용자 후기",
+        "user1": {
+            "name": "김철수님",
+            "quote": "Dream Log 덕분에 자신의 꿈 패턴을 볼 수 있게 되었습니다."
+        },
+        "user2": {
+            "name": "이영희님",
+            "quote": "AI 분석이 매우 흥미롭고 꿈의 새로운 의미를 발견할 수 있었습니다."
+        },
+        "user3": {
+            "name": "박민수님",
+            "quote": "사용하기 쉽고 아름다운 인터페이스가 마음에 듭니다."
+        }
+    },
+    "stats": {
+        "users": "활성 사용자",
+        "dreams": "기록된 꿈",
+        "analysis": "AI 분석 횟수",
+        "accuracy": "해석 정확도",
+        "analyses": "AI 분석 횟수",
+        "countries": "지원 국가·지역"
+    },
+    "footer": {
+        "tagline": "꿈의 무한한 가능성을 탐험하세요",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
     }
 }

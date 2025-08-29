@@ -1,17 +1,46 @@
 {
-    "title": "Dream Log - Dream Journal",
-    "description": "Dream Log - Record, analyze and interpret your dreams, explore the mysterious world of the subconscious",
-    "keywords": "dreams,journal,AI,psychology,dream analysis,subconscious,sleep",
+    "pageTitle": "Dream Log - Record Your Dream Journey",
+    "pageDescription": "AI-powered dream journal to explore your subconscious and discover dream meanings",
+    "pageKeywords": "dream journal,dream analysis,AI,subconscious,dream interpretation",
     "welcome": "Welcome to Dream Log",
+    "subtitle": "Record and discover your dream journey",
+    "description": "AI-powered dream journal to explore your subconscious and discover dream meanings",
     "badge": "AI-Powered Dream Analysis Platform",
-    "subtitle": "Explore the mysterious world of dreams and unlock the wisdom of the subconscious",
     "cta": {
         "primary": "Start Recording Dreams",
-        "secondary": "Learn More"
+        "secondary": "Learn More",
+        "getStarted": "Get Started",
+        "learnMore": "Learn More",
+        "signUp": "Start Free",
+        "login": "Login"
     },
     "features": {
-        "title": "Why Choose Dream Log",
+        "title": "Dream Log Features",
         "subtitle": "Professional dream analysis tools to help you understand the world of dreams",
+        "ai": {
+            "title": "AI Dream Analysis",
+            "description": "Advanced AI analyzes dream symbols and meanings, providing deep insights"
+        },
+        "journal": {
+            "title": "Digital Dream Journal",
+            "description": "Beautiful and intuitive interface to record and organize dreams"
+        },
+        "insights": {
+            "title": "Personal Insights",
+            "description": "Track dream patterns, support personal growth and self-discovery"
+        },
+        "community": {
+            "title": "Community",
+            "description": "Share experiences with other dream enthusiasts and learn together"
+        },
+        "privacy": {
+            "title": "Privacy Focused",
+            "description": "Your dreams are securely protected and privacy is respected"
+        },
+        "statistics": {
+            "title": "Statistics and Trends",
+            "description": "Visualize dream trends and discover patterns"
+        },
         "items": {
             "record": {
                 "title": "Smart Recording",
@@ -31,14 +60,32 @@
             }
         }
     },
+    "testimonials": {
+        "title": "User Reviews",
+        "subtitle": "See how other users explore their dream world through Dream Log",
+        "user1": {
+            "name": "Mr. Zhang",
+            "quote": "Dream Log helped me see my dream patterns."
+        },
+        "user2": {
+            "name": "Ms. Li",
+            "quote": "AI analysis is very interesting, I discovered new meanings in dreams."
+        },
+        "user3": {
+            "name": "Mr. Wang",
+            "quote": "Easy to use and beautiful interface, I'm very satisfied."
+        }
+    },
     "stats": {
         "users": "Active Users",
         "dreams": "Dreams Recorded",
-        "analysis": "AI Analyses",
-        "accuracy": "Analysis Accuracy"
+        "analysis": "AI Analysis Count",
+        "accuracy": "Analysis Accuracy",
+        "analyses": "AI Analyses",
+        "countries": "Supported Countries/Regions"
     },
-    "testimonials": {
-        "title": "User Reviews",
-        "subtitle": "See how other users explore their dream world through Dream Log"
+    "footer": {
+        "tagline": "Explore the infinite possibilities of dreams",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
     }
 }

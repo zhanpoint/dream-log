@@ -4,6 +4,9 @@ from apps.dream.models import DreamCategory
 
 class Command(BaseCommand):
     help = '创建默认的梦境分类'
+    
+    # 标记此命令对部署安全（使用get_or_create确保幂等性）
+    SAFE_FOR_DEPLOYMENT = True
 
     def handle(self, *args, **options):
         # 定义所有分类

@@ -45,7 +45,7 @@ const SleepTrendLineChart = ({ data = { dates: [], quality: [], duration: [] } }
                 type: 'category',
                 data: data.dates,
                 axisLabel: {
-                    color: 'hsl(var(--foreground) / 0.7)',
+                    color: 'hsl(var(--foreground) / 0.9)',
                     fontSize: 11,
                     fontWeight: 500,
                     rotate: window.innerWidth < 768 ? 45 : 30,
@@ -61,12 +61,17 @@ const SleepTrendLineChart = ({ data = { dates: [], quality: [], duration: [] } }
                 {
                     type: 'value',
                     name: t('statistics.sleepQuality', '睡眠质量'),
+                    nameTextStyle: {
+                        color: 'hsl(var(--foreground) / 0.95)',
+                        fontSize: 12,
+                        fontWeight: 500,
+                    },
                     position: 'left',
                     min: 0,
                     max: 5,
                     interval: 1,
                     axisLabel: {
-                        color: 'hsl(var(--foreground) / 0.8)',
+                        color: 'hsl(var(--foreground) / 0.95)',
                         fontSize: 11,
                         fontWeight: 500,
                         formatter: '{value}',
@@ -86,12 +91,17 @@ const SleepTrendLineChart = ({ data = { dates: [], quality: [], duration: [] } }
                 {
                     type: 'value',
                     name: t('statistics.sleepDurationHours', '睡眠时长(小时)'),
+                    nameTextStyle: {
+                        color: 'hsl(var(--foreground) / 0.95)',
+                        fontSize: 12,
+                        fontWeight: 500,
+                    },
                     position: 'right',
                     min: 0,
                     max: 12,
                     interval: 2,
                     axisLabel: {
-                        color: 'hsl(var(--foreground) / 0.8)',
+                        color: 'hsl(var(--foreground) / 0.95)',
                         fontSize: 11,
                         fontWeight: 500,
                         formatter: '{value}h',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext.jsx';
+import { useI18nContext } from '@/contexts/I18nContext';
 
 /**
  * 现代化页脚组件
@@ -8,44 +9,45 @@ import { useTheme } from '@/contexts/ThemeContext.jsx';
  */
 const ModernFooter = () => {
     const { theme } = useTheme();
+    const { t } = useI18nContext();
 
     const footerLinks = {
         product: {
-            title: "产品功能",
+            title: t('footer.product.title', '产品功能'),
             links: [
-                { name: "智能记录", href: "#features" },
-                { name: "梦境解析", href: "#analysis" },
-                { name: "AI 助手", href: "/assistant" },
-                { name: "数据统计", href: "/statistics" },
-                { name: "梦境管理", href: "/my-dreams" }
+                { name: t('footer.product.smartRecord', '智能记录'), href: "#features" },
+                { name: t('footer.product.dreamAnalysis', '梦境解析'), href: "#analysis" },
+                { name: t('footer.product.aiAssistant', 'AI 助手'), href: "/assistant" },
+                { name: t('footer.product.statistics', '数据统计'), href: "/statistics" },
+                { name: t('footer.product.dreamManagement', '梦境管理'), href: "/my-dreams" }
             ]
         },
         support: {
-            title: "帮助支持",
+            title: t('footer.support.title', '帮助支持'),
             links: [
-                { name: "使用指南", href: "#guide" },
-                { name: "常见问题", href: "#faq" },
-                { name: "联系我们", href: "#contact" },
-                { name: "反馈建议", href: "#feedback" },
-                { name: "在线客服", href: "#support" }
+                { name: t('footer.support.userGuide', '使用指南'), href: "#guide" },
+                { name: t('footer.support.faq', '常见问题'), href: "#faq" },
+                { name: t('footer.support.contact', '联系我们'), href: "#contact" },
+                { name: t('footer.support.feedback', '反馈建议'), href: "#feedback" },
+                { name: t('footer.support.onlineSupport', '在线客服'), href: "#support" }
             ]
         },
         legal: {
-            title: "法律信息",
+            title: t('footer.legal.title', '法律信息'),
             links: [
-                { name: "隐私政策", href: "#privacy" },
-                { name: "服务条款", href: "#terms" },
-                { name: "Cookie 政策", href: "#cookies" },
-                { name: "免责声明", href: "#disclaimer" }
+                { name: t('footer.legal.privacy', '隐私政策'), href: "#privacy" },
+                { name: t('footer.legal.terms', '服务条款'), href: "#terms" },
+                { name: t('footer.legal.cookies', 'Cookie 政策'), href: "#cookies" },
+                { name: t('footer.legal.disclaimer', '免责声明'), href: "#disclaimer" }
             ]
         },
         social: {
-            title: "关注我们",
+            title: t('footer.social.title', '关注我们'),
             links: [
-                { name: "官方微博", href: "#weibo", icon: "📱" },
-                { name: "微信公众号", href: "#wechat", icon: "💬" },
-                { name: "QQ 群", href: "#qq", icon: "👥" },
-                { name: "GitHub", href: "#github", icon: "⚡" }
+                { name: t('footer.social.weibo', '官方微博'), href: "#weibo", icon: "📱" },
+                { name: t('footer.social.wechat', '微信公众号'), href: "#wechat", icon: "💬" },
+                { name: t('footer.social.qq', 'QQ 群'), href: "#qq", icon: "👥" },
+                { name: t('footer.social.github', 'GitHub'), href: "#github", icon: "⚡" }
             ]
         }
     };
@@ -138,7 +140,7 @@ const ModernFooter = () => {
                                 Dream Log
                             </h4>
                             <p className="text-gray-300 dark:text-gray-300 light:text-gray-700 text-sm">
-                                探索梦境的无限可能
+                                {t('footer.brand.tagline', '探索梦境的无限可能')}
                             </p>
                         </div>
                     </div>
@@ -146,7 +148,7 @@ const ModernFooter = () => {
                     {/* 版权信息 */}
                     <div className="text-center md:text-right space-y-2">
                         <p className="text-gray-300 dark:text-gray-300 light:text-gray-700 text-sm">
-                            © {new Date().getFullYear()} Dream Log. using React 19 & AI Technology.
+                            © {new Date().getFullYear()} Dream Log. {t('footer.copyright.tech', 'using React 19 & AI Technology')}.
                         </p>
                         <div className="flex flex-col md:flex-row md:justify-end items-center gap-2 text-xs">
                             <a

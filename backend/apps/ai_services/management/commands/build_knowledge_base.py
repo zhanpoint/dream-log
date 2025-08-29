@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = '通过Celery异步任务构建梦境知识库'
     
+    # 标记此命令对部署安全（异步任务，不会阻塞部署）
+    SAFE_FOR_DEPLOYMENT = False
+    
     def add_arguments(self, parser):
         """
         添加命令行参数

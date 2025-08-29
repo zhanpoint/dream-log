@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { DualLoginForm } from "@/features/auth/components/DualLoginForm";
 import { useI18nContext } from "@/contexts/I18nContext";
-import { AuthLanguageSwitcher } from "@/components/auth/AuthLanguageSwitcher";
 import "@/styles/features/auth.css";
 
 /**
@@ -27,7 +26,7 @@ function LoginPage() {
                         <span className="auth-logo-text">Dreamlog</span>
                     </Link>
 
-                    <AuthLanguageSwitcher />
+                    <div className="w-20" />
                 </div>
             </header>
 

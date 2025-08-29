@@ -10,6 +10,20 @@
         "register": "Register",
         "logout": "Logout"
     },
+    "knowledge": {
+        "science": {
+            "title": "Dream Science",
+            "description": "Understand the scientific principles behind dreams"
+        },
+        "symbols": {
+            "title": "Dream Symbolism",
+            "description": "Explore the meanings of symbols in dreams"
+        },
+        "techniques": {
+            "title": "Dream Techniques",
+            "description": "Learn techniques for remembering and controlling dreams"
+        }
+    },
     "common": {
         "save": "Save",
         "saving": "Saving...",
@@ -283,12 +297,152 @@
         "keywords": "dreams,statistics,analysis,data"
     },
     "assistant": {
+        "memorySaved": "Memory saved",
+        "chatRenamed": "Chat renamed",
+        "newChatTitle": "New Chat",
         "thinking": "Thinking...",
+        "search": {
+            "placeholder": "Search conversations..."
+        },
+        "button": {
+            "newChat": "New Chat",
+            "sendFirstMessage": "Please send a message first to create a new chat",
+            "uploadImage": "Upload Image",
+            "voiceInput": "Voice Input",
+            "sendMessage": "Send Message"
+        },
+        "connection": {
+            "connected": "Connected",
+            "connecting": "Connecting",
+            "failed": "Connection Failed"
+        },
+        "welcome": {
+            "title": "Begin your dream exploration journey",
+            "subtitle": "Describe your dream, or ask about dream-related knowledge"
+        },
+        "image": {
+            "selectedAlt": "Selected {index}"
+        },
+        "input": {
+            "placeholder": "Ask the Dream Assistant..."
+        },
+        "rename": {
+            "dialogTitle": "Rename Chat",
+            "title": "Enter a new title for the chat",
+            "placeholder": "Enter chat title"
+        },
+        "delete": {
+            "dialogTitle": "Delete Chat",
+            "confirmation": "Are you sure you want to delete this chat? This action cannot be undone."
+        },
         "settings": {
+            "description": "Configure AI assistant settings",
+            "personalizeTab": "Personalization",
+            "dataTab": "Data Management",
+            "securityTab": "Security",
+            "helpTab": "Help",
+            "personalize": "Customize the behavior and preferences of the AI assistant",
+            "data": "Manage your conversation data and export options",
+            "security": "Privacy and security related settings",
+            "help": "Get help and support information",
             "dataExport": "Export Data",
             "dataExportDescription": "Export your conversation records",
+            "privacyTitle": "Privacy & Security",
+            "privacy": "Manage data privacy settings",
             "helpAndSupport": "Help & Support",
-            "helpAndSupportDescription": "View user guides and FAQs"
+            "helpAndSupportDescription": "View user guides and FAQs",
+            "defaultName": "Dream Assistant",
+            "configUpdated": "Configuration updated",
+            "updateConfigFailed": "Failed to update configuration",
+            "assistantName": "Assistant Name",
+            "assistantNamePlaceholder": "Give your assistant a name",
+            "interpretationStyle": "Interpretation Style",
+            "styles": {
+                "professional": "Professional/Academic",
+                "friendly": "Friendly/Approachable",
+                "poetic": "Poetic/Romantic",
+                "balanced": "Balanced/Comprehensive"
+            },
+            "preferredDimensions": "Preferred Interpretation Dimensions",
+            "preferredDimensionsDescription": "Choose dimensions to focus on during dream analysis (multiple can be selected)",
+            "dimensions": {
+                "psychological": "Psychological Analysis",
+                "symbolic": "Symbolic Interpretation",
+                "biological": "Biomedical Perspective",
+                "spiritual": "Spiritual Dimension",
+                "personalGrowth": "Personal Growth"
+            },
+            "languagePreference": "Language Preference",
+            "languagePreferenceDescription": "Choose the language for AI assistant's responses",
+            "languages": {
+                "auto": "Auto-detect",
+                "zh-CN": "Simplified Chinese",
+                "en": "English"
+            },
+            "creativityLevel": "Creativity Level",
+            "responseLength": "Response Length",
+            "lengths": {
+                "concise": "Concise",
+                "medium": "Medium",
+                "detailed": "Detailed"
+            },
+            "autoGenerateImage": "Automatically generate dream images",
+            "enableFollowUp": "Enable follow-up questions",
+            "saveSettings": "Save Settings"
+        },
+        "deleteAll": {
+            "title": "Delete All Chats",
+            "description": "Clears all chat history, cannot be recovered",
+            "noChats": "No chats to delete",
+            "confirmation": "Are you sure you want to delete all {count} chats? This action cannot be undone!",
+            "button": "Delete All"
+        },
+        "error": {
+            "invalidTitle": "Please enter a valid chat title",
+            "titleTooLong": "Chat title cannot exceed 100 characters",
+            "emptyMessage": "Message content cannot be empty, please enter text or select an image",
+            "connectionLost": "Network connection lost, please try again later",
+            "chatStateError": "Chat state is abnormal, please refresh the page and try again",
+            "voiceNotSupported": "Your browser does not support voice input",
+            "voiceRecognitionError": "Voice recognition error: "
+        }
+    },
+    "footer": {
+        "product": {
+            "title": "Product Features",
+            "smartRecord": "Smart Recording",
+            "dreamAnalysis": "Dream Analysis",
+            "aiAssistant": "AI Assistant",
+            "statistics": "Statistics",
+            "dreamManagement": "Dream Management"
+        },
+        "support": {
+            "title": "Help & Support",
+            "userGuide": "User Guide",
+            "faq": "FAQ",
+            "contact": "Contact Us",
+            "feedback": "Feedback",
+            "onlineSupport": "Online Support"
+        },
+        "legal": {
+            "title": "Legal Information",
+            "privacy": "Privacy Policy",
+            "terms": "Terms of Service",
+            "cookies": "Cookie Policy",
+            "disclaimer": "Disclaimer"
+        },
+        "social": {
+            "title": "Follow Us",
+            "weibo": "Official Weibo",
+            "wechat": "WeChat Official Account",
+            "qq": "QQ Group",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "Explore Infinite Possibilities of Dreams"
+        },
+        "copyright": {
+            "tech": "Built with React 19 & AI Technology"
         }
     }
 }

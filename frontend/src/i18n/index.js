@@ -60,7 +60,7 @@ export const SUPPORTED_LANGUAGES = {
 /**
  * 默认命名空间
  */
-export const DEFAULT_NAMESPACES = ['common', 'dreams', 'auth', 'settings'];
+export const DEFAULT_NAMESPACES = ['common', 'dreams', 'auth', 'settings', 'home'];
 
 /**
  * 语言检测配置

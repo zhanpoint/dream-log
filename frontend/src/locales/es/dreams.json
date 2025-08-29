@@ -60,6 +60,7 @@
             "contentPlaceholder": "Comienza a registrar tu sueño...",
             "categories": "Categorías",
             "tags": "Etiquetas",
+            "tagPlaceholder": "Agregar etiquetas...",
             "lucidity": "Claridad",
             "vividness": "Nitidez",
             "moodBeforeSleep": "Estado de Ánimo Antes de Dormir",
@@ -80,8 +81,16 @@
             "titleGenSuccess": "¡Título generado por IA con éxito!",
             "titleGenFailed": "Error al generar el título",
             "titleGenFailedRetry": "Error al generar el título, inténtalo de nuevo",
+            "characteristics": "Características del Sueño",
+            "mood": "Estado de Ánimo",
+            "sleepInfo": "Información del Sueño",
+            "privacy": "Configuración de Privacidad",
+            "whoCanView": "¿Quién puede ver este sueño?",
+            "personalNotes": "Notas Personales",
             "selectMood": "Seleccionar estado de ánimo",
             "selectSleepQuality": "Seleccionar calidad del sueño",
+            "sleepInformation": "Información del Sueño",
+            "personalNotesLabel": "Notas Personales",
             "categoryHelp": {
                 "title": "Guía de Categorías de Sueños",
                 "description": "Elige la categoría que mejor se ajuste a las características de tu sueño:"
@@ -140,48 +149,6 @@
         "action": "Acción",
         "weather": "Clima"
     },
-    "detail": {
-        "pageTitle": "Detalles del Sueño - Dream Log",
-        "loading": "Cargando...",
-        "notFound": "Sueño no encontrado",
-        "backButton": "Volver",
-        "actions": {
-            "edit": "Editar",
-            "delete": "Eliminar",
-            "analyze": "Análisis IA"
-        },
-        "emotion": {
-            "beforeSleep": "Antes de Dormir",
-            "inDream": "En el Sueño",
-            "afterWaking": "Después de Despertar"
-        },
-        "sleepQuality": "Calidad del Sueño",
-        "sleepTime": "Hora del Sueño",
-        "sleepDuration": "Duración del Sueño",
-        "lucidity": "Claridad",
-        "clarity": "Nitidez",
-        "hoverDetails": "Pasa el mouse para detalles",
-        "analysisPrompt": "Consulta los resultados del análisis de IA y combina con tu experiencia de vida para registrar tus ideas únicas sobre este sueño",
-        "deleteConfirmation": "¿Estás seguro de que quieres eliminar este registro de sueño? Esta acción no se puede deshacer."
-    },
-    "categories": {
-        "normal": "Sueño Normal",
-        "lucid": "Sueño Lúcido",
-        "nightmare": "Pesadilla",
-        "recurring": "Sueño Recurrente",
-        "prophetic": "Sueño Profético",
-        "healing": "Sueño Curativo",
-        "spiritual": "Sueño Espiritual",
-        "creative": "Sueño Creativo",
-        "hypnagogic": "Alucinación Hipnagógica",
-        "hypnopompic": "Alucinación Hipnopómpica",
-        "sleep_paralysis": "Parálisis del Sueño",
-        "false_awakening": "Despertar Falso",
-        "anxiety": "Sueño de Ansiedad",
-        "joyful": "Sueño Alegre",
-        "melancholic": "Sueño Melancólico",
-        "adventure": "Sueño de Aventura"
-    },
     "moods": {
         "very_negative": "Muy Negativo",
         "negative": "Negativo",
@@ -228,6 +195,9 @@
         "modeOrDescription": "Contiene cualquier categoría"
     },
     "detail": {
+        "title": "Detalles del Sueño",
+        "subtitle": "Ver detalles y análisis del sueño",
+        "keywords": "sueño,detalles,análisis",
         "pageTitle": "Detalles del Sueño - Dream Log",
         "loading": "Cargando...",
         "notFound": "Sueño no encontrado",

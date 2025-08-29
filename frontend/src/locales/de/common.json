@@ -10,12 +10,27 @@
         "register": "Registrieren",
         "logout": "Abmelden"
     },
+    "knowledge": {
+        "science": {
+            "title": "Traumwissenschaft",
+            "description": "Verstehen Sie die wissenschaftlichen Prinzipien hinter Träumen"
+        },
+        "symbols": {
+            "title": "Traumsymbolik",
+            "description": "Erkunden Sie die Bedeutungen von Symbolen in Träumen"
+        },
+        "techniques": {
+            "title": "Traumtechniken",
+            "description": "Lernen Sie Techniken zur Erinnerung und Kontrolle von Träumen"
+        }
+    },
     "common": {
         "save": "Speichern",
         "cancel": "Abbrechen",
         "delete": "Löschen",
         "edit": "Bearbeiten",
         "confirm": "Bestätigen",
+        "confirmDelete": "Löschen bestätigen",
         "loading": "Laden...",
         "submit": "Senden",
         "back": "Zurück",
@@ -23,7 +38,10 @@
         "search": "Suchen",
         "filter": "Filtern",
         "settings": "Einstellungen",
-        "optional": "Optional"
+        "optional": "Optional",
+        "export": "Exportieren",
+        "add": "Hinzufügen",
+        "saving": "Speichern..."
     },
     "validation": {
         "required": "Dieses Feld ist erforderlich",
@@ -237,5 +255,154 @@
         "title": "Traumstatistiken",
         "subtitle": "Sehen Sie Ihre Traumdatenstatistiken und -analyse",
         "keywords": "Träume,Statistiken,Analyse,Daten"
+    },
+    "assistant": {
+        "memorySaved": "Erinnerung gespeichert",
+        "chatRenamed": "Chat umbenannt",
+        "newChatTitle": "Neuer Chat",
+        "thinking": "Denke...",
+        "search": {
+            "placeholder": "Unterhaltungen durchsuchen..."
+        },
+        "button": {
+            "newChat": "Neuer Chat",
+            "sendFirstMessage": "Bitte senden Sie zuerst eine Nachricht, um einen neuen Chat zu erstellen",
+            "uploadImage": "Bild hochladen",
+            "voiceInput": "Spracheingabe",
+            "sendMessage": "Nachricht senden"
+        },
+        "connection": {
+            "connected": "Verbunden",
+            "connecting": "Verbinde...",
+            "failed": "Verbindung fehlgeschlagen"
+        },
+        "welcome": {
+            "title": "Beginnen Sie Ihre Traumerforschungsreise",
+            "subtitle": "Beschreiben Sie Ihren Traum oder fragen Sie nach traumbezogenem Wissen"
+        },
+        "image": {
+            "selectedAlt": "Ausgewählt {index}"
+        },
+        "input": {
+            "placeholder": "Fragen Sie den Traumassistenten..."
+        },
+        "rename": {
+            "dialogTitle": "Chat umbenennen",
+            "title": "Geben Sie einen neuen Titel für den Chat ein",
+            "placeholder": "Chat-Titel eingeben"
+        },
+        "delete": {
+            "dialogTitle": "Chat löschen",
+            "confirmation": "Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+        },
+        "settings": {
+            "description": "Einstellungen des KI-Assistenten konfigurieren",
+            "personalizeTab": "Personalisierung",
+            "dataTab": "Datenverwaltung",
+            "securityTab": "Sicherheit",
+            "helpTab": "Hilfe",
+            "personalize": "Passen Sie das Verhalten und die Vorlieben des KI-Assistenten an",
+            "data": "Verwalten Sie Ihre Unterhaltungsdaten und Exportoptionen",
+            "security": "Datenschutz- und sicherheitsrelevante Einstellungen",
+            "help": "Hilfe und Support-Informationen erhalten",
+            "dataExport": "Daten exportieren",
+            "dataExportDescription": "Exportieren Sie Ihre Gesprächsaufzeichnungen",
+            "privacyTitle": "Datenschutz & Sicherheit",
+            "privacy": "Datenschutzeinstellungen verwalten",
+            "helpAndSupport": "Hilfe & Support",
+            "helpAndSupportDescription": "Benutzerhandbücher und FAQs anzeigen",
+            "defaultName": "Traumassistent",
+            "configUpdated": "Konfiguration aktualisiert",
+            "updateConfigFailed": "Konfiguration konnte nicht aktualisiert werden",
+            "assistantName": "Assistentenname",
+            "assistantNamePlaceholder": "Geben Sie Ihrem Assistenten einen Namen",
+            "interpretationStyle": "Interpretationsstil",
+            "styles": {
+                "professional": "Professionell/Akademisch",
+                "friendly": "Freundlich/Zugänglich",
+                "poetic": "Poetisch/Romantisch",
+                "balanced": "Ausgewogen/Umfassend"
+            },
+            "preferredDimensions": "Bevorzugte Interpretationsdimensionen",
+            "preferredDimensionsDescription": "Wählen Sie Dimensionen aus, auf die sich die Traumanalyse konzentrieren soll (mehrere können ausgewählt werden)",
+            "dimensions": {
+                "psychological": "Psychologische Analyse",
+                "symbolic": "Symbolische Interpretation",
+                "biological": "Biomedizinische Perspektive",
+                "spiritual": "Spirituelle Dimension",
+                "personalGrowth": "Persönliches Wachstum"
+            },
+            "languagePreference": "Spracheinstellung",
+            "languagePreferenceDescription": "Wählen Sie die Sprache für die Antworten des KI-Assistenten",
+            "languages": {
+                "auto": "Automatisch erkennen",
+                "zh-CN": "Vereinfachtes Chinesisch",
+                "en": "Englisch"
+            },
+            "creativityLevel": "Kreativitätslevel",
+            "responseLength": "Antwortlänge",
+            "lengths": {
+                "concise": "Prägnant",
+                "medium": "Mittel",
+                "detailed": "Detailliert"
+            },
+            "autoGenerateImage": "Traumbilder automatisch generieren",
+            "enableFollowUp": "Folgefragen aktivieren",
+            "saveSettings": "Einstellungen speichern"
+        },
+        "deleteAll": {
+            "title": "Alle Chats löschen",
+            "description": "Löscht den gesamten Chatverlauf, kann nicht wiederhergestellt werden",
+            "noChats": "Keine Chats zum Löschen vorhanden",
+            "confirmation": "Sind Sie sicher, dass Sie alle {count} Chats löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden!",
+            "button": "Alle löschen"
+        },
+        "error": {
+            "invalidTitle": "Bitte geben Sie einen gültigen Chat-Titel ein",
+            "titleTooLong": "Der Chat-Titel darf 100 Zeichen nicht überschreiten",
+            "emptyMessage": "Der Nachrichteninhalt darf nicht leer sein, bitte geben Sie Text ein oder wählen Sie ein Bild aus",
+            "connectionLost": "Netzwerkverbindung unterbrochen, bitte versuchen Sie es später erneut",
+            "chatStateError": "Chat-Status ist anormal, bitte aktualisieren Sie die Seite und versuchen Sie es erneut",
+            "voiceNotSupported": "Ihr Browser unterstützt keine Spracheingabe",
+            "voiceRecognitionError": "Spracherkennungsfehler: "
+        }
+    },
+    "footer": {
+        "product": {
+            "title": "Produktfunktionen",
+            "smartRecord": "Intelligente Aufzeichnung",
+            "dreamAnalysis": "Traumanalyse",
+            "aiAssistant": "KI-Assistent",
+            "statistics": "Statistiken",
+            "dreamManagement": "Traumverwaltung"
+        },
+        "support": {
+            "title": "Hilfe & Support",
+            "userGuide": "Benutzerhandbuch",
+            "faq": "Häufige Fragen",
+            "contact": "Kontakt",
+            "feedback": "Feedback",
+            "onlineSupport": "Online-Support"
+        },
+        "legal": {
+            "title": "Rechtliche Informationen",
+            "privacy": "Datenschutzrichtlinie",
+            "terms": "Nutzungsbedingungen",
+            "cookies": "Cookie-Richtlinie",
+            "disclaimer": "Haftungsausschluss"
+        },
+        "social": {
+            "title": "Folgen Sie uns",
+            "weibo": "Offizielles Weibo",
+            "wechat": "WeChat Offizieller Account",
+            "qq": "QQ Gruppe",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "Unendliche Möglichkeiten der Träume erkunden"
+        },
+        "copyright": {
+            "tech": "Entwickelt mit React 19 & KI-Technologie"
+        }
     }
 }

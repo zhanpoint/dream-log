@@ -10,6 +10,20 @@
         "register": "S'inscrire",
         "logout": "Déconnexion"
     },
+    "knowledge": {
+        "science": {
+            "title": "Science des Rêves",
+            "description": "Comprenez les principes scientifiques derrière les rêves"
+        },
+        "symbols": {
+            "title": "Symbolisme des Rêves",
+            "description": "Explorez les significations des symboles dans les rêves"
+        },
+        "techniques": {
+            "title": "Techniques de Rêves",
+            "description": "Apprenez les techniques pour se souvenir et contrôler les rêves"
+        }
+    },
     "common": {
         "save": "Sauvegarder",
         "saving": "Sauvegarde en cours...",
@@ -27,6 +41,7 @@
         "settings": "Paramètres",
         "optional": "Optionnel",
         "manage": "Gérer",
+        "export": "Exporter",
         "viewDetails": "Voir les Détails",
         "filtersReset": "Filtres réinitialisés",
         "add": "Ajouter"
@@ -110,6 +125,22 @@
         },
         "privacy": {
             "title": "Confidentialité et Sécurité"
+        },
+        "ai": {
+            "analyzing": "IA analysant profondément votre rêve...",
+            "completed": "Analyse terminée",
+            "error": "Erreur d'analyse",
+            "keyFindings": "Conclusions Clés",
+            "emotionalInsights": "Perspectives Émotionnelles",
+            "storyArc": "Arc Narratif",
+            "keyTurningPoints": "Points de Tournure Clés",
+            "hiddenMessage": "Message Caché",
+            "coreSymbols": "Symboles Centraux",
+            "personalMeaning": "Signification Personnelle:",
+            "lifeConnection": "Connexion à la Vie:",
+            "symbolConnections": "Connexions Symboliques",
+            "selfDiscovery": "Autodécouverte",
+            "practicalAdvice": "Conseils Pratiques"
         },
         "help": {
             "title": "Aide"
@@ -248,28 +279,152 @@
         "keywords": "rêves,statistiques,analyse,données"
     },
     "assistant": {
-        "thinking": "Réfléchit...",
+        "memorySaved": "Mémoire sauvegardée",
+        "chatRenamed": "Conversation renommée",
+        "newChatTitle": "Nouvelle Conversation",
+        "thinking": "Réflexion...",
+        "search": {
+            "placeholder": "Rechercher des conversations..."
+        },
+        "button": {
+            "newChat": "Nouvelle Conversation",
+            "sendFirstMessage": "Veuillez d'abord envoyer un message pour créer une nouvelle conversation",
+            "uploadImage": "Télécharger une Image",
+            "voiceInput": "Entrée Vocale",
+            "sendMessage": "Envoyer le Message"
+        },
+        "connection": {
+            "connected": "Connecté",
+            "connecting": "Connexion...",
+            "failed": "Échec de la Connexion"
+        },
+        "welcome": {
+            "title": "Commencez votre voyage d'exploration des rêves",
+            "subtitle": "Décrivez votre rêve ou posez des questions sur les connaissances liées aux rêves"
+        },
+        "image": {
+            "selectedAlt": "Sélectionné {index}"
+        },
+        "input": {
+            "placeholder": "Demandez à l'Assistant de Rêve..."
+        },
+        "rename": {
+            "dialogTitle": "Renommer la Conversation",
+            "title": "Entrez un nouveau titre pour la conversation",
+            "placeholder": "Entrez le titre de la conversation"
+        },
+        "delete": {
+            "dialogTitle": "Supprimer la Conversation",
+            "confirmation": "Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée."
+        },
         "settings": {
+            "description": "Configurer les paramètres de l'assistant IA",
+            "personalizeTab": "Personnalisation",
+            "dataTab": "Gestion des Données",
+            "securityTab": "Sécurité",
+            "helpTab": "Aide",
+            "personalize": "Personnalisez le comportement et les préférences de l'assistant IA",
+            "data": "Gérez vos données de conversation et vos options d'exportation",
+            "security": "Paramètres liés à la confidentialité et à la sécurité",
+            "help": "Obtenez de l'aide et des informations de support",
             "dataExport": "Exporter les Données",
             "dataExportDescription": "Exporter vos enregistrements de conversation",
+            "privacyTitle": "Confidentialité et Sécurité",
+            "privacy": "Gérer les paramètres de confidentialité des données",
             "helpAndSupport": "Aide et Support",
-            "helpAndSupportDescription": "Voir les guides utilisateur et FAQ"
+            "helpAndSupportDescription": "Consulter les guides d'utilisation et la FAQ",
+            "defaultName": "Assistant de Rêve",
+            "configUpdated": "Configuration mise à jour",
+            "updateConfigFailed": "Échec de la mise à jour de la configuration",
+            "assistantName": "Nom de l'Assistant",
+            "assistantNamePlaceholder": "Donnez un nom à votre assistant",
+            "interpretationStyle": "Style d'Interprétation",
+            "styles": {
+                "professional": "Professionnel/Académique",
+                "friendly": "Amical/Accessible",
+                "poetic": "Poétique/Romantique",
+                "balanced": "Équilibré/Complet"
+            },
+            "preferredDimensions": "Dimensions d'Interprétation Préférées",
+            "preferredDimensionsDescription": "Choisissez les dimensions sur lesquelles se concentrer lors de l'analyse des rêves (plusieurs peuvent être sélectionnées)",
+            "dimensions": {
+                "psychological": "Analyse Psychologique",
+                "symbolic": "Interprétation Symbolique",
+                "biological": "Perspective Biomédicale",
+                "spiritual": "Dimension Spirituelle",
+                "personalGrowth": "Croissance Personnelle"
+            },
+            "languagePreference": "Préférence de Langue",
+            "languagePreferenceDescription": "Choisissez la langue pour les réponses de l'assistant IA",
+            "languages": {
+                "auto": "Détection automatique",
+                "zh-CN": "Chinois Simplifié",
+                "en": "Anglais"
+            },
+            "creativityLevel": "Niveau de Créativité",
+            "responseLength": "Longueur de la Réponse",
+            "lengths": {
+                "concise": "Concise",
+                "medium": "Moyenne",
+                "detailed": "Détaillée"
+            },
+            "autoGenerateImage": "Générer automatiquement des images de rêve",
+            "enableFollowUp": "Activer les questions de suivi",
+            "saveSettings": "Enregistrer les Paramètres"
+        },
+        "deleteAll": {
+            "title": "Supprimer Toutes les Conversations",
+            "description": "Efface tout l'historique des conversations, ne peut pas être récupéré",
+            "noChats": "Aucune conversation à supprimer",
+            "confirmation": "Êtes-vous sûr de vouloir supprimer les {count} conversations ? Cette action ne peut pas être annulée !",
+            "button": "Tout Supprimer"
+        },
+        "error": {
+            "invalidTitle": "Veuillez entrer un titre de conversation valide",
+            "titleTooLong": "Le titre de la conversation ne peut pas dépasser 100 caractères",
+            "emptyMessage": "Le contenu du message ne peut pas être vide, veuillez entrer du texte ou sélectionner une image",
+            "connectionLost": "Connexion réseau perdue, veuillez réessayer plus tard",
+            "chatStateError": "L'état de la conversation est anormal, veuillez rafraîchir la page et réessayer",
+            "voiceNotSupported": "Votre navigateur ne prend pas en charge la saisie vocale",
+            "voiceRecognitionError": "Erreur de reconnaissance vocale : "
         }
     },
-    "ai": {
-        "analyzing": "IA analysant profondément votre rêve...",
-        "completed": "Analyse terminée",
-        "error": "Erreur d'analyse",
-        "keyFindings": "Conclusions Clés",
-        "emotionalInsights": "Perspectives Émotionnelles",
-        "storyArc": "Arc Narratif",
-        "keyTurningPoints": "Points de Tournure Clés",
-        "hiddenMessage": "Message Caché",
-        "coreSymbols": "Symboles Centraux",
-        "personalMeaning": "Signification Personnelle:",
-        "lifeConnection": "Connexion à la Vie:",
-        "symbolConnections": "Connexions Symboliques",
-        "selfDiscovery": "Autodécouverte",
-        "practicalAdvice": "Conseils Pratiques"
+    "footer": {
+        "product": {
+            "title": "Fonctionnalités du Produit",
+            "smartRecord": "Enregistrement Intelligent",
+            "dreamAnalysis": "Analyse des Rêves",
+            "aiAssistant": "Assistant IA",
+            "statistics": "Statistiques",
+            "dreamManagement": "Gestion des Rêves"
+        },
+        "support": {
+            "title": "Aide et Support",
+            "userGuide": "Guide Utilisateur",
+            "faq": "FAQ",
+            "contact": "Nous Contacter",
+            "feedback": "Commentaires",
+            "onlineSupport": "Support en Ligne"
+        },
+        "legal": {
+            "title": "Informations Légales",
+            "privacy": "Politique de Confidentialité",
+            "terms": "Conditions de Service",
+            "cookies": "Politique de Cookies",
+            "disclaimer": "Clause de Non-responsabilité"
+        },
+        "social": {
+            "title": "Suivez-nous",
+            "weibo": "Weibo Officiel",
+            "wechat": "Compte Officiel WeChat",
+            "qq": "Groupe QQ",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "Explorer les Possibilités Infinies des Rêves"
+        },
+        "copyright": {
+            "tech": "Construit avec React 19 et Technologie IA"
+        }
     }
 }

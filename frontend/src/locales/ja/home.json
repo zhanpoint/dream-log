@@ -5,7 +5,10 @@
     "welcome": "Dream Logへようこそ",
     "subtitle": "あなたの夢の旅を記録し、発見しましょう",
     "description": "AIを活用した夢日記で、あなたの潜在意識を探索し、夢の意味を発見しましょう",
+    "badge": "AIを活用した夢解釈プラットフォーム",
     "cta": {
+        "primary": "夢の記録を開始",
+        "secondary": "もっと詳しく",
         "getStarted": "始める",
         "learnMore": "詳しく見る",
         "signUp": "無料で始める",
@@ -13,6 +16,7 @@
     },
     "features": {
         "title": "Dream Logの特徴",
+        "subtitle": "専門的な夢分析ツールで夢の世界を深く理解できます",
         "ai": {
             "title": "AI夢分析",
             "description": "高度なAIが夢の象徴や意味を分析し、深い洞察を提供します"
@@ -36,10 +40,29 @@
         "statistics": {
             "title": "統計とトレンド",
             "description": "夢の傾向を視覚化し、パターンを発見できます"
+        },
+        "items": {
+            "record": {
+                "title": "スマート記録",
+                "description": "AI補助ツールを使って夢体験を簡単に記録・分類できます"
+            },
+            "analyze": {
+                "title": "深層分析",
+                "description": "心理学と神経科学の方法を使って夢の意味を深く解釈します"
+            },
+            "assistant": {
+                "title": "AIアシスタント",
+                "description": "パーソナライズされたAI夢解釈師が専門的な洞察とアドバイスを提供します"
+            },
+            "statistics": {
+                "title": "データ統計",
+                "description": "夢のパターン、頻度、テーマの傾向を視覚的に表示します"
+            }
         }
     },
     "testimonials": {
         "title": "ユーザーの声",
+        "subtitle": "他のユーザーがDream Logでどのように夢の世界を探求しているかを見てみましょう",
         "user1": {
             "name": "田中さん",
             "quote": "Dream Logのおかげで、自分の夢のパターンが見えるようになりました。"
@@ -54,8 +77,10 @@
         }
     },
     "stats": {
-        "users": "ユーザー数",
+        "users": "アクティブユーザー",
         "dreams": "記録された夢",
+        "analysis": "AI分析回数",
+        "accuracy": "解釈精度",
         "analyses": "AI分析回数",
         "countries": "対応国・地域"
     },

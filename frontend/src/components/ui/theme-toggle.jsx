@@ -19,21 +19,21 @@ const ThemeToggle = () => {
     const themes = [
         {
             value: 'light',
-            label: t('theme.light', '浅色'),
+            label: t('common:statistics.theme.light', '浅色'),
             icon: Sun,
-            description: t('theme.lightDesc', '明亮清晰的界面')
+            description: t('common:statistics.theme.lightDesc', '明亮清晰的界面')
         },
         {
             value: 'dark',
-            label: t('theme.dark', '深色'),
+            label: t('common:statistics.theme.dark', '深色'),
             icon: Moon,
-            description: t('theme.darkDesc', '舒适护眼的暗色界面')
+            description: t('common:statistics.theme.darkDesc', '舒适护眼的暗色界面')
         },
         {
             value: 'system',
-            label: t('theme.system', '跟随系统'),
+            label: t('common:statistics.theme.system', '跟随系统'),
             icon: Monitor,
-            description: t('theme.systemDesc', '自动适应系统设置')
+            description: t('common:statistics.theme.systemDesc', '自动适应系统设置')
         }
     ];
 
@@ -50,12 +50,12 @@ const ThemeToggle = () => {
                     variant="ghost"
                     size="icon"
                     className="theme-toggle-btn relative overflow-hidden"
-                    aria-label={t('theme.toggleLabel', '切换主题')}
+                    aria-label={t('common:statistics.theme.toggleLabel', '切换主题')}
                 >
                     <div className="theme-icon-container">
                         {getCurrentThemeIcon()}
                     </div>
-                    <span className="sr-only">{t('theme.toggleLabel', '切换主题')}</span>
+                    <span className="sr-only">{t('common:statistics.theme.toggleLabel', '切换主题')}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

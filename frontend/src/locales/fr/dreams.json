@@ -80,8 +80,16 @@
             "titleGenSuccess": "Titre généré par IA avec succès !",
             "titleGenFailed": "Échec de la génération du titre",
             "titleGenFailedRetry": "Échec de la génération du titre, veuillez réessayer",
+            "characteristics": "Caractéristiques du Rêve",
+            "mood": "Humeur",
+            "sleepInfo": "Informations sur le Sommeil",
+            "privacy": "Paramètres de Confidentialité",
+            "whoCanView": "Qui peut voir ce rêve",
+            "personalNotes": "Notes Personnelles",
             "selectMood": "Sélectionner l'humeur",
             "selectSleepQuality": "Sélectionner la qualité du sommeil",
+            "sleepInformation": "Informations sur le Sommeil",
+            "personalNotesLabel": "Notes Personnelles",
             "categoryHelp": {
                 "title": "Guide des Catégories de Rêves",
                 "description": "Choisissez la catégorie qui correspond le mieux aux caractéristiques de votre rêve:"
@@ -140,48 +148,6 @@
         "action": "Action",
         "weather": "Météo"
     },
-    "detail": {
-        "pageTitle": "Détails du Rêve - Dream Log",
-        "loading": "Chargement...",
-        "notFound": "Rêve non trouvé",
-        "backButton": "Retour",
-        "actions": {
-            "edit": "Modifier",
-            "delete": "Supprimer",
-            "analyze": "Analyse IA"
-        },
-        "emotion": {
-            "beforeSleep": "Avant le Sommeil",
-            "inDream": "Dans le Rêve",
-            "afterWaking": "Après le Réveil"
-        },
-        "sleepQuality": "Qualité du Sommeil",
-        "sleepTime": "Heure du Sommeil",
-        "sleepDuration": "Durée du Sommeil",
-        "lucidity": "Lucidité",
-        "clarity": "Clarté",
-        "hoverDetails": "Survoler pour les détails",
-        "analysisPrompt": "Consultez les résultats de l'analyse IA et combinez avec votre expérience de vie pour enregistrer vos idées uniques sur ce rêve",
-        "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement de rêve ? Cette action ne peut pas être annulée."
-    },
-    "categories": {
-        "normal": "Rêve Normal",
-        "lucid": "Rêve Lucide",
-        "nightmare": "Cauchemar",
-        "recurring": "Rêve Récurrent",
-        "prophetic": "Rêve Prophétique",
-        "healing": "Rêve Curatif",
-        "spiritual": "Rêve Spirituel",
-        "creative": "Rêve Créatif",
-        "hypnagogic": "Hallucination Hypnagogique",
-        "hypnopompic": "Hallucination Hypnopomique",
-        "sleep_paralysis": "Paralysie du Sommeil",
-        "false_awakening": "Faux Réveil",
-        "anxiety": "Rêve d'Anxiété",
-        "joyful": "Rêve Joyeux",
-        "melancholic": "Rêve Mélancolique",
-        "adventure": "Rêve d'Aventure"
-    },
     "moods": {
         "very_negative": "Très Négatif",
         "negative": "Négatif",
@@ -218,6 +184,7 @@
         "hoursRange": "0 heures",
         "hoursRangeMax": "24 heures",
         "tags": "Étiquettes",
+        "tagPlaceholder": "Ajouter des étiquettes...",
         "tagsSeparator": "séparées par des virgules",
         "tagsPlaceholder": "ex.: voler, école, famille",
         "modeUnion": "Union",
@@ -228,6 +195,9 @@
         "modeOrDescription": "Contient n'importe quelle catégorie"
     },
     "detail": {
+        "title": "Détails du Rêve",
+        "subtitle": "Voir les détails et l’analyse du rêve",
+        "keywords": "rêve,détails,analyse",
         "pageTitle": "Détails du Rêve - Dream Log",
         "loading": "Chargement...",
         "notFound": "Rêve non trouvé",

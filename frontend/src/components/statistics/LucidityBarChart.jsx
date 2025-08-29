@@ -5,7 +5,12 @@ import { Brain } from 'lucide-react';
 import { useI18nContext } from '@/contexts/I18nContext';
 
 const LucidityBarChart = ({ data = { categories: [], series: [] } }) => {
-    const { t } = useI18nContext();
+    const { t, i18n } = useI18nContext();
+
+    // 将响应式变量提取到组件顶层，确保整个组件都能访问
+    const currentLanguage = i18n.language || 'zh-CN';
+    const isMobile = window.innerWidth < 768;
+    const isCompactLanguage = ['zh-CN', 'zh-TW', 'ja', 'ko'].includes(currentLanguage);
     const chartData = useMemo(() => {
         const validData = data.series?.filter(val => typeof val === 'number' && !isNaN(val)) || [];
         const hasValidData = validData.length > 0 && data.categories?.length > 0;
@@ -68,9 +73,9 @@ const LucidityBarChart = ({ data = { categories: [], series: [] } }) => {
                 },
             },
             grid: {
-                left: '5%',
-                right: '5%',
-                bottom: '5%',
+                left: '10%',
+                right: '10%',
+                bottom: isMobile ? '25%' : '20%', // 根据设备动态调整底部空间
                 top: '10%',
                 containLabel: true,
             },
@@ -81,11 +86,43 @@ const LucidityBarChart = ({ data = { categories: [], series: [] } }) => {
                     alignWithLabel: true,
                 },
                 axisLabel: {
-                    color: 'hsl(var(--foreground) / 0.7)',
-                    fontSize: 11,
+                    color: 'hsl(var(--foreground) / 0.8)',
+                    fontSize: isMobile ? 10 : 11,
                     fontWeight: 500,
-                    rotate: window.innerWidth < 768 ? 45 : 0,
-                    interval: 0,
+                    interval: 0, // 显示所有标签
+                    // 优化旋转角度以减少重叠
+                    rotate: (() => {
+                        // 中文/日文/韩文等简洁语言在桌面端可以不旋转或小角度旋转
+                        if (!isMobile && isCompactLanguage) {
+                            // 检查是否有较长的标签需要旋转
+                            const hasLongLabels = data.categories?.some(cat =>
+                                typeof cat === 'string' && cat.length > 4
+                            );
+                            return hasLongLabels ? 15 : 0;
+                        }
+                        // 移动端或长文字语言：使用适中的角度
+                        return isMobile ? 35 : 25;
+                    })(),
+                    // 智能文字截断和换行
+                    formatter: (value) => {
+                        if (!value || typeof value !== 'string') return value;
+
+                        // 更智能的长度控制
+                        let maxLength;
+                        if (isMobile) {
+                            maxLength = isCompactLanguage ? 6 : 5;
+                        } else {
+                            maxLength = isCompactLanguage ? 8 : 7;
+                        }
+
+                        // 只在超长时才截断，优先保持完整性
+                        if (value.length > maxLength) {
+                            return value.substring(0, maxLength - 1) + '…';
+                        }
+                        return value;
+                    },
+                    // 增加标签间距以减少重叠
+                    margin: isMobile ? 12 : 8,
                 },
                 axisLine: {
                     lineStyle: {
@@ -115,7 +152,7 @@ const LucidityBarChart = ({ data = { categories: [], series: [] } }) => {
             series: [{
                 name: t('statistics.charts.lucidityDistribution', '清醒度分布'),
                 type: 'bar',
-                barWidth: window.innerWidth < 768 ? '50%' : '60%',
+                barWidth: isMobile ? '45%' : '55%', // 稍微减小柱宽，给标签更多空间
                 data: data.series.map((value, index) => ({
                     value,
                     itemStyle: {
@@ -137,7 +174,7 @@ const LucidityBarChart = ({ data = { categories: [], series: [] } }) => {
         };
 
         return { hasData: true, option };
-    }, [data, t]);
+    }, [data, t, i18n.language, isMobile, isCompactLanguage]);
 
     return (
         <Card className="h-full">

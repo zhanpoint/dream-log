@@ -1,17 +1,46 @@
 {
-    "title": "Dream Log - 梦境日志",
-    "description": "Dream Log - 记录、分析和解析您的梦境，探索潜意识的神秘世界",
-    "keywords": "梦境,日志,AI,心理学,梦境解析,潜意识,睡眠",
+    "pageTitle": "Dream Log - 记录您的梦境之旅",
+    "pageDescription": "AI驱动的梦境日志，探索您的潜意识，发现梦境的意义",
+    "pageKeywords": "梦境日志,梦境分析,AI,潜意识,梦境解析",
     "welcome": "欢迎来到 Dream Log",
+    "subtitle": "记录和发现您的梦境之旅",
+    "description": "AI驱动的梦境日志，探索您的潜意识，发现梦境的意义",
     "badge": "AI驱动的梦境解析平台",
-    "subtitle": "探索梦境的神秘世界，解锁潜意识的智慧",
     "cta": {
         "primary": "开始记录梦境",
-        "secondary": "了解更多"
+        "secondary": "了解更多",
+        "getStarted": "开始使用",
+        "learnMore": "了解详情",
+        "signUp": "免费开始",
+        "login": "登录"
     },
     "features": {
-        "title": "为什么选择 Dream Log",
+        "title": "Dream Log 的特性",
         "subtitle": "专业的梦境分析工具，助您深入理解梦境世界",
+        "ai": {
+            "title": "AI梦境分析",
+            "description": "高级AI分析梦境的象征和意义，提供深入洞察"
+        },
+        "journal": {
+            "title": "数字梦境日志",
+            "description": "使用美丽而直观的用户界面记录和整理梦境"
+        },
+        "insights": {
+            "title": "个人洞察",
+            "description": "追踪梦境模式，支持个人成长和自我发现"
+        },
+        "community": {
+            "title": "社区",
+            "description": "与其他梦境爱好者分享经验，共同学习"
+        },
+        "privacy": {
+            "title": "重视隐私",
+            "description": "您的梦境得到安全保护，隐私得到尊重"
+        },
+        "statistics": {
+            "title": "统计和趋势",
+            "description": "可视化梦境趋势，发现模式"
+        },
         "items": {
             "record": {
                 "title": "智能记录",
@@ -31,14 +60,32 @@
             }
         }
     },
+    "testimonials": {
+        "title": "用户评价",
+        "subtitle": "看看其他用户如何通过 Dream Log 探索他们的梦境世界",
+        "user1": {
+            "name": "张先生",
+            "quote": "Dream Log让我能够看到自己的梦境模式。"
+        },
+        "user2": {
+            "name": "李女士",
+            "quote": "AI分析非常有趣，让我发现了梦境的新含义。"
+        },
+        "user3": {
+            "name": "王先生",
+            "quote": "易用且美观的用户界面让我很满意。"
+        }
+    },
     "stats": {
         "users": "活跃用户",
         "dreams": "记录梦境",
         "analysis": "AI分析次数",
-        "accuracy": "解析准确率"
+        "accuracy": "解析准确率",
+        "analyses": "AI分析次数",
+        "countries": "支持国家/地区"
     },
-    "testimonials": {
-        "title": "用户评价",
-        "subtitle": "看看其他用户如何通过 Dream Log 探索他们的梦境世界"
+    "footer": {
+        "tagline": "探索梦境无限的可能性",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
     }
 }

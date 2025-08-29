@@ -1,17 +1,46 @@
 {
-    "title": "Dream Log - Traumtagebuch",
-    "description": "Dream Log - Zeichnen Sie Ihre Träume auf, analysieren und interpretieren Sie sie",
-    "keywords": "Träume, Tagebuch, KI, Psychologie, Traumdeutung",
+    "pageTitle": "Dream Log - Ihre Traumreise aufzeichnen",
+    "pageDescription": "KI-gestütztes Traumtagebuch zur Erforschung Ihres Unterbewusstseins und Entdeckung der Traumbedeutungen",
+    "pageKeywords": "Traumtagebuch,Traumanalyse,KI,Unterbewusstsein,Traumdeutung",
     "welcome": "Willkommen bei Dream Log",
-    "subtitle": "Erkunden Sie die geheimnisvolle Welt der Träume und entschlüsseln Sie die Weisheit des Unterbewusstseins",
+    "subtitle": "Ihre Traumreise aufzeichnen und entdecken",
+    "description": "KI-gestütztes Traumtagebuch zur Erforschung Ihres Unterbewusstseins und Entdeckung der Traumbedeutungen",
     "badge": "KI-betriebene Traumdeutungs-Plattform",
     "cta": {
         "primary": "Träume Aufzeichnen Beginnen",
-        "secondary": "Mehr Erfahren"
+        "secondary": "Mehr Erfahren",
+        "getStarted": "Loslegen",
+        "learnMore": "Mehr erfahren",
+        "signUp": "Kostenlos starten",
+        "login": "Anmelden"
     },
     "features": {
-        "title": "Warum Dream Log wählen",
+        "title": "Dream Log Funktionen",
         "subtitle": "Professionelle Traumanalyse-Tools, die Ihnen helfen, die Traumwelt tiefgehend zu verstehen",
+        "ai": {
+            "title": "KI-Traumanalyse",
+            "description": "Fortschrittliche KI analysiert Traumsymbole und Bedeutungen, bietet tiefe Einblicke"
+        },
+        "journal": {
+            "title": "Digitales Traumtagebuch",
+            "description": "Schöne und intuitive Benutzeroberfläche zur Aufzeichnung und Organisation von Träumen"
+        },
+        "insights": {
+            "title": "Persönliche Einblicke",
+            "description": "Traumuster verfolgen, persönliches Wachstum und Selbstentdeckung unterstützen"
+        },
+        "community": {
+            "title": "Gemeinschaft",
+            "description": "Erfahrungen mit anderen Traumbegeisterten teilen und gemeinsam lernen"
+        },
+        "privacy": {
+            "title": "Datenschutzorientiert",
+            "description": "Ihre Träume sind sicher geschützt und Privatsphäre wird respektiert"
+        },
+        "statistics": {
+            "title": "Statistiken und Trends",
+            "description": "Traumtrends visualisieren und Muster entdecken"
+        },
         "items": {
             "record": {
                 "title": "Intelligente Aufzeichnung",
@@ -30,5 +59,33 @@
                 "description": "Zeigt visuell Ihre Traummuster, Häufigkeit und thematische Trends an"
             }
         }
+    },
+    "testimonials": {
+        "title": "Nutzerbewertungen",
+        "subtitle": "Sehen Sie, wie andere Nutzer ihre Traumwelt durch Dream Log erkunden",
+        "user1": {
+            "name": "Herr Müller",
+            "quote": "Dream Log half mir, meine Traumuster zu erkennen."
+        },
+        "user2": {
+            "name": "Frau Schmidt",
+            "quote": "Die KI-Analyse ist sehr interessant, ich entdeckte neue Bedeutungen in Träumen."
+        },
+        "user3": {
+            "name": "Herr Wagner",
+            "quote": "Benutzerfreundlich und schöne Oberfläche, ich bin sehr zufrieden."
+        }
+    },
+    "stats": {
+        "users": "Aktive Nutzer",
+        "dreams": "Aufgezeichnete Träume",
+        "analysis": "KI-Analyse Anzahl",
+        "accuracy": "Analyse-Genauigkeit",
+        "analyses": "KI-Analysen",
+        "countries": "Unterstützte Länder/Regionen"
+    },
+    "footer": {
+        "tagline": "Die unendlichen Möglichkeiten der Träume erkunden",
+        "copyright": "© 2024 Dream Log. React 19 & AI Technology."
     }
 }

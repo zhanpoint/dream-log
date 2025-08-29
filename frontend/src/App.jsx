@@ -61,15 +61,15 @@ function App() {
         <ErrorBoundary>
             <ThemeProvider>
                 <Suspense fallback={<AppLoadingFallback />}>
-                    <I18nProvider>
-                        <LayoutController>
-                            <FeatureFlagProvider>
-                                <AuthProvider>
+                    <AuthProvider>
+                        <I18nProvider>
+                            <LayoutController>
+                                <FeatureFlagProvider>
                                     <AppContent />
-                                </AuthProvider>
-                            </FeatureFlagProvider>
-                        </LayoutController>
-                    </I18nProvider>
+                                </FeatureFlagProvider>
+                            </LayoutController>
+                        </I18nProvider>
+                    </AuthProvider>
                 </Suspense>
             </ThemeProvider>
         </ErrorBoundary>

@@ -5,7 +5,12 @@ import { Heart } from 'lucide-react';
 import { useI18nContext } from '@/contexts/I18nContext';
 
 const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
-    const { t } = useI18nContext();
+    const { t, i18n } = useI18nContext();
+
+    // 将响应式变量提取到组件顶层，确保整个组件都能访问
+    const currentLanguage = i18n.language || 'zh-CN';
+    const isMobile = window.innerWidth < 768;
+    const isCompactLanguage = ['zh-CN', 'zh-TW', 'ja', 'ko'].includes(currentLanguage);
 
     // 数据预处理和验证 - 优化性能
     const chartData = useMemo(() => {
@@ -64,6 +69,7 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
 
         const option = {
             tooltip: {
+                show: false,
                 trigger: 'item',
                 backgroundColor: 'rgba(0, 0, 0, 0.85)',
                 borderColor: '#06b6d4',
@@ -74,7 +80,7 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
                     return `${params.name}<br/>${t('statistics.occurrences', '出现次数')}: ${params.value}${t('statistics.occurrencesTimes', '次')}<br/>${t('statistics.proportion', '占比')}: ${percentage}%`;
                 },
             },
-            dataZoom: window.innerWidth < 768 ? [
+            dataZoom: isMobile ? [
                 {
                     type: 'inside',
                     disabled: true
@@ -86,7 +92,7 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
                     max: normalizedMax,
                 })),
                 center: ['50%', '50%'],
-                radius: '70%',
+                radius: '75%', // 轻微增加半径以提供更多文字空间
                 startAngle: 90,
                 splitNumber: 4,
                 shape: 'polygon',
@@ -94,7 +100,23 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
                     color: 'hsl(var(--foreground) / 0.8)',
                     fontSize: 12,
                     fontWeight: 500,
-                    formatter: (value) => value.length > 6 ? value.substring(0, 6) + '...' : value,
+                    // 更智能的文字处理策略：优先显示完整文字，只在必要时截断
+                    formatter: (value) => {
+                        if (!value || typeof value !== 'string') return value;
+
+                        // 根据语言类型设定更宽松的长度限制
+                        let maxLength;
+                        if (isMobile) {
+                            // 移动端：适度放宽限制
+                            maxLength = isCompactLanguage ? 6 : 5;
+                        } else {
+                            // 桌面端：显著放宽限制，尽量显示完整文字
+                            maxLength = isCompactLanguage ? 10 : 8;
+                        }
+
+                        // 只在超出限制时才截断
+                        return value.length > maxLength ? value.substring(0, maxLength - 1) + '...' : value;
+                    },
                 },
                 axisLine: {
                     lineStyle: { color: 'hsl(var(--border))' },
@@ -147,7 +169,7 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
         };
 
         return { hasData: true, option, stats };
-    }, [data, t]);
+    }, [data, t, i18n.language, isMobile, isCompactLanguage]);
 
     return (
         <Card className="h-full">
@@ -163,7 +185,7 @@ const MoodRadarChart = ({ data = { categories: [], series: [] } }) => {
                         <ReactECharts
                             option={chartData.option}
                             style={{
-                                height: window.innerWidth < 768 ? '200px' : '240px',
+                                height: isMobile ? '200px' : '240px',
                                 width: '100%'
                             }}
                             opts={{ renderer: 'svg', devicePixelRatio: window.devicePixelRatio || 2 }}

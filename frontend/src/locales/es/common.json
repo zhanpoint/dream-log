@@ -10,6 +10,20 @@
         "register": "Registrarse",
         "logout": "Cerrar Sesión"
     },
+    "knowledge": {
+        "science": {
+            "title": "Ciencia de los Sueños",
+            "description": "Comprende los principios científicos detrás de los sueños"
+        },
+        "symbols": {
+            "title": "Simbolismo de los Sueños",
+            "description": "Explora los significados de los símbolos en los sueños"
+        },
+        "techniques": {
+            "title": "Técnicas de Sueños",
+            "description": "Aprende técnicas para recordar y controlar los sueños"
+        }
+    },
     "common": {
         "save": "Guardar",
         "saving": "Guardando...",
@@ -27,6 +41,7 @@
         "settings": "Configuración",
         "optional": "Opcional",
         "manage": "Gestionar",
+        "export": "Exportar",
         "viewDetails": "Ver Detalles",
         "filtersReset": "Filtros restablecidos",
         "add": "Agregar"
@@ -110,6 +125,22 @@
         },
         "privacy": {
             "title": "Privacidad y Seguridad"
+        },
+        "ai": {
+            "analyzing": "AI analizando profundamente tu sueño...",
+            "completed": "Análisis completado",
+            "error": "Error en el análisis",
+            "keyFindings": "Hallazgos Clave",
+            "emotionalInsights": "Perspectivas Emocionales",
+            "storyArc": "Arco de la Historia",
+            "keyTurningPoints": "Puntos de Giro Clave",
+            "hiddenMessage": "Mensaje Oculto",
+            "coreSymbols": "Símbolos Centrales",
+            "personalMeaning": "Significado Personal:",
+            "lifeConnection": "Conexión con la Vida:",
+            "symbolConnections": "Conexiones Simbólicas",
+            "selfDiscovery": "Autodescubrimiento",
+            "practicalAdvice": "Consejos Prácticos"
         },
         "help": {
             "title": "Ayuda"
@@ -248,28 +279,152 @@
         "keywords": "sueños,estadísticas,análisis,datos"
     },
     "assistant": {
+        "memorySaved": "Memoria guardada",
+        "chatRenamed": "Chat renombrado",
+        "newChatTitle": "Nuevo Chat",
         "thinking": "Pensando...",
+        "search": {
+            "placeholder": "Buscar conversaciones..."
+        },
+        "button": {
+            "newChat": "Nuevo Chat",
+            "sendFirstMessage": "Por favor, envía un mensaje primero para crear un nuevo chat",
+            "uploadImage": "Subir Imagen",
+            "voiceInput": "Entrada de Voz",
+            "sendMessage": "Enviar Mensaje"
+        },
+        "connection": {
+            "connected": "Conectado",
+            "connecting": "Conectando...",
+            "failed": "Conexión Fallida"
+        },
+        "welcome": {
+            "title": "Comienza tu viaje de exploración de sueños",
+            "subtitle": "Describe tu sueño o pregunta sobre conocimientos relacionados con los sueños"
+        },
+        "image": {
+            "selectedAlt": "Seleccionado {index}"
+        },
+        "input": {
+            "placeholder": "Pregúntale al Asistente de Sueños..."
+        },
+        "rename": {
+            "dialogTitle": "Renombrar Chat",
+            "title": "Introduce un nuevo título para el chat",
+            "placeholder": "Introduce el título del chat"
+        },
+        "delete": {
+            "dialogTitle": "Eliminar Chat",
+            "confirmation": "¿Estás seguro de que quieres eliminar este chat? Esta acción no se puede deshacer."
+        },
         "settings": {
+            "description": "Configurar los ajustes del asistente de IA",
+            "personalizeTab": "Personalización",
+            "dataTab": "Gestión de Datos",
+            "securityTab": "Seguridad",
+            "helpTab": "Ayuda",
+            "personalize": "Personaliza el comportamiento y las preferencias del asistente de IA",
+            "data": "Gestiona tus datos de conversación y opciones de exportación",
+            "security": "Ajustes relacionados con la privacidad y la seguridad",
+            "help": "Obtén ayuda e información de soporte",
             "dataExport": "Exportar Datos",
-            "dataExportDescription": "Exportar sus registros de conversación",
+            "dataExportDescription": "Exportar tus registros de conversación",
+            "privacyTitle": "Privacidad y Seguridad",
+            "privacy": "Gestionar la configuración de privacidad de datos",
             "helpAndSupport": "Ayuda y Soporte",
-            "helpAndSupportDescription": "Ver guías de usuario y preguntas frecuentes"
+            "helpAndSupportDescription": "Ver guías de usuario y preguntas frecuentes",
+            "defaultName": "Asistente de Sueños",
+            "configUpdated": "Configuración actualizada",
+            "updateConfigFailed": "Error al actualizar la configuración",
+            "assistantName": "Nombre del Asistente",
+            "assistantNamePlaceholder": "Dale un nombre a tu asistente",
+            "interpretationStyle": "Estilo de Interpretación",
+            "styles": {
+                "professional": "Profesional/Académico",
+                "friendly": "Amigable/Accesible",
+                "poetic": "Poético/Romántico",
+                "balanced": "Equilibrado/Comprensivo"
+            },
+            "preferredDimensions": "Dimensiones de Interpretación Preferidas",
+            "preferredDimensionsDescription": "Elige las dimensiones en las que centrarse durante el análisis de sueños (se pueden seleccionar varias)",
+            "dimensions": {
+                "psychological": "Análisis Psicológico",
+                "symbolic": "Interpretación Simbólica",
+                "biological": "Perspectiva Biomédica",
+                "spiritual": "Dimensión Espiritual",
+                "personalGrowth": "Crecimiento Personal"
+            },
+            "languagePreference": "Preferencia de Idioma",
+            "languagePreferenceDescription": "Elige el idioma para las respuestas del asistente de IA",
+            "languages": {
+                "auto": "Detección automática",
+                "zh-CN": "Chino Simplificado",
+                "en": "Inglés"
+            },
+            "creativityLevel": "Nivel de Creatividad",
+            "responseLength": "Longitud de la Respuesta",
+            "lengths": {
+                "concise": "Concisa",
+                "medium": "Media",
+                "detailed": "Detallada"
+            },
+            "autoGenerateImage": "Generar imágenes de sueños automáticamente",
+            "enableFollowUp": "Habilitar preguntas de seguimiento",
+            "saveSettings": "Guardar Ajustes"
+        },
+        "deleteAll": {
+            "title": "Eliminar Todos los Chats",
+            "description": "Borra todo el historial de chat, no se puede recuperar",
+            "noChats": "No hay chats para eliminar",
+            "confirmation": "¿Estás seguro de que quieres eliminar los {count} chats? ¡Esta acción no se puede deshacer!",
+            "button": "Eliminar Todo"
+        },
+        "error": {
+            "invalidTitle": "Por favor, introduce un título de chat válido",
+            "titleTooLong": "El título del chat no puede exceder los 100 caracteres",
+            "emptyMessage": "El contenido del mensaje no puede estar vacío, por favor introduce texto o selecciona una imagen",
+            "connectionLost": "Se perdió la conexión de red, por favor inténtalo de nuevo más tarde",
+            "chatStateError": "El estado del chat es anormal, por favor actualiza la página e inténtalo de nuevo",
+            "voiceNotSupported": "Tu navegador no soporta la entrada de voz",
+            "voiceRecognitionError": "Error de reconocimiento de voz: "
         }
     },
-    "ai": {
-        "analyzing": "AI analizando profundamente tu sueño...",
-        "completed": "Análisis completado",
-        "error": "Error en el análisis",
-        "keyFindings": "Hallazgos Clave",
-        "emotionalInsights": "Perspectivas Emocionales",
-        "storyArc": "Arco de la Historia",
-        "keyTurningPoints": "Puntos de Giro Clave",
-        "hiddenMessage": "Mensaje Oculto",
-        "coreSymbols": "Símbolos Centrales",
-        "personalMeaning": "Significado Personal:",
-        "lifeConnection": "Conexión con la Vida:",
-        "symbolConnections": "Conexiones Simbólicas",
-        "selfDiscovery": "Autodescubrimiento",
-        "practicalAdvice": "Consejos Prácticos"
+    "footer": {
+        "product": {
+            "title": "Características del Producto",
+            "smartRecord": "Grabación Inteligente",
+            "dreamAnalysis": "Análisis de Sueños",
+            "aiAssistant": "Asistente IA",
+            "statistics": "Estadísticas",
+            "dreamManagement": "Gestión de Sueños"
+        },
+        "support": {
+            "title": "Ayuda y Soporte",
+            "userGuide": "Guía del Usuario",
+            "faq": "Preguntas Frecuentes",
+            "contact": "Contáctanos",
+            "feedback": "Comentarios",
+            "onlineSupport": "Soporte en Línea"
+        },
+        "legal": {
+            "title": "Información Legal",
+            "privacy": "Política de Privacidad",
+            "terms": "Términos de Servicio",
+            "cookies": "Política de Cookies",
+            "disclaimer": "Descargo de Responsabilidad"
+        },
+        "social": {
+            "title": "Síguenos",
+            "weibo": "Weibo Oficial",
+            "wechat": "Cuenta Oficial de WeChat",
+            "qq": "Grupo QQ",
+            "github": "GitHub"
+        },
+        "brand": {
+            "tagline": "Explora las Posibilidades Infinitas de los Sueños"
+        },
+        "copyright": {
+            "tech": "Construido con React 19 y Tecnología IA"
+        }
     }
 }
