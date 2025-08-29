@@ -58,70 +58,25 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        // 【修复】确保 React 相关 chunk 优先加载
-        chunkFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'react-vendor') {
-            return 'assets/[name]-[hash].js';
-          }
-          return 'assets/[name]-[hash].js';
-        },
+        // 采用默认 chunk 命名
+        // 保持最简配置，避免对加载顺序产生副作用
         // 优化的代码分割策略 - 支持路由懒加载
         manualChunks(id) {
-          // 将页面组件分离到独立的 chunk
+          // 页面级别仍按路由懒加载拆分
           if (id.includes('src/pages/')) {
             const pageName = id.split('src/pages/')[1].split('.')[0];
             return `page-${pageName.toLowerCase()}`;
           }
 
-          // 【修复】React 生态系统 - 确保所有 React 相关库在同一 chunk
-          if (id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react-router-dom/') ||
-            id.includes('@radix-ui/') ||
-            id.includes('framer-motion') ||
-            id.includes('lucide-react') ||
-            id.includes('react-hook-form') ||
-            id.includes('react-i18next') ||
-            id.includes('react-markdown') ||
-            id.includes('react-day-picker') ||
-            id.includes('react-window') ||
-            id.includes('next-themes') ||
-            id.includes('sonner')) {
-            return 'react-vendor';
-          }
-
-          // 【修复】编辑器相关依赖 - 独立分组
-          if (id.includes('@tiptap/') ||
-            id.includes('tiptap-extension') ||
-            id.includes('prosemirror-') ||
-            id.includes('@prosemirror/')) {
+          // 仅保留两个明确分组：编辑器与图表
+          if (id.includes('@tiptap/') || id.includes('tiptap-extension') || id.includes('prosemirror-') || id.includes('@prosemirror/')) {
             return 'tiptap-vendor';
           }
-
-          // 图表相关库
           if (id.includes('echarts')) {
             return 'charts-vendor';
           }
 
-          // 纯工具库（不依赖 React）
-          if (id.includes('axios') ||
-            id.includes('clsx') ||
-            id.includes('tailwind-merge') ||
-            id.includes('date-fns') ||
-            id.includes('uuid') ||
-            id.includes('zod') ||
-            id.includes('i18next') ||
-            id.includes('class-variance-authority')) {
-            return 'utils';
-          }
-
-          // 表单和验证相关
-          if (id.includes('formik') ||
-            id.includes('@hookform/resolvers')) {
-            return 'form-vendor';
-          }
-
-          // 【关键修复】其他第三方库 - 严格控制范围
+          // 其余所有第三方依赖（包括 React 生态）统一归入 vendor，避免跨 chunk 顺序/循环问题
           if (id.includes('node_modules/')) {
             return 'vendor';
           }
