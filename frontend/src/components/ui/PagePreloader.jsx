@@ -15,9 +15,9 @@ const PagePreloader = () => {
         const preloadWhenIdle = () => {
             const preload = () => {
                 if (isAuthenticated) {
-                    // 已登录用户：预加载核心页面
-                    import('../../pages/CreateDream').catch(() => { });
+                    // 已登录用户：仅预加载不含富文本编辑器的大页面，避免拉起编辑器依赖
                     import('../../pages/MyDreams').catch(() => { });
+                    import('../../pages/DreamDetail').catch(() => { });
                 } else {
                     // 未登录用户：预加载认证页面
                     import('../../pages/LoginPage').catch(() => { });

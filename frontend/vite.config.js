@@ -85,10 +85,14 @@ export default defineConfig({
             return 'utils';
           }
 
-          // 编辑器相关
-          if (id.includes('@tiptap/') ||
-            id.includes('echarts')) {
-            return 'editor-vendor';
+          // 编辑器相关（与图表库分离，避免跨库循环依赖导致的 TDZ 问题）
+          if (id.includes('@tiptap/')) {
+            return 'tiptap-vendor';
+          }
+
+          // 图表相关（单独拆分，避免与编辑器混合打包）
+          if (id.includes('echarts')) {
+            return 'charts-vendor';
           }
 
           // 其他第三方库
