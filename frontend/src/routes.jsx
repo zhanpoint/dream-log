@@ -11,10 +11,28 @@ const Register = lazy(() => import("./pages/RegisterPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 
 // 需要认证的页面组件 - 按需加载
-const CreateDream = lazy(() => import("./pages/CreateDream"));
+// 【修复】编辑器相关页面使用更安全的懒加载方式
+const CreateDream = lazy(() =>
+    import("./pages/CreateDream").then(module => ({
+        default: module.default
+    })).catch(error => {
+        console.error('Failed to load CreateDream:', error);
+        return { default: () => <div className="p-4 text-center">编辑器加载失败，请刷新页面</div> };
+    })
+);
+
+const EditDream = lazy(() =>
+    import("./pages/EditDream").then(module => ({
+        default: module.default
+    })).catch(error => {
+        console.error('Failed to load EditDream:', error);
+        return { default: () => <div className="p-4 text-center">编辑器加载失败，请刷新页面</div> };
+    })
+);
+
+// 其他页面保持原有加载方式
 const DreamDetail = lazy(() => import("./pages/DreamDetail"));
 const MyDreams = lazy(() => import("./pages/MyDreams"));
-const EditDream = lazy(() => import("./pages/EditDream"));
 const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const DreamAssistantPage = lazy(() => import("./pages/DreamAssistantPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));

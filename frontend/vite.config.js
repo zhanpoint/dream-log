@@ -85,8 +85,11 @@ export default defineConfig({
             return 'utils';
           }
 
-          // 编辑器相关（与图表库分离，避免跨库循环依赖导致的 TDZ 问题）
-          if (id.includes('@tiptap/')) {
+          // 【修复】完整的编辑器相关依赖分组，避免 TDZ 问题
+          if (id.includes('@tiptap/') ||
+            id.includes('tiptap-extension') ||
+            id.includes('prosemirror-') ||
+            id.includes('@prosemirror/')) {
             return 'tiptap-vendor';
           }
 
@@ -112,6 +115,13 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-router-dom',
+      // 【新增】TipTap 相关依赖预构建，确保正确处理
+      '@tiptap/react',
+      '@tiptap/starter-kit',
+      '@tiptap/extension-image',
+      '@tiptap/extension-link',
+      '@tiptap/extension-placeholder',
+      'tiptap-extension-resize-image'
     ],
     exclude: ['@tailwindcss/vite']
   },

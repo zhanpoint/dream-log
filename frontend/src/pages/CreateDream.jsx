@@ -8,6 +8,7 @@ import { useI18nContext } from '@/contexts/I18nContext';
 import { MultilingualSeo } from '@/components/seo/MultilingualSeo';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import AiTitleGenerator from '@/components/ui/ai-title-generator';
+import EditorErrorBoundary from '@/components/ui/EditorErrorBoundary';
 const TiptapEditor = React.lazy(() => import('@/components/ui/tiptap-editor'));
 import '@/components/ui/css/tiptap-editor.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -402,16 +403,18 @@ const CreateDream = () => {
                     <span className="required-star">*</span>
                   </Label>
 
-                  <Suspense fallback={<div className="tiptap-loading">{t('common:editor.loading', '编辑器加载中...')}</div>}>
-                    <TiptapEditor
-                      content={formData.content}
-                      onChange={(value) => handleFieldChange('content', value || '')}
-                      placeholder={t('dreams:create.form.contentPlaceholder', '开始记录你的梦境...')}
-                      onImageUpload={handleImageUpload}
-                      onImageDeleted={handleImageDeleted}
-                      className={`transition-all duration-300 ${validationErrors.content ? 'border-red-500' : ''}`}
-                    />
-                  </Suspense>
+                  <EditorErrorBoundary>
+                    <Suspense fallback={<div className="tiptap-loading">{t('common:editor.loading', '编辑器加载中...')}</div>}>
+                      <TiptapEditor
+                        content={formData.content}
+                        onChange={(value) => handleFieldChange('content', value || '')}
+                        placeholder={t('dreams:create.form.contentPlaceholder', '开始记录你的梦境...')}
+                        onImageUpload={handleImageUpload}
+                        onImageDeleted={handleImageDeleted}
+                        className={`transition-all duration-300 ${validationErrors.content ? 'border-red-500' : ''}`}
+                      />
+                    </Suspense>
+                  </EditorErrorBoundary>
                 </div>
                 {validationErrors.content && (
                   <p className="text-red-500 text-sm mt-1 animate-fade-in">{validationErrors.content}</p>

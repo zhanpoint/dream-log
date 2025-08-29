@@ -15,9 +15,11 @@ const PagePreloader = () => {
         const preloadWhenIdle = () => {
             const preload = () => {
                 if (isAuthenticated) {
-                    // 已登录用户：仅预加载不含富文本编辑器的大页面，避免拉起编辑器依赖
+                    // 【修复】完全避免预加载编辑器相关页面，防止提前触发 TDZ
                     import('../../pages/MyDreams').catch(() => { });
                     import('../../pages/DreamDetail').catch(() => { });
+                    import('../../pages/StatisticsPage').catch(() => { });
+                    // 不再预加载 CreateDream 和 EditDream，避免编辑器依赖问题
                 } else {
                     // 未登录用户：预加载认证页面
                     import('../../pages/LoginPage').catch(() => { });
@@ -25,10 +27,10 @@ const PagePreloader = () => {
             };
 
             if (window.requestIdleCallback) {
-                window.requestIdleCallback(preload, { timeout: 2000 });
+                window.requestIdleCallback(preload, { timeout: 3000 }); // 增加超时时间
             } else {
-                // 降级方案
-                setTimeout(preload, 1000);
+                // 降级方案，增加延迟时间
+                setTimeout(preload, 2000);
             }
         };
 
