@@ -19,13 +19,23 @@ RUN --mount=type=cache,target=/root/.npm \
         echo "FORCE_REINSTALL_DEPS is true, clearing npm cache..."; \
         rm -rf /root/.npm/*; \
     fi && \
-    npm ci --legacy-peer-deps
+    npm ci --legacy-peer-deps && \
+    echo "验证 React 版本..." && \
+    npm list react react-dom --depth=0
 
 # 拷贝源代码
 COPY . .
 
-# 构建应用
-RUN npm run build
+# 【智能构建】根据参数决定是否需要强制清理缓存
+RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
+        echo "强制清理模式：清理 Vite 缓存..."; \
+        rm -rf node_modules/.vite node_modules/.cache dist || true; \
+        echo "开始清理构建..."; \
+        npm run build; \
+    else \
+        echo "正常缓存构建..."; \
+        npm run build; \
+    fi
 
 # --- 第二阶段：生产环境 ---
 FROM nginx:1.25-alpine AS production
