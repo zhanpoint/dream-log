@@ -3,7 +3,7 @@
     "pageDescription": "KI-gestütztes Traumtagebuch zur Erforschung Ihres Unterbewusstseins und Entdeckung der Traumbedeutungen",
     "pageKeywords": "Traumtagebuch,Traumanalyse,KI,Unterbewusstsein,Traumdeutung",
     "welcome": "Willkommen bei Dream Log",
-    "subtitle": "Ihre Traumreise aufzeichnen und entdecken",
+    "subtitle": "Entschlüsseln Sie Traumgeheimnisse mit KI, entdecken Sie Schätze des Unterbewusstseins und beginnen Sie eine Reise der Selbstentdeckung",
     "description": "KI-gestütztes Traumtagebuch zur Erforschung Ihres Unterbewusstseins und Entdeckung der Traumbedeutungen",
     "badge": "KI-betriebene Traumdeutungs-Plattform",
     "cta": {
@@ -15,7 +15,7 @@
         "login": "Anmelden"
     },
     "features": {
-        "title": "Dream Log Funktionen",
+        "title": "Warum Dream Log wählen",
         "subtitle": "Professionelle Traumanalyse-Tools, die Ihnen helfen, die Traumwelt tiefgehend zu verstehen",
         "ai": {
             "title": "KI-Traumanalyse",
@@ -61,8 +61,8 @@
         }
     },
     "testimonials": {
-        "title": "Nutzerbewertungen",
-        "subtitle": "Sehen Sie, wie andere Nutzer ihre Traumwelt durch Dream Log erkunden",
+        "title": "Geliebt von Traum-Entdeckern Weltweit",
+        "subtitle": "Die erste Wahl für Traum-Entdecker",
         "user1": {
             "name": "Herr Müller",
             "quote": "Dream Log half mir, meine Traumuster zu erkennen."
@@ -74,6 +74,11 @@
         "user3": {
             "name": "Herr Wagner",
             "quote": "Benutzerfreundlich und schöne Oberfläche, ich bin sehr zufrieden."
+        },
+        "stats": {
+            "users": "Aktive Benutzer",
+            "dreams": "Aufgezeichnete Träume",
+            "satisfaction": "Zufriedenheitsrate"
         }
     },
     "stats": {

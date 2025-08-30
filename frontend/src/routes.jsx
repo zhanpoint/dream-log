@@ -37,6 +37,12 @@ const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
 const DreamAssistantPage = lazy(() => import("./pages/DreamAssistantPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
+// 法律合规页面
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer"));
+
 /**
  * 懒加载组件包装器 - 提供统一的加载状态
  */
@@ -155,6 +161,39 @@ const router = createBrowserRouter([
                             <SettingsPage />
                         </LazyWrapper>
                     </PrivateRoute>
+                ),
+            },
+            // 法律合规页面 - 公开访问
+            {
+                path: "privacy-policy",
+                element: (
+                    <LazyWrapper>
+                        <PrivacyPolicy />
+                    </LazyWrapper>
+                ),
+            },
+            {
+                path: "terms-of-service",
+                element: (
+                    <LazyWrapper>
+                        <TermsOfService />
+                    </LazyWrapper>
+                ),
+            },
+            {
+                path: "cookie-policy",
+                element: (
+                    <LazyWrapper>
+                        <CookiePolicy />
+                    </LazyWrapper>
+                ),
+            },
+            {
+                path: "disclaimer",
+                element: (
+                    <LazyWrapper>
+                        <Disclaimer />
+                    </LazyWrapper>
                 ),
             },
         ],

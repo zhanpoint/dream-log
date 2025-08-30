@@ -179,6 +179,15 @@
     padding-left: 2rem;
 }
 
+/* 页脚列表不应有缩进，覆盖上面的全局列表缩进设置 */
+.lang-zhcn footer ul,
+.lang-zhtw footer ul,
+.lang-ja footer ul,
+.lang-ko footer ul {
+    padding-left: 0;
+    margin-left: 0;
+}
+
 .lang-zhcn li,
 .lang-zhtw li,
 .lang-ja li,

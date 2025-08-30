@@ -15,9 +15,8 @@ const ModernFooter = () => {
         product: {
             title: t('footer.product.title', '产品功能'),
             links: [
-                { name: t('footer.product.smartRecord', '智能记录'), href: "#features" },
-                { name: t('footer.product.dreamAnalysis', '梦境解析'), href: "#analysis" },
-                { name: t('footer.product.aiAssistant', 'AI 助手'), href: "/assistant" },
+                { name: t('footer.product.smartRecord', '记录梦境并智能解析'), href: "/dreams/create" },
+                { name: t('footer.product.aiAssistant', 'AI助手'), href: "/assistant" },
                 { name: t('footer.product.statistics', '数据统计'), href: "/statistics" },
                 { name: t('footer.product.dreamManagement', '梦境管理'), href: "/my-dreams" }
             ]
@@ -25,29 +24,17 @@ const ModernFooter = () => {
         support: {
             title: t('footer.support.title', '帮助支持'),
             links: [
-                { name: t('footer.support.userGuide', '使用指南'), href: "#guide" },
-                { name: t('footer.support.faq', '常见问题'), href: "#faq" },
                 { name: t('footer.support.contact', '联系我们'), href: "#contact" },
-                { name: t('footer.support.feedback', '反馈建议'), href: "#feedback" },
-                { name: t('footer.support.onlineSupport', '在线客服'), href: "#support" }
+                { name: t('footer.support.feedback', '反馈建议'), href: "#feedback" }
             ]
         },
         legal: {
             title: t('footer.legal.title', '法律信息'),
             links: [
-                { name: t('footer.legal.privacy', '隐私政策'), href: "#privacy" },
-                { name: t('footer.legal.terms', '服务条款'), href: "#terms" },
-                { name: t('footer.legal.cookies', 'Cookie 政策'), href: "#cookies" },
-                { name: t('footer.legal.disclaimer', '免责声明'), href: "#disclaimer" }
-            ]
-        },
-        social: {
-            title: t('footer.social.title', '关注我们'),
-            links: [
-                { name: t('footer.social.weibo', '官方微博'), href: "#weibo", icon: "📱" },
-                { name: t('footer.social.wechat', '微信公众号'), href: "#wechat", icon: "💬" },
-                { name: t('footer.social.qq', 'QQ 群'), href: "#qq", icon: "👥" },
-                { name: t('footer.social.github', 'GitHub'), href: "#github", icon: "⚡" }
+                { name: t('footer.legal.privacy', '隐私政策'), href: "/privacy-policy" },
+                { name: t('footer.legal.terms', '服务条款'), href: "/terms-of-service" },
+                { name: t('footer.legal.cookies', 'Cookie政策'), href: "/cookie-policy" },
+                { name: t('footer.legal.disclaimer', '免责声明'), href: "/disclaimer" }
             ]
         }
     };
@@ -74,111 +61,107 @@ const ModernFooter = () => {
 
     return (
         <footer className="relative">
-            <div className="relative max-w-7xl mx-auto px-6 py-16">
-                {/* 主要内容区域 */}
+            <div className="relative max-w-7xl mx-auto px-6 py-12">
+                {/* 主要内容区域 - 左右布局 */}
                 <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12"
+                    className="flex flex-col lg:flex-row justify-between gap-12 mb-8"
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                 >
-                    {Object.entries(footerLinks).map(([key, section]) => (
-                        <motion.div
-                            key={key}
-                            variants={itemVariants}
-                            className="space-y-6"
-                        >
-                            <h3 className="text-lg font-semibold text-white dark:text-white light:text-gray-800">
-                                {section.title}
-                            </h3>
-                            <ul className="space-y-3">
-                                {section.links.map((link, index) => (
-                                    <motion.li key={index}>
-                                        <a
-                                            href={link.href}
-                                            className="group flex items-center gap-2 text-gray-400 hover:text-white dark:text-gray-400 dark:hover:text-white light:text-gray-600 light:hover:text-gray-900 transition-colors duration-200"
-                                        >
-                                            {link.icon && (
-                                                <span className="text-sm">{link.icon}</span>
-                                            )}
-                                            <span className="group-hover:translate-x-1 transition-transform duration-200">
-                                                {link.name}
-                                            </span>
-                                        </a>
-                                    </motion.li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    ))}
+                    {/* 左侧：品牌信息 */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="flex-shrink-0 lg:max-w-sm"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">D</span>
+                            </div>
+                            <div>
+                                <h4 className="text-white dark:text-white light:text-gray-800 font-semibold">
+                                    Dream Log
+                                </h4>
+                                <p className="text-gray-300 dark:text-gray-300 light:text-gray-600 text-sm">
+                                    {t('footer.brand.tagline', '探索梦境的无限可能')}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* 右侧：链接分组 */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="flex-1"
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-16 items-start">
+                            {Object.entries(footerLinks).map(([key, section]) => (
+                                <div key={key} className="flex flex-col items-start">
+                                    <h3 className="text-sm font-semibold text-white dark:text-white light:text-gray-800 uppercase tracking-wider mb-4">
+                                        {section.title}
+                                    </h3>
+                                    <ul className="space-y-3 list-none p-0 m-0">
+                                        {section.links.map((link, index) => (
+                                            <li key={index}>
+                                                <a
+                                                    href={link.href}
+                                                    className="text-sm text-gray-400 hover:text-white dark:text-gray-400 dark:hover:text-white light:text-gray-600 light:hover:text-gray-900 transition-colors duration-200 block"
+                                                >
+                                                    {link.name}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
                 </motion.div>
 
                 {/* 分割线 */}
                 <motion.div
-                    className="h-px bg-gradient-to-r from-transparent via-white/20 dark:via-gray-700/50 light:via-gray-300 to-transparent mb-8"
+                    className="h-px bg-gradient-to-r from-transparent via-white/20 dark:via-gray-700/50 light:via-gray-300 to-transparent mb-6"
                     initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 1, delay: 0.3 }}
                 />
 
-                {/* 底部版权和品牌信息 */}
+                {/* 底部版权信息 */}
                 <motion.div
-                    className="flex flex-col md:flex-row items-center justify-between gap-6"
+                    className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                    {/* 品牌信息 */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">D</span>
-                        </div>
-                        <div>
-                            <h4 className="text-white dark:text-white light:text-gray-800 font-semibold">
-                                Dream Log
-                            </h4>
-                            <p className="text-gray-300 dark:text-gray-300 light:text-gray-700 text-sm">
-                                {t('footer.brand.tagline', '探索梦境的无限可能')}
-                            </p>
-                        </div>
-                    </div>
+                    <p className="text-gray-400 dark:text-gray-400 light:text-gray-600">
+                        © {new Date().getFullYear()} Dream Log. {t('footer.copyright.tech', '基于React 19与AI技术构建')}.
+                    </p>
 
-                    {/* 版权信息 */}
-                    <div className="text-center md:text-right space-y-2">
-                        <p className="text-gray-300 dark:text-gray-300 light:text-gray-700 text-sm">
-                            © {new Date().getFullYear()} Dream Log. {t('footer.copyright.tech', 'using React 19 & AI Technology')}.
-                        </p>
-                        <div className="flex flex-col md:flex-row md:justify-end items-center gap-2 text-xs">
-                            <a
-                                href="https://beian.miit.gov.cn/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-300 dark:text-gray-300 light:text-gray-700 hover:text-purple-400 transition-colors duration-200"
-                            >
-                                豫ICP备2025135141号-1
-                            </a>
-                            <span className="hidden md:inline text-gray-600">|</span>
-                            <a
-                                href="https://beian.mps.gov.cn/#/query/webSearch?code=41911002000051"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-gray-300 dark:text-gray-300 light:text-gray-700 hover:text-purple-400 transition-colors duration-200 flex items-center gap-1"
-                            >
-                                <img src="/assets/备案图标.png" alt="公安备案" className="w-4 h-4" />
-                                豫公网安备41911002000051号
-                            </a>
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <a
+                            href="https://beian.miit.gov.cn/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-purple-400 transition-colors duration-200"
+                        >
+                            豫ICP备2025135141号-1
+                        </a>
+                        <span className="text-gray-600">|</span>
+                        <a
+                            href="https://beian.mps.gov.cn/#/query/webSearch?code=41911002000051"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-purple-400 transition-colors duration-200 flex items-center gap-1"
+                        >
+                            <img src="/assets/备案图标.png" alt="公安备案" className="w-3 h-3" />
+                            豫公网安备41911002000051号
+                        </a>
                     </div>
                 </motion.div>
-
-                {/* 额外装饰元素 */}
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-50" />
             </div>
-
-            {/* 底部渐变覆盖 */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-purple-500/50 via-pink-500/50 to-purple-500/50" />
         </footer>
     );
 };

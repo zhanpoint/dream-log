@@ -7,6 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FlagIcon } from '@/components/ui/flag-icon';
 import { useI18nContext } from '@/contexts/I18nContext';
 
 /**
@@ -27,14 +28,17 @@ export const LanguageSelector = ({
                 <Button
                     variant={variant}
                     size={size}
-                    className={`language-selector ${className}`}
+                    className={`language-selector navbar-language-selector ${className}`}
                     disabled={isChangingLanguage}
                 >
-                    <Languages className="h-4 w-4" />
-                    {showFlag && (
-                        <span className="ml-1 text-sm">
-                            {currentLanguage.flag}
-                        </span>
+                    {showFlag ? (
+                        <FlagIcon
+                            countryCode={i18n.language}
+                            size="md"
+                            className="flag-hover-scale"
+                        />
+                    ) : (
+                        <Languages className="h-4 w-4" />
                     )}
                     {showName && (
                         <span className="ml-1 text-xs">
@@ -52,11 +56,12 @@ export const LanguageSelector = ({
                         className="flex items-center justify-between cursor-pointer"
                         disabled={isChangingLanguage}
                     >
-                        <div className="flex items-center gap-2">
-                            <span className="text-base">
-                                {config.flag}
-                            </span>
-                            <span className="text-sm">{config.nativeName}</span>
+                        <div className="flex items-center gap-3">
+                            <FlagIcon
+                                countryCode={code}
+                                size="sm"
+                            />
+                            <span className="text-sm font-medium">{config.nativeName}</span>
                         </div>
                         {code === i18n.language && (
                             <Check className="h-4 w-4 text-primary" />

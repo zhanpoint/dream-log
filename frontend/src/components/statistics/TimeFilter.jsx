@@ -22,12 +22,12 @@ const TimeFilter = ({ period, onPeriodChange }) => {
                 return (
                     <Button
                         key={option.value}
-                        variant={isActive ? 'default' : 'outline'}
+                        variant="outline"
                         size="sm"
                         onClick={() => onPeriodChange(option.value)}
                         className={`flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md ${isActive
-                            ? 'shadow-md bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20'
+                                ? 'shadow-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500 hover:bg-cyan-500/20'
+                                : 'hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20'
                             }`}
                     >
                         <Icon className="h-4 w-4" />

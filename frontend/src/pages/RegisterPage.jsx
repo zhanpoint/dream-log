@@ -17,9 +17,9 @@ function Register() {
             {/* 简化版导航栏，包含返回按钮和品牌logo */}
             <header className="auth-header">
                 <div className="auth-header-container">
-                    <Link to="/login" className="auth-back-button dream-link">
+                    <Link to="/" className="auth-back-button dream-link">
                         <ArrowLeft />
-                        {t('auth.register.links.backToLogin', '返回登录')}
+                        {t('auth.register.links.backToHome', '返回首页')}
                     </Link>
 
                     <Link to="/" className="auth-logo">
@@ -27,7 +27,10 @@ function Register() {
                         <span className="auth-logo-text">Dreamlog</span>
                     </Link>
 
-                    <div className="w-20" />
+                    <Link to="/login" className="auth-back-button auth-secondary-button">
+                        <ArrowLeft className="rotate-180" />
+                        {t('auth.register.links.backToLogin', '返回登录')}
+                    </Link>
                 </div>
             </header>
 

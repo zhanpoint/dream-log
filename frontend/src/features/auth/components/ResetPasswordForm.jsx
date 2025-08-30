@@ -318,9 +318,6 @@ export function ResetPasswordForm() {
         <Card className="w-full max-w-md mx-auto card">
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.resetPassword.title', '重置密码')}</CardTitle>
-                <CardDescription className="text-center">
-                    {t('auth.resetPassword.subtitle', '找回你的 Dream Log 账号')}
-                </CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs value={resetMode} onValueChange={setResetMode} className="w-full">

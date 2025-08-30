@@ -318,7 +318,6 @@ export function DualLoginForm() {
                         Dreamlog
                     </div>
                 </CardTitle>
-                <CardDescription className="text-center">{t('auth.login.subtitle', '登录您的账户，开始梦境探索之旅')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs value={loginMode} onValueChange={setLoginMode} className="w-full">

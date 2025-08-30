@@ -1,94 +1,34 @@
 import React, { useMemo } from 'react';
-import ReactECharts from 'echarts-for-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { useI18nContext } from '@/contexts/I18nContext';
+import { DreamElementCloud } from '@/components/magicui/dream-element-cloud';
 
 const RecurringElementsChart = ({ data = [] }) => {
     const { t } = useI18nContext();
+
     const chartData = useMemo(() => {
         const validData = data?.filter(item => item.value > 0) || [];
 
         if (validData.length === 0) {
-            return { hasData: false, option: null };
+            return { hasData: false, validData: [] };
         }
 
         // 使用主题兼容的颜色方案
         const colors = [
             '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
-            '#6366f1', '#ec4899', '#84cc16', '#f97316', '#06d6a0'
+            '#6366f1', '#ec4899', '#84cc16', '#f97316', '#06d6a0',
+            '#3b82f6', '#f43f5e', '#22c55e', '#a855f7', '#eab308'
         ];
 
-        const option = {
-            tooltip: {
-                trigger: 'item',
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                borderColor: '#06b6d4',
-                borderWidth: 1,
-                textStyle: { color: '#fff', fontSize: 12 },
-                formatter: (params) => {
-                    return `${params.name}<br/>${t('statistics.occurrences', '出现次数')}: ${params.value}${t('statistics.occurrencesTimes', '次')}<br/>${t('statistics.proportion', '占比')}: ${params.percent}%`;
-                },
-            },
-            legend: {
-                orient: 'horizontal',
-                bottom: 0,
-                left: 'center',
-                textStyle: {
-                    color: 'hsl(var(--foreground) / 0.8)',
-                    fontSize: 11,
-                    fontWeight: 500,
-                },
-                itemWidth: 8,
-                itemHeight: 8,
-                itemGap: 12,
-            },
-            series: [{
-                name: t('statistics.recurringElements', '重复元素'),
-                type: 'pie',
-                radius: ['30%', '65%'],
-                center: ['50%', '45%'],
-                avoidLabelOverlap: false,
-                itemStyle: {
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: 'hsl(var(--border) / 0.3)',
-                },
-                label: {
-                    show: false,
-                },
-                emphasis: {
-                    scale: true,
-                    scaleSize: 5,
-                    itemStyle: {
-                        shadowBlur: 10,
-                        shadowOffsetX: 0,
-                        shadowColor: 'rgba(0, 0, 0, 0.3)',
-                    },
-                    label: {
-                        show: true,
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: '#fff',
-                    },
-                },
-                labelLine: {
-                    show: false,
-                },
-                data: validData.map((item, index) => ({
-                    value: item.value,
-                    name: item.name,
-                    itemStyle: {
-                        color: item.color || colors[index % colors.length],
-                    },
-                })),
-                animationDuration: 800,
-                animationEasing: 'cubicOut',
-            }],
+        return {
+            hasData: true,
+            validData: validData.map((item, index) => ({
+                ...item,
+                color: item.color || colors[index % colors.length]
+            }))
         };
-
-        return { hasData: true, option };
-    }, [data, t]);
+    }, [data]);
 
     return (
         <Card className="h-full">
@@ -100,12 +40,9 @@ const RecurringElementsChart = ({ data = [] }) => {
             </CardHeader>
             <CardContent>
                 {chartData.hasData ? (
-                    <ReactECharts
-                        option={chartData.option}
-                        style={{ height: '280px', width: '100%' }}
-                        opts={{ renderer: 'svg', devicePixelRatio: window.devicePixelRatio || 2 }}
-                        className="w-full theme-transition"
-                    />
+                    <div className="flex items-center justify-center h-[280px] w-full">
+                        <DreamElementCloud elements={chartData.validData} />
+                    </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-[280px] text-muted-foreground">
                         <RefreshCw className="h-12 w-12 mb-3 opacity-50" />

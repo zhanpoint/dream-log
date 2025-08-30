@@ -338,9 +338,6 @@ export function RegisterForm() {
         <Card className="w-full max-w-md mx-auto card">
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.register.title', '创建账户')}</CardTitle>
-                <CardDescription className="text-center">
-                    {t('auth.register.subtitle', '注册一个账户，开始您的梦境探索之旅')}
-                </CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs value={registerMode} onValueChange={setRegisterMode} className="w-full">

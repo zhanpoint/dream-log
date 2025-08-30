@@ -149,6 +149,7 @@ jobs:
         with:
           # 将构建上下文切到仓库根目录，以便COPY nginx/nginx.conf
           context: .
+          file: frontend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
           build-args: |

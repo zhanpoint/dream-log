@@ -44,7 +44,12 @@
         "export": "Export",
         "viewDetails": "View Details",
         "filtersReset": "Filters reset",
-        "add": "Add"
+        "add": "Add",
+        "date": {
+            "year": "",
+            "month": "/",
+            "day": ""
+        }
     },
     "editor": {
         "bold": "Bold",
@@ -294,7 +299,8 @@
         },
         "title": "Dream Statistics",
         "subtitle": "View your dream data statistics and analysis",
-        "keywords": "dreams,statistics,analysis,data"
+        "keywords": "dreams,statistics,analysis,data",
+        "noDataDescription": "Record your dreams and we will provide you with detailed statistical analysis and chart displays."
     },
     "assistant": {
         "memorySaved": "Memory saved",
@@ -410,19 +416,15 @@
     "footer": {
         "product": {
             "title": "Product Features",
-            "smartRecord": "Smart Recording",
-            "dreamAnalysis": "Dream Analysis",
+            "smartRecord": "Record Dreams with Smart Analysis",
             "aiAssistant": "AI Assistant",
             "statistics": "Statistics",
             "dreamManagement": "Dream Management"
         },
         "support": {
             "title": "Help & Support",
-            "userGuide": "User Guide",
-            "faq": "FAQ",
             "contact": "Contact Us",
-            "feedback": "Feedback",
-            "onlineSupport": "Online Support"
+            "feedback": "Feedback"
         },
         "legal": {
             "title": "Legal Information",
@@ -431,18 +433,483 @@
             "cookies": "Cookie Policy",
             "disclaimer": "Disclaimer"
         },
-        "social": {
-            "title": "Follow Us",
-            "weibo": "Official Weibo",
-            "wechat": "WeChat Official Account",
-            "qq": "QQ Group",
-            "github": "GitHub"
-        },
         "brand": {
             "tagline": "Explore Infinite Possibilities of Dreams"
         },
         "copyright": {
             "tech": "Built with React 19 & AI Technology"
+        }
+    },
+    "home": {
+        "subtitle": "Unlock dream mysteries with AI, discover subconscious treasures, and embark on a journey of self-exploration",
+        "testimonials": {
+            "title": "Real User Reviews",
+            "subtitle": "Authentic feedback from users nationwide, witnessing Dream Log's professionalism and care",
+            "stats": {
+                "users": "Active Users",
+                "dreams": "Dream Records",
+                "satisfaction": "Satisfaction"
+            }
+        }
+    },
+    "cookiePolicy": {
+        "title": "Cookie Policy",
+        "description": "Dream Log Cookie Policy, learn how we use cookies and similar technologies",
+        "keywords": "Cookie Policy,Data Tracking,Website Functionality,Dream Log",
+        "lastUpdated": "Last updated: ",
+        "sections": {
+            "whatAreCookies": {
+                "title": "1. What are Cookies",
+                "content": "Cookies are small text files stored on your device that record your interactions with websites. When you visit Dream Log, we may use cookies and similar technologies to:",
+                "purposes": [
+                    "Remember your login status and preferences",
+                    "Provide personalized user experience",
+                    "Analyze website usage and performance",
+                    "Ensure website security and prevent fraud"
+                ]
+            },
+            "cookieTypes": {
+                "title": "2. Types of Cookies",
+                "essential": {
+                    "title": "Essential Cookies",
+                    "description": "These cookies are essential for the website to function properly and cannot be disabled:",
+                    "items": [
+                        "User authentication and session management",
+                        "Security protection and CSRF prevention",
+                        "Basic functionality and page navigation"
+                    ]
+                },
+                "functional": {
+                    "title": "Functional Cookies",
+                    "description": "These cookies remember your choices and preferences to provide a better user experience:",
+                    "items": [
+                        "Language and theme preference settings",
+                        "Interface layout and display options",
+                        "Temporary form data saving"
+                    ]
+                },
+                "analytics": {
+                    "title": "Analytics Cookies",
+                    "description": "These cookies help us understand how users use the website to improve service quality:",
+                    "items": [
+                        "Page visit statistics and user behavior analysis",
+                        "Feature usage frequency and error monitoring",
+                        "Performance optimization and user experience improvement"
+                    ]
+                }
+            },
+            "specificCookies": {
+                "title": "3. Specific Cookies List",
+                "table": {
+                    "headers": {
+                        "name": "Cookie Name",
+                        "purpose": "Purpose",
+                        "duration": "Duration"
+                    },
+                    "cookies": [
+                        {
+                            "name": "auth_token",
+                            "purpose": "User Authentication",
+                            "duration": "7 days"
+                        },
+                        {
+                            "name": "theme_preference",
+                            "purpose": "Theme Settings",
+                            "duration": "1 year"
+                        },
+                        {
+                            "name": "language_setting",
+                            "purpose": "Language Preference",
+                            "duration": "1 year"
+                        },
+                        {
+                            "name": "analytics_id",
+                            "purpose": "Usage Analytics",
+                            "duration": "2 years"
+                        }
+                    ]
+                }
+            },
+            "thirdParty": {
+                "title": "4. Third-Party Cookies",
+                "content": "We may use the following third-party services that set their own cookies:",
+                "services": [
+                    "<strong>CDN Services</strong>: For accelerating content distribution and improving loading speed",
+                    "<strong>Security Services</strong>: To protect against malicious attacks and ensure website security",
+                    "<strong>Analytics Tools</strong>: To understand user behavior and improve services (if applicable)"
+                ],
+                "note": "These third-party services have their own privacy policies, and we recommend reviewing their policies for details."
+            },
+            "management": {
+                "title": "5. Cookie Management",
+                "browsers": {
+                    "title": "Browser Settings",
+                    "description": "You can manage cookies through your browser settings:",
+                    "settings": [
+                        "<strong>Chrome</strong>: Settings → Privacy and security → Cookies and other site data",
+                        "<strong>Firefox</strong>: Options → Privacy & Security → Cookies and Site Data",
+                        "<strong>Safari</strong>: Preferences → Privacy → Manage Website Data",
+                        "<strong>Edge</strong>: Settings → Cookies and site permissions"
+                    ]
+                },
+                "impacts": {
+                    "title": "Impact Notice",
+                    "description": "Disabling cookies may affect the following features:",
+                    "items": [
+                        "Unable to maintain login status, requiring re-login",
+                        "Personal preferences cannot be saved",
+                        "Some features may not work properly",
+                        "Website performance and user experience may decline"
+                    ]
+                }
+            },
+            "otherTech": {
+                "title": "6. Other Tracking Technologies",
+                "content": "In addition to cookies, we may use the following technologies:",
+                "technologies": [
+                    "<strong>Local Storage</strong>: Store application settings and temporary data",
+                    "<strong>Session Storage</strong>: Temporary data storage during sessions",
+                    "<strong>Web Beacons</strong>: Used for statistics and analysis (if applicable)",
+                    "<strong>Fingerprinting</strong>: Device feature recognition for security protection"
+                ]
+            },
+            "dataProtection": {
+                "title": "7. Data Protection",
+                "content": "We take the following measures to protect data collected through cookies:",
+                "measures": [
+                    "All sensitive cookies are stored with encryption",
+                    "Regular cleanup of expired and unused cookie data",
+                    "Strict control of access permissions for cookie data",
+                    "Follow the principle of minimizing data collection",
+                    "Will not sell cookie data to third parties"
+                ]
+            },
+            "updates": {
+                "title": "8. Policy Updates",
+                "content": "We may update this Cookie Policy from time to time to reflect:",
+                "reasons": [
+                    "Launch of new features and services",
+                    "Technical and security improvements",
+                    "Changes in laws and regulations",
+                    "User feedback and suggestions"
+                ],
+                "notification": "Important updates will be notified to users through website notifications or email."
+            },
+            "contact": {
+                "title": "9. Contact Us",
+                "content": "If you have any questions about our cookie usage, please contact us:",
+                "email": "cookie@dreamlog.com"
+            }
+        }
+    },
+    "disclaimer": {
+        "title": "Disclaimer",
+        "description": "Dream Log Disclaimer, understand the risks and limitations of liability for using our services",
+        "keywords": "Disclaimer,Liability Limitations,Usage Risks,Dream Log",
+        "lastUpdated": "Last updated: ",
+        "sections": {
+            "serviceNature": {
+                "title": "1. Service Nature Statement",
+                "content": "Dream Log is a dream recording and analysis platform designed to provide entertainment and self-exploration tools for users. Please note:",
+                "points": [
+                    "<strong>Non-Medical Service</strong>: This platform does not provide medical diagnosis, treatment, or professional psychological counseling services",
+                    "<strong>Entertainment Nature</strong>: All analysis results are for entertainment and personal reference only",
+                    "<strong>AI Limitations</strong>: AI analysis is based on algorithms and data models, cannot replace human professional judgment",
+                    "<strong>Personal Interpretation</strong>: Dreams are highly personalized, and analysis results vary from person to person"
+                ]
+            },
+            "contentAccuracy": {
+                "title": "2. Content Accuracy Disclaimer",
+                "content": "Regarding the content and analysis results provided by the platform:",
+                "points": [
+                    "<strong>Accuracy</strong>: We do not guarantee the complete accuracy or applicability of AI analysis results",
+                    "<strong>Completeness</strong>: Analysis results may not be comprehensive, with omissions or deviations",
+                    "<strong>Timeliness</strong>: Algorithms and databases are continuously updated, historical analysis results may become outdated",
+                    "<strong>Subjectivity</strong>: Dream interpretation involves subjective judgment, different theories may lead to different conclusions",
+                    "<strong>Cultural Differences</strong>: Analysis may not fully consider cultural backgrounds and personal experience differences"
+                ]
+            },
+            "healthDisclaimer": {
+                "title": "3. Health and Mental Health Disclaimer",
+                "content": "If you have any of the following conditions, please seek professional help instead of relying on this platform:",
+                "conditions": [
+                    "<strong>Sleep Disorders</strong>: Chronic insomnia, frequent nightmares, or severely declining sleep quality",
+                    "<strong>Mental Health</strong>: Depression, anxiety, PTSD, or other psychological problems",
+                    "<strong>Mental Illness</strong>: Any form of mental illness or related symptoms",
+                    "<strong>Medication Effects</strong>: Taking medications that affect sleep or mental state",
+                    "<strong>Emergency Situations</strong>: Having thoughts of self-harm or harming others"
+                ],
+                "warning": "⚠️ Important Reminder: If you have mental health issues, please seek professional medical help immediately!"
+            },
+            "technicalDisclaimer": {
+                "title": "4. Technical Service Disclaimer",
+                "content": "Regarding the limitations and risks of technical services:",
+                "points": [
+                    "<strong>Service Availability</strong>: Does not guarantee 24/7 uninterrupted service operation",
+                    "<strong>Data Loss</strong>: Although backup measures are taken, data loss risks cannot be excluded",
+                    "<strong>Compatibility</strong>: May not be fully compatible with certain devices or browsers",
+                    "<strong>Network Dependency</strong>: Requires stable network connection, network issues may affect usage",
+                    "<strong>Update Impact</strong>: System updates may temporarily affect functionality or change interface"
+                ]
+            },
+            "userBehavior": {
+                "title": "5. User Behavior Disclaimer",
+                "content": "We are not responsible for the following user behaviors:",
+                "points": [
+                    "<strong>Misuse of Service</strong>: Using analysis results for inappropriate purposes or important decisions",
+                    "<strong>Over-reliance</strong>: Over-dependence on AI analysis while ignoring real life",
+                    "<strong>Information Disclosure</strong>: Users voluntarily sharing sensitive personal information with others",
+                    "<strong>Account Security</strong>: Account theft or abuse due to user negligence",
+                    "<strong>Illegal Use</strong>: Using the platform for illegal or harmful activities"
+                ]
+            },
+            "thirdPartyContent": {
+                "title": "6. Third-Party Content Disclaimer",
+                "content": "The platform may contain third-party content or links:",
+                "points": [
+                    "<strong>External Links</strong>: Not responsible for content or services of external websites",
+                    "<strong>User-Generated Content</strong>: Not responsible for content shared by other users",
+                    "<strong>Advertising Content</strong>: If any advertising, accuracy or reliability is not guaranteed",
+                    "<strong>Partners</strong>: Third-party service providers have independent responsibilities and obligations"
+                ]
+            },
+            "lossesAndDamages": {
+                "title": "7. Losses and Damages Disclaimer",
+                "content": "To the maximum extent permitted by law, we do not assume the following losses:",
+                "losses": [
+                    "<strong>Direct Losses</strong>: Direct economic losses caused by using or being unable to use the service",
+                    "<strong>Indirect Losses</strong>: Indirect losses such as profit loss, goodwill damage, data loss",
+                    "<strong>Emotional Damage</strong>: Emotional distress or psychological trauma caused by service content",
+                    "<strong>Decision Consequences</strong>: Consequences of making decisions based on platform analysis results",
+                    "<strong>Third-Party Losses</strong>: Any losses or damages caused to third parties"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. Applicable Law and Jurisdiction",
+                "content": "Application and interpretation of this disclaimer:",
+                "points": [
+                    "<strong>Applicable Law</strong>: Subject to the laws and regulations of the People's Republic of China",
+                    "<strong>Jurisdiction</strong>: Disputes shall be under the jurisdiction of Zhengzhou People's Court, Henan Province",
+                    "<strong>Legal Conflicts</strong>: If conflicts with mandatory legal provisions, legal provisions shall prevail",
+                    "<strong>Partial Invalidity</strong>: Invalidity of partial provisions does not affect the validity of other provisions"
+                ]
+            },
+            "userConfirmation": {
+                "title": "9. User Confirmation",
+                "content": "Using Dream Log services indicates that you confirm:",
+                "confirmations": [
+                    "Have fully understood the content of this disclaimer",
+                    "Agree to bear the related risks of using the service",
+                    "Will not use platform analysis results for important decisions",
+                    "Will seek professional help when health problems arise",
+                    "Understand the entertainment nature and limitations of the service"
+                ]
+            },
+            "contact": {
+                "title": "10. Contact Information",
+                "content": "If you have questions about this disclaimer, please contact us:",
+                "email": "warpoint377@gmail.com",
+                "note": "This disclaimer takes effect from the date of publication, and we reserve the right to modify it at any time."
+            }
+        }
+    },
+    "privacyPolicy": {
+        "title": "Privacy Policy",
+        "description": "Dream Log Privacy Policy, understand how we collect, use and protect your personal information",
+        "keywords": "Privacy Policy,Personal Information Protection,Data Security,Dream Log",
+        "lastUpdated": "Last updated: ",
+        "sections": {
+            "collection": {
+                "title": "1. Information Collection",
+                "content": "We collect the following types of information:",
+                "types": [
+                    "<strong>Account Information</strong>: Username, email address, password (encrypted storage)",
+                    "<strong>Dream Content</strong>: Dream records, tags, and related data you actively submit",
+                    "<strong>Usage Data</strong>: Access times, feature usage, device information",
+                    "<strong>Technical Information</strong>: IP addresses, browser types, operating system information"
+                ]
+            },
+            "usage": {
+                "title": "2. Information Usage",
+                "content": "We use the collected information for:",
+                "purposes": [
+                    "Provide dream recording and analysis services",
+                    "Improve user experience and service quality",
+                    "Send important service notifications",
+                    "Prevent fraud and abusive behavior",
+                    "Comply with legal and regulatory requirements"
+                ]
+            },
+            "protection": {
+                "title": "3. Information Protection",
+                "content": "We take the following security measures to protect your information:",
+                "measures": [
+                    "Data transmission uses SSL/TLS encryption",
+                    "Sensitive information uses AES-256 encryption for storage",
+                    "Regular security audits and vulnerability scanning",
+                    "Strict access control and permission management",
+                    "Data backup and disaster recovery mechanisms"
+                ]
+            },
+            "sharing": {
+                "title": "4. Information Sharing",
+                "content": "We will not sell, rent, or otherwise disclose your personal information to third parties unless:",
+                "exceptions": [
+                    "Obtain your explicit consent",
+                    "Required by laws and regulations or government departments",
+                    "To protect our legitimate rights and interests",
+                    "In emergency situations to protect user or public safety"
+                ]
+            },
+            "userRights": {
+                "title": "5. User Rights",
+                "content": "You have the following rights:",
+                "rights": [
+                    "<strong>Access Right</strong>: View personal information we hold about you",
+                    "<strong>Rectification Right</strong>: Request correction of inaccurate personal information",
+                    "<strong>Erasure Right</strong>: Request deletion of your personal information",
+                    "<strong>Restriction Right</strong>: Restrict processing of your personal information",
+                    "<strong>Withdrawal Right</strong>: Withdraw previously given consent"
+                ]
+            },
+            "cookies": {
+                "title": "6. Cookie Usage",
+                "content": "We use cookies and similar technologies to:",
+                "purposes": [
+                    "Remember your login status and preferences",
+                    "Analyze website usage and performance",
+                    "Provide personalized user experience",
+                    "Prevent security threats"
+                ],
+                "note": "You can manage cookies through browser settings, but this may affect the normal use of some features."
+            },
+            "retention": {
+                "title": "7. Data Retention",
+                "content": "We will retain your information according to the following principles:",
+                "policies": [
+                    "Account information: During account existence",
+                    "Dream data: Deleted within 30 days after user actively deletes or account cancellation",
+                    "Log data: Retained for 12 months",
+                    "Other retention periods required by law"
+                ]
+            },
+            "contact": {
+                "title": "8. Contact Us",
+                "content": "If you have any questions about this privacy policy or need to exercise your rights, please contact us through:",
+                "email": "warpoint377@gmail.com"
+            },
+            "updates": {
+                "title": "9. Policy Updates",
+                "content": "We may update this privacy policy from time to time. For major changes, we will:",
+                "notifications": [
+                    "Post update notices in prominent positions on the website",
+                    "Notify registered users via email",
+                    "Provide a 30-day transition period"
+                ],
+                "acceptance": "Continuing to use our services indicates that you accept the updated privacy policy."
+            }
+        }
+    },
+    "termsOfService": {
+        "title": "Terms of Service",
+        "description": "Dream Log Terms of Service, understand the rules and conditions for using our services",
+        "keywords": "Terms of Service,User Agreement,Usage Rules,Dream Log",
+        "lastUpdated": "Last updated: ",
+        "sections": {
+            "serviceIntro": {
+                "title": "1. Service Introduction",
+                "content": "Dream Log (hereinafter referred to as \"we\" or \"the service\") is an AI-powered dream recording and analysis platform. We provide users with:",
+                "services": [
+                    "Dream recording and management functions",
+                    "AI-driven dream interpretation services",
+                    "Personal dream data statistical analysis",
+                    "Dream-related knowledge and advice"
+                ]
+            },
+            "userResponsibilities": {
+                "title": "2. User Responsibilities",
+                "content": "When using this service, you need to:",
+                "responsibilities": [
+                    "Provide true and accurate registration information",
+                    "Properly safeguard account information, do not share with others",
+                    "Comply with laws and regulations of the People's Republic of China",
+                    "Do not publish illegal, harmful, or inappropriate content",
+                    "Respect others' privacy and intellectual property rights",
+                    "Do not conduct malicious attacks or damage system security"
+                ]
+            },
+            "serviceRules": {
+                "title": "3. Service Rules",
+                "content": "To ensure service quality and user experience, we have established the following rules:",
+                "rules": [
+                    "<strong>Content Standards</strong>: Prohibit publishing illegal, violent, pornographic, defamatory content",
+                    "<strong>Usage Limits</strong>: Reasonable limits on daily API calls and storage space",
+                    "<strong>Account Security</strong>: Accounts may be suspended or restricted when abnormal activity is detected",
+                    "<strong>Data Backup</strong>: Users are advised to regularly back up important data"
+                ]
+            },
+            "intellectualProperty": {
+                "title": "4. Intellectual Property",
+                "content": "Agreements regarding intellectual property:",
+                "provisions": [
+                    "<strong>Platform Rights</strong>: Dream Log's trademarks, interface designs, codes, etc. belong to us",
+                    "<strong>User Content</strong>: You retain ownership of your original dream records and other content",
+                    "<strong>Usage Authorization</strong>: You authorize us to use your content for providing services",
+                    "<strong>Infringement Handling</strong>: Please contact us if infringement is discovered"
+                ]
+            },
+            "disclaimer": {
+                "title": "5. Disclaimer",
+                "content": "Please note the following disclaimer terms:",
+                "disclaimers": [
+                    "<strong>Service Nature</strong>: This service is for entertainment and reference only, does not constitute professional medical advice",
+                    "<strong>Accuracy</strong>: AI analysis results are for reference only, complete accuracy not guaranteed",
+                    "<strong>Availability</strong>: May be temporarily interrupted due to maintenance or upgrades",
+                    "<strong>Third Parties</strong>: Not responsible for third-party links or services",
+                    "<strong>Data Loss</strong>: Although we take measures to protect data, technical failure risks cannot be excluded"
+                ]
+            },
+            "changesAndTermination": {
+                "title": "6. Service Changes and Termination",
+                "content": "Regarding service changes and termination:",
+                "policies": [
+                    "<strong>Feature Updates</strong>: We may update or adjust service functions at any time",
+                    "<strong>Advance Notice</strong>: Major changes will be notified 30 days in advance",
+                    "<strong>Account Termination</strong>: Accounts violating terms may be suspended or terminated",
+                    "<strong>Data Export</strong>: Users may apply to export personal data before termination",
+                    "<strong>Service Termination</strong>: 90 days advance notice will be given if service is terminated"
+                ]
+            },
+            "disputeResolution": {
+                "title": "7. Dispute Resolution",
+                "content": "In case of disputes, we suggest:",
+                "suggestions": [
+                    "<strong>Friendly Negotiation</strong>: Prioritize dispute resolution through negotiation",
+                    "<strong>Customer Service</strong>: Seek help through customer service channels",
+                    "<strong>Legal Remedies</strong>: If negotiation fails, seek legal remedies according to law",
+                    "<strong>Jurisdiction</strong>: Disputes shall be under jurisdiction of Zhengzhou People's Court, Henan Province"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. Applicable Law",
+                "content": "This Terms of Service applies to the laws and regulations of the People's Republic of China, including but not limited to:",
+                "laws": [
+                    "Civil Code of the People's Republic of China",
+                    "Cybersecurity Law of the People's Republic of China",
+                    "Personal Information Protection Law of the People's Republic of China",
+                    "Data Security Law of the People's Republic of China"
+                ]
+            },
+            "contact": {
+                "title": "9. Contact Information",
+                "content": "If you have questions about this Terms of Service, please contact us:",
+                "email": "warpoint377@gmail.com"
+            },
+            "effectiveness": {
+                "title": "10. Terms Effectiveness",
+                "content": "This Terms of Service takes effect from the date of publication. By registering an account or using this service, you indicate that you have read, understood, and agree to comply with all contents of these terms.",
+                "updates": "We reserve the right to modify these terms at any time, and the modified terms will be published on the website and take effect from the date of publication."
+            }
         }
     }
 }

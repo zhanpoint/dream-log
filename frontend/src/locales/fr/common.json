@@ -276,7 +276,8 @@
         },
         "title": "Statistiques des Rêves",
         "subtitle": "Voir les statistiques et analyses de vos données de rêves",
-        "keywords": "rêves,statistiques,analyse,données"
+        "keywords": "rêves,statistiques,analyse,données",
+        "noDataDescription": "Enregistrez vos rêves et nous vous fournirons une analyse statistique détaillée et des graphiques."
     },
     "assistant": {
         "memorySaved": "Mémoire sauvegardée",
@@ -425,6 +426,466 @@
         },
         "copyright": {
             "tech": "Construit avec React 19 et Technologie IA"
+        }
+    },
+    "cookiePolicy": {
+        "title": "Politique de Cookies",
+        "description": "Politique de Cookies de Dream Log, apprenez comment nous utilisons les cookies et technologies similaires",
+        "keywords": "Politique de Cookies,Suivi de Données,Fonctionnalité du Site,Dream Log",
+        "lastUpdated": "Dernière mise à jour : ",
+        "sections": {
+            "whatAreCookies": {
+                "title": "1. Qu'est-ce que les Cookies",
+                "content": "Les cookies sont de petits fichiers texte stockés sur votre appareil qui enregistrent vos interactions avec les sites web. Lorsque vous visitez Dream Log, nous pouvons utiliser des cookies et des technologies similaires pour :",
+                "purposes": [
+                    "Mémoriser votre état de connexion et vos préférences",
+                    "Fournir une expérience utilisateur personnalisée",
+                    "Analyser l'utilisation du site web et les performances",
+                    "Assurer la sécurité du site web et prévenir la fraude"
+                ]
+            },
+            "cookieTypes": {
+                "title": "2. Types de Cookies",
+                "essential": {
+                    "title": "Cookies Essentiels",
+                    "description": "Ces cookies sont essentiels au fonctionnement correct du site web et ne peuvent être désactivés :",
+                    "items": [
+                        "Authentification utilisateur et gestion des sessions",
+                        "Protection de sécurité et prévention CSRF",
+                        "Fonctionnalité de base et navigation de pages"
+                    ]
+                },
+                "functional": {
+                    "title": "Cookies Fonctionnels",
+                    "description": "Ces cookies mémorisent vos choix et préférences pour fournir une meilleure expérience utilisateur :",
+                    "items": [
+                        "Paramètres de préférences de langue et de thème",
+                        "Options de mise en page et d'affichage de l'interface",
+                        "Stockage temporaire des données de formulaires"
+                    ]
+                },
+                "analytics": {
+                    "title": "Cookies d'Analyse",
+                    "description": "Ces cookies nous aident à comprendre comment les utilisateurs utilisent le site web pour améliorer la qualité du service :",
+                    "items": [
+                        "Statistiques de visites de pages et analyse du comportement des utilisateurs",
+                        "Fréquence d'utilisation des fonctions et surveillance des erreurs",
+                        "Optimisation des performances et amélioration de l'expérience utilisateur"
+                    ]
+                }
+            },
+            "specificCookies": {
+                "title": "3. Liste Spécifique des Cookies",
+                "table": {
+                    "headers": {
+                        "name": "Nom du Cookie",
+                        "purpose": "Objectif",
+                        "duration": "Durée"
+                    },
+                    "cookies": [
+                        {
+                            "name": "auth_token",
+                            "purpose": "Authentification Utilisateur",
+                            "duration": "7 jours"
+                        },
+                        {
+                            "name": "theme_preference",
+                            "purpose": "Paramètres de Thème",
+                            "duration": "1 an"
+                        },
+                        {
+                            "name": "language_setting",
+                            "purpose": "Préférence de Langue",
+                            "duration": "1 an"
+                        },
+                        {
+                            "name": "analytics_id",
+                            "purpose": "Analyses d'Utilisation",
+                            "duration": "2 ans"
+                        }
+                    ]
+                }
+            },
+            "thirdParty": {
+                "title": "4. Cookies Tiers",
+                "content": "Nous pouvons utiliser les services tiers suivants qui définissent leurs propres cookies :",
+                "services": [
+                    "<strong>Services CDN</strong> : Pour accélérer la distribution de contenu et améliorer les temps de chargement",
+                    "<strong>Services de Sécurité</strong> : Pour se protéger contre les attaques malveillantes et assurer la sécurité du site web",
+                    "<strong>Outils d'Analyse</strong> : Pour comprendre le comportement des utilisateurs et améliorer les services (si utilisés)"
+                ],
+                "note": "Ces services tiers ont leurs propres politiques de confidentialité, et nous vous recommandons de consulter les politiques respectives."
+            },
+            "management": {
+                "title": "5. Gestion des Cookies",
+                "browsers": {
+                    "title": "Paramètres du Navigateur",
+                    "description": "Vous pouvez gérer les cookies via les paramètres de votre navigateur :",
+                    "settings": [
+                        "<strong>Chrome</strong> : Paramètres → Confidentialité et sécurité → Cookies et autres données de sites",
+                        "<strong>Firefox</strong> : Options → Vie privée et sécurité → Cookies et données de sites",
+                        "<strong>Safari</strong> : Préférences → Confidentialité → Gérer les données de sites",
+                        "<strong>Edge</strong> : Paramètres → Cookies et autorisations de sites"
+                    ]
+                },
+                "impacts": {
+                    "title": "Note d'Impact",
+                    "description": "La désactivation des cookies peut affecter les fonctions suivantes :",
+                    "items": [
+                        "L'état de connexion ne peut pas être maintenu, reconnexion requise",
+                        "Les préférences personnelles ne peuvent pas être sauvegardées",
+                        "Certaines fonctions peuvent ne pas fonctionner correctement",
+                        "Les performances du site web et l'expérience utilisateur peuvent diminuer"
+                    ]
+                }
+            },
+            "otherTech": {
+                "title": "6. Autres Technologies de Suivi",
+                "content": "En plus des cookies, nous pouvons utiliser les technologies suivantes :",
+                "technologies": [
+                    "<strong>Local Storage</strong> : Stockage des paramètres d'application et des données temporaires",
+                    "<strong>Session Storage</strong> : Stockage temporaire des données pendant la session",
+                    "<strong>Web Beacons</strong> : Pour statistiques et analyse (si utilisés)",
+                    "<strong>Fingerprinting</strong> : Identification d'appareils pour protection de sécurité"
+                ]
+            },
+            "dataProtection": {
+                "title": "7. Protection des Données",
+                "content": "Nous prenons les mesures suivantes pour protéger les données collectées via les cookies :",
+                "measures": [
+                    "Toutes les cookies sensibles sont stockées avec chiffrement",
+                    "Nettoyage régulier des données de cookies expirées et inutilisées",
+                    "Contrôle strict des droits d'accès aux données de cookies",
+                    "Respect du principe de minimisation de la collecte de données",
+                    "Les données de cookies ne sont pas vendues à des tiers"
+                ]
+            },
+            "updates": {
+                "title": "8. Mises à Jour de Politique",
+                "content": "Nous pouvons mettre à jour cette Politique de Cookies de temps à autre pour refléter :",
+                "reasons": [
+                    "Lancement de nouvelles fonctions et services",
+                    "Améliorations techniques et de sécurité",
+                    "Changements dans les lois et réglementations",
+                    "Commentaires et suggestions des utilisateurs"
+                ],
+                "notification": "Les mises à jour importantes seront notifiées aux utilisateurs via les notifications du site web ou les e-mails."
+            },
+            "contact": {
+                "title": "9. Contactez-nous",
+                "content": "Si vous avez des questions sur notre utilisation des cookies, contactez-nous :",
+                "email": "cookie@dreamlog.com"
+            }
+        }
+    },
+    "disclaimer": {
+        "title": "Clause de Non-responsabilité",
+        "description": "Clause de non-responsabilité de Dream Log, connaissez les risques et limitations de responsabilité lors de l'utilisation de nos services",
+        "keywords": "Clause de Non-responsabilité,Limitations de Responsabilité,Risques d'Utilisation,Dream Log",
+        "lastUpdated": "Dernière mise à jour : ",
+        "sections": {
+            "serviceNature": {
+                "title": "1. Déclaration de Nature de Service",
+                "content": "Dream Log est une plateforme d'enregistrement et d'analyse de rêves conçue pour fournir des outils de divertissement et d'auto-exploration aux utilisateurs. Veuillez noter :",
+                "points": [
+                    "<strong>Service Non Médical</strong> : Cette plateforme ne fournit pas de diagnostic médical, de traitement ou de conseil psychologique professionnel",
+                    "<strong>Nature de Divertissement</strong> : Tous les résultats d'analyse servent uniquement au divertissement et à la référence personnelle",
+                    "<strong>Limitations IA</strong> : L'analyse IA est basée sur des algorithmes et des modèles de données et ne peut remplacer le jugement professionnel humain",
+                    "<strong>Interprétation Personnelle</strong> : Les rêves sont hautement personnalisés, les résultats d'analyse varient d'une personne à l'autre"
+                ]
+            },
+            "contentAccuracy": {
+                "title": "2. Clause de Non-responsabilité de Précision de Contenu",
+                "content": "Concernant le contenu et les résultats d'analyse fournis par la plateforme :",
+                "points": [
+                    "<strong>Précision</strong> : Nous ne garantissons pas l'exactitude complète ou l'applicabilité des résultats d'analyse IA",
+                    "<strong>Intégralité</strong> : Les résultats d'analyse peuvent ne pas être suffisamment complets, avec des omissions ou des déviations",
+                    "<strong>Actualité</strong> : Les algorithmes et bases de données sont mis à jour continuellement, les résultats d'analyse historiques peuvent devenir obsolètes",
+                    "<strong>Subjectivité</strong> : L'interprétation des rêves implique un jugement subjectif, différentes théories peuvent mener à des conclusions différentes",
+                    "<strong>Différences Culturelles</strong> : L'analyse peut ne pas tenir suffisamment compte des arrière-plans culturels et des différences d'expériences personnelles"
+                ]
+            },
+            "healthDisclaimer": {
+                "title": "3. Clause de Non-responsabilité de Santé et Santé Mentale",
+                "content": "Si vous avez l'une des conditions suivantes, cherchez une aide professionnelle plutôt que de dépendre de cette plateforme :",
+                "conditions": [
+                    "<strong>Troubles du Sommeil</strong> : Insomnie continue, cauchemars fréquents ou diminution sévère de la qualité du sommeil",
+                    "<strong>Santé Mentale</strong> : Dépression, anxiété, SSPT ou autres problèmes psychologiques",
+                    "<strong>Maladies Mentales</strong> : Toute forme de maladie mentale ou symptômes connexes",
+                    "<strong>Influence Médicamenteuse</strong> : Prise de médicaments qui affectent le sommeil ou l'état mental",
+                    "<strong>Situations d'Urgence</strong> : Pensées d'autolesion ou de blessure à autrui"
+                ],
+                "warning": "⚠️ Avertissement Important : En cas de problèmes de santé mentale, cherchez une aide médicale professionnelle immédiate !"
+            },
+            "technicalDisclaimer": {
+                "title": "4. Clause de Non-responsabilité de Services Techniques",
+                "content": "Concernant les limitations et risques des services techniques :",
+                "points": [
+                    "<strong>Disponibilité du Service</strong> : Fonctionnement ininterrompu 24/7 non garanti",
+                    "<strong>Perte de Données</strong> : Bien que des mesures de sauvegarde soient prises, le risque de perte de données ne peut être exclu",
+                    "<strong>Compatibilité</strong> : Peut ne pas être entièrement compatible avec certains appareils ou navigateurs",
+                    "<strong>Dépendance Réseau</strong> : Nécessite une connexion réseau stable, les problèmes réseau peuvent affecter l'utilisation",
+                    "<strong>Impact des Mises à Jour</strong> : Les mises à jour système peuvent affecter temporairement la fonctionnalité ou changer l'interface"
+                ]
+            },
+            "userBehavior": {
+                "title": "5. Clause de Non-responsabilité de Comportement Utilisateur",
+                "content": "Nous n'assumons pas la responsabilité du comportement utilisateur suivant :",
+                "points": [
+                    "<strong>Utilisation Incorrecte du Service</strong> : Utilisation des résultats d'analyse à des fins inappropriées ou décisions importantes",
+                    "<strong>Dépendance Excessive</strong> : Dépendance excessive de l'analyse IA en ignorant la vie réelle",
+                    "<strong>Fuite d'Information</strong> : Les utilisateurs partagent volontairement des informations personnelles sensibles avec d'autres",
+                    "<strong>Sécurité du Compte</strong> : Vol ou abus de compte en raison de négligence de l'utilisateur",
+                    "<strong>Utilisation Illégale</strong> : Utilisation de la plateforme pour des activités illégales ou nuisibles"
+                ]
+            },
+            "thirdPartyContent": {
+                "title": "6. Clause de Non-responsabilité de Contenu Tiers",
+                "content": "La plateforme peut contenir du contenu ou des liens tiers :",
+                "points": [
+                    "<strong>Liens Externes</strong> : Nous n'assumons pas la responsabilité du contenu ou des services des sites web externes",
+                    "<strong>Contenu Généré par Utilisateurs</strong> : Nous n'assumons pas la responsabilité du contenu partagé par d'autres utilisateurs",
+                    "<strong>Contenu Publicitaire</strong> : S'il y a de la publicité, aucune garantie d'exactitude ou de fiabilité",
+                    "<strong>Partenaires</strong> : Les fournisseurs de services tiers ont des responsabilités et obligations indépendantes"
+                ]
+            },
+            "lossesAndDamages": {
+                "title": "7. Clause de Non-responsabilité de Pertes et Dommages",
+                "content": "Dans la mesure maximale permise par la loi, nous n'assumons pas la responsabilité des pertes suivantes :",
+                "losses": [
+                    "<strong>Pertes Directes</strong> : Pertes économiques directes dues à l'utilisation ou l'impossibilité d'utilisation du service",
+                    "<strong>Pertes Indirectes</strong> : Pertes indirectes telles que perte de profits, dommages au goodwill, perte de données",
+                    "<strong>Dommages Émotionnels</strong> : Troubles émotionnels ou traumatismes psychologiques dus au contenu du service",
+                    "<strong>Conséquences de Décisions</strong> : Conséquences de décisions basées sur les résultats d'analyse de la plateforme",
+                    "<strong>Pertes à Tiers</strong> : Toute perte ou dommage causé à des tiers"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. Loi Applicable et Juridiction",
+                "content": "Application et interprétation de cette clause de non-responsabilité :",
+                "points": [
+                    "<strong>Loi Applicable</strong> : Soumise aux lois et réglementations de la République Populaire de Chine",
+                    "<strong>Juridiction</strong> : Les litiges sont soumis à la juridiction du Tribunal Populaire de Zhengzhou, Province du Henan",
+                    "<strong>Conflits Légaux</strong> : En cas de conflits avec des dispositions légales obligatoires, les dispositions légales prévalent",
+                    "<strong>Invalidité Partielle</strong> : L'invalidité de dispositions partielles n'affecte pas la validité d'autres dispositions"
+                ]
+            },
+            "userConfirmation": {
+                "title": "9. Confirmation Utilisateur",
+                "content": "L'utilisation des services Dream Log signifie que vous confirmez :",
+                "confirmations": [
+                    "Avoir complètement compris le contenu de cette clause de non-responsabilité",
+                    "Accepter d'assumer les risques liés à l'utilisation du service",
+                    "Ne pas utiliser les résultats d'analyse de la plateforme pour des décisions importantes",
+                    "Chercher une aide professionnelle en cas de problèmes de santé",
+                    "Comprendre la nature de divertissement et les limitations du service"
+                ]
+            },
+            "contact": {
+                "title": "10. Informations de Contact",
+                "content": "Si vous avez des questions concernant cette clause de non-responsabilité, contactez-nous :",
+                "email": "warpoint377@gmail.com",
+                "note": "Cette clause de non-responsabilité entre en vigueur à compter de la date de publication, et nous nous réservons le droit de la modifier à tout moment."
+            }
+        }
+    },
+    "privacyPolicy": {
+        "title": "Politique de Confidentialité",
+        "description": "Politique de confidentialité de Dream Log, apprenez comment nous collectons, utilisons et protégeons vos informations personnelles",
+        "keywords": "Politique de Confidentialité,Protection des Informations Personnelles,Sécurité des Données,Dream Log",
+        "lastUpdated": "Dernière mise à jour : ",
+        "sections": {
+            "collection": {
+                "title": "1. Collecte d'Informations",
+                "content": "Nous collectons les types d'informations suivants :",
+                "types": [
+                    "<strong>Informations de Compte</strong> : Nom d'utilisateur, adresse e-mail, mot de passe (stocké chiffré)",
+                    "<strong>Contenu de Rêves</strong> : Enregistrements de rêves, tags et données connexes que vous soumettez activement",
+                    "<strong>Données d'Utilisation</strong> : Heures d'accès, utilisation des fonctions, informations sur l'appareil",
+                    "<strong>Informations Techniques</strong> : Adresses IP, types de navigateur, informations sur le système d'exploitation"
+                ]
+            },
+            "usage": {
+                "title": "2. Utilisation d'Informations",
+                "content": "Nous utilisons les informations collectées pour :",
+                "purposes": [
+                    "Fournir des services d'enregistrement et d'analyse de rêves",
+                    "Améliorer l'expérience utilisateur et la qualité du service",
+                    "Envoyer des notifications importantes de service",
+                    "Prévenir la fraude et le comportement abusif",
+                    "Se conformer aux exigences légales et réglementaires"
+                ]
+            },
+            "protection": {
+                "title": "3. Protection d'Informations",
+                "content": "Nous prenons les mesures de sécurité suivantes pour protéger vos informations :",
+                "measures": [
+                    "La transmission de données utilise le chiffrement SSL/TLS",
+                    "Les informations sensibles sont stockées avec chiffrement AES-256",
+                    "Audits de sécurité et scans de vulnérabilités réguliers",
+                    "Contrôle d'accès strict et gestion des permissions",
+                    "Mécanismes de sauvegarde de données et récupération après sinistre"
+                ]
+            },
+            "sharing": {
+                "title": "4. Partage d'Informations",
+                "content": "Nous ne vendons, louons ou divulguons vos informations personnelles à des tiers d'une autre manière à moins que :",
+                "exceptions": [
+                    "Nous obtenions votre consentement exprès",
+                    "Exigences légales ou demandes gouvernementales",
+                    "Pour protéger nos intérêts légitimes",
+                    "En cas d'urgence pour protéger la sécurité des utilisateurs ou du public"
+                ]
+            },
+            "userRights": {
+                "title": "5. Droits de l'Utilisateur",
+                "content": "Vous avez les droits suivants :",
+                "rights": [
+                    "<strong>Droit d'Accès</strong> : Voir les informations personnelles que nous stockons sur vous",
+                    "<strong>Droit de Rectification</strong> : Demander la correction d'informations personnelles inexactes",
+                    "<strong>Droit de Suppression</strong> : Demander la suppression de vos informations personnelles",
+                    "<strong>Droit de Restriction</strong> : Restreindre le traitement de vos informations personnelles",
+                    "<strong>Droit de Rétractation</strong> : Rétracter le consentement précédemment donné"
+                ]
+            },
+            "cookies": {
+                "title": "6. Utilisation de Cookies",
+                "content": "Nous utilisons des cookies et technologies similaires pour :",
+                "purposes": [
+                    "Mémoriser votre état de connexion et vos préférences",
+                    "Analyser l'utilisation du site web et les performances",
+                    "Fournir une expérience utilisateur personnalisée",
+                    "Prévenir les menaces de sécurité"
+                ],
+                "note": "Vous pouvez gérer les cookies via les paramètres de votre navigateur, mais cela peut affecter l'utilisation normale de certaines fonctions."
+            },
+            "retention": {
+                "title": "7. Conservation des Données",
+                "content": "Nous conservons vos informations selon les principes suivants :",
+                "policies": [
+                    "Informations de compte : Pendant la durée du compte",
+                    "Données de rêves : Supprimées dans les 30 jours après suppression active ou annulation de compte par l'utilisateur",
+                    "Données de journal : Conservées pendant 12 mois",
+                    "Autres périodes de conservation requises par la loi"
+                ]
+            },
+            "contact": {
+                "title": "8. Contactez-nous",
+                "content": "Si vous avez des questions sur cette politique de confidentialité ou souhaitez exercer vos droits, contactez-nous via :",
+                "email": "warpoint377@gmail.com"
+            },
+            "updates": {
+                "title": "9. Mises à Jour de Politique",
+                "content": "Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. En cas de changements substantiels :",
+                "notifications": [
+                    "Publication de notifications de mise à jour à des positions prominentes sur le site web",
+                    "Notification aux utilisateurs enregistrés par e-mail",
+                    "Fourniture d'une période de transition de 30 jours"
+                ],
+                "acceptance": "L'utilisation continue de nos services signifie que vous acceptez la politique de confidentialité mise à jour."
+            }
+        }
+    },
+    "termsOfService": {
+        "title": "Conditions de Service",
+        "description": "Conditions de service de Dream Log, connaissez les règles et conditions d'utilisation de nos services",
+        "keywords": "Conditions de Service,Accord Utilisateur,Règles d'Utilisation,Dream Log",
+        "lastUpdated": "Dernière mise à jour : ",
+        "sections": {
+            "serviceIntro": {
+                "title": "1. Introduction du Service",
+                "content": "Dream Log (désigné ci-après comme \"nous\" ou \"le service\") est une plateforme d'enregistrement et d'analyse de rêves alimentée par IA. Nous offrons aux utilisateurs :",
+                "services": [
+                    "Fonctions d'enregistrement et de gestion de rêves",
+                    "Services d'interprétation de rêves alimentés par IA",
+                    "Analyse statistique des données personnelles de rêves",
+                    "Connaissances et conseils liés aux rêves"
+                ]
+            },
+            "userResponsibilities": {
+                "title": "2. Responsabilités de l'Utilisateur",
+                "content": "Lors de l'utilisation de ce service, vous devez :",
+                "responsibilities": [
+                    "Fournir des informations d'enregistrement vraies et précises",
+                    "Protéger correctement les informations de compte, ne pas les partager avec d'autres",
+                    "Se conformer aux lois et réglementations pertinentes de la République Populaire de Chine",
+                    "Ne pas publier de contenu illégal, nuisible ou inapproprié",
+                    "Respecter la vie privée et les droits de propriété intellectuelle des autres",
+                    "Ne pas effectuer d'attaques malveillantes ou compromettre la sécurité du système"
+                ]
+            },
+            "serviceRules": {
+                "title": "3. Règles de Service",
+                "content": "Pour assurer la qualité du service et l'expérience utilisateur, nous avons établi les règles suivantes :",
+                "rules": [
+                    "<strong>Normes de Contenu</strong> : Publication de contenu illégal, violent, pornographique, diffamatoire interdite",
+                    "<strong>Limitations d'Utilisation</strong> : Limitations raisonnables sur les appels API quotidiens et l'espace de stockage",
+                    "<strong>Sécurité du Compte</strong> : Les comptes peuvent être suspendus ou restreints lors de la détection d'activités anormales",
+                    "<strong>Sauvegarde de Données</strong> : Il est recommandé aux utilisateurs de sauvegarder régulièrement les données importantes"
+                ]
+            },
+            "intellectualProperty": {
+                "title": "4. Propriété Intellectuelle",
+                "content": "Accords concernant la propriété intellectuelle :",
+                "provisions": [
+                    "<strong>Droits de Plateforme</strong> : Marques, designs d'interface, code, etc. de Dream Log nous appartiennent",
+                    "<strong>Contenu Utilisateur</strong> : Vous conservez la propriété de vos enregistrements originaux de rêves et autre contenu",
+                    "<strong>Licence d'Utilisation</strong> : Vous nous autorisez à utiliser votre contenu pour fournir des services",
+                    "<strong>Gestion des Violations</strong> : Veuillez nous contacter si des violations sont détectées"
+                ]
+            },
+            "disclaimer": {
+                "title": "5. Clause de Non-responsabilité",
+                "content": "Veuillez observer les conditions de clause de non-responsabilité suivantes :",
+                "disclaimers": [
+                    "<strong>Nature du Service</strong> : Ce service est uniquement pour divertissement et référence, ne constitue pas un conseil médical professionnel",
+                    "<strong>Précision</strong> : Les résultats d'analyse IA servent uniquement de référence, précision complète non garantie",
+                    "<strong>Disponibilité</strong> : Peut être interrompu temporairement en raison de maintenance ou mises à jour",
+                    "<strong>Tiers</strong> : Nous n'assumons pas la responsabilité des liens ou services tiers",
+                    "<strong>Perte de Données</strong> : Bien que nous prenions des mesures pour protéger les données, les risques de défaillance technique ne peuvent être exclus"
+                ]
+            },
+            "changesAndTermination": {
+                "title": "6. Changements et Résiliation du Service",
+                "content": "Concernant les changements et la résiliation du service :",
+                "policies": [
+                    "<strong>Mises à Jour Fonctionnelles</strong> : Nous pouvons mettre à jour ou ajuster les fonctions du service à tout moment",
+                    "<strong>Notification Anticipée</strong> : Les changements substantiels seront notifiés 30 jours à l'avance",
+                    "<strong>Résiliation de Compte</strong> : Les comptes d'utilisateurs qui violent les conditions peuvent être suspendus ou résiliés",
+                    "<strong>Exportation de Données</strong> : Les utilisateurs peuvent demander l'exportation de données personnelles avant la résiliation",
+                    "<strong>Résiliation du Service</strong> : Sera notifié 90 jours à l'avance si nécessaire"
+                ]
+            },
+            "disputeResolution": {
+                "title": "7. Résolution des Litiges",
+                "content": "En cas de litiges, nous suggérons :",
+                "suggestions": [
+                    "<strong>Négociation Amicale</strong> : Priorité à la résolution des litiges par négociation",
+                    "<strong>Gestion du Service Client</strong> : Chercher de l'aide via les canaux de service client",
+                    "<strong>Voies Légales</strong> : Si la négociation échoue, chercher un soulagement légal selon la loi",
+                    "<strong>Tribunal Compétent</strong> : Les litiges sont soumis à la juridiction du Tribunal Populaire de Zhengzhou, Province du Henan"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. Loi Applicable",
+                "content": "Ces Conditions de Service s'appliquent aux lois et réglementations de la République Populaire de Chine, y compris mais non limité à :",
+                "laws": [
+                    "Code Civil de la République Populaire de Chine",
+                    "Loi sur la Sécurité Cyberspatiale de la République Populaire de Chine",
+                    "Loi sur la Protection des Données Personnelles de la République Populaire de Chine",
+                    "Loi sur la Sécurité des Données de la République Populaire de Chine"
+                ]
+            },
+            "contact": {
+                "title": "9. Informations de Contact",
+                "content": "Si vous avez des questions concernant ces Conditions de Service, contactez-nous :",
+                "email": "warpoint377@gmail.com"
+            },
+            "effectiveness": {
+                "title": "10. Validité des Conditions",
+                "content": "Ces Conditions de Service entrent en vigueur à compter de la date de publication. En enregistrant un compte ou en utilisant ce service, vous acceptez avoir lu, compris et vous engagé à respecter tous les contenus de ces conditions.",
+                "updates": "Nous nous réservons le droit de modifier ces conditions à tout moment, et les conditions modifiées seront publiées sur le site web et entreront en vigueur à compter de la date de publication."
+            }
         }
     }
 }

@@ -3,7 +3,7 @@
     "pageDescription": "AI를 활용한 꿈 일기로 잠재의식을 탐험하고 꿈의 의미를 발견하세요",
     "pageKeywords": "꿈 일기, 꿈 분석, AI, 잠재의식, 꿈 해석",
     "welcome": "Dream Log에 오신 것을 환영합니다",
-    "subtitle": "꿈의 여행을 기록하고 발견하세요",
+    "subtitle": "AI로 꿈의 신비를 풀고 잠재의식의 보물을 발견하며 자기 탐구 여행을 시작하세요",
     "description": "AI를 활용한 꿈 일기로 잠재의식을 탐험하고 꿈의 의미를 발견하세요",
     "badge": "AI 기반 꿈 해석 플랫폼",
     "cta": {
@@ -15,7 +15,7 @@
         "login": "로그인"
     },
     "features": {
-        "title": "Dream Log의 특징",
+        "title": "Dream Log를 선택하는 이유",
         "subtitle": "전문적인 꿈 분석 도구로 꿈의 세계를 깊이 이해하세요",
         "ai": {
             "title": "AI 꿈 분석",
@@ -61,7 +61,8 @@
         }
     },
     "testimonials": {
-        "title": "사용자 후기",
+        "title": "전 세계 꿈 탐험가들의 사랑을 받고 있습니다",
+        "subtitle": "꿈 탐험가들의 최고 선택",
         "user1": {
             "name": "김철수님",
             "quote": "Dream Log 덕분에 자신의 꿈 패턴을 볼 수 있게 되었습니다."
@@ -73,6 +74,11 @@
         "user3": {
             "name": "박민수님",
             "quote": "사용하기 쉽고 아름다운 인터페이스가 마음에 듭니다."
+        },
+        "stats": {
+            "users": "활성 사용자",
+            "dreams": "기록된 꿈",
+            "satisfaction": "만족도"
         }
     },
     "stats": {

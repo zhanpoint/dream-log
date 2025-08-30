@@ -217,7 +217,8 @@
         },
         "title": "夢境統計",
         "subtitle": "檢視你的夢境資料統計和分析",
-        "keywords": "夢境,統計,分析,資料"
+        "keywords": "夢境,統計,分析,數據",
+        "noDataDescription": "記錄你的夢境，我們將為您提供詳細的統計分析和圖表展示。"
     },
     "settings": {
         "pageTitle": "帳戶設定",
@@ -422,6 +423,466 @@
         },
         "copyright": {
             "tech": "基於React 19與AI技術構建"
+        },
+        "cookiePolicy": {
+            "title": "Cookie政策",
+            "description": "Dream Log Cookie政策，了解我們如何使用Cookie和類似技術",
+            "keywords": "Cookie政策,數據追蹤,網站功能,Dream Log",
+            "lastUpdated": "最後更新時間：",
+            "sections": {
+                "whatAreCookies": {
+                    "title": "1. 什麼是Cookie",
+                    "content": "Cookie是存儲在您設備上的小型文本文件，用於記錄您與網站的交互信息。當您訪問Dream Log時，我們可能會使用Cookie和類似技術來：",
+                    "purposes": [
+                        "記住您的登錄狀態和偏好設置",
+                        "提供個性化的用戶體驗",
+                        "分析網站使用情況和性能",
+                        "確保網站安全和防範欺詐"
+                    ]
+                },
+                "cookieTypes": {
+                    "title": "2. Cookie類型",
+                    "essential": {
+                        "title": "必要性Cookie",
+                        "description": "這些Cookie對網站正常運行至關重要，無法禁用：",
+                        "items": [
+                            "用戶身份驗證和會話管理",
+                            "安全防護和CSRF保護",
+                            "基本功能和頁面導航"
+                        ]
+                    },
+                    "functional": {
+                        "title": "功能性Cookie",
+                        "description": "用於記住您的選擇和偏好，提供更好的用戶體驗：",
+                        "items": [
+                            "語言和主題偏好設置",
+                            "界面佈局和顯示選項",
+                            "表單數據的臨時保存"
+                        ]
+                    },
+                    "analytics": {
+                        "title": "分析性Cookie",
+                        "description": "幫助我們了解用戶如何使用網站，以改進服務質量：",
+                        "items": [
+                            "頁面訪問統計和用戶行為分析",
+                            "功能使用頻率和錯誤監控",
+                            "性能優化和用戶體驗改進"
+                        ]
+                    }
+                },
+                "specificCookies": {
+                    "title": "3. 具體Cookie列表",
+                    "table": {
+                        "headers": {
+                            "name": "Cookie名稱",
+                            "purpose": "用途",
+                            "duration": "有效期"
+                        },
+                        "cookies": [
+                            {
+                                "name": "auth_token",
+                                "purpose": "用戶身份驗證",
+                                "duration": "7天"
+                            },
+                            {
+                                "name": "theme_preference",
+                                "purpose": "主題設置",
+                                "duration": "1年"
+                            },
+                            {
+                                "name": "language_setting",
+                                "purpose": "語言偏好",
+                                "duration": "1年"
+                            },
+                            {
+                                "name": "analytics_id",
+                                "purpose": "使用統計分析",
+                                "duration": "2年"
+                            }
+                        ]
+                    }
+                },
+                "thirdParty": {
+                    "title": "4. 第三方Cookie",
+                    "content": "我們可能使用以下第三方服務，它們會設置自己的Cookie：",
+                    "services": [
+                        "<strong>CDN服務</strong>：用於加速內容分發和提高加載速度",
+                        "<strong>安全服務</strong>：防護惡意攻擊和確保網站安全",
+                        "<strong>分析工具</strong>：了解用戶行為和改進服務（如有使用）"
+                    ],
+                    "note": "這些第三方服務有自己的隱私政策，我們建議您查閱相關政策了解詳情。"
+                },
+                "management": {
+                    "title": "5. Cookie管理",
+                    "browsers": {
+                        "title": "瀏覽器設置",
+                        "description": "您可以通過瀏覽器設置管理Cookie：",
+                        "settings": [
+                            "<strong>Chrome</strong>：設置 → 隱私設置和安全性 → Cookie及其他網站數據",
+                            "<strong>Firefox</strong>：選項 → 隱私與安全 → Cookie和網站數據",
+                            "<strong>Safari</strong>：偏好設置 → 隱私 → 管理網站數據",
+                            "<strong>Edge</strong>：設置 → Cookie和網站權限"
+                        ]
+                    },
+                    "impacts": {
+                        "title": "影響說明",
+                        "description": "禁用Cookie可能影響以下功能：",
+                        "items": [
+                            "無法保持登錄狀態，需要重新登錄",
+                            "個人偏好設置無法保存",
+                            "某些功能可能無法正常使用",
+                            "網站性能和用戶體驗可能下降"
+                        ]
+                    }
+                },
+                "otherTech": {
+                    "title": "6. 其他追蹤技術",
+                    "content": "除Cookie外，我們還可能使用以下技術：",
+                    "technologies": [
+                        "<strong>Local Storage</strong>：存儲應用設置和臨時數據",
+                        "<strong>Session Storage</strong>：會話期間的臨時數據存儲",
+                        "<strong>Web Beacons</strong>：用於統計和分析（如有使用）",
+                        "<strong>Fingerprinting</strong>：設備特徵識別用於安全防護"
+                    ]
+                },
+                "dataProtection": {
+                    "title": "7. 數據保護",
+                    "content": "我們採取以下措施保護通過Cookie收集的數據：",
+                    "measures": [
+                        "所有敏感Cookie均採用加密存儲",
+                        "定期清理過期和無用的Cookie數據",
+                        "嚴格控制Cookie數據的訪問權限",
+                        "遵循最小化數據收集原則",
+                        "不會將Cookie數據出售給第三方"
+                    ]
+                },
+                "updates": {
+                    "title": "8. 政策更新",
+                    "content": "我們可能會不時更新本Cookie政策以反映：",
+                    "reasons": [
+                        "新功能和服務的推出",
+                        "技術和安全改進",
+                        "法律法規的變化",
+                        "用戶反饋和建議"
+                    ],
+                    "notification": "重要更新會通過網站通知或郵件形式告知用戶。"
+                },
+                "contact": {
+                    "title": "9. 聯繫我們",
+                    "content": "如果您對我們的Cookie使用有任何疑問，請聯繫我們：",
+                    "email": "cookie@dreamlog.com"
+                }
+            }
+        },
+        "disclaimer": {
+            "title": "免責聲明",
+            "description": "Dream Log 免責聲明，了解使用本服務的風險和責任限制",
+            "keywords": "免責聲明,責任限制,使用風險,Dream Log",
+            "lastUpdated": "最後更新時間：",
+            "sections": {
+                "serviceNature": {
+                    "title": "1. 服務性質聲明",
+                    "content": "Dream Log是一個夢境記錄和分析平台，旨在為用戶提供娛樂和自我探索工具。請注意：",
+                    "points": [
+                        "<strong>非醫療服務</strong>：本平台不提供醫療診斷、治療或專業心理諮詢服務",
+                        "<strong>娛樂性質</strong>：所有分析結果僅供娛樂和個人參考使用",
+                        "<strong>AI限制</strong>：AI分析基於算法和數據模型，不能替代人類專業判斷",
+                        "<strong>個人解讀</strong>：夢境具有高度個人化特徵，分析結果因人而異"
+                    ]
+                },
+                "contentAccuracy": {
+                    "title": "2. 內容準確性免責",
+                    "content": "關於平台提供的內容和分析結果：",
+                    "points": [
+                        "<strong>準確性</strong>：我們不保證AI分析結果的完全準確性或適用性",
+                        "<strong>完整性</strong>：分析結果可能不夠全面，存在遺漏或偏差",
+                        "<strong>時效性</strong>：算法和數據庫會持續更新，歷史分析結果可能過時",
+                        "<strong>主觀性</strong>：夢境解析涉及主觀判斷，不同理論可能得出不同結論",
+                        "<strong>文化差異</strong>：分析可能未充分考慮文化背景和個人經歷差異"
+                    ]
+                },
+                "healthDisclaimer": {
+                    "title": "3. 健康和心理狀況免責",
+                    "content": "如果您有以下情況，請尋求專業幫助而非依賴本平台：",
+                    "conditions": [
+                        "<strong>睡眠障礙</strong>：持續失眠、噩夢頻繁或睡眠質量嚴重下降",
+                        "<strong>心理健康</strong>：抑鬱、焦慮、創傷後應激障礙等心理問題",
+                        "<strong>精神疾病</strong>：任何形式的精神疾病或相關症狀",
+                        "<strong>藥物影響</strong>：服用影響睡眠或精神狀態的藥物",
+                        "<strong>緊急情況</strong>：有自傷或傷害他人的想法或衝動"
+                    ],
+                    "warning": "⚠️ 重要提醒：如有心理健康問題，請及時尋求專業醫療幫助！"
+                },
+                "technicalDisclaimer": {
+                    "title": "4. 技術服務免責",
+                    "content": "關於技術服務的限制和風險：",
+                    "points": [
+                        "<strong>服務可用性</strong>：不保證服務24/7無中斷運行",
+                        "<strong>數據丟失</strong>：雖然採取備份措施，但不排除數據丟失風險",
+                        "<strong>兼容性</strong>：可能與某些設備或瀏覽器不完全兼容",
+                        "<strong>網絡依賴</strong>：需要穩定網絡連接，網絡問題可能影響使用",
+                        "<strong>更新影響</strong>：系統更新可能臨時影響功能或改變界面"
+                    ]
+                },
+                "userBehavior": {
+                    "title": "5. 用戶行為免責",
+                    "content": "我們對以下用戶行為不承擔責任：",
+                    "points": [
+                        "<strong>誤用服務</strong>：將分析結果用於不當目的或重要決策",
+                        "<strong>過度依賴</strong>：過分依賴AI分析而忽視現實生活",
+                        "<strong>信息泄露</strong>：用戶主動分享敏感個人信息給他人",
+                        "<strong>賬戶安全</strong>：因用戶疏忽導致賬戶被盜或濫用",
+                        "<strong>違法使用</strong>：利用平台進行違法或有害活動"
+                    ]
+                },
+                "thirdPartyContent": {
+                    "title": "6. 第三方內容免責",
+                    "content": "平台可能包含第三方內容或鏈接：",
+                    "points": [
+                        "<strong>外部鏈接</strong>：不對外部網站內容或服務承擔責任",
+                        "<strong>用戶生成內容</strong>：不對其他用戶分享的內容負責",
+                        "<strong>廣告內容</strong>：如有廣告，不保證其準確性或可靠性",
+                        "<strong>合作夥伴</strong>：第三方服務提供商有獨立的責任和義務"
+                    ]
+                },
+                "lossesAndDamages": {
+                    "title": "7. 損失和損害免責",
+                    "content": "在法律允許的最大範圍內，我們不承擔以下損失：",
+                    "losses": [
+                        "<strong>直接損失</strong>：因使用或無法使用服務導致的直接經濟損失",
+                        "<strong>間接損失</strong>：利潤損失、商譽損害、數據丟失等間接損失",
+                        "<strong>精神損害</strong>：因服務內容引起的情感困擾或心理創傷",
+                        "<strong>決策後果</strong>：基於平台分析結果做出決策的後果",
+                        "<strong>第三方損失</strong>：向第三方造成的任何損失或損害"
+                    ]
+                },
+                "applicableLaw": {
+                    "title": "8. 適用法律和管轄",
+                    "content": "本免責聲明的適用和解釋：",
+                    "points": [
+                        "<strong>適用法律</strong>：適用中華人民共和國法律法規",
+                        "<strong>管轄法院</strong>：爭議由河南省鄭州市人民法院管轄",
+                        "<strong>法律衝突</strong>：如與強制性法律規定衝突，以法律規定為準",
+                        "<strong>部分無效</strong>：部分條款無效不影響其他條款的效力"
+                    ]
+                },
+                "userConfirmation": {
+                    "title": "9. 用戶確認",
+                    "content": "使用Dream Log服務即表示您確認：",
+                    "confirmations": [
+                        "已完全理解本免責聲明的內容",
+                        "同意承擔使用服務的相關風險",
+                        "不會將平台分析結果用於重要決策",
+                        "出現健康問題時會尋求專業幫助",
+                        "理解服務的娛樂性質和局限性"
+                    ]
+                },
+                "contact": {
+                    "title": "10. 聯繫方式",
+                    "content": "如對本免責聲明有疑問，請聯繫我們：",
+                    "email": "warpoint377@gmail.com",
+                    "note": "本免責聲明自發布之日起生效，我們保留隨時修改的權利。"
+                }
+            }
+        },
+        "privacyPolicy": {
+            "title": "隱私政策",
+            "description": "Dream Log 隱私政策，了解我們如何收集、使用和保護您的個人信息",
+            "keywords": "隱私政策,個人信息保護,數據安全,Dream Log",
+            "lastUpdated": "最後更新時間：",
+            "sections": {
+                "collection": {
+                    "title": "1. 信息收集",
+                    "content": "我們收集以下類型的信息：",
+                    "types": [
+                        "<strong>賬戶信息</strong>：用戶名、郵箱地址、密碼（加密存儲）",
+                        "<strong>夢境內容</strong>：您主動提交的夢境記錄、標籤和相關數據",
+                        "<strong>使用數據</strong>：訪問時間、功能使用情況、設備信息",
+                        "<strong>技術信息</strong>：IP地址、瀏覽器類型、操作系統信息"
+                    ]
+                },
+                "usage": {
+                    "title": "2. 信息使用",
+                    "content": "我們使用收集的信息用於：",
+                    "purposes": [
+                        "提供夢境記錄和分析服務",
+                        "改善用戶體驗和服務質量",
+                        "發送重要的服務通知",
+                        "防範欺詐和濫用行為",
+                        "遵守法律法規要求"
+                    ]
+                },
+                "protection": {
+                    "title": "3. 信息保護",
+                    "content": "我們採取以下安全措施保護您的信息：",
+                    "measures": [
+                        "數據傳輸採用SSL/TLS加密",
+                        "敏感信息採用AES-256加密存儲",
+                        "定期進行安全審計和漏洞掃描",
+                        "嚴格的訪問控制和權限管理",
+                        "數據備份和災難恢復機制"
+                    ]
+                },
+                "sharing": {
+                    "title": "4. 信息共享",
+                    "content": "我們不會出售、出租或以其他方式向第三方披露您的個人信息，除非：",
+                    "exceptions": [
+                        "獲得您的明確同意",
+                        "法律法規要求或政府部門要求",
+                        "為保護我們的合法權益",
+                        "緊急情況下保護用戶或公眾安全"
+                    ]
+                },
+                "userRights": {
+                    "title": "5. 用戶權利",
+                    "content": "您擁有以下權利：",
+                    "rights": [
+                        "<strong>訪問權</strong>：查看我們持有的您的個人信息",
+                        "<strong>更正權</strong>：要求更正不準確的個人信息",
+                        "<strong>刪除權</strong>：要求刪除您的個人信息",
+                        "<strong>限制權</strong>：限制我們處理您的個人信息",
+                        "<strong>撤銷權</strong>：撤銷之前給予的同意"
+                    ]
+                },
+                "cookies": {
+                    "title": "6. Cookie使用",
+                    "content": "我們使用Cookie和類似技術來：",
+                    "purposes": [
+                        "記住您的登錄狀態和偏好設置",
+                        "分析網站使用情況和性能",
+                        "提供個性化的用戶體驗",
+                        "防範安全威脅"
+                    ],
+                    "note": "您可以通過瀏覽器設置管理Cookie，但這可能影響某些功能的正常使用。"
+                },
+                "retention": {
+                    "title": "7. 數據保留",
+                    "content": "我們將根據以下原則保留您的信息：",
+                    "policies": [
+                        "賬戶信息：賬戶存續期間",
+                        "夢境數據：用戶主動刪除或賬戶註銷後30天內刪除",
+                        "日誌數據：保留12個月",
+                        "法律要求的其他保留期限"
+                    ]
+                },
+                "contact": {
+                    "title": "8. 聯繫我們",
+                    "content": "如果您對本隱私政策有任何疑問或需要行使您的權利，請通過以下方式聯繫我們：",
+                    "email": "warpoint377@gmail.com"
+                },
+                "updates": {
+                    "title": "9. 政策更新",
+                    "content": "我們可能會不時更新本隱私政策。重大變更時，我們會：",
+                    "notifications": [
+                        "在網站顯著位置發布更新通知",
+                        "通過郵件通知註冊用戶",
+                        "提供30天的過渡期"
+                    ],
+                    "acceptance": "繼續使用我們的服務即表示您接受更新後的隱私政策。"
+                }
+            }
+        },
+        "termsOfService": {
+            "title": "服務條款",
+            "description": "Dream Log 服務條款，了解使用我們服務的規則和條件",
+            "keywords": "服務條款,用戶協議,使用規則,Dream Log",
+            "lastUpdated": "最後更新時間：",
+            "sections": {
+                "serviceIntro": {
+                    "title": "1. 服務簡介",
+                    "content": "Dream Log（以下簡稱\"我們\"或\"本服務\"）是一個基於人工智慧技術的夢境記錄和分析平台。我們為用戶提供：",
+                    "services": [
+                        "夢境記錄和管理功能",
+                        "AI驅動的夢境解析服務",
+                        "個人夢境數據統計分析",
+                        "夢境相關知識和建議"
+                    ]
+                },
+                "userResponsibilities": {
+                    "title": "2. 用戶責任",
+                    "content": "使用本服務時，您需要：",
+                    "responsibilities": [
+                        "提供真實、準確的註冊信息",
+                        "妥善保管賬戶信息，不得與他人共享",
+                        "遵守中華人民共和國相關法律法規",
+                        "不得發布違法、有害或不當內容",
+                        "尊重他人隱私和知識產權",
+                        "不得進行惡意攻擊或破壞系統安全"
+                    ]
+                },
+                "serviceRules": {
+                    "title": "3. 服務規則",
+                    "content": "為確保服務質量和用戶體驗，我們制定以下規則：",
+                    "rules": [
+                        "<strong>內容規範</strong>：禁止發布違法、暴力、色情、誹謗等內容",
+                        "<strong>使用限制</strong>：每日API調用次數和存儲空間有合理限制",
+                        "<strong>賬戶安全</strong>：發現異常活動時可能暫停或限制賬戶",
+                        "<strong>數據備份</strong>：建議用戶定期備份重要數據"
+                    ]
+                },
+                "intellectualProperty": {
+                    "title": "4. 知識產權",
+                    "content": "關於知識產權的約定：",
+                    "provisions": [
+                        "<strong>平台權利</strong>：Dream Log的商標、界面設計、代碼等歸我們所有",
+                        "<strong>用戶內容</strong>：您保留對夢境記錄等原創內容的所有權",
+                        "<strong>授權使用</strong>：您授權我們為提供服務而使用您的內容",
+                        "<strong>侵權處理</strong>：如發現侵權行為，請及時聯繫我們處理"
+                    ]
+                },
+                "disclaimer": {
+                    "title": "5. 免責聲明",
+                    "content": "請注意以下免責條款：",
+                    "disclaimers": [
+                        "<strong>服務性質</strong>：本服務僅供娛樂和參考，不構成專業醫療建議",
+                        "<strong>準確性</strong>：AI分析結果僅供參考，不保證完全準確",
+                        "<strong>可用性</strong>：因維護、升級等原因可能臨時中斷服務",
+                        "<strong>第三方</strong>：不對第三方鏈接或服務承擔責任",
+                        "<strong>數據丟失</strong>：雖然我們採取措施保護數據，但不排除技術故障風險"
+                    ]
+                },
+                "changesAndTermination": {
+                    "title": "6. 服務變更與終止",
+                    "content": "關於服務變更和終止：",
+                    "policies": [
+                        "<strong>功能更新</strong>：我們可能隨時更新或調整服務功能",
+                        "<strong>提前通知</strong>：重大變更會提前30天通知用戶",
+                        "<strong>賬戶終止</strong>：違反條款的用戶賬戶可能被暫停或終止",
+                        "<strong>數據導出</strong>：終止前用戶可申請導出個人數據",
+                        "<strong>服務終止</strong>：如需終止服務，會提前90天通知"
+                    ]
+                },
+                "disputeResolution": {
+                    "title": "7. 爭議解決",
+                    "content": "如發生爭議，我們建議：",
+                    "suggestions": [
+                        "<strong>友好協商</strong>：優先通過協商解決爭議",
+                        "<strong>客服處理</strong>：可通過客服渠道尋求幫助",
+                        "<strong>法律途徑</strong>：協商不成的，可依法尋求法律救濟",
+                        "<strong>管轄法院</strong>：爭議由河南省鄭州市人民法院管轄"
+                    ]
+                },
+                "applicableLaw": {
+                    "title": "8. 適用法律",
+                    "content": "本服務條款適用中華人民共和國法律法規，包括但不限於：",
+                    "laws": [
+                        "《中華人民共和國民法典》",
+                        "《中華人民共和國網絡安全法》",
+                        "《中華人民共和國個人信息保護法》",
+                        "《中華人民共和國數據安全法》"
+                    ]
+                },
+                "contact": {
+                    "title": "9. 聯繫方式",
+                    "content": "如對本服務條款有疑問，請聯繫我們：",
+                    "email": "warpoint377@gmail.com"
+                },
+                "effectiveness": {
+                    "title": "10. 條款生效",
+                    "content": "本服務條款自發布之日起生效。通過註冊賬戶或使用本服務，即表示您已閱讀、理解並同意遵守本條款的所有內容。",
+                    "updates": "我們保留隨時修改本條款的權利，修改後的條款將在網站上公布並自公布之日起生效。"
+                }
+            }
         }
     }
 }

@@ -5,54 +5,47 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 
 /**
  * 支持的语言配置
+ * 移除flag emoji字段，改用FlagIcon组件
  */
 export const SUPPORTED_LANGUAGES = {
     'zh-CN': {
         name: 'Simplified Chinese',
         nativeName: '简体中文',
-        flag: '🇨🇳',
         dir: 'ltr'
     },
     'zh-TW': {
         name: 'Traditional Chinese',
         nativeName: '繁體中文',
-        flag: '🇹🇼',
         dir: 'ltr'
     },
     'en': {
         name: 'English',
         nativeName: 'English',
-        flag: '🇺🇸',
         dir: 'ltr'
     },
     'es': {
         name: 'Spanish',
         nativeName: 'Español',
-        flag: '🇪🇸',
         dir: 'ltr'
     },
     'fr': {
         name: 'French',
         nativeName: 'Français',
-        flag: '🇫🇷',
         dir: 'ltr'
     },
     'de': {
         name: 'German',
         nativeName: 'Deutsch',
-        flag: '🇩🇪',
         dir: 'ltr'
     },
     'ja': {
         name: 'Japanese',
         nativeName: '日本語',
-        flag: '🇯🇵',
         dir: 'ltr'
     },
     'ko': {
         name: 'Korean',
         nativeName: '한국어',
-        flag: '🇰🇷',
         dir: 'ltr'
     }
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Heart, Users, MapPin, Package, Activity, Cloud } from 'lucide-react';
 import { useI18nContext } from '@/contexts/I18nContext';
@@ -83,28 +84,24 @@ const TagLeaderboard = ({ data = {} }) => {
                         const isActive = activeType === type;
 
                         return (
-                            <button
+                            <Button
                                 key={type}
+                                variant={isActive ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => setActiveType(type)}
-                                className={`
-                                    flex items-center justify-center gap-2 p-3 rounded-lg
-                                    border transition-all duration-200 relative
-                                    ${isActive
-                                        ? `border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 shadow-md
-                                           before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r 
-                                           before:from-cyan-500/20 before:to-cyan-600/20 before:opacity-100`
-                                        : 'border-input bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-accent/50'
-                                    }
-                                `}
+                                className={`flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-md relative ${isActive
+                                    ? 'shadow-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500 hover:bg-cyan-500/20'
+                                    : 'hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20'
+                                    }`}
                             >
-                                <Icon className={`h-4 w-4 z-10 relative ${isActive ? 'text-cyan-600 dark:text-cyan-400' : ''}`} />
-                                <span className={`text-sm font-medium z-10 relative ${isActive ? 'font-semibold' : ''}`}>
+                                <Icon className={`h-4 w-4 ${isActive ? 'text-cyan-600 dark:text-cyan-400' : ''}`} />
+                                <span className={`text-sm font-medium ${isActive ? 'font-semibold' : ''}`}>
                                     {config.label}
                                 </span>
                                 {isActive && (
                                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-cyan-500 rounded-full"></div>
                                 )}
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>

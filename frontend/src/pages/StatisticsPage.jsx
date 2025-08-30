@@ -105,60 +105,101 @@ const StatisticsPage = () => {
                             {/* 核心指标卡片 */}
                             <SummaryCards summary={statisticsData.summary || {}} />
 
-                            {/* 图表网格布局 - PC端优先设计 */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {/* 梦境类别分布饼图 */}
-                                {statisticsData.category_distribution?.length > 0 && (
-                                    <div className="lg:col-span-1">
-                                        <CategoryPieChart data={statisticsData.category_distribution} />
-                                    </div>
-                                )}
+                            {/* 检查是否有任何图表数据 */}
+                            {(() => {
+                                const hasAnyChartData = (
+                                    (statisticsData.category_distribution?.length > 0) ||
+                                    (statisticsData.mood_distribution?.series?.some(val => val > 0)) ||
+                                    (statisticsData.lucidity_distribution?.series?.some(val => val > 0)) ||
+                                    (statisticsData.clarity_trends?.dates?.length > 0 ||
+                                        statisticsData.clarity_distribution?.dates?.length > 0 ||
+                                        statisticsData.dream_clarity?.dates?.length > 0) ||
+                                    (statisticsData.sleep_trends?.dates?.length > 0) ||
+                                    (statisticsData.tag_leaderboard && Object.keys(statisticsData.tag_leaderboard).some(key => statisticsData.tag_leaderboard[key]?.length > 0)) ||
+                                    (statisticsData.recurring_elements?.length > 0)
+                                );
 
-                                {/* 情绪分布雷达图 */}
-                                {statisticsData.mood_distribution?.series?.some(val => val > 0) && (
-                                    <div className="lg:col-span-1">
-                                        <MoodRadarChart data={statisticsData.mood_distribution} />
-                                    </div>
-                                )}
+                                if (!hasAnyChartData) {
+                                    return (
+                                        <div className="flex flex-col items-center justify-center py-20">
+                                            <div className="text-center">
+                                                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-full flex items-center justify-center">
+                                                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+                                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <h3 className="text-xl font-semibold mb-3">{t('statistics.noData', '暂无统计数据')}</h3>
+                                                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                                                    {t('statistics.noDataDescription', '记录你的梦境，我们将为您提供详细的统计分析和图表展示。')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                }
 
-                                {/* 清醒度分布柱状图 */}
-                                {statisticsData.lucidity_distribution?.series?.some(val => val > 0) && (
-                                    <div className="lg:col-span-1">
-                                        <LucidityBarChart data={statisticsData.lucidity_distribution} />
-                                    </div>
-                                )}
+                                return (
+                                    /* 图表网格布局 - PC端优先设计 */
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        {/* 梦境类别分布饼图 */}
+                                        {statisticsData.category_distribution?.length > 0 && (
+                                            <div className="lg:col-span-1">
+                                                <CategoryPieChart data={statisticsData.category_distribution} />
+                                            </div>
+                                        )}
 
-                                {/* 清晰度趋势图 - 始终显示，用于展示功能 */}
-                                <div className="lg:col-span-1">
-                                    <ClarityTrendChart data={
-                                        statisticsData.clarity_trends ||
-                                        statisticsData.clarity_distribution ||
-                                        statisticsData.dream_clarity ||
-                                        { dates: [], series: [] }
-                                    } />
-                                </div>
+                                        {/* 情绪分布雷达图 */}
+                                        {statisticsData.mood_distribution?.series?.some(val => val > 0) && (
+                                            <div className="lg:col-span-1">
+                                                <MoodRadarChart data={statisticsData.mood_distribution} />
+                                            </div>
+                                        )}
 
-                                {/* 睡眠趋势折线图 - 占两列 */}
-                                {statisticsData.sleep_trends?.dates?.length > 0 && (
-                                    <div className="lg:col-span-2 xl:col-span-2">
-                                        <SleepTrendLineChart data={statisticsData.sleep_trends} />
-                                    </div>
-                                )}
+                                        {/* 清醒度分布柱状图 */}
+                                        {statisticsData.lucidity_distribution?.series?.some(val => val > 0) && (
+                                            <div className="lg:col-span-1">
+                                                <LucidityBarChart data={statisticsData.lucidity_distribution} />
+                                            </div>
+                                        )}
 
-                                {/* 标签排行榜 */}
-                                {statisticsData.tag_leaderboard && Object.keys(statisticsData.tag_leaderboard).some(key => statisticsData.tag_leaderboard[key]?.length > 0) && (
-                                    <div className="lg:col-span-1">
-                                        <TagLeaderboard data={statisticsData.tag_leaderboard} />
-                                    </div>
-                                )}
+                                        {/* 清晰度趋势图 - 只在有数据时显示 */}
+                                        {(statisticsData.clarity_trends?.dates?.length > 0 ||
+                                            statisticsData.clarity_distribution?.dates?.length > 0 ||
+                                            statisticsData.dream_clarity?.dates?.length > 0) && (
+                                                <div className="lg:col-span-1">
+                                                    <ClarityTrendChart data={
+                                                        statisticsData.clarity_trends ||
+                                                        statisticsData.clarity_distribution ||
+                                                        statisticsData.dream_clarity ||
+                                                        { dates: [], series: [] }
+                                                    } />
+                                                </div>
+                                            )}
 
-                                {/* 重复梦境元素分析 */}
-                                {statisticsData.recurring_elements?.length > 0 && (
-                                    <div className="lg:col-span-1">
-                                        <RecurringElementsChart data={statisticsData.recurring_elements} />
+                                        {/* 睡眠趋势折线图 - 占两列 */}
+                                        {statisticsData.sleep_trends?.dates?.length > 0 && (
+                                            <div className="lg:col-span-2 xl:col-span-2">
+                                                <SleepTrendLineChart data={statisticsData.sleep_trends} />
+                                            </div>
+                                        )}
+
+                                        {/* 标签排行榜 */}
+                                        {statisticsData.tag_leaderboard && Object.keys(statisticsData.tag_leaderboard).some(key => statisticsData.tag_leaderboard[key]?.length > 0) && (
+                                            <div className="lg:col-span-1">
+                                                <TagLeaderboard data={statisticsData.tag_leaderboard} />
+                                            </div>
+                                        )}
+
+                                        {/* 重复梦境元素分析 */}
+                                        {statisticsData.recurring_elements?.length > 0 && (
+                                            <div className="lg:col-span-1">
+                                                <RecurringElementsChart data={statisticsData.recurring_elements} />
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
+                                );
+                            })()}
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20">

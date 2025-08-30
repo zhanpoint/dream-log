@@ -3,7 +3,7 @@
     "pageDescription": "Diario de sueños impulsado por IA para explorar tu subconsciente y descubrir significados de sueños",
     "pageKeywords": "diario de sueños,análisis de sueños,IA,subconsciente,interpretación de sueños",
     "welcome": "Bienvenido a Dream Log",
-    "subtitle": "Registra y descubre tu viaje de sueños",
+    "subtitle": "Desbloquea los misterios de los sueños con IA, descubre tesoros del subconsciente y embarca en un viaje de autodescubrimiento",
     "description": "Diario de sueños impulsado por IA para explorar tu subconsciente y descubrir significados de sueños",
     "badge": "Plataforma de Interpretación de Sueños Impulsada por IA",
     "cta": {
@@ -15,7 +15,7 @@
         "login": "Iniciar Sesión"
     },
     "features": {
-        "title": "Características de Dream Log",
+        "title": "¿Por qué elegir Dream Log?",
         "subtitle": "Herramientas profesionales de análisis de sueños para ayudarte a entender profundamente el mundo de los sueños",
         "ai": {
             "title": "Análisis de Sueños IA",
@@ -61,8 +61,8 @@
         }
     },
     "testimonials": {
-        "title": "Opiniones de Usuarios",
-        "subtitle": "Ve cómo otros usuarios exploran su mundo de sueños a través de Dream Log",
+        "title": "Amado por Exploradores de Sueños de Todo el Mundo",
+        "subtitle": "La primera opción para exploradores de sueños",
         "user1": {
             "name": "Sr. García",
             "quote": "Dream Log me ayudó a ver mis patrones de sueños."
@@ -74,6 +74,11 @@
         "user3": {
             "name": "Sr. Rodríguez",
             "quote": "Fácil de usar y hermosa interfaz, estoy muy satisfecho."
+        },
+        "stats": {
+            "users": "Usuarios Activos",
+            "dreams": "Sueños Registrados",
+            "satisfaction": "Índice de Satisfacción"
         }
     },
     "stats": {

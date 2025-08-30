@@ -42,9 +42,13 @@
         "optional": "可选",
         "manage": "管理",
         "export": "导出",
-        "export": "导出",
         "viewDetails": "查看详情",
-        "add": "添加"
+        "add": "添加",
+        "date": {
+            "year": "年",
+            "month": "月",
+            "day": "日"
+        }
     },
     "editor": {
         "bold": "加粗",
@@ -229,6 +233,7 @@
         "dominantEmotion": "主导情绪",
         "emotionRanking": "情绪排行",
         "noData": "暂无数据",
+        "noDataDescription": "记录你的梦境，我们将为您提供详细的统计分析和图表展示。",
         "occurrences": "出现次数",
         "occurrencesTimes": "次",
         "proportion": "占比",
@@ -392,19 +397,15 @@
     "footer": {
         "product": {
             "title": "产品功能",
-            "smartRecord": "智能记录",
-            "dreamAnalysis": "梦境解析",
+            "smartRecord": "记录梦境并智能解析",
             "aiAssistant": "AI助手",
             "statistics": "数据统计",
             "dreamManagement": "梦境管理"
         },
         "support": {
             "title": "帮助支持",
-            "userGuide": "使用指南",
-            "faq": "常见问题",
             "contact": "联系我们",
-            "feedback": "反馈建议",
-            "onlineSupport": "在线客服"
+            "feedback": "反馈建议"
         },
         "legal": {
             "title": "法律信息",
@@ -413,18 +414,482 @@
             "cookies": "Cookie政策",
             "disclaimer": "免责声明"
         },
-        "social": {
-            "title": "关注我们",
-            "weibo": "官方微博",
-            "wechat": "微信公众号",
-            "qq": "QQ群",
-            "github": "GitHub"
-        },
         "brand": {
             "tagline": "探索梦境的无限可能"
         },
         "copyright": {
             "tech": "基于React 19与AI技术构建"
+        }
+    },
+    "home": {
+        "testimonials": {
+            "title": "用户真实评价",
+            "subtitle": "来自全国各地用户的真实反馈，见证 Dream Log 的专业与贴心",
+            "stats": {
+                "users": "活跃用户",
+                "dreams": "梦境记录",
+                "satisfaction": "满意度"
+            }
+        }
+    },
+    "cookiePolicy": {
+        "title": "Cookie政策",
+        "description": "Dream Log Cookie政策，了解我们如何使用Cookie和类似技术",
+        "keywords": "Cookie政策,数据追踪,网站功能,Dream Log",
+        "lastUpdated": "最后更新时间：",
+        "sections": {
+            "whatAreCookies": {
+                "title": "1. 什么是Cookie",
+                "content": "Cookie是存储在您设备上的小型文本文件，用于记录您与网站的交互信息。当您访问Dream Log时，我们可能会使用Cookie和类似技术来：",
+                "purposes": [
+                    "记住您的登录状态和偏好设置",
+                    "提供个性化的用户体验",
+                    "分析网站使用情况和性能",
+                    "确保网站安全和防范欺诈"
+                ]
+            },
+            "cookieTypes": {
+                "title": "2. Cookie类型",
+                "essential": {
+                    "title": "必要性Cookie",
+                    "description": "这些Cookie对网站正常运行至关重要，无法禁用：",
+                    "items": [
+                        "用户身份验证和会话管理",
+                        "安全防护和CSRF保护",
+                        "基本功能和页面导航"
+                    ]
+                },
+                "functional": {
+                    "title": "功能性Cookie",
+                    "description": "用于记住您的选择和偏好，提供更好的用户体验：",
+                    "items": [
+                        "语言和主题偏好设置",
+                        "界面布局和显示选项",
+                        "表单数据的临时保存"
+                    ]
+                },
+                "analytics": {
+                    "title": "分析性Cookie",
+                    "description": "帮助我们了解用户如何使用网站，以改进服务质量：",
+                    "items": [
+                        "页面访问统计和用户行为分析",
+                        "功能使用频率和错误监控",
+                        "性能优化和用户体验改进"
+                    ]
+                }
+            },
+            "specificCookies": {
+                "title": "3. 具体Cookie列表",
+                "table": {
+                    "headers": {
+                        "name": "Cookie名称",
+                        "purpose": "用途",
+                        "duration": "有效期"
+                    },
+                    "cookies": [
+                        {
+                            "name": "auth_token",
+                            "purpose": "用户身份验证",
+                            "duration": "7天"
+                        },
+                        {
+                            "name": "theme_preference",
+                            "purpose": "主题设置",
+                            "duration": "1年"
+                        },
+                        {
+                            "name": "language_setting",
+                            "purpose": "语言偏好",
+                            "duration": "1年"
+                        },
+                        {
+                            "name": "analytics_id",
+                            "purpose": "使用统计分析",
+                            "duration": "2年"
+                        }
+                    ]
+                }
+            },
+            "thirdParty": {
+                "title": "4. 第三方Cookie",
+                "content": "我们可能使用以下第三方服务，它们会设置自己的Cookie：",
+                "services": [
+                    "<strong>CDN服务</strong>：用于加速内容分发和提高加载速度",
+                    "<strong>安全服务</strong>：防护恶意攻击和确保网站安全",
+                    "<strong>分析工具</strong>：了解用户行为和改进服务（如有使用）"
+                ],
+                "note": "这些第三方服务有自己的隐私政策，我们建议您查阅相关政策了解详情。"
+            },
+            "management": {
+                "title": "5. Cookie管理",
+                "browsers": {
+                    "title": "浏览器设置",
+                    "description": "您可以通过浏览器设置管理Cookie：",
+                    "settings": [
+                        "<strong>Chrome</strong>：设置 → 隐私设置和安全性 → Cookie及其他网站数据",
+                        "<strong>Firefox</strong>：选项 → 隐私与安全 → Cookie和网站数据",
+                        "<strong>Safari</strong>：偏好设置 → 隐私 → 管理网站数据",
+                        "<strong>Edge</strong>：设置 → Cookie和网站权限"
+                    ]
+                },
+                "impacts": {
+                    "title": "影响说明",
+                    "description": "禁用Cookie可能影响以下功能：",
+                    "items": [
+                        "无法保持登录状态，需要重复登录",
+                        "个人偏好设置无法保存",
+                        "某些功能可能无法正常使用",
+                        "网站性能和用户体验可能下降"
+                    ]
+                }
+            },
+            "otherTech": {
+                "title": "6. 其他跟踪技术",
+                "content": "除Cookie外，我们还可能使用以下技术：",
+                "technologies": [
+                    "<strong>Local Storage</strong>：存储应用设置和临时数据",
+                    "<strong>Session Storage</strong>：会话期间的临时数据存储",
+                    "<strong>Web Beacons</strong>：用于统计和分析（如有使用）",
+                    "<strong>Fingerprinting</strong>：设备特征识别用于安全防护"
+                ]
+            },
+            "dataProtection": {
+                "title": "7. 数据保护",
+                "content": "我们采取以下措施保护通过Cookie收集的数据：",
+                "measures": [
+                    "所有敏感Cookie均采用加密存储",
+                    "定期清理过期和无用的Cookie数据",
+                    "严格控制Cookie数据的访问权限",
+                    "遵循最小化数据收集原则",
+                    "不会将Cookie数据出售给第三方"
+                ]
+            },
+            "updates": {
+                "title": "8. 政策更新",
+                "content": "我们可能会不时更新本Cookie政策以反映：",
+                "reasons": [
+                    "新功能和服务的推出",
+                    "技术和安全改进",
+                    "法律法规的变化",
+                    "用户反馈和建议"
+                ],
+                "notification": "重要更新会通过网站通知或邮件形式告知用户。"
+            },
+            "contact": {
+                "title": "9. 联系我们",
+                "content": "如果您对我们的Cookie使用有任何疑问，请联系我们：",
+                "email": "cookie@dreamlog.com"
+            }
+        }
+    },
+    "disclaimer": {
+        "title": "免责声明",
+        "description": "Dream Log 免责声明，了解使用本服务的风险和责任限制",
+        "keywords": "免责声明,责任限制,使用风险,Dream Log",
+        "lastUpdated": "最后更新时间：",
+        "sections": {
+            "serviceNature": {
+                "title": "1. 服务性质声明",
+                "content": "Dream Log是一个梦境记录和分析平台，旨在为用户提供娱乐和自我探索工具。请注意：",
+                "points": [
+                    "<strong>非医疗服务</strong>：本平台不提供医疗诊断、治疗或专业心理咨询服务",
+                    "<strong>娱乐性质</strong>：所有分析结果仅供娱乐和个人参考使用",
+                    "<strong>AI限制</strong>：AI分析基于算法和数据模型，不能替代人类专业判断",
+                    "<strong>个人解读</strong>：梦境具有高度个人化特征，分析结果因人而异"
+                ]
+            },
+            "contentAccuracy": {
+                "title": "2. 内容准确性免责",
+                "content": "关于平台提供的内容和分析结果：",
+                "points": [
+                    "<strong>准确性</strong>：我们不保证AI分析结果的完全准确性或适用性",
+                    "<strong>完整性</strong>：分析结果可能不够全面，存在遗漏或偏差",
+                    "<strong>时效性</strong>：算法和数据库会持续更新，历史分析结果可能过时",
+                    "<strong>主观性</strong>：梦境解析涉及主观判断，不同理论可能得出不同结论",
+                    "<strong>文化差异</strong>：分析可能未充分考虑文化背景和个人经历差异"
+                ]
+            },
+            "healthDisclaimer": {
+                "title": "3. 健康和心理状况免责",
+                "content": "如果您有以下情况，请寻求专业帮助而非依赖本平台：",
+                "conditions": [
+                    "<strong>睡眠障碍</strong>：持续失眠、噩梦频繁或睡眠质量严重下降",
+                    "<strong>心理健康</strong>：抑郁、焦虑、创伤后应激障碍等心理问题",
+                    "<strong>精神疾病</strong>：任何形式的精神疾病或相关症状",
+                    "<strong>药物影响</strong>：服用影响睡眠或精神状态的药物",
+                    "<strong>紧急情况</strong>：有自伤或伤害他人的想法或冲动"
+                ],
+                "warning": "⚠️ 重要提醒：如有心理健康问题，请及时寻求专业医疗帮助！"
+            },
+            "technicalDisclaimer": {
+                "title": "4. 技术服务免责",
+                "content": "关于技术服务的限制和风险：",
+                "points": [
+                    "<strong>服务可用性</strong>：不保证服务24/7无中断运行",
+                    "<strong>数据丢失</strong>：虽然采取备份措施，但不排除数据丢失风险",
+                    "<strong>兼容性</strong>：可能与某些设备或浏览器不完全兼容",
+                    "<strong>网络依赖</strong>：需要稳定网络连接，网络问题可能影响使用",
+                    "<strong>更新影响</strong>：系统更新可能临时影响功能或改变界面"
+                ]
+            },
+            "userBehavior": {
+                "title": "5. 用户行为免责",
+                "content": "我们不对以下用户行为承担责任：",
+                "points": [
+                    "<strong>误用服务</strong>：将分析结果用于不当目的或重要决策",
+                    "<strong>过度依赖</strong>：过分依赖AI分析而忽视现实生活",
+                    "<strong>信息泄露</strong>：用户主动分享敏感个人信息给他人",
+                    "<strong>账户安全</strong>：因用户疏忽导致的账户被盗或滥用",
+                    "<strong>违法使用</strong>：利用平台进行违法或有害活动"
+                ]
+            },
+            "thirdPartyContent": {
+                "title": "6. 第三方内容免责",
+                "content": "平台可能包含第三方内容或链接：",
+                "points": [
+                    "<strong>外部链接</strong>：不对外部网站内容或服务承担责任",
+                    "<strong>用户生成内容</strong>：不对其他用户分享的内容负责",
+                    "<strong>广告内容</strong>：如有广告，不保证其准确性或可靠性",
+                    "<strong>合作伙伴</strong>：第三方服务提供商有独立的责任和义务"
+                ]
+            },
+            "lossesAndDamages": {
+                "title": "7. 损失和损害免责",
+                "content": "在法律允许的最大范围内，我们不承担以下损失：",
+                "losses": [
+                    "<strong>直接损失</strong>：因使用或无法使用服务导致的直接经济损失",
+                    "<strong>间接损失</strong>：利润损失、商誉损害、数据丢失等间接损失",
+                    "<strong>精神损害</strong>：因服务内容引起的情感困扰或心理创伤",
+                    "<strong>决策后果</strong>：基于平台分析结果做出决策的后果",
+                    "<strong>第三方损失</strong>：向第三方造成的任何损失或损害"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. 适用法律和管辖",
+                "content": "本免责声明的适用和解释：",
+                "points": [
+                    "<strong>适用法律</strong>：适用中华人民共和国法律法规",
+                    "<strong>管辖法院</strong>：争议由河南省郑州市人民法院管辖",
+                    "<strong>法律冲突</strong>：如与强制性法律规定冲突，以法律规定为准",
+                    "<strong>部分无效</strong>：部分条款无效不影响其他条款的效力"
+                ]
+            },
+            "userConfirmation": {
+                "title": "9. 用户确认",
+                "content": "使用Dream Log服务即表示您确认：",
+                "confirmations": [
+                    "已完全理解本免责声明的内容",
+                    "同意承担使用服务的相关风险",
+                    "不会将平台分析结果用于重要决策",
+                    "出现健康问题时会寻求专业帮助",
+                    "理解服务的娱乐性质和局限性"
+                ]
+            },
+            "contact": {
+                "title": "10. 联系方式",
+                "content": "如对本免责声明有疑问，请联系我们：",
+                "email": "warpoint377@gmail.com",
+                "note": "本免责声明自发布之日起生效，我们保留随时修改的权利。"
+            }
+        }
+    },
+    "privacyPolicy": {
+        "title": "隐私政策",
+        "description": "Dream Log 隐私政策，了解我们如何收集、使用和保护您的个人信息",
+        "keywords": "隐私政策,个人信息保护,数据安全,Dream Log",
+        "lastUpdated": "最后更新时间：",
+        "sections": {
+            "collection": {
+                "title": "1. 信息收集",
+                "content": "我们收集以下类型的信息：",
+                "types": [
+                    "<strong>账户信息</strong>：用户名、邮箱地址、密码（加密存储）",
+                    "<strong>梦境内容</strong>：您主动提交的梦境记录、标签和相关数据",
+                    "<strong>使用数据</strong>：访问时间、功能使用情况、设备信息",
+                    "<strong>技术信息</strong>：IP地址、浏览器类型、操作系统信息"
+                ]
+            },
+            "usage": {
+                "title": "2. 信息使用",
+                "content": "我们使用收集的信息用于：",
+                "purposes": [
+                    "提供梦境记录和分析服务",
+                    "改善用户体验和服务质量",
+                    "发送重要的服务通知",
+                    "防范欺诈和滥用行为",
+                    "遵守法律法规要求"
+                ]
+            },
+            "protection": {
+                "title": "3. 信息保护",
+                "content": "我们采取以下安全措施保护您的信息：",
+                "measures": [
+                    "数据传输采用SSL/TLS加密",
+                    "敏感信息采用AES-256加密存储",
+                    "定期进行安全审计和漏洞扫描",
+                    "严格的访问控制和权限管理",
+                    "数据备份和灾难恢复机制"
+                ]
+            },
+            "sharing": {
+                "title": "4. 信息共享",
+                "content": "我们不会出售、出租或以其他方式向第三方披露您的个人信息，除非：",
+                "exceptions": [
+                    "获得您的明确同意",
+                    "法律法规要求或政府部门要求",
+                    "为保护我们的合法权益",
+                    "紧急情况下保护用户或公众安全"
+                ]
+            },
+            "userRights": {
+                "title": "5. 用户权利",
+                "content": "您拥有以下权利：",
+                "rights": [
+                    "<strong>访问权</strong>：查看我们持有的您的个人信息",
+                    "<strong>更正权</strong>：要求更正不准确的个人信息",
+                    "<strong>删除权</strong>：要求删除您的个人信息",
+                    "<strong>限制权</strong>：限制我们处理您的个人信息",
+                    "<strong>撤销权</strong>：撤销之前给予的同意"
+                ]
+            },
+            "cookies": {
+                "title": "6. Cookie使用",
+                "content": "我们使用Cookie和类似技术来：",
+                "purposes": [
+                    "记住您的登录状态和偏好设置",
+                    "分析网站使用情况和性能",
+                    "提供个性化的用户体验",
+                    "防范安全威胁"
+                ],
+                "note": "您可以通过浏览器设置管理Cookie，但这可能影响某些功能的正常使用。"
+            },
+            "retention": {
+                "title": "7. 数据保留",
+                "content": "我们将根据以下原则保留您的信息：",
+                "policies": [
+                    "账户信息：账户存续期间",
+                    "梦境数据：用户主动删除或账户注销后30天内删除",
+                    "日志数据：保留12个月",
+                    "法律要求的其他保留期限"
+                ]
+            },
+            "contact": {
+                "title": "8. 联系我们",
+                "content": "如果您对本隐私政策有任何疑问或需要行使您的权利，请通过以下方式联系我们：",
+                "email": "warpoint377@gmail.com"
+            },
+            "updates": {
+                "title": "9. 政策更新",
+                "content": "我们可能会不时更新本隐私政策。重大变更时，我们会：",
+                "notifications": [
+                    "在网站显著位置发布更新通知",
+                    "通过邮件通知注册用户",
+                    "提供30天的过渡期"
+                ],
+                "acceptance": "继续使用我们的服务即表示您接受更新后的隐私政策。"
+            }
+        }
+    },
+    "termsOfService": {
+        "title": "服务条款",
+        "description": "Dream Log 服务条款，了解使用我们服务的规则和条件",
+        "keywords": "服务条款,用户协议,使用规则,Dream Log",
+        "lastUpdated": "最后更新时间：",
+        "sections": {
+            "serviceIntro": {
+                "title": "1. 服务简介",
+                "content": "Dream Log（以下简称\"我们\"或\"本服务\"）是一个基于人工智能技术的梦境记录和分析平台。我们为用户提供：",
+                "services": [
+                    "梦境记录和管理功能",
+                    "AI驱动的梦境解析服务",
+                    "个人梦境数据统计分析",
+                    "梦境相关知识和建议"
+                ]
+            },
+            "userResponsibilities": {
+                "title": "2. 用户责任",
+                "content": "使用本服务时，您需要：",
+                "responsibilities": [
+                    "提供真实、准确的注册信息",
+                    "妥善保管账户信息，不得与他人共享",
+                    "遵守中华人民共和国相关法律法规",
+                    "不得发布违法、有害或不当内容",
+                    "尊重他人隐私和知识产权",
+                    "不得进行恶意攻击或破坏系统安全"
+                ]
+            },
+            "serviceRules": {
+                "title": "3. 服务规则",
+                "content": "为确保服务质量和用户体验，我们制定以下规则：",
+                "rules": [
+                    "<strong>内容规范</strong>：禁止发布违法、暴力、色情、诽谤等内容",
+                    "<strong>使用限制</strong>：每日API调用次数和存储空间有合理限制",
+                    "<strong>账户安全</strong>：发现异常活动时可能暂停或限制账户",
+                    "<strong>数据备份</strong>：建议用户定期备份重要数据"
+                ]
+            },
+            "intellectualProperty": {
+                "title": "4. 知识产权",
+                "content": "关于知识产权的约定：",
+                "provisions": [
+                    "<strong>平台权利</strong>：Dream Log的商标、界面设计、代码等归我们所有",
+                    "<strong>用户内容</strong>：您保留对梦境记录等原创内容的所有权",
+                    "<strong>授权使用</strong>：您授权我们为提供服务而使用您的内容",
+                    "<strong>侵权处理</strong>：如发现侵权行为，请及时联系我们处理"
+                ]
+            },
+            "disclaimer": {
+                "title": "5. 免责声明",
+                "content": "请注意以下免责条款：",
+                "disclaimers": [
+                    "<strong>服务性质</strong>：本服务仅供娱乐和参考，不构成专业医疗建议",
+                    "<strong>准确性</strong>：AI分析结果仅供参考，不保证完全准确",
+                    "<strong>可用性</strong>：因维护、升级等原因可能临时中断服务",
+                    "<strong>第三方</strong>：不对第三方链接或服务承担责任",
+                    "<strong>数据丢失</strong>：虽然我们采取措施保护数据，但不排除技术故障风险"
+                ]
+            },
+            "changesAndTermination": {
+                "title": "6. 服务变更与终止",
+                "content": "关于服务变更和终止：",
+                "policies": [
+                    "<strong>功能更新</strong>：我们可能随时更新或调整服务功能",
+                    "<strong>提前通知</strong>：重大变更会提前30天通知用户",
+                    "<strong>账户终止</strong>：违反条款的用户账户可能被暂停或终止",
+                    "<strong>数据导出</strong>：终止前用户可申请导出个人数据",
+                    "<strong>服务终止</strong>：如需终止服务，会提前90天通知"
+                ]
+            },
+            "disputeResolution": {
+                "title": "7. 争议解决",
+                "content": "如发生争议，我们建议：",
+                "suggestions": [
+                    "<strong>友好协商</strong>：优先通过协商解决争议",
+                    "<strong>客服处理</strong>：可通过客服渠道寻求帮助",
+                    "<strong>法律途径</strong>：协商不成的，可依法寻求法律救济",
+                    "<strong>管辖法院</strong>：争议由河南省郑州市人民法院管辖"
+                ]
+            },
+            "applicableLaw": {
+                "title": "8. 适用法律",
+                "content": "本服务条款适用中华人民共和国法律法规，包括但不限于：",
+                "laws": [
+                    "《中华人民共和国民法典》",
+                    "《中华人民共和国网络安全法》",
+                    "《中华人民共和国个人信息保护法》",
+                    "《中华人民共和国数据安全法》"
+                ]
+            },
+            "contact": {
+                "title": "9. 联系方式",
+                "content": "如对本服务条款有疑问，请联系我们：",
+                "email": "warpoint377@gmail.com"
+            },
+            "effectiveness": {
+                "title": "10. 条款生效",
+                "content": "本服务条款自发布之日起生效。通过注册账户或使用本服务，即表示您已阅读、理解并同意遵守本条款的所有内容。",
+                "updates": "我们保留随时修改本条款的权利，修改后的条款将在网站上公布并自公布之日起生效。"
+            }
         }
     }
 }

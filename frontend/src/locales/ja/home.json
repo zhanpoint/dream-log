@@ -3,7 +3,7 @@
     "pageDescription": "AIを活用した夢日記で、あなたの潜在意識を探索し、夢の意味を発見しましょう",
     "pageKeywords": "夢日記、夢分析、AI、潜在意識、夢の解釈",
     "welcome": "Dream Logへようこそ",
-    "subtitle": "あなたの夢の旅を記録し、発見しましょう",
+    "subtitle": "AIで夢の神秘を解き明かし、潜在意識の宝物を発見し、自己探求の旅を始めましょう",
     "description": "AIを活用した夢日記で、あなたの潜在意識を探索し、夢の意味を発見しましょう",
     "badge": "AIを活用した夢解釈プラットフォーム",
     "cta": {
@@ -15,7 +15,7 @@
         "login": "ログイン"
     },
     "features": {
-        "title": "Dream Logの特徴",
+        "title": "Dream Logを選ぶ理由",
         "subtitle": "専門的な夢分析ツールで夢の世界を深く理解できます",
         "ai": {
             "title": "AI夢分析",
@@ -61,8 +61,8 @@
         }
     },
     "testimonials": {
-        "title": "ユーザーの声",
-        "subtitle": "他のユーザーがDream Logでどのように夢の世界を探求しているかを見てみましょう",
+        "title": "世界中の夢探求者に愛用されています",
+        "subtitle": "夢探求者の第一選択",
         "user1": {
             "name": "田中さん",
             "quote": "Dream Logのおかげで、自分の夢のパターンが見えるようになりました。"
@@ -74,6 +74,11 @@
         "user3": {
             "name": "山田さん",
             "quote": "使いやすくて美しいインターフェースが気に入っています。"
+        },
+        "stats": {
+            "users": "アクティブユーザー",
+            "dreams": "記録された夢",
+            "satisfaction": "満足度"
         }
     },
     "stats": {

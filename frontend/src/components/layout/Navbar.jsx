@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Book, Compass, Users, Moon, BarChart3, Bot } from "lucide-react";
+import { Book, Compass, Users, Moon, BarChart3, Bot, Menu, X } from "lucide-react";
 import "./Navbar.css";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/user/UserAvatar";
@@ -31,6 +31,25 @@ const Navbar = ({
     const navigate = useNavigate();
     const { isAuthenticated, isLoading } = useAuth();
     const { t } = useTranslation();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // 切换移动端菜单
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    // 关闭移动端菜单
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false);
+    };
+
+    // 处理菜单项点击
+    const handleMenuItemClick = (url) => {
+        if (url !== "#") {
+            navigate(url);
+            closeMobileMenu();
+        }
+    };
 
     // 动态生成菜单项
     const menu = [
@@ -152,11 +171,11 @@ const Navbar = ({
 
                 {/* 用户工具栏 */}
                 <div className="navbar-tools">
-                    {/* 语言选择器 */}
-                    <LanguageSelector variant="ghost" size="sm" showFlag={true} />
-
-                    {/* 主题切换按钮 */}
-                    <ThemeToggle />
+                    {/* 桌面端工具 */}
+                    <div className="navbar-tools-desktop">
+                        <LanguageSelector variant="ghost" size="sm" showFlag={true} />
+                        <ThemeToggle />
+                    </div>
 
                     {/* 用户菜单 */}
                     {!isLoading && (
@@ -166,7 +185,7 @@ const Navbar = ({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="my-dreams-btn"
+                                    className="my-dreams-btn desktop-only"
                                     onClick={() => navigate('/assistant')}
                                 >
                                     <Bot className="h-4 w-4 mr-1" />
@@ -175,7 +194,7 @@ const Navbar = ({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="my-dreams-btn"
+                                    className="my-dreams-btn desktop-only"
                                     onClick={() => navigate('/statistics')}
                                 >
                                     <BarChart3 className="h-4 w-4 mr-1" />
@@ -184,7 +203,7 @@ const Navbar = ({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="my-dreams-btn"
+                                    className="my-dreams-btn desktop-only"
                                     onClick={() => navigate('/dreams/create')}
                                 >
                                     {t('navigation.createDream')}
@@ -212,9 +231,136 @@ const Navbar = ({
                         )
                     )}
 
-
+                    {/* 移动端菜单按钮 */}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mobile-menu-btn"
+                        onClick={toggleMobileMenu}
+                        aria-label="Toggle mobile menu"
+                    >
+                        {isMobileMenuOpen ? (
+                            <X className="h-5 w-5" />
+                        ) : (
+                            <Menu className="h-5 w-5" />
+                        )}
+                    </Button>
                 </div>
             </div>
+
+            {/* 移动端菜单 */}
+            {isMobileMenuOpen && (
+                <div className="mobile-menu-overlay" onClick={closeMobileMenu}>
+                    <div className="mobile-menu-content" onClick={(e) => e.stopPropagation()}>
+                        {/* 移动端导航菜单 */}
+                        <nav className="mobile-nav">
+                            {menu.map((item) => (
+                                <div key={item.title} className="mobile-nav-section">
+                                    <button
+                                        className="mobile-nav-item"
+                                        onClick={() => handleMenuItemClick(item.url)}
+                                    >
+                                        {item.title}
+                                    </button>
+                                    {item.items && (
+                                        <div className="mobile-nav-submenu">
+                                            {item.items.map((subItem) => (
+                                                <button
+                                                    key={subItem.title}
+                                                    className="mobile-nav-submenu-item"
+                                                    onClick={() => handleMenuItemClick(subItem.url)}
+                                                >
+                                                    <div className="mobile-nav-submenu-content">
+                                                        {subItem.icon}
+                                                        <div>
+                                                            <div className="mobile-nav-submenu-title">
+                                                                {subItem.title}
+                                                            </div>
+                                                            {subItem.description && (
+                                                                <div className="mobile-nav-submenu-desc">
+                                                                    {subItem.description}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </nav>
+
+                        {/* 移动端用户操作 */}
+                        {!isLoading && (
+                            <div className="mobile-user-actions">
+                                {isAuthenticated ? (
+                                    <>
+                                        <Button
+                                            variant="ghost"
+                                            className="mobile-nav-item"
+                                            onClick={() => handleMenuItemClick('/my-dreams')}
+                                        >
+                                            {t('navigation.myDreams')}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="mobile-nav-item"
+                                            onClick={() => handleMenuItemClick('/assistant')}
+                                        >
+                                            <Bot className="h-4 w-4 mr-2" />
+                                            {t('navigation.assistant')}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="mobile-nav-item"
+                                            onClick={() => handleMenuItemClick('/statistics')}
+                                        >
+                                            <BarChart3 className="h-4 w-4 mr-2" />
+                                            {t('navigation.statistics')}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="mobile-nav-item"
+                                            onClick={() => handleMenuItemClick('/dreams/create')}
+                                        >
+                                            {t('navigation.createDream')}
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <div className="mobile-auth-buttons">
+                                        <Button
+                                            variant="ghost"
+                                            className="mobile-nav-item"
+                                            onClick={() => handleMenuItemClick('/login')}
+                                        >
+                                            {t('navigation.login')}
+                                        </Button>
+                                        <Button
+                                            className="mobile-nav-item mobile-register-btn"
+                                            onClick={() => handleMenuItemClick('/register')}
+                                        >
+                                            {t('navigation.register')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 移动端工具 */}
+                        <div className="mobile-tools">
+                            <div className="mobile-tool-section">
+                                <span className="mobile-tool-label">{t('common.language', '语言')}</span>
+                                <LanguageSelector variant="ghost" size="sm" showFlag={true} />
+                            </div>
+                            <div className="mobile-tool-section">
+                                <span className="mobile-tool-label">{t('common.theme', '主题')}</span>
+                                <ThemeToggle />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     );
 };

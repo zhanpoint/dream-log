@@ -3,7 +3,7 @@
     "pageDescription": "AI驅動的夢境日誌，探索您的潛意識，發現夢境的意義",
     "pageKeywords": "夢境日誌,夢境分析,AI,潛意識,夢境解釋",
     "welcome": "歡迎來到 Dream Log",
-    "subtitle": "記錄和發現您的夢境之旅",
+    "subtitle": "用AI解鎖夢境奧祕，發現潛意識的寶藏，開啟自我探索之旅",
     "description": "AI驅動的夢境日誌，探索您的潛意識，發現夢境的意義",
     "badge": "AI驅動的夢境解析平台",
     "cta": {
@@ -15,7 +15,7 @@
         "login": "登錄"
     },
     "features": {
-        "title": "Dream Log 的特性",
+        "title": "為什麼選擇 Dream Log",
         "subtitle": "專業的夢境分析工具，助您深入理解夢境世界",
         "ai": {
             "title": "AI夢境分析",
@@ -61,8 +61,8 @@
         }
     },
     "testimonials": {
-        "title": "用戶評價",
-        "subtitle": "看看其他用戶如何通過 Dream Log 探索他們的夢境世界",
+        "title": "深受全球夢境探索者喜愛",
+        "subtitle": "全球夢境探索者的首選",
         "user1": {
             "name": "張先生",
             "quote": "Dream Log讓我能夠看到自己的夢境模式。"
@@ -74,6 +74,11 @@
         "user3": {
             "name": "王先生",
             "quote": "易用且美觀的用戶介面讓我很滿意。"
+        },
+        "stats": {
+            "users": "活躍用戶",
+            "dreams": "夢境記錄",
+            "satisfaction": "滿意度"
         }
     },
     "stats": {
