@@ -1,6 +1,0 @@
-# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
-.vscode
-backend/__pycache__
-backend/.venv
-frontend/dist
-frontend/node_modules
