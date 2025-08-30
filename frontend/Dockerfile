@@ -10,8 +10,8 @@ WORKDIR /app
 # 定义构建参数，用于控制是否强制重新安装依赖
 ARG FORCE_REINSTALL_DEPS=false
 
-# 拷贝包管理文件
-COPY package*.json ./
+# 拷贝包管理文件（构建上下文改为仓库根目录时使用 frontend/ 前缀）
+COPY frontend/package*.json ./
 
 # 【修复】智能依赖安装 - 根据参数决定是否强制重新安装
 RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
@@ -28,7 +28,7 @@ RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
     npm list react react-dom --depth=0
 
 # 拷贝源代码
-COPY . .
+COPY frontend/ .
 
 # 【智能构建】根据参数决定是否需要强制清理缓存
 RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
@@ -56,6 +56,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # 为静态文件设置正确的属主（使用镜像内置的 nginx 用户）
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
+
+# 覆盖容器内 Nginx 配置为仓库自带的生产配置
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # 暴露端口
 EXPOSE 80

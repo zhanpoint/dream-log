@@ -118,7 +118,7 @@ jobs:
   build-frontend:
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.frontend == 'true' ||
+      needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.nginx == 'true' ||
       (github.event_name == 'workflow_dispatch' && (
         github.event.inputs.force_rebuild_all == 'true' ||
         github.event.inputs.force_rebuild_frontend == 'true'
@@ -147,7 +147,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: frontend
+          # 将构建上下文切到仓库根目录，以便COPY nginx/nginx.conf
+          context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
           build-args: |
@@ -186,10 +187,6 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.PROJECT_PATH }}
-            
-            echo "正在从 Git 拉取最新代码以同步配置文件..."
-            git fetch origin main
-            git reset --hard origin/main
             
             echo "登录容器注册表..."
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
