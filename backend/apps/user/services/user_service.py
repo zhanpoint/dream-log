@@ -7,6 +7,8 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
 from apps.user.utils.email import EmailService
+from apps.dream.utils.oss import OSS
+from urllib.parse import urlparse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -159,14 +161,55 @@ class UserService:
     
     @staticmethod
     def get_user_info(user):
-        """获取用户信息"""
-        return {
+        """获取完整用户信息，确保包含所有必要字段"""
+        # 规范化头像为稳定URL（去除任何签名查询参数）
+        stable_avatar = UserService._normalize_avatar_url(user.avatar)
+
+        data = {
             'id': user.id,
             'username': user.username,
             'phone_number': user.phone_number,
             'email': user.email,
             'backup_email': user.backup_email,
-            'avatar': user.avatar,
-            'date_joined': user.date_joined,
-            'last_login': user.last_login,
+            'avatar': stable_avatar,
+            'date_joined': user.date_joined.isoformat() if user.date_joined else None,
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'timezone': getattr(user, 'timezone', 'Asia/Shanghai'),
+            'dream_privacy_default': getattr(user, 'dream_privacy_default', 'private'),
         }
+
+        # 为私有桶头像生成临时访问签名
+        if stable_avatar and '/users/' in stable_avatar:
+            file_key = UserService._extract_file_key(stable_avatar)
+            if file_key:
+                try:
+                    oss_client = OSS(user_id=user.id)
+                    data['avatar_signed'] = oss_client.get_signed_url(file_key)
+                except Exception:
+                    pass
+
+        return data
+
+    @staticmethod
+    def _normalize_avatar_url(avatar_url):
+        """规范化头像URL，移除签名参数"""
+        if not avatar_url:
+            return ''
+        try:
+            parsed = urlparse(avatar_url)
+            return f"{parsed.scheme}://{parsed.netloc}{parsed.path}" if parsed.scheme and parsed.netloc else avatar_url.split('?')[0]
+        except Exception:
+            return avatar_url.split('?')[0]
+
+    @staticmethod
+    def _extract_file_key(stable_url):
+        """从稳定URL提取file_key"""
+        try:
+            parsed = urlparse(stable_url)
+            return parsed.path.lstrip('/')
+        except Exception:
+            # 降级处理：从URL中提取文件路径
+            try:
+                return stable_url.split('/', 3)[-1]
+            except Exception:
+                return None

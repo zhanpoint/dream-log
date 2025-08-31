@@ -93,12 +93,12 @@ const TestimonialCard = ({ testimonial }) => {
             </div>
 
             {/* 评价内容 */}
-            <blockquote className="text-gray-200 dark:text-gray-300 light:text-gray-700 leading-relaxed text-base font-medium">
+            <blockquote className="text-gray-200 dark:text-gray-300 light:text-gray-600 leading-relaxed text-base font-medium">
                 "{testimonial.review}"
             </blockquote>
 
             {/* 装饰性引号 */}
-            <div className="absolute top-4 right-4 text-4xl text-purple-400/20 dark:text-purple-500/20 font-serif">
+            <div className="absolute top-4 right-4 text-4xl text-purple-400/20 dark:text-purple-500/20 light:text-purple-300/30 font-serif">
                 "
             </div>
         </motion.figure>
@@ -129,7 +129,7 @@ export const TestimonialsSection = () => {
                     <h2 className="text-4xl md:text-5xl font-bold text-white dark:text-white light:text-gray-900 mb-6 leading-tight text-center w-full">
                         {t('home.testimonials.title', '用户真实评价')}
                     </h2>
-                    <p className="text-xl text-gray-300 dark:text-gray-400 light:text-gray-600 text-center w-full flex justify-center">
+                    <p className="text-xl text-gray-300 text-center w-full flex justify-center">
                         <span>{t('home.testimonials.subtitle', '来自全国各地用户的真实反馈，见证 Dream Log 的专业与贴心')}</span>
                     </p>
                 </motion.div>
@@ -157,23 +157,23 @@ export const TestimonialsSection = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
                     viewport={{ once: true, amount: 0.3 }}
-                    className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center"
+                    className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center text-slate-800 dark:text-inherit"
                 >
                     <div className="flex flex-col">
                         <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">10,000+</span>
-                        <span className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                        <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.users', '活跃用户')}
                         </span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">50,000+</span>
-                        <span className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                        <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.dreams', '梦境记录')}
                         </span>
                     </div>
                     <div className="flex flex-col">
                         <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">98%</span>
-                        <span className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                        <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.satisfaction', '满意度')}
                         </span>
                     </div>

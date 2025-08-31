@@ -1,5 +1,6 @@
 {
     "profile": {
+        "title": "个人资料",
         "basicInfo": "基本信息",
         "username": "用户名",
         "usernamePlaceholder": "请输入用户名",

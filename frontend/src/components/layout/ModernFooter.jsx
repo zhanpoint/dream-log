@@ -76,14 +76,12 @@ const ModernFooter = () => {
                         className="flex-shrink-0 lg:max-w-sm"
                     >
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">D</span>
-                            </div>
+                            <img src="/assets/logo.svg" alt="Dream Log" className="w-8 h-8 rounded-lg" />
                             <div>
                                 <h4 className="text-white dark:text-white light:text-gray-800 font-semibold">
                                     Dream Log
                                 </h4>
-                                <p className="text-gray-300 dark:text-gray-300 light:text-gray-600 text-sm">
+                                <p className="text-gray-300 dark:text-gray-300 light:text-gray-700 text-sm">
                                     {t('footer.brand.tagline', '探索梦境的无限可能')}
                                 </p>
                             </div>
@@ -98,7 +96,7 @@ const ModernFooter = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-16 items-start">
                             {Object.entries(footerLinks).map(([key, section]) => (
                                 <div key={key} className="flex flex-col items-start">
-                                    <h3 className="text-sm font-semibold text-white dark:text-white light:text-gray-800 uppercase tracking-wider mb-4">
+                                    <h3 className="text-sm font-semibold text-white dark:text-white light:text-gray-900 uppercase tracking-wider mb-4">
                                         {section.title}
                                     </h3>
                                     <ul className="space-y-3 list-none p-0 m-0">
@@ -106,7 +104,7 @@ const ModernFooter = () => {
                                             <li key={index}>
                                                 <a
                                                     href={link.href}
-                                                    className="text-sm text-gray-400 hover:text-white dark:text-gray-400 dark:hover:text-white light:text-gray-600 light:hover:text-gray-900 transition-colors duration-200 block"
+                                                    className="text-sm text-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white light:text-gray-700 light:hover:text-gray-900 transition-colors duration-200 block"
                                                 >
                                                     {link.name}
                                                 </a>
@@ -121,7 +119,7 @@ const ModernFooter = () => {
 
                 {/* 分割线 */}
                 <motion.div
-                    className="h-px bg-gradient-to-r from-transparent via-white/20 dark:via-gray-700/50 light:via-gray-300 to-transparent mb-6"
+                    className="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700/50 light:via-gray-400 to-transparent mb-6"
                     initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true }}
@@ -136,7 +134,7 @@ const ModernFooter = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                    <p className="text-gray-400 dark:text-gray-400 light:text-gray-600">
+                    <p className="text-gray-300 dark:text-gray-400 light:text-gray-700">
                         © {new Date().getFullYear()} Dream Log. {t('footer.copyright.tech', '基于React 19与AI技术构建')}.
                     </p>
 
@@ -145,16 +143,16 @@ const ModernFooter = () => {
                             href="https://beian.miit.gov.cn/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-purple-400 transition-colors duration-200"
+                            className="text-gray-300 dark:text-gray-400 light:text-gray-700 hover:text-purple-500 transition-colors duration-200"
                         >
                             豫ICP备2025135141号-1
                         </a>
-                        <span className="text-gray-600">|</span>
+                        <span className="text-gray-600 dark:text-gray-600 light:text-gray-400">|</span>
                         <a
                             href="https://beian.mps.gov.cn/#/query/webSearch?code=41911002000051"
                             target="_blank"
                             rel="noreferrer"
-                            className="text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-purple-400 transition-colors duration-200 flex items-center gap-1"
+                            className="text-gray-300 dark:text-gray-400 light:text-gray-700 hover:text-purple-500 transition-colors duration-200 flex items-center gap-1"
                         >
                             <img src="/assets/备案图标.png" alt="公安备案" className="w-3 h-3" />
                             豫公网安备41911002000051号

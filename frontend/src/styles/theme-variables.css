@@ -101,6 +101,17 @@
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+/* 亮色主题下的文本颜色覆盖 */
+.light .text-gray-400 {
+    color: #edeef0;
+    /* gray-500 更亮的颜色 */
+}
+
+.light .text-gray-300 {
+    color: #f0f2f5;
+    /* gray-300 在亮色主题下使用更适中的颜色 */
+}
+
 /* 梦境风格渐变背景 */
 .dream-gradient-bg {
     background: linear-gradient(135deg,

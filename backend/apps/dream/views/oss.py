@@ -19,6 +19,7 @@ def upload_signature(request):
     """为客户端生成OSS上传签名，不创建数据库记录。"""
     file_name = request.data.get('file_name')
     content_type = request.data.get('content_type', 'application/octet-stream')
+    file_type = request.data.get('file_type', 'dream')  # 新增：文件类型标识，默认为梦境图片
 
     if not file_name:
         return Response({'detail': '缺少文件名'}, status=status.HTTP_400_BAD_REQUEST)
@@ -28,7 +29,7 @@ def upload_signature(request):
         unique_id = str(uuid.uuid4())
         unique_filename = f"{unique_id}_{file_name}"
         
-        presigned_data = oss_client.generate_presigned_url(unique_filename, content_type)
+        presigned_data = oss_client.generate_presigned_url(unique_filename, content_type, file_type)
         
         return Response(presigned_data, status=status.HTTP_200_OK)
     
@@ -51,15 +52,18 @@ def complete_upload(request):
         return Response({'detail': '不支持base64编码的图片数据，请先上传到云存储获取URL'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
+        oss_client = OSS(user_id=request.user.id)
+        stable_url = oss_client.get_stable_url(file_key)
+
+        # 创建或获取图片记录
         image, created = UploadedImage.objects.get_or_create(
             user=request.user,
             file_key=file_key,
-            defaults={'url': access_url, 'status': 'active'}
+            defaults={'url': stable_url, 'status': 'active'}
         )
         
-        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
         serializer = UploadedImageSerializer(image)
-        return Response(serializer.data, status=status_code)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
     except Exception as e:
         logger.error(f"完成图片上传失败: {e}", exc_info=True)
@@ -82,7 +86,7 @@ def mark_images_for_deletion(request):
             status='active'
         ).update(status='pending_delete')
         
-        logger.info(f"标记 {updated_images} 张图片为待删除状态。")
+        logger.info(f"标记 {updated_images} 张图片为待删除状态")
 
         # 启动后台任务，在10分钟后执行物理删除
         if updated_images > 0:

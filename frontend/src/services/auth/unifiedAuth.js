@@ -243,17 +243,22 @@ class UnifiedAuthService {
 
             // 如果是登录或注册操作，保存令牌和用户数据
             if (operationType.includes('login') || operationType.includes('register')) {
-                // 后端统一返回 data={ user, access, refresh }
+                // 后端现在返回扁平化结构：data={ id, username, avatar, ..., access, refresh }
                 const access = data.data?.access || data.access;
                 const refresh = data.data?.refresh || data.refresh;
-                const user = data.data?.user || data.data;
 
-                if (access && refresh && user) {
+                // 从响应数据中提取用户信息（排除 access 和 refresh）
+                const userData = data.data ? { ...data.data } : {};
+                delete userData.access;
+                delete userData.refresh;
+
+                // 确保必要字段存在
+                if (access && refresh && userData.id) {
                     tokenManager.setTokens(access, refresh);
-                    tokenManager.setUserData(user);
-                    result.data = user;
+                    tokenManager.setUserData(userData);
+                    result.data = userData;
                 } else {
-                    console.error('认证响应缺少必需的令牌字段:', data);
+                    console.error('认证响应缺少必需的令牌或用户字段:', { access: !!access, refresh: !!refresh, userId: userData.id, userData });
                     return {
                         success: false,
                         message: '认证响应格式错误'

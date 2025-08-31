@@ -81,10 +81,7 @@ class UserViewSet(viewsets.ModelViewSet):
         tokens = AuthService.generate_tokens(user)
         
         return ResponseHandler.success(
-            data={
-                "user": user_data,
-                **tokens
-            },
+            data={**user_data, **tokens},
             message="注册成功",
             status_code=201
         )
@@ -177,10 +174,7 @@ class AuthSessionAPIView(APIView):
         AuthService.reset_login_attempts(username)
         
         user_data = UserService.get_user_info(user)
-        return ResponseHandler.success({
-            "user": user_data,
-            **tokens
-        }, "登录成功")
+        return ResponseHandler.success({**user_data, **tokens}, "登录成功")
 
     def _login_with_phone_code(self, request):
         """手机验证码登录"""
@@ -200,10 +194,7 @@ class AuthSessionAPIView(APIView):
             return ResponseHandler.error(error, {"code": [error]})
         
         user_data = UserService.get_user_info(user)
-        return ResponseHandler.success({
-            "user": user_data,
-            **tokens
-        }, "登录成功")
+        return ResponseHandler.success({**user_data, **tokens}, "登录成功")
 
     def _login_with_email_code(self, request):
         """邮箱验证码登录"""
@@ -223,10 +214,7 @@ class AuthSessionAPIView(APIView):
             return ResponseHandler.error(error, {"code": [error]})
         
         user_data = UserService.get_user_info(user)
-        return ResponseHandler.success({
-            "user": user_data,
-            **tokens
-        }, "登录成功")
+        return ResponseHandler.success({**user_data, **tokens}, "登录成功")
 
     def delete(self, request):
         """

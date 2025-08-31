@@ -140,7 +140,7 @@ class OSSUploadService {
  * @param {Function} onProgress - 进度回调函数
  * @returns {Promise<object>} - 包含最终图片信息的Promise
  */
-    async uploadWithSignature(file, onProgress = null) {
+    async uploadWithSignature(file, onProgress = null, fileType = 'dream') {
         const startTime = Date.now();
 
         try {
@@ -150,12 +150,20 @@ class OSSUploadService {
             let processedFile = file;
             if (this.isValidImageFile(file) && file.size > 500 * 1024) { // 大于500KB才压缩
                 try {
-                    processedFile = await ImageProcessor.compressImage(file, {
+                    // 头像压缩参数更严格
+                    const compressionOptions = fileType === 'avatar' ? {
+                        maxWidth: 800,
+                        maxHeight: 800,
+                        quality: 0.9,
+                        maxSizeKB: 512
+                    } : {
                         maxWidth: 1920,
                         maxHeight: 1080,
                         quality: 0.85,
                         maxSizeKB: 1024
-                    });
+                    };
+
+                    processedFile = await ImageProcessor.compressImage(file, compressionOptions);
                     console.log(`图片压缩: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`);
                 } catch (compressionError) {
                     console.warn('图片压缩失败，使用原图:', compressionError);
@@ -171,6 +179,7 @@ class OSSUploadService {
             const response = await apiClient.post('/files/upload-signature/', {
                 file_name: processedFile.name,
                 content_type: processedFile.type,
+                file_type: fileType  // 传递文件类型
             });
 
             const signatureData = response.data;
@@ -201,9 +210,6 @@ class OSSUploadService {
             onProgress?.({ step: 'complete', progress: 100, message: '上传完成！' });
 
             const totalTime = Date.now() - startTime;
-            console.log(`图片上传总耗时: ${totalTime}ms`);
-
-            notification.success(`图片上传成功！耗时 ${(totalTime / 1000).toFixed(1)}s`);
 
             // 返回完整的图片记录，其中包含可用的url
             return finalImageRecord;
@@ -294,7 +300,19 @@ class OSSUploadService {
             throw new Error('图片文件大小不能超过10MB');
         }
 
-        return await this.uploadWithSignature(file, onProgress);
+        return await this.uploadWithSignature(file, onProgress, 'dream');
+    }
+
+    async uploadAvatar(file, onProgress = null) {
+        if (!this.isValidImageFile(file)) {
+            throw new Error('请选择有效的图片文件（JPG、PNG、GIF、WebP）');
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            throw new Error('头像文件大小不能超过5MB');
+        }
+
+        return await this.uploadWithSignature(file, onProgress, 'avatar');
     }
 
     async markImagesForDeletion(imageUrls) {
@@ -347,11 +365,12 @@ class OSSUploadService {
 const ossUploadService = new OSSUploadService();
 
 export const uploadImage = (file, onProgress) => ossUploadService.uploadImage(file, onProgress);
+export const uploadAvatar = (file, onProgress) => ossUploadService.uploadAvatar(file, onProgress);
 export const listFiles = (prefix, maxKeys) => ossUploadService.listFiles(prefix, maxKeys);
 export const deleteFile = (fileKey) => ossUploadService.deleteFile(fileKey);
 export const markImagesForDeletion = (imageUrls) => ossUploadService.markImagesForDeletion(imageUrls);
 export const isValidImageFile = (file) => ossUploadService.isValidImageFile(file);
-export const uploadWithSignature = (file) => ossUploadService.uploadWithSignature(file);
+export const uploadWithSignature = (file, fileType) => ossUploadService.uploadWithSignature(file, null, fileType);
 export const completeUpload = (fileKey, accessUrl) => ossUploadService.completeUpload(fileKey, accessUrl);
 
 export default ossUploadService; 

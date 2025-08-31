@@ -1,5 +1,6 @@
 {
     "profile": {
+        "title": "Perfil",
         "basicInfo": "Información Básica",
         "username": "Nombre de Usuario",
         "usernamePlaceholder": "Ingresa nombre de usuario",

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Book, Compass, Users, Moon, BarChart3, Bot, Menu, X } from "lucide-react";
+import { Book, Menu, X, Brain, Eye, Lightbulb } from "lucide-react";
 import "./Navbar.css";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/user/UserAvatar";
@@ -54,6 +54,11 @@ const Navbar = ({
     // 动态生成菜单项
     const menu = [
         { title: t('navigation.home'), url: "/" },
+        // 只有登录用户才显示AI助手和统计
+        ...(isAuthenticated ? [
+            { title: t('navigation.assistant'), url: "/assistant" },
+            { title: t('navigation.statistics'), url: "/statistics" },
+        ] : []),
         {
             title: t('navigation.knowledge'),
             url: "#",
@@ -62,19 +67,19 @@ const Navbar = ({
                 {
                     title: t('knowledge.science.title', '梦境科学'),
                     description: t('knowledge.science.description', '了解梦境背后的科学原理'),
-                    icon: <Book className="size-5 shrink-0" />,
+                    icon: <Brain className="size-5 shrink-0" />,
                     url: "/knowledge/science",
                 },
                 {
                     title: t('knowledge.symbols.title', '梦境符号学'),
                     description: t('knowledge.symbols.description', '探索梦境中符号的含义'),
-                    icon: <Book className="size-5 shrink-0" />,
+                    icon: <Eye className="size-5 shrink-0" />,
                     url: "/knowledge/symbols",
                 },
                 {
                     title: t('knowledge.techniques.title', '梦境技巧'),
                     description: t('knowledge.techniques.description', '学习记忆和控制梦境的技巧'),
-                    icon: <Book className="size-5 shrink-0" />,
+                    icon: <Lightbulb className="size-5 shrink-0" />,
                     url: "/knowledge/techniques",
                 },
             ],
@@ -186,24 +191,6 @@ const Navbar = ({
                                     variant="ghost"
                                     size="sm"
                                     className="my-dreams-btn desktop-only"
-                                    onClick={() => navigate('/assistant')}
-                                >
-                                    <Bot className="h-4 w-4 mr-1" />
-                                    {t('navigation.assistant')}
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="my-dreams-btn desktop-only"
-                                    onClick={() => navigate('/statistics')}
-                                >
-                                    <BarChart3 className="h-4 w-4 mr-1" />
-                                    {t('navigation.statistics')}
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="my-dreams-btn desktop-only"
                                     onClick={() => navigate('/dreams/create')}
                                 >
                                     {t('navigation.createDream')}
@@ -302,22 +289,6 @@ const Navbar = ({
                                             onClick={() => handleMenuItemClick('/my-dreams')}
                                         >
                                             {t('navigation.myDreams')}
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            className="mobile-nav-item"
-                                            onClick={() => handleMenuItemClick('/assistant')}
-                                        >
-                                            <Bot className="h-4 w-4 mr-2" />
-                                            {t('navigation.assistant')}
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            className="mobile-nav-item"
-                                            onClick={() => handleMenuItemClick('/statistics')}
-                                        >
-                                            <BarChart3 className="h-4 w-4 mr-2" />
-                                            {t('navigation.statistics')}
                                         </Button>
                                         <Button
                                             variant="ghost"

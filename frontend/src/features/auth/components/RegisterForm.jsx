@@ -11,6 +11,7 @@ import { smsService } from "@/services/notification/sms";
 import { emailService } from "@/services/notification/email";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
 import { useAuth } from "@/hooks/useAuth";
@@ -335,7 +336,8 @@ export function RegisterForm() {
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto card">
+        <Card className="w-full max-w-md mx-auto card relative overflow-hidden">
+            <BorderBeam size={60} duration={8} colorFrom="#06B6D4" colorTo="#3B82F6" />
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.register.title', '创建账户')}</CardTitle>
             </CardHeader>

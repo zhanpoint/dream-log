@@ -6,6 +6,7 @@ import time
 import uuid
 from config.env_config import ALIYUN_CONFIG
 import re
+from urllib.parse import urlparse, unquote, quote
 import os
 
 
@@ -41,16 +42,21 @@ class OSS:
         for proxy_var, proxy_value in original_proxies.items():
             os.environ[proxy_var] = proxy_value
     
-    def get_user_upload_path(self, filename=''):
-        date_path = time.strftime("%Y/%m/%d")
-        
+    def get_user_upload_path(self, filename='', file_type='dream'):
+        """获取用户上传路径，根据文件类型分类存储"""
         if filename:
             safe_filename = self._sanitize_filename(filename)
             unique_filename = f"{uuid.uuid4().hex[:8]}_{safe_filename}"
         else:
             unique_filename = f"{uuid.uuid4().hex}.jpg"
-            
-        return f"{self.user_prefix}dreams/{date_path}/{unique_filename}"
+        
+        # 根据file_type参数决定存储路径
+        if file_type == 'avatar':
+            return f"{self.user_prefix}avatars/{unique_filename}"
+        else:
+            # 默认为梦境图片，按日期分类存储
+            date_path = time.strftime("%Y/%m/%d")
+            return f"{self.user_prefix}dreams/{date_path}/{unique_filename}"
     
     def _sanitize_filename(self, filename):
         name, ext = filename.rsplit('.', 1) if '.' in filename else (filename, '')
@@ -141,11 +147,11 @@ class OSS:
         except Exception:
             pass
     
-    def generate_presigned_url(self, filename, content_type='image/jpeg', expires=3600):
+    def generate_presigned_url(self, filename, content_type='image/jpeg', file_type='dream', expires=3600):
         original_proxies = self._clear_proxy_env()
         
         try:
-            file_key = self.get_user_upload_path(filename)
+            file_key = self.get_user_upload_path(filename, file_type)
             auth = oss2.Auth(self.access_key_id, self.access_key_secret)
             bucket = oss2.Bucket(auth, self.endpoint, self.bucket_name)
             
@@ -161,6 +167,20 @@ class OSS:
                 'file_key': file_key,
                 'expires_in': expires
             }
+        finally:
+            self._restore_proxy_env(original_proxies)
+
+    def get_stable_url(self, file_key):
+        """构造稳定的对象URL（不带签名）"""
+        endpoint_host = self.endpoint.replace('https://', '').replace('http://', '').rstrip('/')
+        return f"https://{self.bucket_name}.{endpoint_host}/{file_key}"
+    
+    def get_signed_url(self, file_key, expires=3600):
+        """为文件key生成临时访问签名URL"""
+        original_proxies = self._clear_proxy_env()
+        try:
+            bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
+            return bucket.sign_url('GET', file_key, expires)
         finally:
             self._restore_proxy_env(original_proxies)
     

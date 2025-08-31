@@ -7,7 +7,8 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from '@/components/ui/tooltip';
-import { getDefaultAvatarUrl, getInitials } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
+import { getUserAvatarUrl, handleAvatarError } from '@/utils/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 
@@ -16,11 +17,7 @@ const UserAvatar = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const navigateToSettings = () => {
-        navigate('/settings');
-    };
-
-    const avatarUrl = user?.avatar || getDefaultAvatarUrl(user?.username);
+    const avatarUrl = getUserAvatarUrl(user);
     const initials = getInitials(user?.username);
 
     return (
@@ -29,9 +26,13 @@ const UserAvatar = () => {
                 <TooltipTrigger asChild>
                     <Avatar
                         className="cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={navigateToSettings}
+                        onClick={() => navigate('/settings')}
                     >
-                        <AvatarImage src={avatarUrl} alt={user?.username || t('settings:userAvatar.alt')} />
+                        <AvatarImage
+                            src={avatarUrl}
+                            alt={user?.username || t('settings:userAvatar.alt')}
+                            onError={(e) => handleAvatarError(e, getUserAvatarUrl({ username: user?.username || 'User' }))}
+                        />
                         <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                 </TooltipTrigger>

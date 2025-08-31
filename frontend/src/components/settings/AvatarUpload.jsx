@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { getDefaultAvatarUrl, getInitials } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
+import { getUserAvatarUrl } from '@/utils/avatar';
 import notification from '@/utils/notification';
 import { profileManager } from '@/services/auth/profileManager';
-import ossUploadService from '@/services/oss';
+import { uploadAvatar } from '@/services/oss';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -23,7 +24,7 @@ const AvatarUpload = () => {
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef(null);
 
-    const currentAvatarUrl = user?.avatar || getDefaultAvatarUrl(user?.username);
+    const currentAvatarUrl = getUserAvatarUrl(user);
     const displayUrl = previewUrl || currentAvatarUrl;
     const userInitials = getInitials(user?.username);
 
@@ -122,7 +123,6 @@ const AvatarUpload = () => {
 
         setIsUploading(true);
         try {
-            // 重新走OSS直传：从file input获取原始文件并上传，拿到URL再保存
             const file = fileInputRef.current?.files?.[0];
             if (!file) {
                 notification.error(t('settings:avatar.errors.selectFile'));
@@ -130,8 +130,8 @@ const AvatarUpload = () => {
                 return;
             }
 
-            const uploadResult = await ossUploadService.uploadImage(file);
-            const avatarUrl = uploadResult?.url || uploadResult?.data?.url || uploadResult?.access_url;
+            const uploadResult = await uploadAvatar(file);
+            const avatarUrl = uploadResult?.url;
             if (!avatarUrl) {
                 throw new Error(t('settings:avatar.errors.noUrl'));
             }

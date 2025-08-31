@@ -12,6 +12,7 @@ import { TestimonialsSection } from '@/components/ui/testimonials';
 import { Sparkles, BrainCircuit, Bot, PieChart } from 'lucide-react';
 import { MagicCard } from '@/components/magicui/magic-card';
 import { Meteors } from '@/components/magicui/meteors';
+import { PulsatingButton } from '@/components/magicui/pulsating-button';
 
 
 /**
@@ -198,15 +199,14 @@ const HomePage = () => {
                         transition={{ duration: 0.6, ease: "easeOut" }}
                         className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                     >
-                        <motion.button
+                        <PulsatingButton
                             onClick={handleExploreClick}
                             disabled={isPending}
-                            whileHover={!isPending ? { scale: 1.05, y: -2 } : {}}
-                            whileTap={!isPending ? { scale: 0.98 } : {}}
-                            className={`group relative px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-sm shadow-2xl shadow-purple-500/25 transition-all duration-300 overflow-hidden ${isPending ? 'opacity-75' : ''
-                                }`}
+                            pulseColor="158 122 255"
+                            duration="2.4s"
+                            className={`group relative px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-sm shadow-2xl shadow-purple-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:opacity-75 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0`}
                         >
-                            <span className="relative z-10 flex items-center gap-2">
+                            <span className="flex items-center gap-2">
                                 {isPending && (
                                     <motion.div
                                         animate={{ rotate: 360 }}
@@ -216,7 +216,7 @@ const HomePage = () => {
                                 )}
                                 {isPending ? t('common.loading', '正在跳转...') : t('home.cta.primary', '开始记录梦境')}
                             </span>
-                        </motion.button>
+                        </PulsatingButton>
                     </motion.div>
                 </motion.div>
             </section>

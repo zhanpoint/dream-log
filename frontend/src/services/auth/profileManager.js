@@ -15,33 +15,36 @@ export const profileManager = {
         const userId = current?.id || 'me';
         const resp = await api.get(`/users/${userId}/`);
         if (resp?.data?.data) {
-            tokenManager.setUserData(resp.data.data);
-            try {
-                window.dispatchEvent(new CustomEvent('auth:user-updated', { detail: resp.data.data }));
-            } catch (_) {
-                // 忽略服务端渲染或不可用窗口环境
-            }
+            profileManager.updateUserDataAndNotify(resp.data.data);
         }
         return resp;
     },
+    /**
+     * 统一处理用户数据更新和通知
+     * @param {Object} userData - 用户数据
+     */
+    updateUserDataAndNotify: (userData) => {
+        tokenManager.setUserData(userData);
+        try {
+            window.dispatchEvent(new CustomEvent('auth:user-updated', { detail: userData }));
+        } catch (_) {
+            // 忽略不可用的window
+        }
+    },
+
     /**
      * 更新用户信息
      * @param {Object} userData - 用户数据
      * @returns {Promise} - API响应
      */
     updateUserProfile: async (userData) => {
-        // 后端统一在 /api/users/{id}/ 更新当前用户，前端无需传id
         const current = tokenManager.getUserData();
         const userId = current?.id || 'me';
         const response = await api.put(`/users/${userId}/`, userData);
 
+        // 统一处理用户数据更新
         if (response.data.code === 200 && response.data.data) {
-            tokenManager.setUserData(response.data.data);
-            try {
-                window.dispatchEvent(new CustomEvent('auth:user-updated', { detail: response.data.data }));
-            } catch (_) {
-                // 忽略不可用的window
-            }
+            profileManager.updateUserDataAndNotify(response.data.data);
         }
 
         return response;

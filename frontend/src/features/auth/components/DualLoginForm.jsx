@@ -12,6 +12,7 @@ import { emailService } from "@/services/notification/email";
 import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
 
@@ -311,7 +312,8 @@ export function DualLoginForm() {
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto card">
+        <Card className="w-full max-w-md mx-auto card relative overflow-hidden">
+            <BorderBeam size={60} duration={8} colorFrom="#4F46E5" colorTo="#7C3AED" />
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">
                     <div className="flex items-center justify-center gap-2">

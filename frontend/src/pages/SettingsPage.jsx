@@ -57,7 +57,7 @@ const SettingsPage = () => {
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2">
                                                 <User className="h-5 w-5" />
-                                                {t('settings.profile.title', '个人资料')}
+                                                {t('settings:profile.title')}
                                             </CardTitle>
                                         </CardHeader>
                                         <Separator />

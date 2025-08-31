@@ -12,6 +12,7 @@ import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
 import { useAuth } from "@/hooks/useAuth";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import "./css/DreamTheme.css";
 import "./css/pc-responsive.css";
 
@@ -315,7 +316,8 @@ export function ResetPasswordForm() {
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto card">
+        <Card className="w-full max-w-md mx-auto card relative overflow-hidden">
+            <BorderBeam size={60} duration={8} colorFrom="#EF4444" colorTo="#F97316" />
             <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold text-center card-title">{t('auth.resetPassword.title', '重置密码')}</CardTitle>
             </CardHeader>

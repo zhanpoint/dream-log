@@ -51,6 +51,10 @@ export function AuthProvider({ children }) {
                     if (userData) {
                         updateUserState(userData);
                         setCurrentToken(token);
+                        // 登录状态下始终拉取一次最新资料，获取 avatar_signed 等动态字段
+                        try {
+                            await profileManager.refreshUserProfileAndBroadcast();
+                        } catch (_) { }
                     } else {
                         // 有令牌但没有用户数据，清除令牌
                         clearAuthState();
@@ -109,13 +113,9 @@ export function AuthProvider({ children }) {
         if (result.success) {
             const token = tokenManager.getAccessToken();
             setCurrentToken(token);
-            // 登录成功后主动拉取用户完整资料，确保包含 backup_email/avatar 等
-            try {
-                const resp = await profileManager.getUserProfile();
-                const data = resp?.data?.data || tokenManager.getUserData();
-                if (data) updateUserState(data);
-            } catch {
-                if (result.data) updateUserState(result.data);
+            // 更新用户状态
+            if (result.data) {
+                updateUserState(result.data);
             }
         }
 
@@ -160,9 +160,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     // 获取当前用户信息
-    const getCurrentUser = useCallback(() => {
-        return user || tokenManager.getUserData();
-    }, [user]);
+    const getCurrentUser = useCallback(() => user, [user]);
 
     // 上下文提供的值 - 使用useMemo优化性能
     const value = useMemo(() => ({
