@@ -201,7 +201,7 @@ jobs:
               grep -q '^BACKEND_IMAGE_URI=' .env.deployment && sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" >> .env.deployment
               
               sudo docker pull "$BACKEND_IMAGE_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_default beat"
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_io_cluster beat"
             fi
             
             if [ "${{ needs.build-frontend.result }}" = "success" ]; then
