@@ -100,6 +100,30 @@ export default {
                     from: { transform: "translateY(0%)" },
                     to: { transform: "translateY(-100%)" },
                 },
+                "border-beam": {
+                    "0%": { "border-color": "transparent" },
+                    "50%": { "border-color": "hsl(var(--border))" },
+                    "100%": { "border-color": "transparent" },
+                },
+                // 梦境主题动画
+                "dream-pulse": {
+                    "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+                    "50%": { opacity: "0.8", transform: "scale(1.1)" },
+                },
+                "energy-flow": {
+                    "0%": { transform: "rotate(0deg) scale(1)", opacity: "0.6" },
+                    "50%": { transform: "rotate(180deg) scale(1.1)", opacity: "0.9" },
+                    "100%": { transform: "rotate(360deg) scale(1)", opacity: "0.6" },
+                },
+                "particle-float": {
+                    "0%, 100%": { transform: "translateY(0px) translateX(0px)", opacity: "0.3" },
+                    "33%": { transform: "translateY(-20px) translateX(10px)", opacity: "0.7" },
+                    "66%": { transform: "translateY(-10px) translateX(-15px)", opacity: "0.5" },
+                },
+                "dream-glow": {
+                    "0%, 100%": { boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)" },
+                    "50%": { boxShadow: "0 0 40px rgba(139, 92, 246, 0.6)" },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
@@ -108,6 +132,12 @@ export default {
                 "fade-out": "fade-out 0.2s ease-out",
                 marquee: "marquee var(--duration) linear infinite",
                 "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
+                "spin-slow": "spin 3s linear infinite",
+                "spin-reverse": "spin 4s linear infinite reverse",
+                "dream-pulse": "dream-pulse 2.5s ease-in-out infinite",
+                "energy-flow": "energy-flow 3s linear infinite",
+                "particle-float": "particle-float 4s ease-in-out infinite",
+                "dream-glow": "dream-glow 3s ease-in-out infinite",
             },
         },
     },

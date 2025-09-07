@@ -1,91 +1,95 @@
 import os
+import sys
+
 from celery import Celery
-from celery.schedules import crontab
+from kombu import Exchange, Queue
+from celery.signals import task_prerun, task_postrun, worker_process_init
 
 # 在命令中设置环境变量（pycharm中配置的环境变量只在pycharm中生效）
 app_env = os.environ.get('APP_ENV', 'dev')
-settings_module = f'config.settings.{app_env}'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
+# 根据开发测试生产环境设置settings模块
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'config.settings.{app_env}')
 
-# 注释掉这里的django.setup()，因为在Django启动时会造成循环导入
-# django.setup() 应该只在独立脚本中调用，而不是在Django项目的模块中
-
-# 创建一个 Celery 实例，名字为 'DreamLog'(推荐与 Django 项目同名)
 app = Celery('DreamLog')
 
-# 告诉 Celery 从 Django 的配置文件中加载配置（django.conf.settings中以 CELERY_ 开头的配置项）
-# 导入 Django 的全局配置对象 settings，用于获取当前激活的配置内容（通常是你指定的 DJANGO_SETTINGS_MODULE 指向的模块，比如 config.settings.dev）
+# 从DJango配置文件中加载以 CELERY_ 开头的配置项
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# 显式导入任务模块，避免自动发现时的问题
-app.autodiscover_tasks([
-    'apps.ai_services.tasks',
-    'apps.dream.tasks',
-    'apps.user.tasks'
-])
+# 自动发现所有Django应用中的任务模块  
+app.autodiscover_tasks()
 
-# 配置 Celery Beat 调度器
-app.conf.beat_scheduler = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-# 如果调度器被意外地改回默认的 `celery.beat.PersistentScheduler`，这些定时任务依然可以运行。
-app.conf.beat_schedule = {
-    # 每日凌晨2点清理待删除图片
-    'daily-image-cleanup': {  # 调度条目的名称，Beat 使用这个名字来管理它的调度列表
-        # Celery 在注册时，会根据这个任务函数的 Python 导入路径，自动生成任务名称，规则如下：'app的导入路径.tasks模块名.函数名'
-        'task': 'apps.dream.tasks.image_cleanup_tasks.cleanup_pending_delete_images',  # 由 Celery Beat 发送给 Celery Worker的任务的名称，接被执行的 Celery 任务在任务注册表中的全名
-        'schedule': crontab(hour=2, minute=0),  # 建议时间
-        'options': {
-            'expires': 3600,  # 任务1小时后过期
-        }
-    },
-   
-    # 每日凌晨3点清理僵尸图片
-    'cleanup-orphan-images': {
-        'task': 'apps.dream.tasks.image_cleanup_tasks.cleanup_orphan_images',
-        'schedule': crontab(hour=3, minute=0),  # 建议时间
-        'args': (30,),  # 清理30天前上传但未关联梦境的图片
-        'options': {
-            'expires': 3600,  # 任务1小时后过期
-        }
-    },
-   
-    # 清理过期的JWT令牌（保留原有任务）
-    'cleanup-expired-tokens': {
-        'task': 'apps.dream.tasks.token_tasks.cleanup_expired_tokens',
-        'schedule': crontab(hour=4, minute=0),  # 每天凌晨4:00执行
-        'options': {
-            'expires': 3600,
-        }
-    },
+# ================================队列和交换机配置================================
 
-    # === 知识库相关定时任务 ===
-    # 每日增量更新（凌晨1点）
-    'daily-incremental-update': {
-        'task': 'update_knowledge_base_incremental',
-        'schedule': crontab(hour=6, minute=0),
-        'args': (None, 30),  # 每次最多30个新URL
-        'options': {
-            'expires': 7200,  # 任务2小时后过期
-        }
-    },
-   
-    # 每周全面更新（周日凌晨2点）
-    'weekly-comprehensive-update': {
-        'task': 'build_comprehensive_knowledge_base',
-        'schedule': crontab(hour=7, minute=0, day_of_week='sunday'),
-        'args': (None, 100),  # 每次最多100个URL
-        'options': {
-            'expires': 14400,  # 任务4小时后过期
-        }
-    },
-   
-    # 每月象征知识库更新（每月1号凌晨3点）
-    'monthly-symbol-update': {
-        'task': 'build_symbol_knowledge_base',
-        'schedule': crontab(hour=8, minute=0, day_of_month='1'),
-        'args': (None, 8),  # 使用任务内默认象征，每个8个URL
-        'options': {
-            'expires': 7200,  # 任务2小时后过期
-        }
-    }
+# 定义主交换机
+tasks_exchange = Exchange('tasks', type='topic')
+
+# 定义专用队列
+app.conf.task_queues = (
+    # I/O密集型队列 - 邮件、短信、网络请求
+    Queue('io_queue', tasks_exchange, routing_key='tasks.io.#'),
+    
+    # 推送通知队列 - 消息推送、通知发送 (I/O密集型)
+    Queue('push_queue', tasks_exchange, routing_key='tasks.push.#'),
+    
+    # 社区互动队列 - 评论、点赞、关注 (I/O密集型)  
+    Queue('community_queue', tasks_exchange, routing_key='tasks.community.#'),
+    
+    # 支付处理队列 - 支付回调、账单处理 (高稳定性要求)
+    Queue('payment_queue', tasks_exchange, routing_key='tasks.payment.#'),
+    
+    # CPU密集型队列 - AI分析、图片处理
+    Queue('cpu_queue', tasks_exchange, routing_key='tasks.cpu.#'),
+    
+    # 长耗时任务队列 - 知识库构建、大数据处理
+    Queue('long_tasks_queue', tasks_exchange, routing_key='tasks.long.#'),
+    
+    # 清理维护任务队列 - 定期清理、系统维护
+    Queue('maintenance_queue', tasks_exchange, routing_key='tasks.maintenance.#'),
+    
+    # 默认队列 - 未分类的常规任务
+    Queue('default_queue', tasks_exchange, routing_key='tasks.default.#'),
+)
+
+# 默认队列配置
+app.conf.task_default_queue = 'default_queue'
+app.conf.task_default_exchange = 'tasks'
+app.conf.task_default_exchange_type = 'topic'
+app.conf.task_default_routing_key = 'tasks.default.general'
+
+# 任务路由配置 - 使用通配符模式简化配置
+app.conf.task_routes = {
+    # I/O密集型任务 - 邮件、短信、网络请求
+    'apps.user.tasks.email_tasks.*': {'queue': 'io_queue'},
+    'apps.user.tasks.sms_tasks.*': {'queue': 'io_queue'},
+    'apps.core.tasks.email_tasks.*': {'queue': 'io_queue'},
+    'apps.dream.tasks.image_cleanup_tasks.schedule_image_deletion': {'queue': 'io_queue'},
+    'apps.ai_services.tasks.dream_analysis_tasks.*': {'queue': 'io_queue'},
+    
+    # 推送通知任务 - 消息推送、通知发送
+    # 'apps.*.tasks.*push*': {'queue': 'push_queue'},
+    # 'apps.*.tasks.*notification*': {'queue': 'push_queue'},
+    
+    # # 社区互动任务 - 评论、点赞、关注
+    # 'apps.*.tasks.*comment*': {'queue': 'community_queue'},
+    # 'apps.*.tasks.*like*': {'queue': 'community_queue'},
+    # 'apps.*.tasks.*follow*': {'queue': 'community_queue'},
+    # 'apps.*.tasks.*community*': {'queue': 'community_queue'},
+    
+    # 支付处理任务 - 支付回调、账单处理
+    # 'apps.*.tasks.*payment*': {'queue': 'payment_queue'},
+    # 'apps.*.tasks.*billing*': {'queue': 'payment_queue'},
+    # 'apps.*.tasks.*order*': {'queue': 'payment_queue'},
+    
+    # 长耗时任务 - 知识库构建
+    # 'apps.ai_services.tasks.knowledge_base_tasks.*': {'queue': 'long_tasks_queue'},
+    
+    # 维护清理任务 - 定期清理
+    # 'apps.dream.tasks.image_cleanup_tasks.cleanup_*': {'queue': 'maintenance_queue'},
+    # 'apps.dream.tasks.token_tasks.cleanup_*': {'queue': 'maintenance_queue'},
 }
+
+
+# ================================配置 Celery Beat 调度器================================
+# 使用数据库调度器，定时任务通过Django管理命令注册到数据库
+app.conf.beat_scheduler = 'django_celery_beat.schedulers:DatabaseScheduler'

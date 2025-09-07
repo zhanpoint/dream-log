@@ -4,7 +4,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# @shared_task 或 @app.task 装饰器在模块被加载时运行，会将该任务函数注册到 Celery 实例的任务注册表（registry）中。
 @shared_task(bind=True, max_retries=3)
 def send_verification_email_task(self, email, code, scene='register'):
     """

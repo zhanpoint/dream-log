@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext.jsx';
 import { useI18nContext } from '@/contexts/I18nContext';
+import { ContactModal } from '../ui/contact-modal';
+import { FeedbackModal } from '../ui/feedback-modal';
 
 /**
  * 现代化页脚组件
@@ -10,6 +12,22 @@ import { useI18nContext } from '@/contexts/I18nContext';
 const ModernFooter = () => {
     const { theme } = useTheme();
     const { t } = useI18nContext();
+
+    // 模态框状态
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+
+    // 处理联系链接点击
+    const handleContactClick = (e) => {
+        e.preventDefault();
+        setIsContactModalOpen(true);
+    };
+
+    // 处理反馈建议链接点击
+    const handleFeedbackClick = (e) => {
+        e.preventDefault();
+        setIsFeedbackModalOpen(true);
+    };
 
     const footerLinks = {
         product: {
@@ -24,8 +42,16 @@ const ModernFooter = () => {
         support: {
             title: t('footer.support.title', '帮助支持'),
             links: [
-                { name: t('footer.support.contact', '联系我们'), href: "#contact" },
-                { name: t('footer.support.feedback', '反馈建议'), href: "#feedback" }
+                {
+                    name: t('footer.support.contact', '联系我们'),
+                    href: "#contact",
+                    onClick: handleContactClick
+                },
+                {
+                    name: t('footer.support.feedback', '反馈建议'),
+                    href: "#feedback",
+                    onClick: handleFeedbackClick
+                }
             ]
         },
         legal: {
@@ -104,7 +130,8 @@ const ModernFooter = () => {
                                             <li key={index}>
                                                 <a
                                                     href={link.href}
-                                                    className="text-sm text-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white light:text-gray-700 light:hover:text-gray-900 transition-colors duration-200 block"
+                                                    onClick={link.onClick || undefined}
+                                                    className="text-sm text-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white light:text-gray-700 light:hover:text-gray-900 transition-colors duration-200 block cursor-pointer"
                                                 >
                                                     {link.name}
                                                 </a>
@@ -160,6 +187,18 @@ const ModernFooter = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* 联系我们模态框 */}
+            <ContactModal
+                open={isContactModalOpen}
+                onOpenChange={setIsContactModalOpen}
+            />
+
+            {/* 反馈建议模态框 */}
+            <FeedbackModal
+                open={isFeedbackModalOpen}
+                onOpenChange={setIsFeedbackModalOpen}
+            />
         </footer>
     );
 };

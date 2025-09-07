@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import DreamProgressIndicator from '@/components/ui/dream-progress-indicator';
+import { BorderBeam } from '@/components/magicui/border-beam';
 import { useAuth } from '@/hooks/useAuth';
 import { useI18nContext } from '@/contexts/I18nContext';
 import api from '@/services/api';
@@ -28,8 +28,6 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
     const { t } = useI18nContext();
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisStatus, setAnalysisStatus] = useState('idle');
-    const [progress, setProgress] = useState(0);
-    const [currentMessage, setCurrentMessage] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [error, setError] = useState(null);
     const [taskId, setTaskId] = useState(null);
@@ -135,8 +133,6 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
 
     const handleAnalysisUpdate = (data) => {
         setAnalysisStatus(data.status);
-        setProgress(data.progress || 0);
-        setCurrentMessage(data.data?.message || '');
 
         if (data.status === 'completed' && data.data?.analysis_result) {
             setAnalysisResult(data.data.analysis_result);
@@ -244,11 +240,8 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             connectWebSocket();
 
             setIsAnalyzing(true);
-            setAnalysisStatus('starting');
-            setProgress(0);
-            setCurrentMessage('正在启动AI分析...');
+            setAnalysisStatus('analyzing');
             setError(null);
-            setAnalysisResult(null);
 
             // 发送分析请求 (不再需要websocket_channel_id)
             const response = await api.post('/ai/dream-analysis/start/', {
@@ -271,16 +264,15 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             if (taskId) {
                 await api.post(`/ai/dream-analysis/cancel/${taskId}/`);
             }
-
-            setIsAnalyzing(false);
-            setAnalysisStatus('idle');
-            setProgress(0);
-            setCurrentMessage('');
-            setTaskId(null);
             notification.info(t('dreams:detail.aiAnalysisCancelled', '已取消分析'));
-
         } catch (error) {
             notification.error(t('dreams:detail.aiAnalysisCancelFailed', '取消分析失败'));
+        } finally {
+            // 确保无论成功或失败，都重置UI状态并断开连接
+            disconnectWebSocket();
+            setIsAnalyzing(false);
+            setAnalysisStatus('idle');
+            setTaskId(null);
         }
     };
 
@@ -461,35 +453,60 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
                 </div>
             )}
 
-            {/* {t('dreams:detail.aiAnalysisProgress', 'AI梦境解析进度')} - 简洁版本 */}
+            {/* AI分析进行中 - 梦幻版本 */}
             {isAnalyzing && (
-                <Card className="analysis-progress-card">
-                    <CardContent className="progress-container">
-                        <div className="progress-visual">
-                            <DreamProgressIndicator
-                                progress={progress}
-                                size={140}
-                                className="dream-progress"
-                            >
-                                <div className="progress-center">
-                                    <Brain className="h-6 w-6 text-primary animate-pulse" />
+                <Card className="analysis-progress-card relative overflow-hidden">
+                    {/* 梦幻渐变背景 */}
+                    <div
+                        className="absolute inset-0 opacity-20 dark:opacity-30"
+                        style={{
+                            background: 'linear-gradient(135deg, #1e293b 0%, #581c87 35%, #9f1239 70%, #ec4899 100%)',
+                        }}
+                    ></div>
+
+                    <CardContent className="progress-container relative z-10">
+                        <div className="progress-visual flex items-center justify-center w-48 h-48 mx-auto">
+                            <div className="relative w-full h-full">
+                                {/* 外层能量环 */}
+                                <div className="absolute inset-0 rounded-full border-2 border-indigo-400/30 animate-spin-slow"></div>
+
+                                {/* 中层能量环 - 反向旋转 */}
+                                <div className="absolute inset-4 rounded-full border-2 border-violet-400/40 animate-spin-reverse"></div>
+
+                                {/* 内层光晕环 */}
+                                <div className="absolute inset-8 rounded-full border border-pink-400/50 animate-dream-glow"></div>
+
+                                {/* 飘动粒子 */}
+                                <div className="absolute top-4 left-8 w-2 h-2 bg-indigo-400 rounded-full animate-particle-float opacity-60"></div>
+                                <div className="absolute top-12 right-6 w-1.5 h-1.5 bg-violet-400 rounded-full animate-particle-float opacity-50" style={{ animationDelay: '1s' }}></div>
+                                <div className="absolute bottom-8 left-12 w-1 h-1 bg-pink-400 rounded-full animate-particle-float opacity-70" style={{ animationDelay: '2s' }}></div>
+                                <div className="absolute bottom-12 right-8 w-2 h-2 bg-blue-400 rounded-full animate-particle-float opacity-40" style={{ animationDelay: '1.5s' }}></div>
+
+                                {/* 中心星云图标 */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="relative">
+                                        <Sparkles className="h-12 w-12 text-indigo-400 animate-dream-pulse drop-shadow-lg" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-violet-400 blur-md opacity-50 rounded-full"></div>
+                                    </div>
                                 </div>
-                            </DreamProgressIndicator>
+                            </div>
                         </div>
 
-                        <div className="progress-text-section">
-                            <h3 className="progress-title">
-                                {currentMessage || 'AI正在解读你的梦境...'}
+                        <div className="progress-text-section mt-8">
+                            <h3 className="progress-title text-xl font-medium text-center bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-600 bg-clip-text text-transparent">
+                                梦境正在解锁中 ✨
                             </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-2 opacity-80">
+                                AI 正在穿越您的潜意识，探寻梦的秘密...
+                            </p>
 
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={cancelAnalysis}
-                                className="cancel-button"
+                                className="cancel-button mt-8 mx-auto flex items-center justify-center px-6 py-3 rounded-full text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/90 dark:hover:bg-slate-700/90 transition-all duration-300 shadow-lg backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50"
                             >
-                                <X className="h-4 w-4 mr-1" />
-                                取消分析
+                                <span className="relative z-10">停止解析</span>
                             </Button>
                         </div>
                     </CardContent>
@@ -513,7 +530,7 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
             )}
 
             {/* 分析结果 */}
-            {analysisResult && (
+            {!isAnalyzing && analysisResult && (
                 <div className="analysis-results">
                     <div className="results-header">
                         <h3 className="results-title">
@@ -524,9 +541,12 @@ const DreamAIAnalyzer = ({ dream, onAnalysisComplete }) => {
                             variant="outline"
                             size="sm"
                             onClick={startAnalysis}
+                            className="px-6 py-3 rounded-full text-sm font-medium border-2 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/30 dark:to-violet-950/30 hover:from-indigo-100 hover:to-violet-100 dark:hover:from-indigo-900/50 dark:hover:to-violet-900/50 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 shadow-sm backdrop-blur-sm"
                         >
-                            <Brain className="h-4 w-4 mr-1" />
-                            {t('dreams:detail.reAnalyze', '重新分析')}
+                            <Sparkles className="h-4 w-4 mr-2 text-indigo-500" />
+                            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-medium">
+                                {t('dreams:detail.reAnalyze', '重新解析')}
+                            </span>
                         </Button>
                     </div>
 

@@ -88,9 +88,9 @@ def mark_images_for_deletion(request):
         
         logger.info(f"标记 {updated_images} 张图片为待删除状态")
 
-        # 启动后台任务，在10分钟后执行物理删除
+        # 启动后台任务
         if updated_images > 0:
-            schedule_image_deletion.apply_async(args=[image_urls], countdown=600)
+            schedule_image_deletion.apply_async(args=[image_urls], ignore_result=True)
 
         return Response({
             'message': f'成功标记 {updated_images} 张图片待删除，删除任务已启动。'

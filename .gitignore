@@ -27,6 +27,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+py3.13_venv/
 
 # 构建和分发
 build/
@@ -77,6 +78,7 @@ backend/**/db.sqlite3-journal
 # 虚拟环境
 backend/**/venv/
 backend/**/.venv/
+backend/**/py3.13_venv/
 backend/**/ENV/
 
 # 编辑器和IDE

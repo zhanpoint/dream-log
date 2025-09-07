@@ -23,7 +23,8 @@ def start_dream_analysis_view(request):
     
     请求参数:
         - dream_data: 梦境数据字典（必需）
-        - websocket_channel_id: WebSocket频道ID（必需）
+    说明:
+        - WebSocket 房间组 ID 由后端依据用户 ID 自动生成，无需前端传入
     """
     try:
         data = request.data

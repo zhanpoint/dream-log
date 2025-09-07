@@ -6,9 +6,8 @@ import logging
 import time
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from datetime import datetime
 
-from config.celery_app import app
+from celery import shared_task
 from ..knowledge_base.manager import get_knowledge_base_manager
 from ..prompts.knowledge_base_search_prompts import COMMON_DREAM_SYMBOLS
 from ..knowledge_base.utils import convert_category_names_to_enums
@@ -17,7 +16,7 @@ from ..knowledge_base.utils import convert_category_names_to_enums
 logger = logging.getLogger(__name__)
 
 
-@app.task(bind=True, name="build_comprehensive_knowledge_base")
+@shared_task(bind=True)
 def build_comprehensive_knowledge_base_task(self, 
                                           categories: Optional[List[str]] = None,
                                           max_urls: int = 100) -> Dict[str, Any]:
@@ -45,7 +44,7 @@ def build_comprehensive_knowledge_base_task(self,
         # 添加任务信息
         result.update({
             "task_id": self.request.id,
-            "task_name": "build_comprehensive_knowledge_base",
+            "task_name": self.name,
             "completed_at": datetime.now().isoformat()
         })
         
@@ -70,13 +69,13 @@ def build_comprehensive_knowledge_base_task(self,
             "success": False,
             "error": str(e),
             "task_id": self.request.id,
-            "task_name": "build_comprehensive_knowledge_base",
+            "task_name": self.name,
             "completed_at": datetime.now().isoformat(),
             "retries_exhausted": True
         }
 
 
-@app.task(bind=True, name="update_knowledge_base_incremental")
+@shared_task(bind=True)
 def update_knowledge_base_incremental_task(self, 
                                          categories: Optional[List[str]] = None,
                                          max_new_urls: int = 20) -> Dict[str, Any]:
@@ -104,7 +103,7 @@ def update_knowledge_base_incremental_task(self,
         # 添加任务信息
         result.update({
             "task_id": self.request.id,
-            "task_name": "update_knowledge_base_incremental",
+            "task_name": self.name,
             "completed_at": datetime.now().isoformat()
         })
         
@@ -129,13 +128,13 @@ def update_knowledge_base_incremental_task(self,
             "success": False,
             "error": str(e),
             "task_id": self.request.id,
-            "task_name": "update_knowledge_base_incremental",
+            "task_name": self.name,
             "completed_at": datetime.now().isoformat(),
             "retries_exhausted": True
         }
 
 
-@app.task(bind=True, name="build_symbol_knowledge_base")
+@shared_task(bind=True)
 def build_symbol_knowledge_base_task(self, symbols: List[str] = None, max_urls_per_symbol: int = 10):
     """
     为特定梦境象征构建知识库 - V2.0 优化版
@@ -166,7 +165,7 @@ def build_symbol_knowledge_base_task(self, symbols: List[str] = None, max_urls_p
         final_result = {
             "success": results.get("success", False),
             "task_id": task_id,
-            "task_name": "build_symbol_knowledge_base",
+            "task_name": self.name,
             "symbols_processed": symbols,
             "results": results,
             "processing_time_seconds": round(time.time() - start_time, 2),
@@ -182,7 +181,7 @@ def build_symbol_knowledge_base_task(self, symbols: List[str] = None, max_urls_p
         return {
             "success": False,
             "task_id": task_id,
-            "task_name": "build_symbol_knowledge_base",
+            "task_name": self.name,
             "symbols_processed": symbols,
             "error": str(e),
             "processing_time_seconds": round(time.time() - start_time, 2),

@@ -5,7 +5,15 @@ Django base settings for backend project.
 
 from pathlib import Path
 import os
-from kombu import Queue, Exchange
+from ..env_config import (
+    REDIS_CONFIG, RABBITMQ_CONFIG,
+    DJANGO_SECRET_KEY as ENV_DJANGO_SECRET_KEY,
+    ALLOWED_HOSTS as ENV_ALLOWED_HOSTS,
+    DATABASE as ENV_DATABASE,
+    CACHES_CONFIG as ENV_CACHES_CONFIG,
+    JWT_CONFIG as ENV_JWT_CONFIG,
+    EMAIL_CONFIG as ENV_EMAIL_CONFIG,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -120,27 +128,95 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_collected')
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Celery序列化设置
+# ============================= 通用基础配置（跨环境共享） =============================
+
+# 安全与主机
+SECRET_KEY = ENV_DJANGO_SECRET_KEY
+ALLOWED_HOSTS = ENV_ALLOWED_HOSTS
+
+# 数据库与缓存
+DATABASES = ENV_DATABASE
+CACHES = ENV_CACHES_CONFIG
+
+# JWT 设置
+SIMPLE_JWT = ENV_JWT_CONFIG
+
+# Email 配置
+EMAIL_BACKEND = ENV_EMAIL_CONFIG['backend']
+EMAIL_HOST = ENV_EMAIL_CONFIG['host']
+EMAIL_PORT = ENV_EMAIL_CONFIG['port']
+EMAIL_USE_SSL = ENV_EMAIL_CONFIG['use_ssl']
+EMAIL_USE_TLS = ENV_EMAIL_CONFIG['use_tls']
+EMAIL_HOST_USER = ENV_EMAIL_CONFIG['username']
+EMAIL_HOST_PASSWORD = ENV_EMAIL_CONFIG['password']
+DEFAULT_FROM_EMAIL = ENV_EMAIL_CONFIG['default_from_email'] or EMAIL_HOST_USER
+
+# CORS 公共配置（按环境仅覆盖 CORS_ALLOWED_ORIGINS）
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'authorization',
+    'content-type',
+]
+CORS_EXPOSE_HEADERS = [
+    'Content-Type',
+    'Authorization',
+]
+
+# Celery 连接与序列化设置（统一从这里加载，celery_app 使用命名空间方式接入）
+CELERY_BROKER_URL = (
+    f"amqp://{RABBITMQ_CONFIG['user']}:{RABBITMQ_CONFIG['password']}@"
+    f"{RABBITMQ_CONFIG['host']}:{RABBITMQ_CONFIG['port']}/{RABBITMQ_CONFIG['vhost']}"
+)
+CELERY_RESULT_BACKEND = (
+    f"redis://:{REDIS_CONFIG['password']}@{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}/1"
+)
+CELERY_REDIS_MAX_CONNECTIONS = 10
+
+# Celery 序列化与时区
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
 
-# Redis结果过期时间(秒)
-CELERY_TASK_RESULT_EXPIRES = 3600  # 1小时
+# 结果过期时间（秒）
+CELERY_RESULT_EXPIRES = 3600  # 1小时
 
 # 任务执行设置
-CELERY_TASK_ACKS_LATE = True
-CELERY_TASK_REJECT_ON_WORKER_LOST = True
-CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True  # 确保"所有worker崩溃时"任务不会丢失
+CELERY_TASK_REJECT_ON_WORKER_LOST = True  # 确保"单一worker崩溃时"任务不会丢失
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # 确保公平分发以确保能者多劳，提高了整体效率。
 
-# Celery 队列配置
-CELERY_TASK_DEFAULT_QUEUE = 'default'
-CELERY_TASK_DEFAULT_EXCHANGE = 'default'
-CELERY_TASK_DEFAULT_ROUTING_KEY = 'default'
+# 任务超时和重试设置
+## 不使用 Celery 任务软/硬超时，避免 Windows 下信号问题
+CELERY_TASK_SOFT_TIME_LIMIT = None  # 禁用软超时
+CELERY_TASK_TIME_LIMIT = None  # 禁用硬超时
+CELERY_TASK_MAX_RETRIES = 3  # 最大重试次数
+CELERY_TASK_DEFAULT_RETRY_DELAY = 60  # 重试延迟60秒
 
-# 定义队列
-CELERY_TASK_QUEUES = (
-    Queue('default', Exchange('default'), routing_key='default'),
-)
+# Worker性能优化
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False  # 不劫持根日志记录器
+CELERY_WORKER_LOG_COLOR = False  # 生产环境关闭彩色日志
+CELERY_WORKER_SEND_TASK_EVENTS = True  # 启用任务事件监控
+
+# Celery 队列配置已在 celery_app.py 中详细定义
+
+# Channels（WebSocket）跨环境共享配置（Redis DB 2）
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [
+                f"redis://:{REDIS_CONFIG['password']}@{REDIS_CONFIG['host']}:{REDIS_CONFIG['port']}/2"
+            ],
+        },
+    },
+}

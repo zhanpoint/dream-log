@@ -60,26 +60,8 @@ class EmailService:
         except Exception as e:
             # 记录详细错误
             logging.error(f"存储验证码到Redis出错: {str(e)}")
-            # 如果Redis不可用，临时使用内存字典存储
-            if not hasattr(EmailService, '_code_cache'):
-                EmailService._code_cache = {}
-
-            import threading
-            import time
-
-            # 备用存储也使用哈希值
-            EmailService._code_cache[cache_key] = EmailService._hash_code(code)
-
-            # 创建线程在指定时间后清除验证码
-            def cleanup():
-                time.sleep(expires)
-                if cache_key in EmailService._code_cache:
-                    del EmailService._code_cache[cache_key]
-
-            # 启动清理线程
-            threading.Thread(target=cleanup, daemon=True).start()
-
-            return True
+            # 仅依赖 Redis 的 TTL 管理，不做进程内回退与清理
+            return False
 
     def check_rate_limit(self, email, limit_seconds=60):
         """
@@ -192,7 +174,8 @@ class EmailService:
 
             # 3. 异步发送邮件 - 使用延迟导入避免循环依赖，避免模块加载时的死锁
             from apps.user.tasks.email_tasks import send_verification_email_task
-            send_verification_email_task.delay(email, code, scene)
+            # 发送验证码邮件：短任务、无需返回值，禁用结果存储
+            send_verification_email_task.apply_async(args=(email, code, scene), ignore_result=True)
             logger.info(f"成功提交邮箱验证码发送任务: {email}, 场景: {scene}")
 
             return True
@@ -224,16 +207,10 @@ class EmailService:
                 logging.warning(f"邮箱验证码验证尝试次数过多，邮箱: {email}")
                 # 删除验证码，防止继续尝试
                 cache.delete(cache_key)
-                if hasattr(EmailService, '_code_cache') and cache_key in EmailService._code_cache:
-                    del EmailService._code_cache[cache_key]
                 return False
             
             # 尝试从Redis获取验证码
             stored_code = cache.get(cache_key)
-
-            # 如果Redis中没有，尝试从内存缓存获取
-            if stored_code is None and hasattr(EmailService, '_code_cache'):
-                stored_code = EmailService._code_cache.get(cache_key)
 
             # 验证码比较
             if stored_code is not None:
@@ -243,8 +220,6 @@ class EmailService:
                     # 验证成功后删除验证码，防止重复使用
                     cache.delete(cache_key)
                     cache.delete(attempts_key)  # 验证成功，删除尝试次数
-                    if hasattr(EmailService, '_code_cache') and cache_key in EmailService._code_cache:
-                        del EmailService._code_cache[cache_key]
                     logging.info(f"邮箱验证码验证成功: {email}")
                     return True
                 else:

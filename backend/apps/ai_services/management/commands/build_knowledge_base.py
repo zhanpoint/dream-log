@@ -88,13 +88,13 @@ class Command(BaseCommand):
                 self.stdout.write("\n触发[全面]知识库构建任务...")
                 categories = options.get('categories')
                 max_urls = options['max_urls']
-                build_comprehensive_knowledge_base_task.delay(categories, max_urls)
+                build_comprehensive_knowledge_base_task.apply_async(args=(categories, max_urls), ignore_result=True)
 
             elif mode == 'incremental':
                 self.stdout.write("\n触发[增量]知识库更新任务...")
                 categories = options.get('categories')
                 max_urls = min(options['max_urls'], 30)  # 增量更新限制URL数量
-                update_knowledge_base_incremental_task.delay(categories, max_urls)
+                update_knowledge_base_incremental_task.apply_async(args=(categories, max_urls), ignore_result=True)
 
             elif mode == 'symbols':
                 self.stdout.write("\n触发[象征]知识库构建任务...")
@@ -103,7 +103,7 @@ class Command(BaseCommand):
                     symbols = COMMON_DREAM_SYMBOLS[:15]
                 
                 max_urls_symbol = options['max_urls_symbol']
-                build_symbol_knowledge_base_task.delay(symbols, max_urls_symbol)
+                build_symbol_knowledge_base_task.apply_async(args=(symbols, max_urls_symbol), ignore_result=True)
 
             else:
                 raise CommandError(f"未知模式: {mode}")

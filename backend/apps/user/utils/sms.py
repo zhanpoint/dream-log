@@ -68,26 +68,8 @@ class SMSService:
             return stored_code == hashed_code
         except Exception as e:
             logging.error(f"存储验证码到Redis出错: {str(e)}")
-            if not hasattr(SMSService, '_code_cache'):
-                # 如果_code_cache不存在，则创建一个空字典，充当“临时 Redis”，仅在 Redis 异常时使用
-                SMSService._code_cache = {}
-
-            import threading
-            import time
-
-            # 将验证码的哈希值保存到备用内存缓存 _code_cache 中
-            SMSService._code_cache[cache_key] = SMSService._hash_code(code)
-
-            # 定义一个清理函数：在指定时间（验证码的过期时间）后，删除内存中的验证码缓存。
-            def cleanup():
-                time.sleep(expires)
-                if cache_key in SMSService._code_cache:
-                    del SMSService._code_cache[cache_key]
-
-            # 启动一个后台线程，异步执行 cleanup() 函数，确保验证码会在过期时间后自动清除，避免内存泄漏。
-            threading.Thread(target=cleanup, daemon=True).start()
-
-            return True
+            # 仅依赖 Redis 的 TTL 管理，不做进程内回退与清理
+            return False
 
     def get_sts_token(self):
         """
@@ -195,19 +177,9 @@ class SMSService:
         template_code = template_map.get(scene, template_map['register'])
 
         try:
-            sms_service = SMSService()
-            template_param = json.dumps({'code': verification_code})
-
-            sent = sms_service.send_sms(
-                phone_numbers=phone,
-                template_code=template_code,
-                template_param=template_param
-            )
-
-            if sent.get('Code') != 'OK':
-                logging.error(f"短信发送失败，错误: {sent}")
-                return False
-            
+            # 改为异步任务发送，避免阻塞请求线程
+            from apps.user.tasks.sms_tasks import send_verification_sms_task
+            send_verification_sms_task.apply_async(args=(phone, verification_code, template_code), ignore_result=True)
             return True
 
         except Exception as e:
@@ -229,14 +201,9 @@ class SMSService:
                 logging.warning(f"短信验证码验证尝试次数过多，手机号: {phone}")
                 # 删除验证码，防止继续尝试
                 cache.delete(cache_key)
-                if hasattr(SMSService, '_code_cache') and cache_key in SMSService._code_cache:
-                    del SMSService._code_cache[cache_key]
                 return False
             
             stored_code = cache.get(cache_key)
-
-            if stored_code is None and hasattr(SMSService, '_code_cache'):
-                stored_code = SMSService._code_cache.get(cache_key)
 
             if stored_code is not None:
                 # 对用户输入的验证码进行哈希后比较
@@ -244,8 +211,6 @@ class SMSService:
                 if stored_code == hashed_input:
                     cache.delete(cache_key)
                     cache.delete(attempts_key)  # 验证成功，删除尝试次数
-                    if hasattr(SMSService, '_code_cache') and cache_key in SMSService._code_cache:
-                        del SMSService._code_cache[cache_key]
                     return True
                 else:
                     # 验证失败，增加尝试次数

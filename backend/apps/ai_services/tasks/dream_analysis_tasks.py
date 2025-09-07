@@ -1,16 +1,14 @@
 """
-梦境分析Celery异步任务
-委托给Service层处理核心业务逻辑，任务层只负责异步执行和状态管理
+梦境分析 Celery 异步任务 - 纯异步实现
+委托 Service 层处理核心业务逻辑；任务层负责状态推进与 WebSocket 通知。
+使用 asyncio.run() 在 prefork worker 中运行纯异步代码，彻底解决 gevent/asyncio 冲突。
 """
 import logging
 import time
 import json
-import threading
+import asyncio
 from typing import Dict, Any
 from celery import shared_task
-from celery.exceptions import SoftTimeLimitExceeded
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -24,175 +22,106 @@ class DreamAnalysisStatus:
     ERROR = "error"
 
 
-class ProgressUpdater:
-    """
-    线程安全的进度更新管理器
-    负责在独立线程中发送平滑的进度更新
-    """
-    
-    # 诗意化进度消息
-    PROGRESS_MESSAGES = [
-        "AI正在解读你的梦境...",
-        "梦境分析进行中...",
-        "洞察正在浮现...",
-        "分析即将完成..."
-    ]
-    
-    def __init__(self, send_update_func):
-        """
-        初始化进度更新器
-        
-        Args:
-            send_update_func: 发送更新的函数
-        """
-        # 发送更新的函数
-        self.send_update = send_update_func
-        # 用于停止线程的Event对象
-        self.stop_event = threading.Event()
-        # 进度更新线程
-        self.progress_thread = None
-    
-    def start(self):
-        """启动进度更新线程"""
-        # target指定新线程启动后要执行的函数，daemon=True表示新线程是守护线程，当主线程结束时，不会等待它执行完，直接退出
-        self.progress_thread = threading.Thread(target=self._update_progress, daemon=True)
-        # 启动线程
-        self.progress_thread.start()
-    
-    def stop(self):
-        """停止进度更新线程"""
-        # set() 会把事件标志设为 True，在后台线程里，_update_progress 会定期检查 self.stop_event.is_set()，如果为 True 就主动退出循环。
-        self.stop_event.set()
-        # 最多等待1秒，如果线程还没结束，就继续往下执行（不会无限阻塞主线程）
-        if self.progress_thread:
-            self.progress_thread.join(timeout=1.0)
-    
-    def _update_progress(self):
-        """平滑进度更新的线程函数"""
-        # 为4条消息设计的进度节点：25%, 50%, 75%, 90%
-        progress_points = [25, 50, 75, 90]
-        
-        for i, message in enumerate(self.PROGRESS_MESSAGES):
-            # 立即返回、非阻塞的检查。防止在 stop() 被调用后，还发送一次多余的进度更新。
-            if self.stop_event.is_set():
-                break
-
-            # 使用预定义的进度点
-            progress = progress_points[i]
-            self.send_update(DreamAnalysisStatus.ANALYZING, {'message': message}, progress)
-            
-            # 调整等待时间：4条消息，每条间隔2.5秒，总共约10秒
-            if self.stop_event.wait(timeout=2.5):
-                break
-
-
-@shared_task(bind=True, soft_time_limit=60, time_limit=120, max_retries=2, acks_late=True, reject_on_worker_lost=True)
+@shared_task(bind=True, max_retries=2)
 def analyze_dream_task(self, dream_data: Dict[str, Any], websocket_channel_id: str) -> Dict[str, Any]:
     """
-    梦境分析异步任务
-    使用独立线程进行平滑进度更新，同时并行执行AI分析
+    梦境分析异步任务 - 纯异步实现
+    - 使用 asyncio.run() 在 prefork worker 中运行纯异步代码
+    - 彻底解决 gevent/asyncio 事件循环冲突
     
     Args:
-        dream_data: 梦境数据（已在前端验证和准备）
-        websocket_channel_id: WebSocket频道ID
-        
-    Returns:
-        分析结果
-    """
-    task_id = self.request.id
-    channel_layer = get_channel_layer()
+        dream_data: 梦境数据（前端已校验与裁剪）
+        websocket_channel_id: WebSocket 房间组 ID（用户专属）
     
-    def send_update(status: str, data: Any = None, progress: int = 0):
-        """发送WebSocket更新"""
+    Returns:
+        任务执行结果
+    """
+    # 在 prefork worker 中使用 asyncio.run() 执行异步任务
+    return asyncio.run(_async_analyze_dream_task(self, dream_data, websocket_channel_id))
+
+
+async def _async_analyze_dream_task(task_self, dream_data: Dict[str, Any], websocket_channel_id: str) -> Dict[str, Any]:
+    """
+    内部异步分析任务实现
+    """
+    task_id = task_self.request.id
+
+    async def send_final_result(status: str, data: Any):
+        """发送最终分析结果"""
         try:
-            update_message = {
+            result_message = {
                 'type': 'dream_analysis_update',
                 'task_id': task_id,
                 'status': status,
-                'progress': progress,
                 'data': data,
                 'timestamp': time.time()
             }
-            
-            async_to_sync(channel_layer.group_send)(
-                websocket_channel_id,
-                update_message
-            )
-            
+
+            await _send_websocket_update_async(websocket_channel_id, result_message)
+
         except Exception as e:
-            logger.error(f"Failed to send WebSocket update: {e}")
-    
+            logger.error(f"发送WebSocket结果失败: {e}")
+
     try:
-        # 动态导入Service层避免循环引用
+        # 动态导入 Service 层避免循环引用
         from ..services.dream_analysis_service import get_dream_analysis_service
         service = get_dream_analysis_service()
-        
-        # 启动进度更新器
-        progress_updater = ProgressUpdater(send_update)
-        progress_updater.start()
-        
-        # 执行实际分析（并行进行）
-        analysis_result = service.perform_analysis(dream_data)
-        
-        # 停止进度更新器
-        progress_updater.stop()
-        
-        if analysis_result['success']:
-            # 分析成功，保存到数据库
-            _save_analysis_to_database(dream_data, analysis_result['analysis_result'])
-            
-            result_data = {
-                'analysis_result': analysis_result['analysis_result'],
-                'used_rag': analysis_result.get('used_rag', False),
-                'processing_time': time.time()
-            }
-            
-            # 确保进度到达100%
-            send_update(DreamAnalysisStatus.COMPLETED, result_data, progress=100)
-            
-            return {
-                'success': True,
-                'task_id': task_id,
-                'result': result_data
-            }
-        else:
-            # 分析失败
-            error_msg = analysis_result.get('error', '分析执行失败')
-            send_update(DreamAnalysisStatus.ERROR, {'error': error_msg}, progress=100)
+        await service._ensure_chain_initialized()
+
+        # 执行异步核心分析逻辑
+        try:
+            analysis_result = await service.perform_analysis(dream_data)
+
+            if analysis_result and analysis_result['success']:
+                # 分析成功，保存到数据库
+                await _save_analysis_to_database_async(dream_data, analysis_result['analysis_result'])
+
+                # 发送最终成功结果
+                result_data = {
+                    'analysis_result': analysis_result['analysis_result'],
+                    'used_rag': analysis_result.get('used_rag', False),
+                    'processing_time': time.time()
+                }
+
+                await send_final_result(DreamAnalysisStatus.COMPLETED, result_data)
+
+                return {
+                    'success': True,
+                    'task_id': task_id,
+                    'result': result_data
+                }
+            else:
+                # 分析失败
+                error_msg = analysis_result.get('error', '分析执行失败') if analysis_result else "分析未返回结果"
+                await send_final_result(DreamAnalysisStatus.ERROR, {'error': error_msg})
+
+                return {
+                    'success': False,
+                    'error': error_msg,
+                    'task_id': task_id
+                }
+
+        except Exception as run_err:
+            logger.error(f"梦境分析失败: {run_err}", exc_info=True)
+            error_msg = f"分析执行时发生内部错误: {run_err}"
+            await send_final_result(DreamAnalysisStatus.ERROR, {'error': error_msg})
             
             return {
                 'success': False,
                 'error': error_msg,
                 'task_id': task_id
             }
-    
-    except SoftTimeLimitExceeded:
-        # 确保进度更新器安全停止
-        if 'progress_updater' in locals():
-            progress_updater.stop()
-        
-        error_msg = "分析任务超时，请稍后重试"
-        send_update(DreamAnalysisStatus.ERROR, {'error': error_msg}, progress=100)
-        
-        return {
-            'success': False,
-            'error': error_msg,
-            'task_id': task_id
-        }
-    
+
     except Exception as e:
-        # 确保进度更新器安全停止
-        if 'progress_updater' in locals():
-            progress_updater.stop()
-        
-        error_msg = f"分析过程中发生错误: {str(e)}"
-        send_update(DreamAnalysisStatus.ERROR, {'error': error_msg}, progress=100)
-        
+        # 统一错误处理
+        logger.error(f"梦境分析任务顶层错误: {e}", exc_info=True)
+        error_msg = f"分析过程中发生严重错误: {str(e)}"
+        await send_final_result(DreamAnalysisStatus.ERROR, {'error': error_msg})
+
         # 重试逻辑
-        if self.request.retries < self.max_retries:
-            logger.info(f"Retrying dream analysis task {task_id} (attempt {self.request.retries + 1})")
-            raise self.retry(countdown=60, exc=e)
-        
+        if task_self.request.retries < task_self.max_retries:
+            raise task_self.retry(countdown=60, exc=e)
+
         return {
             'success': False,
             'error': error_msg,
@@ -201,35 +130,60 @@ def analyze_dream_task(self, dream_data: Dict[str, Any], websocket_channel_id: s
         }
 
 
-@transaction.atomic
-def _save_analysis_to_database(dream_data: Dict[str, Any], analysis_result: Dict[str, Any]) -> None:
+async def _send_websocket_update_async(websocket_channel_id: str, message: Dict[str, Any]) -> None:
     """
-    将AI分析结果保存到数据库
+    异步发送WebSocket更新
+    
+    Args:
+        websocket_channel_id: WebSocket频道ID
+        message: 消息内容
+    """
+    try:
+        from channels.layers import get_channel_layer
+        
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            logger.info(f"发送WebSocket消息到 {websocket_channel_id}: {message}")
+            await channel_layer.group_send(
+                websocket_channel_id,
+                {
+                    'type': 'dream_analysis_update',
+                    'message': message
+                }
+            )
+            logger.info("WebSocket消息发送成功")
+        else:
+            logger.error("Channel layer未配置")
+    except Exception as e:
+        logger.error(f"异步WebSocket消息发送失败: {e}", exc_info=True)
+
+
+async def _save_analysis_to_database_async(dream_data: Dict[str, Any], analysis_result: Dict[str, Any]) -> None:
+    """
+    异步将AI分析结果保存到数据库
     
     Args:
         dream_data: 梦境数据，必须包含id字段
         analysis_result: AI分析结果
     """
     try:
-        # 动态导入避免循环引用
-        from apps.dream.models import Dream
-        
-        dream_id = dream_data.get('id')
-        if not dream_id:
-            logger.warning(f"Dream ID not found in dream_data. Keys: {list(dream_data.keys())}")
-            return
-            
-        dream = Dream.objects.get(id=dream_id)
-        dream.ai_analysis = json.dumps(analysis_result, ensure_ascii=False)
-        dream.save(update_fields=['ai_analysis'])
-        
-        logger.info(f"Successfully saved AI analysis result to dream {dream_id}")
-        
-    except ObjectDoesNotExist:
-        logger.error(f"Dream with ID {dream_id} does not exist")
+        from asgiref.sync import sync_to_async
+        await sync_to_async(_save_analysis_to_database_sync)(dream_data, analysis_result)
     except Exception as e:
-        logger.error(f"Failed to save AI analysis result: {e}")
+        logger.error(f"保存分析结果失败: {e}")
         raise
 
 
-# 删除了手动触发的Celery任务，现在只使用实时分析
+@transaction.atomic
+def _save_analysis_to_database_sync(dream_data: Dict[str, Any], analysis_result: Dict[str, Any]) -> None:
+    """将AI分析结果保存到数据库"""
+    from apps.dream.models import Dream
+    
+    dream_id = dream_data.get('id')
+    if not dream_id:
+        return
+        
+    dream = Dream.objects.get(id=dream_id)
+    dream.ai_analysis = json.dumps(analysis_result, ensure_ascii=False)
+    dream.save(update_fields=['ai_analysis'])
+

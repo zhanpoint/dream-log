@@ -98,8 +98,9 @@ class DreamAnalysisConsumer(AsyncWebsocketConsumer):
     async def dream_analysis_update(self, event):
         """处理梦境分析更新消息（由Celery任务调用）"""
         try:
-            # event就是完整的消息，直接发送
-            await self.send(text_data=json.dumps(event))
+            # 发送嵌套在message字段中的实际消息内容
+            message = event.get('message', {})
+            await self.send(text_data=json.dumps(message))
             
         except Exception as e:
             logger.error(f"Error sending dream analysis update: {e}", exc_info=True)

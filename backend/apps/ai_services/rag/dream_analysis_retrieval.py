@@ -1,7 +1,8 @@
 """
-RAG检索器
-实现查询扩展、向量检索和重排序的完整RAG流程
+RAG检索器 - 异步实现
+实现查询扩展、向量检索和重排序的完整RAG流程，采用asyncio架构。
 """
+import asyncio
 import logging
 from typing import List, Optional
 
@@ -44,28 +45,21 @@ class DreamAnalysisRAGRetriever:
     
     def _initialize_reranker(self) -> Optional[VoyageAIRerank]:
         """初始化VoyageAI重排序器"""
+        if not VOYAGE_API_KEY:
+            return None
+            
         try:
-            if not VOYAGE_API_KEY:
-                logger.warning("VOYAGE_API_KEY not found, reranking will be disabled")
-                return None
-                
-            reranker = VoyageAIRerank(
+            return VoyageAIRerank(
                 voyageai_api_key=VOYAGE_API_KEY,
                 model='rerank-2.5-lite',
                 top_k=self.top_n_final
             )
-            return reranker
-            
-        except ImportError:
-            logger.warning("VoyageAI reranker not available, falling back to score-based ranking")
-            return None
-        except Exception as e:
-            logger.error(f"Failed to initialize reranker: {e}", exc_info=True)
+        except Exception:
             return None
     
-    def retrieve_documents(self, queries: List[str]) -> List[Document]:
+    async def aretrieve_documents(self, queries: List[str]) -> List[Document]:
         """
-        使用多个查询进行并行向量检索
+        异步使用多个查询进行并行向量检索
         
         Args:
             queries: 查询列表
@@ -73,79 +67,47 @@ class DreamAnalysisRAGRetriever:
         Returns:
             检索到的文档列表
         """
-        import concurrent.futures
-        
         if not queries:
             return []
             
         all_documents = []
         seen_content = set()
         
-        def search_single_query(query: str) -> List[Document]:
-            """单个查询的搜索函数"""
+        async def search_single_query(query: str) -> List[Document]:
+            """异步单个查询的搜索函数"""
             try:
-                docs = self.vectorstore.search_similar(
+                from asgiref.sync import sync_to_async
+                search_func = sync_to_async(self.vectorstore.search_similar)
+                return await search_func(
                     query=query,
-                    k=self.top_k_initial // len(queries),  # 平均分配每个查询的检索数量
+                    k=self.top_k_initial // len(queries),
                     score_threshold=self.score_threshold
                 )
-                return docs
-            except Exception as e:
-                logger.error(f"Error searching for query '{query}': {e}")
+            except Exception:
                 return []
         
-        try:
-            # 使用线程池并行执行所有查询
-            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(queries), 3)) as executor:
-                # 提交所有查询任务
-                future_to_query = {
-                    executor.submit(search_single_query, query): query 
-                    for query in queries
-                }
-                
-                # 按完成顺序收集检索结果
-                for future in concurrent.futures.as_completed(future_to_query):
-                    try:
-                        docs = future.result(timeout=10)  # 10秒超时
-                        
-                        for doc in docs:
-                            content_hash = hash(doc.page_content)
-                            if content_hash not in seen_content:
-                                seen_content.add(content_hash)
-                                all_documents.append(doc)
-                                    
-                    except concurrent.futures.TimeoutError:
-                        logger.warning(f"Query  timed out")
-                    except Exception as e:
-                        logger.error(f"Query failed: {e}")
-            
-            return all_documents
-            
-        except Exception as e:
-            logger.error(f"Error in parallel document retrieval: {e}", exc_info=True)
-            return []
+        query_tasks = [search_single_query(query) for query in queries]
+        results = await asyncio.gather(*query_tasks, return_exceptions=True)
+        
+        for result in results:
+            if not isinstance(result, Exception):
+                for doc in result:
+                    content_hash = hash(doc.page_content)
+                    if content_hash not in seen_content:
+                        seen_content.add(content_hash)
+                        all_documents.append(doc)
+        
+        return all_documents
     
     def rerank_documents(self, documents: List[Document], query: str) -> List[Document]:
-        """
-        使用重排序器优化检索结果
-        
-        Args:
-            documents: 待重排序的文档
-            query: 原始查询
-            
-        Returns:
-            重排序后的文档
-        """
-        if not documents:
+        """使用重排序器优化检索结果"""
+        if not documents or not self.reranker:
             return documents
             
         try:
-            # 使用VoyageAI重排序器
-            reranked_docs = self.reranker.compress_documents(documents=documents, query=query)
-            return reranked_docs
-        except Exception as e:
-            logger.error(f"Error in document reranking: {e}", exc_info=True)
-            return []
+            return self.reranker.compress_documents(documents=documents, query=query)
+        except Exception:
+            return documents
 
     
     def format_retrieved_knowledge(self, documents: List[Document]) -> str:
@@ -180,6 +142,5 @@ def get_dream_rag_retriever(**kwargs) -> DreamAnalysisRAGRetriever:
     """获取梦境分析RAG检索器单例"""
     global _dream_rag_retriever
     if _dream_rag_retriever is None:
-        # 只有在第一次调用时，才会创建这个昂贵的实例
         _dream_rag_retriever = DreamAnalysisRAGRetriever(**kwargs)
     return _dream_rag_retriever

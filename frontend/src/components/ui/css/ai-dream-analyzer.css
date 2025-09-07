@@ -350,6 +350,120 @@
     }
 }
 
+/* 梦境动画关键帧 */
+@keyframes dream-pulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+        filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8));
+    }
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+        opacity: 0.6;
+    }
+
+    to {
+        transform: rotate(360deg);
+        opacity: 0.6;
+    }
+}
+
+@keyframes spin-reverse {
+    from {
+        transform: rotate(0deg);
+        opacity: 0.7;
+    }
+
+    to {
+        transform: rotate(-360deg);
+        opacity: 0.7;
+    }
+}
+
+@keyframes particle-float {
+
+    0%,
+    100% {
+        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.4;
+    }
+
+    33% {
+        transform: translateY(-25px) translateX(15px) scale(1.2);
+        opacity: 0.8;
+    }
+
+    66% {
+        transform: translateY(-12px) translateX(-18px) scale(0.9);
+        opacity: 0.6;
+    }
+}
+
+@keyframes dream-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(139, 92, 246, 0.7), 0 0 50px rgba(139, 92, 246, 0.4);
+        border-color: rgba(139, 92, 246, 0.8);
+    }
+}
+
+/* 梦境动画类 */
+.animate-dream-pulse {
+    animation: dream-pulse 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 4s linear infinite;
+}
+
+.animate-spin-reverse {
+    animation: spin-reverse 6s linear infinite;
+}
+
+.animate-particle-float {
+    animation: particle-float 5s ease-in-out infinite;
+}
+
+.animate-dream-glow {
+    animation: dream-glow 2.5s ease-in-out infinite;
+}
+
+/* 确保动画在不同浏览器中都能正常工作 */
+.animate-spin-slow,
+.animate-spin-reverse {
+    transform-origin: center;
+    will-change: transform;
+}
+
+.animate-particle-float {
+    will-change: transform, opacity;
+}
+
+.animate-dream-pulse {
+    will-change: transform, opacity, filter;
+}
+
+.animate-dream-glow {
+    will-change: box-shadow, border-color;
+}
+
 /* 梦境故事线内容 */
 .dream-narrative-content h4,
 .symbol-deep-dive-content h4,

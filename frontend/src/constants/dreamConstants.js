@@ -1,3 +1,5 @@
+import { Shield, Globe, Users } from 'lucide-react';
+
 // 梦境分类配置
 export const DREAM_CATEGORIES = [
     { value: 'normal', label: '普通梦境', color: '#6366f1' },
@@ -79,9 +81,9 @@ export const PRIVACY_OPTIONS = [
 ];
 
 export const getPrivacyConfig = (t) => ({
-    private: { label: t('dreams:privacy.private', '私人'), icon: 'Shield', color: '#6b7280' },
-    public: { label: t('dreams:privacy.public', '公开'), icon: 'Globe', color: '#10b981' },
-    friends: { label: t('dreams:privacy.friends', '好友可见'), icon: 'Users', color: '#3b82f6' },
+    private: { label: t('dreams:privacy.private', '私人'), icon: Shield, color: '#6b7280' },
+    public: { label: t('dreams:privacy.public', '公开'), icon: Globe, color: '#10b981' },
+    friends: { label: t('dreams:privacy.friends', '好友可见'), icon: Users, color: '#3b82f6' },
 });
 
 // 标签类型配置
