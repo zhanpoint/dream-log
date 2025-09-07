@@ -103,7 +103,7 @@ services:
   worker_io_cluster:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     container_name: dream_log_worker_io_cluster
-    command: celery -A config.celery_app worker -l warning -Q io_queue -n io_cluster_worker@%h --pool=prefork --concurrency=1
+    command: celery -A config.celery_app worker -l warning -Q io_queue -n io_cluster_worker@%h
     volumes:
       - logs_volume:/app/logs
     env_file: ./.env
