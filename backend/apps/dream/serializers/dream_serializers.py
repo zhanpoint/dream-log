@@ -4,7 +4,9 @@ from apps.dream.models import (
     Dream, DreamCategory, Tag,
     DreamJournal, SleepPattern, UploadedImage
 )
-from datetime import timedelta
+from apps.dream.utils.oss import OSS
+from urllib.parse import urlparse
+import re
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -49,6 +51,67 @@ class DreamSerializer(serializers.ModelSerializer):
     # 计算字段
     word_count = serializers.ReadOnlyField()
     reading_time = serializers.ReadOnlyField()
+    
+    @staticmethod
+    def _extract_file_key_from_url(url):
+        """从OSS URL中提取file_key"""
+        try:
+            # 匹配dreamlog-shared bucket中的文件路径
+            if 'dreamlog-shared.oss-cn-wuhan-lr.aliyuncs.com/' in url:
+                parsed = urlparse(url)
+                return parsed.path.lstrip('/')
+        except Exception:
+            pass
+        return None
+    
+    @staticmethod 
+    def _process_image_urls_with_signatures(content, user_id):
+        """处理HTML内容中的图片URL，为私有资源生成签名URL"""
+        if not content or not user_id:
+            return content
+            
+        try:
+            # 匹配所有img标签的src属性
+            img_pattern = r'<img[^>]+src=["\']([^"\']+)["\'][^>]*>'
+            
+            def replace_img_src(match):
+                img_tag = match.group(0)
+                img_url = match.group(1)
+                
+                # 检查是否为私有OSS资源
+                file_key = DreamSerializer._extract_file_key_from_url(img_url)
+                if file_key and file_key.startswith(f'users/{user_id}/'):
+                    try:
+                        # 生成签名URL
+                        oss_client = OSS(user_id=user_id)
+                        signed_url = oss_client.get_signed_url(file_key, expires=3600)  # 1小时有效期
+                        
+                        # 替换src中的URL
+                        return img_tag.replace(img_url, signed_url)
+                    except Exception as e:
+                        # 如果签名失败，返回原始标签
+                        print(f"图片签名失败: {e}")
+                        pass
+                
+                return img_tag
+            
+            return re.sub(img_pattern, replace_img_src, content)
+            
+        except Exception:
+            return content
+    
+    def to_representation(self, instance):
+        """自定义序列化输出，处理图片URL签名"""
+        data = super().to_representation(instance)
+        
+        # 为内容中的私有图片生成签名URL
+        if data.get('content') and instance.user_id:
+            data['content'] = self._process_image_urls_with_signatures(
+                data['content'], 
+                instance.user_id
+            )
+        
+        return data
 
     class Meta:
         model = Dream
@@ -253,6 +316,19 @@ class DreamListSerializer(serializers.ModelSerializer):
     # 计算字段
     word_count = serializers.ReadOnlyField()
     reading_time = serializers.ReadOnlyField()
+    
+    def to_representation(self, instance):
+        """自定义序列化输出，处理图片URL签名"""
+        data = super().to_representation(instance)
+        
+        # 为内容中的私有图片生成签名URL
+        if data.get('content') and instance.user_id:
+            data['content'] = DreamSerializer._process_image_urls_with_signatures(
+                data['content'], 
+                instance.user_id
+            )
+        
+        return data
 
     class Meta:
         model = Dream
@@ -274,15 +350,26 @@ class DreamListSerializer(serializers.ModelSerializer):
         }
     
     def get_preview_image(self, obj):
-        # 从HTML内容中提取第一张图片
+        # 从HTML内容中提取第一张图片，并为私有图片生成签名URL
         if obj.content:
             from bs4 import BeautifulSoup
             try:
                 soup = BeautifulSoup(obj.content, 'html.parser')
                 first_img = soup.find('img')
                 if first_img and first_img.get('src'):
+                    img_url = first_img.get('src')
+                    
+                    # 检查是否为私有OSS资源，如果是则生成签名URL
+                    file_key = DreamSerializer._extract_file_key_from_url(img_url)
+                    if file_key and file_key.startswith(f'users/{obj.user_id}/'):
+                        try:
+                            oss_client = OSS(user_id=obj.user_id)
+                            img_url = oss_client.get_signed_url(file_key, expires=3600)
+                        except Exception:
+                            pass  # 签名失败时使用原始URL
+                    
                     return {
-                        'url': first_img.get('src'),
+                        'url': img_url,
                         'alt': first_img.get('alt', '')
                     }
             except:
@@ -333,11 +420,23 @@ class SleepPatternSerializer(serializers.ModelSerializer):
 
 class UploadedImageSerializer(serializers.ModelSerializer):
     """上传图片序列化器"""
+    signed_url = serializers.SerializerMethodField()
     
     class Meta:
         model = UploadedImage
         fields = [
-            'id', 'url', 'file_key', 'user', 'dream', 
+            'id', 'url', 'signed_url', 'file_key', 'user', 'dream', 
             'status', 'upload_time', 'updated_at'
         ]
-        read_only_fields = ['id', 'upload_time', 'updated_at']
+        read_only_fields = ['id', 'upload_time', 'updated_at', 'signed_url']
+
+    def get_signed_url(self, obj):
+        """为私有图片生成临时访问签名URL"""
+        if obj.file_key and obj.user_id:
+            try:
+                oss_client = OSS(user_id=obj.user_id)
+                # 为即时预览生成一个5分钟有效期的签名URL
+                return oss_client.get_signed_url(obj.file_key, expires=300)
+            except Exception:
+                return None
+        return None

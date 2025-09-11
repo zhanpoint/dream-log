@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18nContext } from '@/contexts/I18nContext';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import ImageResize from 'tiptap-extension-resize-image'; // <-- 1. 导入新的扩展
+import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -14,13 +14,14 @@ import FileHandler from '@tiptap/extension-file-handler';
 import {
     Bold, Italic, Strikethrough, List, ListOrdered,
     Undo, Redo, Upload, Minus, Maximize, Minimize,
-    Paintbrush, GripVertical, AlertCircle, X, Type
+    Paintbrush, GripVertical, Type
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DreamSeparator } from './extensions/dream-separator';
 import { MiniCanvas } from './extensions/mini-canvas';
 import { ResizableEditor } from './extensions/resizable-editor';
+import notification from '@/utils/notification';
 
 // 图片上传配置
 const IMAGE_CONFIG = {
@@ -34,48 +35,7 @@ const TEXT_CONFIG = {
     maxLength: 1000
 };
 
-// 上传进度组件
-const UploadProgress = ({ progress, onCancel }) => {
-    const { t } = useI18nContext();
-    if (!progress) return null;
 
-    const { step, progress: percent, message, error } = progress;
-
-    const stepColors = {
-        preprocessing: 'bg-blue-500',
-        signature: 'bg-yellow-500',
-        upload: 'bg-green-500',
-        complete: 'bg-purple-500'
-    };
-
-    return (
-        <div className="upload-progress-container">
-            <div className="upload-progress-content">
-                <div className="upload-progress-text">
-                    <span className={`upload-step-indicator ${error ? 'error' : ''}`}>
-                        {error ? '❌' : '⏳'}
-                    </span>
-                    <span className="upload-message">{message}</span>
-                </div>
-                <div className="upload-progress-bar">
-                    <div
-                        className={`upload-progress-fill ${stepColors[step] || 'bg-gray-500'} ${error ? 'bg-red-500' : ''}`}
-                        style={{ width: `${percent}%` }}
-                    />
-                </div>
-                {onCancel && (
-                    <button
-                        onClick={onCancel}
-                        className="upload-cancel-btn"
-                        title={t('common.cancel', '取消上传')}
-                    >
-                        <X className="w-3 h-3" />
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-};
 
 // 优化的工具提示组件 - 修复层级和定位问题
 const SimpleTooltip = ({ children, content, disabled = false }) => {
@@ -139,58 +99,45 @@ const FullscreenEditor = ({
 }) => {
     const { t } = useI18nContext();
     const [showCanvasModal, setShowCanvasModal] = useState(false);
-    const [notification, setNotification] = useState(null);
-    const [uploadProgress, setUploadProgress] = useState(null);
     const fileInputRef = useRef(null);
-
-    // 显示通知
-    const showNotification = (message, type = 'error') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
-    };
 
     // 统一图片上传处理
     const handleImageUpload = async (file, source = 'upload') => {
         if (imageCount >= IMAGE_CONFIG.maxCount) {
-            showNotification(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
+            notification.warning(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
             return false;
         }
 
         if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            showNotification(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
+            notification.error(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
             return false;
         }
 
         if (file.size > IMAGE_CONFIG.maxSize) {
-            showNotification(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
+            notification.error(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
             return false;
         }
 
         try {
-            // 显示上传进度
-            setUploadProgress({ step: 'preprocessing', progress: 0, message: t('common:editor.preparingUpload', '准备上传...') });
-
             if (onImageUpload) {
-                const url = await onImageUpload(file, (progress) => {
-                    setUploadProgress(progress);
-                });
+                const urlData = await onImageUpload(file);
 
-                if (url) {
-                    // 上传成功，插入图片到编辑器
-                    editor.chain().focus().setImage({ src: url }).run();
+                if (urlData && urlData.signedUrl) {
+                    // 上传成功，使用签名URL进行即时显示
+                    // 同时将稳定的、无签名的URL存储在data-stable-src属性中
+                    editor.chain().focus().setImage({
+                        src: urlData.signedUrl,
+                        'data-stable-src': urlData.stableUrl
+                    }).run();
 
-                    // 清除进度显示
-                    setTimeout(() => setUploadProgress(null), 1000);
                     return true;
                 }
             }
 
-            setUploadProgress(null);
             return false;
         } catch (error) {
             console.error(`${source}图片上传失败:`, error);
-            showNotification(t('common:editor.uploadFailed', '图片上传失败，请重试'));
-            setUploadProgress(null);
+            notification.error(t('common:editor.uploadFailed', '图片上传失败，请重试'));
             return false;
         }
     };
@@ -243,25 +190,6 @@ const FullscreenEditor = ({
             <div className="tiptap-fullscreen-container">
                 {/* 全屏工具栏 */}
                 <div className="tiptap-fullscreen-menubar">
-                    {/* 通知显示 */}
-                    {notification && (
-                        <div className={`tiptap-notification ${notification.type}`}>
-                            <AlertCircle className="w-4 h-4" />
-                            <span>{notification.message}</span>
-                            <button onClick={() => setNotification(null)}>
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* 上传进度显示 */}
-                    {uploadProgress && (
-                        <UploadProgress
-                            progress={uploadProgress}
-                            onCancel={() => setUploadProgress(null)}
-                        />
-                    )}
-
                     <div className="tiptap-fullscreen-toolbar">
                         {/* 基础格式化工具 */}
                         <div className="tiptap-button-group">
@@ -489,8 +417,6 @@ const FullscreenEditor = ({
 const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCount, imageCount }) => {
     const { t } = useI18nContext();
     const [showCanvasModal, setShowCanvasModal] = useState(false);
-    const [notification, setNotification] = useState(null);
-    const [uploadProgress, setUploadProgress] = useState(null);
     const fileInputRef = useRef(null);
 
     // 确保 hooks 调用顺序一致
@@ -498,54 +424,43 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
         return null;
     }
 
-    // 显示通知
-    const showNotification = (message, type = 'error') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
-    };
-
     // 统一图片上传处理
     const handleImageUpload = async (file, source = 'upload') => {
         if (imageCount >= IMAGE_CONFIG.maxCount) {
-            showNotification(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
+            notification.warning(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
             return false;
         }
 
         if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            showNotification(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
+            notification.error(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
             return false;
         }
 
         if (file.size > IMAGE_CONFIG.maxSize) {
-            showNotification(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
+            notification.error(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
             return false;
         }
 
         try {
-            // 显示上传进度
-            setUploadProgress({ step: 'preprocessing', progress: 0, message: t('common:editor.preparingUpload', '准备上传...') });
-
             if (onImageUpload) {
-                const url = await onImageUpload(file, (progress) => {
-                    setUploadProgress(progress);
-                });
+                const urlData = await onImageUpload(file);
 
-                if (url) {
-                    // 上传成功，插入图片到编辑器
-                    editor.chain().focus().setImage({ src: url }).run();
+                if (urlData && urlData.signedUrl) {
+                    // 上传成功，使用签名URL进行即时显示
+                    // 同时将稳定的、无签名的URL存储在data-stable-src属性中
+                    editor.chain().focus().setImage({
+                        src: urlData.signedUrl,
+                        'data-stable-src': urlData.stableUrl
+                    }).run();
 
-                    // 清除进度显示
-                    setTimeout(() => setUploadProgress(null), 1000);
                     return true;
                 }
             }
 
-            setUploadProgress(null);
             return false;
         } catch (error) {
             console.error(`${source}图片上传失败:`, error);
-            showNotification(t('common:editor.uploadFailed', '图片上传失败，请重试'));
-            setUploadProgress(null);
+            notification.error(t('common:editor.uploadFailed', '图片上传失败，请重试'));
             return false;
         }
     };
@@ -585,25 +500,6 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
     return (
         <>
             <div className="tiptap-menubar">
-                {/* 通知显示 */}
-                {notification && (
-                    <div className={`tiptap-notification ${notification.type}`}>
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{notification.message}</span>
-                        <button onClick={() => setNotification(null)}>
-                            <X className="w-3 h-3" />
-                        </button>
-                    </div>
-                )}
-
-                {/* 上传进度显示 */}
-                {uploadProgress && (
-                    <UploadProgress
-                        progress={uploadProgress}
-                        onCancel={() => setUploadProgress(null)}
-                    />
-                )}
-
                 {/* 基础格式化工具 */}
                 <div className="tiptap-button-group">
                     <SimpleTooltip content={t('common:editor.bold', '加粗')}>
@@ -872,15 +768,15 @@ const TiptapEditor = ({
 
     // 编辑器更新处理回调
     const handleEditorUpdate = useCallback(({ editor }) => {
-        const html = editor.getHTML();
+        const rawHtml = editor.getHTML();
         const count = editor.storage.characterCount?.characters() || 0;
 
         // 计算图片数量
-        const imgCount = (html.match(/<img/g) || []).length;
+        const imgCount = (rawHtml.match(/<img/g) || []).length;
 
         // 新增: 检测删除的图片
         if (onImageDeleted) {
-            const currentImages = new Set(extractImageUrls(html));
+            const currentImages = new Set(extractImageUrls(rawHtml));
             const deletedImages = Array.from(previousImages).filter(url => !currentImages.has(url));
 
             // 调用删除回调
@@ -901,7 +797,20 @@ const TiptapEditor = ({
             return false;
         }
 
-        onChange?.(html);
+        // 在将HTML内容传递给父组件前，将临时的签名URL替换为稳定的URL
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = rawHtml;
+        const images = tempDiv.querySelectorAll('img[data-stable-src]');
+        images.forEach(img => {
+            const stableSrc = img.getAttribute('data-stable-src');
+            if (stableSrc) {
+                img.setAttribute('src', stableSrc);
+                img.removeAttribute('data-stable-src'); // 清理自定义属性
+            }
+        });
+        const sanitizedHtml = tempDiv.innerHTML;
+
+        onChange?.(sanitizedHtml);
     }, [onImageDeleted, extractImageUrls, previousImages, onChange]);
 
     // 编辑器创建处理回调
@@ -981,7 +890,7 @@ const TiptapEditor = ({
         if (editor && content) {
             const initialImages = new Set(extractImageUrls(content));
             setPreviousImages(initialImages);
-            console.log('初始化图片列表:', Array.from(initialImages));
+            // 初始化图片集合，供删除检测使用
         }
     }, [editor, content]); // 移除 extractImageUrls 依赖，因为它有稳定引用
 

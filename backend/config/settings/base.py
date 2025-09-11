@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'channels',  # 使Django识别WebSocket功能
@@ -40,7 +39,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,8 +65,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'config.wsgi.application'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -150,25 +146,6 @@ EMAIL_USE_TLS = ENV_EMAIL_CONFIG['use_tls']
 EMAIL_HOST_USER = ENV_EMAIL_CONFIG['username']
 EMAIL_HOST_PASSWORD = ENV_EMAIL_CONFIG['password']
 DEFAULT_FROM_EMAIL = ENV_EMAIL_CONFIG['default_from_email'] or EMAIL_HOST_USER
-
-# CORS 公共配置（按环境仅覆盖 CORS_ALLOWED_ORIGINS）
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-CORS_ALLOW_HEADERS = [
-    'authorization',
-    'content-type',
-]
-CORS_EXPOSE_HEADERS = [
-    'Content-Type',
-    'Authorization',
-]
 
 # Celery 连接与序列化设置（统一从这里加载，celery_app 使用命名空间方式接入）
 CELERY_BROKER_URL = (

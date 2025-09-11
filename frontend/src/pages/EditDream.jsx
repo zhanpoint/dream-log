@@ -206,9 +206,9 @@ const EditDream = () => {
         try {
             // uploadImage 现在支持进度回调
             const result = await uploadImage(file, onProgress);
-            if (result && result.url) {
-                // 确保返回的是可公开访问的URL
-                return result.url;
+            if (result && result.url && result.signed_url) {
+                // 返回一个包含两种URL的对象，供编辑器使用
+                return { stableUrl: result.url, signedUrl: result.signed_url };
             }
             notification.error('图片上传成功，但无法获取URL');
             return null; // 返回null表示失败

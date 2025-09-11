@@ -19,8 +19,8 @@
 .tiptap-fullscreen-overlay {
     @apply fixed inset-0 z-[99999];
     background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     animation: fullscreenFadeIn 0.3s ease-out;
     display: flex;
     align-items: center;
@@ -246,11 +246,20 @@
 
 /* ===== 编辑器内容样式 ===== */
 .tiptap-content {
-    @apply p-4 focus:outline-none min-h-[300px] max-h-[400px];
+    @apply p-4 focus:outline-none min-h-[300px];
     color: hsl(var(--foreground));
     line-height: 1.7;
+    /* 让父容器负责滚动与高度，避免嵌套滚动导致遮挡 */
+}
+
+/* 让可调整区域成为唯一滚动容器（非全屏） */
+.resizable-editor-container .resizable-editor-content {
     overflow-y: auto;
-    scrollbar-width: thin;
+}
+
+/* 确保在 flex 布局中可正确收缩，避免底部被遮挡 */
+.tiptap-editor-wrapper {
+    min-height: 0;
 }
 
 .tiptap-content p {
@@ -808,62 +817,7 @@ body.resizing-editor .resizable-editor-handle {
     @apply flex items-center justify-center p-8 text-purple-300;
 }
 
-/* ===== 上传进度样式 ===== */
-.upload-progress-container {
-    @apply fixed top-4 right-4 z-50;
-    min-width: 300px;
-    max-width: 400px;
-}
-
-.upload-progress-content {
-    @apply relative bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/30 p-4 shadow-xl;
-    background: linear-gradient(135deg, rgba(30, 27, 62, 0.95) 0%, rgba(45, 27, 105, 0.95) 100%);
-}
-
-.upload-progress-text {
-    @apply flex items-center gap-2 mb-3 text-sm text-purple-100;
-}
-
-.upload-step-indicator {
-    @apply text-base;
-}
-
-.upload-step-indicator.error {
-    @apply text-red-400;
-}
-
-.upload-message {
-    @apply flex-1 font-medium;
-}
-
-.upload-progress-bar {
-    @apply w-full h-2 bg-gray-700 rounded-full overflow-hidden;
-}
-
-.upload-progress-fill {
-    @apply h-full transition-all duration-300 ease-out;
-    background: linear-gradient(90deg, currentColor 0%, rgba(255, 255, 255, 0.8) 50%, currentColor 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite linear;
-}
-
-.upload-cancel-btn {
-    @apply absolute top-2 right-2 p-1 text-gray-400 hover:text-white transition-colors duration-200 rounded;
-}
-
-.upload-cancel-btn:hover {
-    @apply bg-gray-700/50;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
-}
+/* ===== 上传进度样式已移除 - 使用notification.js统一通知 ===== */
 
 /* ===== 响应式设计 ===== */
 @media (max-width: 768px) {
@@ -935,39 +889,40 @@ body.resizing-editor .resizable-editor-handle {
 }
 
 /* ===== 滚动条样式 ===== */
-.tiptap-content::-webkit-scrollbar {
+/* 迁移滚动条样式到父容器，避免内层滚动条错位 */
+.resizable-editor-container .resizable-editor-content::-webkit-scrollbar {
     @apply w-2;
 }
 
-.tiptap-content::-webkit-scrollbar-track {
+.resizable-editor-container .resizable-editor-content::-webkit-scrollbar-track {
     @apply bg-gray-800/50 rounded;
 }
 
-.tiptap-content::-webkit-scrollbar-thumb {
+.resizable-editor-container .resizable-editor-content::-webkit-scrollbar-thumb {
     @apply bg-purple-600/50 rounded;
 }
 
-.tiptap-content::-webkit-scrollbar-thumb:hover {
+.resizable-editor-container .resizable-editor-content::-webkit-scrollbar-thumb:hover {
     @apply bg-purple-600/70;
 }
 
 /* 确保Tiptap编辑器的滚动条在非全屏模式下正常显示 */
-.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar {
+/* 与上方保持一致：滚动条统一绑定到父容器 */
+.tiptap-editor-wrapper .resizable-editor-content::-webkit-scrollbar {
     @apply w-2;
-    display: block;
 }
 
-.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-track {
+.tiptap-editor-wrapper .resizable-editor-content::-webkit-scrollbar-track {
     @apply bg-gray-800/50 rounded;
     background: rgba(31, 41, 55, 0.5);
 }
 
-.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-thumb {
+.tiptap-editor-wrapper .resizable-editor-content::-webkit-scrollbar-thumb {
     @apply bg-purple-600/50 rounded;
     background: rgba(147, 51, 234, 0.5);
 }
 
-.tiptap-editor-wrapper .tiptap-content::-webkit-scrollbar-thumb:hover {
+.tiptap-editor-wrapper .resizable-editor-content::-webkit-scrollbar-thumb:hover {
     @apply bg-purple-600/70;
     background: rgba(147, 51, 234, 0.7);
 }
