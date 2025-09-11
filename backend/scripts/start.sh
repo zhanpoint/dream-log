@@ -28,8 +28,13 @@ python manage.py migrate
 # --- 自动执行所有标记为安全的初始化命令 ---
 python manage.py auto_deploy_setup
 
-# --- 静态文件处理 ---
-# python manage.py collectstatic --no-input
+# --- 静态文件处理（仅在目标目录为空时执行，避免重复耗时操作）---
+if [ -z "$(ls -A /app/staticfiles_collected 2>/dev/null)" ]; then
+    echo "Collecting static files..."
+    python manage.py collectstatic --no-input
+else
+    echo "Static files already present, skipping collectstatic."
+fi
 
 # --- 启动主应用 ---
 # 使用 exec, 它会用 daphne 进程替换当前的 shell 进程

@@ -163,4 +163,32 @@ docs/
 
 # Development tools
 requirements.txt
-requirements_dev.txt 
+requirements_dev.txt
+
+# Testing
+test*/
+*test*/
+*tests*/
+tests/
+.coverage*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Environment and configuration (production-specific)
+.env*
+local_settings.py
+settings_local.py
+
+# Version control
+.git/
+.gitignore
+
+# Database files
+*.sqlite3
+*.db
+
+# Frontend build artifacts (not needed in backend)
+frontend/
+nginx/
+node_modules/ 

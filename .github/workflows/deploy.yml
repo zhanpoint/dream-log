@@ -192,26 +192,84 @@ jobs:
             echo "登录容器注册表..."
             echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
             
+            # 需要拉取的镜像标记（由构建作业决定）
+            PULL_BACKEND=false
+            PULL_FRONTEND=false
+            
             SERVICES_TO_RESTART=""
             
+            # 后端镜像：构建成功则更新引用并标记需要拉取
             if [ "${{ needs.build-backend.result }}" = "success" ]; then
               IMAGE_TAG="${{ needs.build-backend.outputs.image-tag }}"
               BACKEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${IMAGE_TAG}"
               
+              echo "设置后端镜像引用: $BACKEND_IMAGE_URI"
               grep -q '^BACKEND_IMAGE_URI=' .env.deployment && sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" >> .env.deployment
-              
-              sudo docker pull "$BACKEND_IMAGE_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_io_cluster beat"
+              PULL_BACKEND=true
+              BACKEND_IMAGE_TO_PULL="$BACKEND_IMAGE_URI"
             fi
             
+            # 前端镜像：构建成功则更新引用并标记需要拉取
             if [ "${{ needs.build-frontend.result }}" = "success" ]; then
               IMAGE_TAG="${{ needs.build-frontend.outputs.image-tag }}"
               FRONTEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${IMAGE_TAG}"
               
+              echo "设置前端镜像引用: $FRONTEND_IMAGE_URI"
               grep -q '^FRONTEND_IMAGE_URI=' .env.deployment && sed -i "s|^FRONTEND_IMAGE_URI=.*|FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}|" .env.deployment || echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}" >> .env.deployment
+              PULL_FRONTEND=true
+              FRONTEND_IMAGE_TO_PULL="$FRONTEND_IMAGE_URI"
+            fi
+
+            # 并行拉取所有需要拉取的镜像（始终拉取以确保获取到最新Digest，未变更时网络与IO消耗极小）
+            if [ "$PULL_BACKEND" = "true" ] && [ "$PULL_FRONTEND" = "true" ]; then
+              echo "并行拉取后端和前端镜像..."
+              sudo docker pull "$BACKEND_IMAGE_TO_PULL" &
+              BACKEND_PID=$!
+              sudo docker pull "$FRONTEND_IMAGE_TO_PULL" &
+              FRONTEND_PID=$!
               
-              sudo docker pull "$FRONTEND_IMAGE_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend-nginx"
+              # 等待所有并行拉取完成
+              wait $BACKEND_PID
+              BACKEND_RESULT=$?
+              wait $FRONTEND_PID  
+              FRONTEND_RESULT=$?
+              
+              if [ $BACKEND_RESULT -ne 0 ] || [ $FRONTEND_RESULT -ne 0 ]; then
+                echo "镜像拉取失败"
+                exit 1
+              fi
+              echo "并行拉取完成"
+            elif [ "$PULL_BACKEND" = "true" ]; then
+              echo "拉取后端镜像..."
+              sudo docker pull "$BACKEND_IMAGE_TO_PULL"
+            elif [ "$PULL_FRONTEND" = "true" ]; then
+              echo "拉取前端镜像..."
+              sudo docker pull "$FRONTEND_IMAGE_TO_PULL"
+            else
+              echo "无镜像需要拉取"
+            fi
+
+            # 基于镜像ID对比决定是否重启，避免无谓重启
+            if [ "${{ needs.build-backend.result }}" = "success" ]; then
+              CURRENT_BACKEND_IMAGE_ID=$(sudo docker inspect -f '{{.Image}}' dream_log_backend_daphne 2>/dev/null || echo none)
+              NEW_BACKEND_IMAGE_ID=$(sudo docker image inspect -f '{{.Id}}' "$BACKEND_IMAGE_URI" 2>/dev/null || echo none)
+              if [ "$CURRENT_BACKEND_IMAGE_ID" != "$NEW_BACKEND_IMAGE_ID" ]; then
+                echo "检测到后端镜像变更，计划重启 backend/worker_io_cluster/beat"
+                SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker_io_cluster beat"
+              else
+                echo "后端镜像未变化，跳过重启"
+              fi
+            fi
+
+            if [ "${{ needs.build-frontend.result }}" = "success" ]; then
+              CURRENT_FRONTEND_IMAGE_ID=$(sudo docker inspect -f '{{.Image}}' dream_log_nginx 2>/dev/null || echo none)
+              NEW_FRONTEND_IMAGE_ID=$(sudo docker image inspect -f '{{.Id}}' "$FRONTEND_IMAGE_URI" 2>/dev/null || echo none)
+              if [ "$CURRENT_FRONTEND_IMAGE_ID" != "$NEW_FRONTEND_IMAGE_ID" ]; then
+                echo "检测到前端镜像变更，计划重启 frontend-nginx"
+                SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend-nginx"
+              else
+                echo "前端镜像未变化，跳过重启"
+              fi
             fi
 
             if [ -n "$SERVICES_TO_RESTART" ]; then
@@ -224,5 +282,12 @@ jobs:
               echo "无需部署更新"
             fi
             
+            # 智能镜像清理：只保留最近的3个版本，避免磁盘空间不足
+            echo "清理旧镜像..."
+            # 清理悬空镜像
             sudo docker image prune -f
-            echo "部署完成！"
+            # 清理旧版本镜像，保留最近3个
+            sudo docker images "${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend" --format "{{.Tag}} {{.ID}}" | sort -r | tail -n +4 | awk '{print $2}' | xargs -r sudo docker rmi -f || true
+            sudo docker images "${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend" --format "{{.Tag}} {{.ID}}" | sort -r | tail -n +4 | awk '{print $2}' | xargs -r sudo docker rmi -f || true
+            
+            echo "✅ 部署完成！优化的CI/CD流程已生效"

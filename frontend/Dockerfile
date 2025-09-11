@@ -44,21 +44,15 @@ RUN if [ "$FORCE_REINSTALL_DEPS" = "true" ]; then \
 # --- 第二阶段：生产环境 ---
 FROM nginx:1.25-alpine AS production
 
-# 为 Nginx 创建并授权所有必要的缓存和临时目录，从根源上解决权限问题
-RUN mkdir -p /var/cache/nginx && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    mkdir -p /var/run/nginx && \
-    chown -R nginx:nginx /var/run/nginx
-
-# 从构建阶段拷贝静态文件
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# 为静态文件设置正确的属主（使用镜像内置的 nginx 用户）
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
-
 # 覆盖容器内 Nginx 配置为仓库自带的生产配置
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
+# 一次性处理Nginx权限、目录创建和静态文件拷贝，减少层数
+RUN mkdir -p /var/cache/nginx /var/run/nginx && \
+    chown -R nginx:nginx /var/cache/nginx /var/run/nginx
+    
+# 从构建阶段拷贝静态文件并设置权限
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 # 暴露端口
 EXPOSE 80

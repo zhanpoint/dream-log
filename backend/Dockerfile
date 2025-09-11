@@ -3,16 +3,6 @@
 # ---- Builder Stage ----
 FROM python:3.9-slim as builder
 
-# 安装系统依赖和构建工具
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    libmariadb-dev \
-    libpq-dev \
-    pkg-config \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -21,65 +11,59 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# 优化依赖安装，充分利用Docker缓存
+# 单次RUN安装系统依赖和Python依赖，减少层数
 COPY requirements_deploy.txt .
-
-# 创建虚拟环境并安装依赖
-RUN python -m venv /opt/venv
-# BuildKit 功能，挂载一个持久缓存目录 /root/.cache/pip，pip 会缓存已下载的包，下一次构建镜像时可以复用，不用重新下载，加快构建速度。
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/venv/bin/pip install --no-cache-dir \
-    -r requirements_deploy.txt
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/root/.cache/pip \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        libmariadb-dev \
+        libpq-dev \
+        pkg-config && \
+    python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install -r requirements_deploy.txt && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # ---- Production Stage ----
 FROM python:3.9-slim AS production
 
-# 创建应用用户
-RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
-
-# 安装运行时依赖
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    dos2unix \
-    libmariadb3 \
-    libpq5 \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # 使用虚拟环境的 Python 和工具
     PATH=/opt/venv/bin:$PATH \
-    # 设置项目根目录到 Python 路径，虚拟环境自动处理第三方库
     PYTHONPATH=/app \
     DJANGO_SETTINGS_MODULE=config.settings.prod
 
 WORKDIR /app
 
+# 一次性安装运行时依赖、创建用户和目录，减少层数
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        dos2unix \
+        libmariadb3 \
+        libpq5 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -r appuser && \
+    useradd --no-log-init -r -g appuser appuser && \
+    mkdir -p /app/scripts /app/logs /app/media /app/staticfiles_collected && \
+    chown -R appuser:appuser /app
+
 # 从构建器阶段拷贝虚拟环境
 COPY --from=builder /opt/venv /opt/venv
 
-# 创建必要的目录
-RUN mkdir -p /app/scripts /app/logs /app/media /app/staticfiles_collected && \
-    chown -R appuser:appuser /app
-
-# 拷贝启动脚本并设置权限
+# 拷贝应用代码和脚本
 COPY --chown=appuser:appuser ./scripts/start.sh /app/scripts/start.sh
-
-# 拷贝应用代码
 COPY --chown=appuser:appuser ./apps /app/apps
 COPY --chown=appuser:appuser ./config /app/config
 COPY --chown=appuser:appuser ./manage.py /app/manage.py
 
-# 在构建时收集静态文件，并确保权限正确
-# 为collectstatic提供一个临时的SECRET_KEY，因为它在构建时需要，但不会存储在最终镜像中
-RUN DJANGO_SECRET_KEY="dummy-key-for-collectstatic" python manage.py collectstatic --no-input && \
-    chown -R appuser:appuser /app/staticfiles_collected
-
-# 修复脚本行尾符并设置权限
-RUN dos2unix /app/scripts/start.sh && \
-    chmod +x /app/scripts/start.sh
+# 修复脚本权限（移除collectstatic，在运行时执行）
+RUN dos2unix /app/scripts/start.sh && chmod +x /app/scripts/start.sh
 
 # 切换到非 root 用户
 USER appuser
