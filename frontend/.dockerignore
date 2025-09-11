@@ -28,32 +28,4 @@ node_modules
 *.sw?
 
 # Cursor-specific files
-.cursor/
-
-# Version control
-.git/
-.gitignore
-
-# Environment files (production-specific)
-.env*
-
-# CI/CD files
-.github/
-docker-compose*.yml
-Dockerfile*
-
-# Backend files (not needed in frontend)
-backend/
-
-# Testing
-test*/
-*test*/
-*tests*/
-tests/
-coverage/
-.nyc_output/
-
-# Documentation
-README.md
-*.md
-docs/ 
+.cursor/ 
