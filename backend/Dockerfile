@@ -61,7 +61,7 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 
 # 创建必要的目录
-RUN mkdir -p /app/scripts /app/logs /app/media /app/staticfiles_collected && \
+RUN mkdir -p /app/scripts /app/logs /app/media && \
     chown -R appuser:appuser /app
 
 # 拷贝启动脚本并设置权限
@@ -72,11 +72,6 @@ COPY --chown=appuser:appuser ./apps /app/apps
 COPY --chown=appuser:appuser ./config /app/config
 COPY --chown=appuser:appuser ./manage.py /app/manage.py
 
-# 在构建时收集静态文件，并确保权限正确
-# 为collectstatic提供一个临时的SECRET_KEY，因为它在构建时需要，但不会存储在最终镜像中
-RUN DJANGO_SECRET_KEY="dummy-key-for-collectstatic" python manage.py collectstatic --no-input && \
-    chown -R appuser:appuser /app/staticfiles_collected
-
 # 修复脚本行尾符并设置权限
 RUN dos2unix /app/scripts/start.sh && \
     chmod +x /app/scripts/start.sh
@@ -86,10 +81,6 @@ USER appuser
 
 # 暴露端口
 EXPOSE 8000
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD python manage.py check --deploy || exit 1
 
 # 启动命令
 CMD ["/app/scripts/start.sh"] 
