@@ -9,7 +9,7 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import BaseMessage, HumanMessage
 from decouple import config
 
-from ..graph.dream_assistant_state import DreamAssistantState
+from ..graph.dream_assistant_state import OverallState
 from ..agents.orchestrator import DreamAssistantOrchestrator
 from ..agents.interpreter import DreamInterpreter
 from ..agents.scholar import DreamScholar
@@ -93,7 +93,7 @@ class DreamAssistantGraph:
                 checkpointer=self.checkpointer,
                 store=self.store
             )
-            
+            print(self.app.get_graph().draw_mermaid())
             self._initialized = True
             logger.info("✅ PostgreSQL存储组件初始化成功")
             
@@ -163,7 +163,7 @@ class DreamAssistantGraph:
     def _build_graph(self) -> StateGraph:
         """构建 LangGraph 状态图"""
         # 创建图
-        workflow = StateGraph(DreamAssistantState)
+        workflow = StateGraph(OverallState)
         
         # 添加节点
         workflow.add_node("orchestrator", self.orchestrator)
@@ -216,17 +216,17 @@ class DreamAssistantGraph:
         
         return workflow
     
-    def _route_from_orchestrator(self, state: DreamAssistantState) -> str:
+    def _route_from_orchestrator(self, state: OverallState) -> str:
         """从 Orchestrator 节点路由"""
         return state.get("next_node", "end")
     
     # _route_from_memory已删除，记忆检索由LangGraph Store自动处理
     
-    def _route_from_interpreter(self, state: DreamAssistantState) -> str:
+    def _route_from_interpreter(self, state: OverallState) -> str:
         """从解读师节点路由"""
         return state.get("next_node", "response_generator")
     
-    def _route_from_response_generator(self, state: DreamAssistantState) -> str:
+    def _route_from_response_generator(self, state: OverallState) -> str:
         """从响应生成器路由 - 强制结束，避免循环"""
         # 每次处理完成后都结束，新消息会创建新的处理流程
         return "end"

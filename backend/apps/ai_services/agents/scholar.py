@@ -4,7 +4,7 @@
 import logging
 from typing import Dict, Any
 
-from ..graph.dream_assistant_state import DreamAssistantState
+from ..graph.dream_assistant_state import OverallState
 from ..config import get_knowledge_qa_llm, RAG_ENABLED
 from ..prompts.dream_assistant_prompts import prompt_manager
 from ..rag.dream_analysis_retrieval import get_dream_rag_retriever
@@ -20,7 +20,7 @@ class DreamScholar:
         self._rag_enabled = bool(RAG_ENABLED)
         self.retriever = get_dream_rag_retriever()
     
-    async def __call__(self, state: DreamAssistantState, config=None) -> Dict[str, Any]:
+    async def __call__(self, state: OverallState, config=None) -> Dict[str, Any]:
         """处理知识性问题 - 支持真正的流式输出"""
         logger.info("梦境知识学者开始流式处理问题")
         

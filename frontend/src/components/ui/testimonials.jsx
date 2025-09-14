@@ -160,19 +160,19 @@ export const TestimonialsSection = () => {
                     className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center text-slate-800 dark:text-inherit"
                 >
                     <div className="flex flex-col">
-                        <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">10,000+</span>
+                        <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">100+</span>
                         <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.users', '活跃用户')}
                         </span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">50,000+</span>
+                        <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">2000+</span>
                         <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.dreams', '梦境记录')}
                         </span>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">98%</span>
+                        <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">90%</span>
                         <span className="text-sm text-gray-400 font-medium mt-2">
                             {t('home.testimonials.stats.satisfaction', '满意度')}
                         </span>

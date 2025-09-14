@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextAlign from '@tiptap/extension-text-align'; // 新增：导入文本对齐扩展
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
@@ -14,7 +15,8 @@ import FileHandler from '@tiptap/extension-file-handler';
 import {
     Bold, Italic, Strikethrough, List, ListOrdered,
     Undo, Redo, Upload, Minus, Maximize, Minimize,
-    Paintbrush, GripVertical, Type
+    Paintbrush, GripVertical, Type,
+    AlignLeft, AlignCenter, AlignRight, AlignJustify // 新增：导入对齐图标
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -35,6 +37,45 @@ const TEXT_CONFIG = {
     maxLength: 1000
 };
 
+// 统一图片上传处理函数
+const handleImageUpload = async (file, { editor, imageCount, onImageUpload, t, source = 'upload' }) => {
+    if (imageCount >= IMAGE_CONFIG.maxCount) {
+        notification.warning(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
+        return false;
+    }
+
+    if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
+        notification.error(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
+        return false;
+    }
+
+    if (file.size > IMAGE_CONFIG.maxSize) {
+        notification.error(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
+        return false;
+    }
+
+    try {
+        if (onImageUpload) {
+            const urlData = await onImageUpload(file);
+
+            if (urlData && urlData.signedUrl) {
+                // 不强制写死 width 属性，交由 CSS 默认回退宽度（40%）生效
+                editor.chain().focus().setImage({
+                    src: urlData.signedUrl,
+                    'data-stable-src': urlData.stableUrl,
+                }).run();
+
+                return true;
+            }
+        }
+
+        return false;
+    } catch (error) {
+        console.error(`${source}图片上传失败:`, error);
+        notification.error(t('common:editor.uploadFailed', '图片上传失败，请重试'));
+        return false;
+    }
+};
 
 
 // 优化的工具提示组件 - 修复层级和定位问题
@@ -101,51 +142,13 @@ const FullscreenEditor = ({
     const [showCanvasModal, setShowCanvasModal] = useState(false);
     const fileInputRef = useRef(null);
 
-    // 统一图片上传处理
-    const handleImageUpload = async (file, source = 'upload') => {
-        if (imageCount >= IMAGE_CONFIG.maxCount) {
-            notification.warning(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
-            return false;
-        }
-
-        if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            notification.error(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
-            return false;
-        }
-
-        if (file.size > IMAGE_CONFIG.maxSize) {
-            notification.error(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
-            return false;
-        }
-
-        try {
-            if (onImageUpload) {
-                const urlData = await onImageUpload(file);
-
-                if (urlData && urlData.signedUrl) {
-                    // 上传成功，使用签名URL进行即时显示
-                    // 同时将稳定的、无签名的URL存储在data-stable-src属性中
-                    editor.chain().focus().setImage({
-                        src: urlData.signedUrl,
-                        'data-stable-src': urlData.stableUrl
-                    }).run();
-
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (error) {
-            console.error(`${source}图片上传失败:`, error);
-            notification.error(t('common:editor.uploadFailed', '图片上传失败，请重试'));
-            return false;
-        }
-    };
+    // 图片上传处理
+    const uploadImage = (file, source) => handleImageUpload(file, { editor, imageCount, onImageUpload, t, source });
 
     const handleFileSelect = async (event) => {
         const file = event.target.files?.[0];
         if (file) {
-            await handleImageUpload(file, '本地');
+            await uploadImage(file, '本地');
         }
         event.target.value = '';
     };
@@ -163,7 +166,7 @@ const FullscreenEditor = ({
             const response = await fetch(imageData);
             const blob = await response.blob();
             const file = new File([blob], 'canvas-drawing.png', { type: 'image/png' });
-            await handleImageUpload(file, '画板');
+            await uploadImage(file, '画板');
         }
         setShowCanvasModal(false);
     };
@@ -223,6 +226,52 @@ const FullscreenEditor = ({
                                     className={cn('tiptap-menu-button', editor.isActive('strike') && 'tiptap-active')}
                                 >
                                     <Strikethrough className="w-4 h-4" />
+                                </Button>
+                            </SimpleTooltip>
+                        </div>
+
+                        <div className="tiptap-separator" />
+
+                        {/* 对齐按钮组 */}
+                        <div className="tiptap-button-group">
+                            <SimpleTooltip content={t('common:editor.alignLeft', '左对齐')}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                                    className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'left' }) && 'tiptap-active')}
+                                >
+                                    <AlignLeft className="w-4 h-4" />
+                                </Button>
+                            </SimpleTooltip>
+                            <SimpleTooltip content={t('common:editor.alignCenter', '居中对齐')}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                                    className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'center' }) && 'tiptap-active')}
+                                >
+                                    <AlignCenter className="w-4 h-4" />
+                                </Button>
+                            </SimpleTooltip>
+                            <SimpleTooltip content={t('common:editor.alignRight', '右对齐')}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                                    className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'right' }) && 'tiptap-active')}
+                                >
+                                    <AlignRight className="w-4 h-4" />
+                                </Button>
+                            </SimpleTooltip>
+                            <SimpleTooltip content={t('common:editor.alignJustify', '两端对齐')}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                                    className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'justify' }) && 'tiptap-active')}
+                                >
+                                    <AlignJustify className="w-4 h-4" />
                                 </Button>
                             </SimpleTooltip>
                         </div>
@@ -424,51 +473,13 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
         return null;
     }
 
-    // 统一图片上传处理
-    const handleImageUpload = async (file, source = 'upload') => {
-        if (imageCount >= IMAGE_CONFIG.maxCount) {
-            notification.warning(t('common:editor.maxImagesReached', `最多只能插入${IMAGE_CONFIG.maxCount}张图片`));
-            return false;
-        }
-
-        if (!IMAGE_CONFIG.allowedTypes.includes(file.type)) {
-            notification.error(t('common:editor.unsupportedImageFormat', '仅支持 JPG、PNG、WebP、GIF 格式的图片'));
-            return false;
-        }
-
-        if (file.size > IMAGE_CONFIG.maxSize) {
-            notification.error(t('common:editor.imageTooLarge', '图片大小不能超过5MB'));
-            return false;
-        }
-
-        try {
-            if (onImageUpload) {
-                const urlData = await onImageUpload(file);
-
-                if (urlData && urlData.signedUrl) {
-                    // 上传成功，使用签名URL进行即时显示
-                    // 同时将稳定的、无签名的URL存储在data-stable-src属性中
-                    editor.chain().focus().setImage({
-                        src: urlData.signedUrl,
-                        'data-stable-src': urlData.stableUrl
-                    }).run();
-
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (error) {
-            console.error(`${source}图片上传失败:`, error);
-            notification.error(t('common:editor.uploadFailed', '图片上传失败，请重试'));
-            return false;
-        }
-    };
+    // 图片上传处理
+    const uploadImage = (file, source) => handleImageUpload(file, { editor, imageCount, onImageUpload, t, source });
 
     const handleFileSelect = async (event) => {
         const file = event.target.files?.[0];
         if (file) {
-            await handleImageUpload(file, '本地');
+            await uploadImage(file, '本地');
         }
         event.target.value = '';
     };
@@ -486,7 +497,7 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
             const response = await fetch(imageData);
             const blob = await response.blob();
             const file = new File([blob], 'canvas-drawing.png', { type: 'image/png' });
-            await handleImageUpload(file, '画板');
+            await uploadImage(file, '画板');
         }
         setShowCanvasModal(false);
     };
@@ -532,6 +543,52 @@ const NormalMenuBar = ({ editor, onImageUpload, onToggleFullscreen, characterCou
                             className={cn('tiptap-menu-button', editor.isActive('strike') && 'tiptap-active')}
                         >
                             <Strikethrough className="w-4 h-4" />
+                        </Button>
+                    </SimpleTooltip>
+                </div>
+
+                <div className="tiptap-separator" />
+
+                {/* 对齐按钮组 */}
+                <div className="tiptap-button-group">
+                    <SimpleTooltip content={t('common:editor.alignLeft', '左对齐')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                            className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'left' }) && 'tiptap-active')}
+                        >
+                            <AlignLeft className="w-4 h-4" />
+                        </Button>
+                    </SimpleTooltip>
+                    <SimpleTooltip content={t('common:editor.alignCenter', '居中对齐')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                            className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'center' }) && 'tiptap-active')}
+                        >
+                            <AlignCenter className="w-4 h-4" />
+                        </Button>
+                    </SimpleTooltip>
+                    <SimpleTooltip content={t('common:editor.alignRight', '右对齐')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                            className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'right' }) && 'tiptap-active')}
+                        >
+                            <AlignRight className="w-4 h-4" />
+                        </Button>
+                    </SimpleTooltip>
+                    <SimpleTooltip content={t('common:editor.alignJustify', '两端对齐')}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                            className={cn('tiptap-menu-button', editor.isActive({ textAlign: 'justify' }) && 'tiptap-active')}
+                        >
+                            <AlignJustify className="w-4 h-4" />
                         </Button>
                     </SimpleTooltip>
                 </div>
@@ -732,6 +789,7 @@ const TiptapEditor = ({
     const [imageCount, setImageCount] = useState(0);
     const [previousImages, setPreviousImages] = useState(new Set()); // 新增: 跟踪之前的图片
     const editorRef = useRef(null);
+    const editorInstanceRef = useRef(null); // 保存 editor 实例，避免 TDZ 引发的访问错误
 
     // 将 i18n hook 移到顶部，确保始终被调用
     const { t } = useI18nContext();
@@ -745,26 +803,24 @@ const TiptapEditor = ({
         return Array.from(images).map(img => img.src).filter(src => src && src.trim());
     }, []);
 
-    // 图片上传处理回调
-    const handleImageDrop = useCallback((editor, files, pos) => {
-        files.forEach(async (file) => {
-            const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
-            if (menuBar) {
-                const event = new CustomEvent('imageUpload', { detail: { file, source: '拖拽' } });
-                menuBar.dispatchEvent(event);
-            }
-        });
-    }, []);
+    // 已移除：与图片空格微调相关的工具函数，保持代码简洁
 
-    const handleImagePaste = useCallback((editor, files) => {
-        files.forEach(async (file) => {
-            const menuBar = editorRef.current?.querySelector('.tiptap-menubar');
-            if (menuBar) {
-                const event = new CustomEvent('imageUpload', { detail: { file, source: '粘贴' } });
-                menuBar.dispatchEvent(event);
-            }
-        });
-    }, []);
+    // 图片上传处理回调
+    const handleImageDrop = useCallback((view, file) => {
+        const activeEditor = editorInstanceRef.current;
+        if (activeEditor) {
+            handleImageUpload(file, { editor: activeEditor, imageCount, onImageUpload, t, source: '拖拽' });
+        }
+        return true; // 表示已处理
+    }, [imageCount, onImageUpload, t]);
+
+    const handleImagePaste = useCallback((view, file) => {
+        const activeEditor = editorInstanceRef.current;
+        if (activeEditor) {
+            handleImageUpload(file, { editor: activeEditor, imageCount, onImageUpload, t, source: '粘贴' });
+        }
+        return true; // 表示已处理
+    }, [imageCount, onImageUpload, t]);
 
     // 编辑器更新处理回调
     const handleEditorUpdate = useCallback(({ editor }) => {
@@ -830,12 +886,17 @@ const TiptapEditor = ({
                     levels: [1, 2, 3, 4, 5, 6],
                 },
             }),
+            TextAlign.configure({ // 新增：配置文本对齐
+                types: ['heading', 'paragraph', 'image'],
+                alignments: ['left', 'center', 'right', 'justify'],
+                defaultAlignment: 'left',
+            }),
             // 2. 使用 ImageResize 替换原生的 Image 扩展
             ImageResize.configure({
                 HTMLAttributes: {
                     class: 'tiptap-image-resizable',
                 },
-                inline: false,
+                inline: true,
                 allowBase64: true,
             }),
             Link.configure({
@@ -869,9 +930,21 @@ const TiptapEditor = ({
             attributes: {
                 class: 'tiptap-content',
                 spellcheck: 'false',
-            }
+            },
         },
     });
+
+    // 将创建后的 editor 实例保存到 ref，供异步回调安全访问
+    useEffect(() => {
+        if (editor) {
+            editorInstanceRef.current = editor;
+            return () => {
+                if (editorInstanceRef.current === editor) {
+                    editorInstanceRef.current = null;
+                }
+            };
+        }
+    }, [editor]);
 
     // 全屏模式切换 - 简化逻辑，避免内容丢失
     const toggleFullscreen = useCallback(() => {

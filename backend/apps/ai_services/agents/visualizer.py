@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional
 from google import genai
 from langchain_core.messages import HumanMessage
 
-from ..graph.dream_assistant_state import DreamAssistantState, ImageGenerationRequest
+from ..graph.dream_assistant_state import OverallState, ImageGenerationRequest
 from ..config import get_image_prompt_llm, GOOGLE_API_KEY
 from ..prompts.dream_assistant_prompts import prompt_manager
 
@@ -23,7 +23,7 @@ class DreamVisualizer:
         # 初始化 Gemini 客户端
         self.client = genai.Client(api_key=GOOGLE_API_KEY)
     
-    def __call__(self, state: DreamAssistantState) -> Dict[str, Any]:
+    def __call__(self, state: OverallState) -> Dict[str, Any]:
         """生成梦境图像""" 
         try:
             # 检查是否已有图像生成请求
@@ -72,7 +72,7 @@ class DreamVisualizer:
             state["next_node"] = "response_generator"
             return state
     
-    def _prepare_image_request(self, state: DreamAssistantState) -> Optional[ImageGenerationRequest]:
+    def _prepare_image_request(self, state: OverallState) -> Optional[ImageGenerationRequest]:
         """准备图像生成请求"""
         # 从梦境解读中提取信息
         if state.get("dream_interpretation"):

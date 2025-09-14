@@ -33,19 +33,16 @@ class ImageGenerationRequest(BaseModel):
     keywords: List[str] = Field(default_factory=list)
     
     
-class DreamAssistantState(TypedDict):
+class OverallState(TypedDict):
     """
-    梦境助手的全局状态，在 LangGraph 中流转
-    """
-    # 会话标识
-    chat_id: str
-    user_id: str
-    message_id: str
+    梦境助手的全局状态结构体
+    """     
+    user_id: str  # 用户ID
+    chat_id: str  # 聊天ID
+    message_id: str  # 消息ID
     
-    # 对话历史
-    messages: List[BaseMessage]
+    messages: List[BaseMessage]  # 对话历史
     
-    # 用户输入
     user_input: str
     user_images: List[str]  # 用户上传的图片URLs
     
@@ -79,5 +76,5 @@ class DreamAssistantState(TypedDict):
     # 临时工作空间
     workspace: Dict[str, Any]  # 各节点可以使用的临时存储空间
     
-    # 流式传输字段（简化版）
+    # 流式传输字段
     streaming_content: Optional[str]  # 当前正在流式传输的内容

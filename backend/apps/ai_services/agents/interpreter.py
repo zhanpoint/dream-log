@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import HumanMessage
 
-from ..graph.dream_assistant_state import DreamAssistantState, DreamInterpretation
+from ..graph.dream_assistant_state import OverallState, DreamInterpretation
 from ..config import get_dream_interpretation_llm
 from ..prompts.dream_assistant_prompts import prompt_manager
 
@@ -21,7 +21,7 @@ class DreamInterpreter:
         self.llm = get_dream_interpretation_llm()
         self.parser = PydanticOutputParser(pydantic_object=DreamInterpretation)
         
-    async def __call__(self, state: DreamAssistantState, config=None) -> Dict[str, Any]:
+    async def __call__(self, state: OverallState, config=None) -> Dict[str, Any]:
         """解读梦境的主逻辑 - 支持真正的流式输出"""
         logger.info("心理解读师开始流式解读梦境")
         
@@ -67,7 +67,7 @@ class DreamInterpreter:
             state["next_node"] = "response_generator"
             return state
     
-    def _extract_dream_content(self, state: DreamAssistantState) -> Optional[str]:
+    def _extract_dream_content(self, state: OverallState) -> Optional[str]:
         """从状态中提取梦境内容"""
         # 首先检查当前输入
         current_input = state.get("user_input", "")
@@ -91,7 +91,7 @@ class DreamInterpreter:
         
         return None
     
-    def _build_context(self, state: DreamAssistantState) -> str:
+    def _build_context(self, state: OverallState) -> str:
         """构建相关上下文，整合记忆信息"""
         context_parts = []
         

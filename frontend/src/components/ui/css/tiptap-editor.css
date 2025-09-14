@@ -328,23 +328,22 @@
 }
 
 /* ===== 图片样式 & 尺寸调整功能样式 ===== */
-.tiptap-image-resizable {
-    max-width: 100%;
-    /* 确保图片不会超出编辑器宽度 */
+/* 统一图片的默认表现，避免 wrapper 与图片宽度不一致导致的选区错位与缩放跳变 */
+.tiptap-content img {
+    display: inline-block;
     height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.tiptap-image-resizable {
+    /* 交互与视觉样式（尺寸约束已由上面的通用规则统一） */
     border-radius: 8px;
     border: 2px solid rgba(147, 51, 234, 0.2);
     transition: all 0.2s ease-in-out;
-    display: block;
-    /* 确保 max-width 生效 */
-    margin-left: auto;
-    margin-right: auto;
 }
 
-/* 编辑器中未调整大小的图片的默认样式 */
-.tiptap-content img:not([style*="width"]) {
-    max-width: 600px;
-}
+/* 移除旧的 600px 默认限制，改为随容器自适应 */
 
 .tiptap-image-resizable:hover {
     border-color: rgba(147, 51, 234, 0.5);
@@ -355,8 +354,27 @@
 .image-resize-wrapper {
     position: relative;
     display: inline-block;
+    /* 关键：让包装器严格按内容收缩 */
+    max-width: 100%;
+    /* 防止包装器宽度超过编辑器，确保与图片保持一致 */
     line-height: 0;
     /* 移除图片下方的额外空间 */
+    /* 新增：使其能够应用文本对齐 */
+    font-size: 0;
+}
+
+/* 移除强制居中，现在对齐将由编辑器工具栏控制 */
+/* .tiptap-content p:has(.image-resize-wrapper) {
+    display: flex;
+    justify-content: center;
+} */
+
+/* 确保包装器内的图片正确显示并处理边框 */
+.image-resize-wrapper .tiptap-image-resizable {
+    margin: 0;
+    /* 覆盖 .tiptap-content img 的居中外边距 */
+    box-sizing: border-box;
+    /* 关键：让边框包含在元素尺寸内 */
 }
 
 /* 拖拽手柄的样式 */

@@ -3,7 +3,7 @@
 """
 import logging
 from typing import Dict, Any
-from ..graph.dream_assistant_state import DreamAssistantState
+from ..graph.dream_assistant_state import OverallState
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ResponseGenerator:
     """响应生成器 - 负责整合各节点的输出并生成最终响应（支持流式输出）"""
     
-    def __call__(self, state: DreamAssistantState) -> Dict[str, Any]:
+    def __call__(self, state: OverallState) -> Dict[str, Any]:
         """生成最终响应"""
         logger.info("开始生成最终响应")
         
@@ -58,12 +58,15 @@ class ResponseGenerator:
                         )
                     elif intent.intent_type == "casual_chat":
                         # 引导用户回到梦境话题
+                        # response_parts.append(
+                        #     "我是专门为梦境解读而设计的AI助手。我可以帮助您：\n\n"
+                        #     "🌙 **解读梦境** - 描述您的梦境，我会从心理学、象征学等多个维度为您解读\n"
+                        #     "📚 **梦境知识** - 回答关于睡眠科学、清醒梦技巧、梦境符号等问题\n"
+                        #     "🎨 **梦境图像** - 根据您的梦境描述生成相应的艺术图像\n\n"
+                        #     "请告诉我您想了解梦境的哪个方面？梦境助手"
+                        # )
                         response_parts.append(
-                            "我是专门为梦境解读而设计的AI助手。我可以帮助您：\n\n"
-                            "🌙 **解读梦境** - 描述您的梦境，我会从心理学、象征学等多个维度为您解读\n"
-                            "📚 **梦境知识** - 回答关于睡眠科学、清醒梦技巧、梦境符号等问题\n"
-                            "🎨 **梦境图像** - 根据您的梦境描述生成相应的艺术图像\n\n"
-                            "请告诉我您想了解梦境的哪个方面？"
+                            "梦境助手重构开发中，请耐心等待。"
                         )
                     else:
                         response_parts.append("我理解您的问题。请问还有什么梦境相关的内容我可以帮助您的吗？")

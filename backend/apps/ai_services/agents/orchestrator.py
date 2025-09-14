@@ -7,7 +7,7 @@ from typing import Dict, Any
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import HumanMessage
 
-from ..graph.dream_assistant_state import DreamAssistantState, UserIntent
+from ..graph.dream_assistant_state import OverallState, UserIntent
 from ..config import get_intent_analysis_llm
 from ..prompts.dream_assistant_prompts import prompt_manager
 
@@ -21,7 +21,7 @@ class DreamAssistantOrchestrator:
         self.llm = get_intent_analysis_llm()
         self.parser = PydanticOutputParser(pydantic_object=UserIntent)
     
-    def analyze_intent(self, state: DreamAssistantState) -> UserIntent:
+    def analyze_intent(self, state: OverallState) -> UserIntent:
         """分析用户意图"""
         try:
             # 构建对话历史字符串
@@ -55,7 +55,7 @@ class DreamAssistantOrchestrator:
                 context="意图分析失败，使用默认处理"
             )
     
-    def __call__(self, state: DreamAssistantState) -> Dict[str, Any]:
+    def __call__(self, state: OverallState) -> Dict[str, Any]:
         """Orchestrator 节点的主要逻辑"""
         logger.info(f"Orchestrator 开始处理，用户输入: {state['user_input'][:100]}...")
         
@@ -87,7 +87,7 @@ class DreamAssistantOrchestrator:
         
         return state
     
-    def _decide_next_node(self, intent: UserIntent, state: DreamAssistantState) -> str:
+    def _decide_next_node(self, intent: UserIntent, state: OverallState) -> str:
         """根据意图决定下一个节点"""
         # 检查迭代次数，防止无限循环
         if state["iteration_count"] >= state["max_iterations"]:
