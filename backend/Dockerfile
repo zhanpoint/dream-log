@@ -60,7 +60,9 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 # 拷贝应用代码
-COPY --chown=appuser:appuser ./apps ./config ./manage.py /app/
+COPY --chown=appuser:appuser ./apps /app/apps
+COPY --chown=appuser:appuser ./config /app/config
+COPY --chown=appuser:appuser ./manage.py /app/
 # 单独拷贝启动脚本并赋予可执行权限
 COPY --chown=appuser:appuser --chmod=0755 ./scripts/start.sh /app/scripts/start.sh
 
