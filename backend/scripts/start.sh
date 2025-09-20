@@ -8,7 +8,7 @@ set -e
 
 # --- 数据库就绪检查 ---
 echo "等待数据库就绪..."
-python manage.py wait_for_db --timeout=5
+python manage.py wait_for_db --timeout=15
 
 # --- 数据库和应用初始化 ---
 python manage.py migrate --noinput
