@@ -45,7 +45,7 @@ def load_environment_variables() -> None:
         project_root = current_file.parent.parent
     else:
         # 生产环境：/app/.env (Docker 容器中的工作目录)
-        project_root = current_file.parent.parent
+        project_root = current_file.parent.parent.parent
     
     env_path = project_root / '.env'
     
