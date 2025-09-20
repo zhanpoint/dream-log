@@ -1,5 +1,5 @@
 # 基础镜像
-FROM python:3.13-slim as builder
+FROM python:3.13-slim AS builder
 
 # 安装系统依赖
 RUN apt-get update && \
@@ -24,8 +24,8 @@ WORKDIR /app
 # 复制依赖文件
 COPY pyproject.toml uv.lock .
 
-# 安装 uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -y
+# 安装 uv（
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 使用 uv sync 进行可重复构建，只安装运行时依赖
 RUN --mount=type=cache,target=/root/.cache/uv \
