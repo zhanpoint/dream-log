@@ -24,7 +24,7 @@ WORKDIR /app
 # 复制依赖文件
 COPY pyproject.toml uv.lock .
 
-# 安装 uv（
+# 安装 uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 使用 uv sync 进行可重复构建，只安装运行时依赖
@@ -59,14 +59,13 @@ WORKDIR /app
 # 从构建器阶段拷贝虚拟环境
 COPY --from=builder /app/.venv /app/.venv
 
-# 拷贝应用代码并设置权限（单层优化）
-COPY --chown=appuser:appuser ./scripts ./apps ./config ./manage.py /app/
+# 拷贝应用代码
+COPY --chown=appuser:appuser ./apps ./config ./manage.py /app/
+# 单独拷贝启动脚本并赋予可执行权限
+COPY --chown=appuser:appuser --chmod=0755 ./scripts/start.sh /app/scripts/start.sh
 
-# 创建运行时目录并处理启动脚本
-RUN mkdir -p /app/logs /app/media && \
-    dos2unix /app/scripts/start.sh && \
-    chmod +x /app/scripts/start.sh && \
-    chown -R appuser:appuser /app
+# 处理启动脚本
+RUN dos2unix /app/scripts/start.sh
 
 # 切换到非 root 用户
 USER appuser
