@@ -60,9 +60,9 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 # 拷贝应用代码
-COPY --chown=appuser:appuser ./apps ./config ./manage.py /app/
-# 单独拷贝启动脚本并赋予可执行权限
-COPY --chown=appuser:appuser --chmod=0755 ./scripts/start.sh /app/scripts/start.sh
+COPY --chown=appuser:appuser ./apps ./config ./scripts ./manage.py /app/
+# 确保启动脚本有可执行权限
+RUN chmod +x /app/scripts/start.sh
 
 # 处理启动脚本
 RUN dos2unix /app/scripts/start.sh
