@@ -16,7 +16,8 @@ import os
 from langchain_core.documents import Document
 from firecrawl import FirecrawlApp
 
-from ...config import FIRECRAWL_API_KEY, PROXY_URL
+from ...config import PROXY_URL
+from config.env_loader import env
 from ..quality_assessment import UnifiedQualityEvaluator
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,10 @@ class FireCrawlContentExtractor:
         self.quality_evaluator = UnifiedQualityEvaluator()
 
         # 初始化 Firecrawl 客户端（新版 SDK）
-        self.firecrawl_app = FirecrawlApp(api_key=FIRECRAWL_API_KEY)
+        firecrawl_api_key = env('FIRECRAWL_API_KEY', default='')
+        if not firecrawl_api_key:
+            raise ValueError("FIRECRAWL_API_KEY is required")
+        self.firecrawl_app = FirecrawlApp(api_key=firecrawl_api_key)
         
     def _ensure_executor_is_active(self):
         """确保线程池执行器是活跃的，如果已关闭则重新创建"""

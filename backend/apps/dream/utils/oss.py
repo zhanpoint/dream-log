@@ -4,29 +4,29 @@ from aliyunsdksts.request.v20150401 import AssumeRoleRequest
 import json
 import time
 import uuid
-from config.env_config import ALIYUN_CONFIG
+from config.env_manager import settings
 import re
 from urllib.parse import urlparse, unquote, quote
 import os
 
 
 class OSS:
-    SHARED_BUCKET_NAME = 'dreamlog-shared'
     
     def __init__(self, user_id):
         if not user_id:
             raise ValueError("用户ID不能为空")
                 
         self.user_id = str(user_id)
-        self.access_key_id = ALIYUN_CONFIG.get('access_key_id')
-        self.access_key_secret = ALIYUN_CONFIG.get('access_key_secret')
-        self.role_arn = ALIYUN_CONFIG.get('sts_role_oss_arn')
+        aliyun_config = settings.aliyun.settings
+        self.access_key_id = aliyun_config.get('access_key_id')
+        self.access_key_secret = aliyun_config.get('access_key_secret')
+        self.role_arn = aliyun_config.get('sts_role_oss_arn')
         
-        self.endpoint = str(ALIYUN_CONFIG.get('oss_endpoint')).strip()
+        self.endpoint = str(aliyun_config.get('oss_endpoint')).strip()
         if not self.endpoint.startswith(('http://', 'https://')):
             self.endpoint = f'https://{self.endpoint}'
                 
-        self.bucket_name = self.SHARED_BUCKET_NAME
+        self.bucket_name = aliyun_config.get('oss_shared_bucket_name')
         self.user_prefix = f'users/{self.user_id}/'
         self.auth = oss2.Auth(self.access_key_id, self.access_key_secret)
     

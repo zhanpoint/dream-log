@@ -2,22 +2,27 @@
 开发环境配置
 """
 from .base import *
-from ..env_config import (
-    DEBUG,
-)
-
-# 开发环境需要添加 CORS 支持
-INSTALLED_APPS = INSTALLED_APPS + [
-    'corsheaders',  # 仅开发环境需要跨域支持
-]
-
-# 开发环境中间件 - 添加 CORS 中间件
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # 必须放在最前面
-] + MIDDLEWARE
+from ..env_manager import settings
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG
+DEBUG = settings.debug
+
+# Django Debug Toolbar 设置
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+# 开发环境需要添加 CORS 和 Django Debug Toolbar 支持
+INSTALLED_APPS = INSTALLED_APPS + [
+    'corsheaders',  # 仅开发环境需要跨域支持
+    'debug_toolbar',
+]
+
+# 开发环境中间件 - 添加 CORS 和 Debug Toolbar 中间件
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # 必须放在最前面
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+] + MIDDLEWARE
 
 # 开发环境CORS配置 - 仅开发环境需要处理跨域问题
 CORS_ALLOWED_ORIGINS = [
@@ -35,7 +40,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 CORS_ALLOW_HEADERS = [
-    'authorization',    # JWT Token 认证头 - 这是关键配置
+    'authorization',    # JWT Token 认证头
     'content-type',     # JSON 请求必需
 ]
 

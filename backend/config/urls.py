@@ -16,21 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.schemas import get_schema_view
-from django.conf import settings
-from django.conf.urls.static import static
-
-# API文档设置
-schema_view = get_schema_view(
-    title="DreamLog API",
-    description="API Documentation for DreamLog Application",
-    version="1.0.0"
-)
+from django.conf import setting
 
 urlpatterns = [
-    # django自带的admin管理后台
-    path('admin/', admin.site.urls),
-
     # API主路由 - 将所有应用的API路由统一整合到 /api/ 前缀下
     path('api/', include([
         path('', include('apps.user.urls')),
@@ -38,15 +26,9 @@ urlpatterns = [
         path('ai/', include('apps.ai_services.urls')),  # AI服务使用 /ai/ 前缀
         path('system/', include('apps.core.urls')),  # 系统核心功能使用 /system/ 前缀
     ])),
-
-    # API文档路径
-    path('api/schema/', schema_view, name='api_schema'),
-
-    # API认证路由
-    path('api-auth/', include('rest_framework.urls')),  # DRF登录/登出视图
 ]
 
-# 仅在开发模式下提供静态和媒体文件
+# Django Debug Toolbar URL (only in DEBUG mode)
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    import debug_toolbar
+    urlpatterns.insert(0, path('__debug__/', include(debug_toolbar.urls)))

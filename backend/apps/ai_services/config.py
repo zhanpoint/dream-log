@@ -3,7 +3,7 @@ import logging
 from typing import Dict, Optional
 from dataclasses import dataclass
 from enum import Enum
-from decouple import config
+from config.env_loader import env
 from langchain_openai import ChatOpenAI
 
 logger = logging.getLogger(__name__)
@@ -35,40 +35,25 @@ class LLMConfig:
     response_format: Optional[Dict] = None  # JSON格式控制参数
 
 # OpenRouter
-OPENROUTER_API_KEY = config('OPENROUTER_API_KEY', default='', cast=str)
-OPENROUTER_MODELS = config('OPENROUTER_MODELS', default='google/gemini-2.5-flash-lite', cast=str)
+OPENROUTER_API_KEY = env('OPENROUTER_API_KEY', default='')
+OPENROUTER_MODELS = env('OPENROUTER_MODELS', default='google/gemini-2.5-flash-lite')
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
-# 嵌入模型
-EMBEDDING_MODEL=config('EMBEDDING_MODEL', default='voyage-3.5-lite', cast=str)
-
-# Google API 配置
-GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='', cast=str)
-
-# Tavily搜索API配置
-TAVILY_API_KEY = config('TAVILY_API_KEY', default='', cast=str)
-
-# Firecrawl API配置  
-FIRECRAWL_API_KEY = config('FIRECRAWL_API_KEY', default='', cast=str)
-
-# VoyageAI API配置（用于重排序）
-VOYAGE_API_KEY = config('VOYAGE_API_KEY', default='', cast=str)
+# 代理设置
+PROXY_URL = env('PROXY_URL', default='')
 
 # RAG功能开关
-RAG_ENABLED = config('RAG_ENABLED', default=True, cast=bool)
+RAG_ENABLED = env.bool('RAG_ENABLED', default=True)
 
 # ChromaDB Cloud配置
-CHROMA_CLOUD_API_KEY = config('CHROMA_CLOUD_API_KEY', default='', cast=str)
-CHROMA_COLLECTION_NAME = config('CHROMA_COLLECTION_NAME', default='dream_knowledge_base', cast=str)
-CHROMA_TENANT = config('CHROMA_TENANT', default='', cast=str)
-CHROMA_DATABASE = config('CHROMA_DATABASE', default='dream_knowledge_base', cast=str)
+CHROMA_CLOUD_API_KEY = env('CHROMA_CLOUD_API_KEY', default='')
+CHROMA_COLLECTION_NAME = env('CHROMA_COLLECTION_NAME', default='dream_knowledge_base')
+CHROMA_TENANT = env('CHROMA_TENANT', default='')
+CHROMA_DATABASE = env('CHROMA_DATABASE', default='dream_knowledge_base')
 
 # 知识库持久化URL列表文件
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 PROCESSED_URLS_FILE_PATH = os.path.join(_current_dir, 'knowledge_base', 'data', 'processed_urls.json')
-
-# 代理配置
-PROXY_URL = config('PROXY_URL', default=None)
 
 def _apply_proxy_settings() -> None:
 	"""以不覆盖既有环境变量的方式注入代理配置。
@@ -77,12 +62,15 @@ def _apply_proxy_settings() -> None:
 	if 'HTTP_PROXY' in os.environ or 'HTTPS_PROXY' in os.environ:
 		# 外部已提供，保持不变
 		return
-	if not PROXY_URL:
+	
+	proxy_url = env('PROXY_URL', default=None)
+	if not proxy_url:
 		return
-	os.environ.setdefault('HTTP_PROXY', PROXY_URL)
-	os.environ.setdefault('HTTPS_PROXY', PROXY_URL)
-	os.environ.setdefault('http_proxy', PROXY_URL)
-	os.environ.setdefault('https_proxy', PROXY_URL)
+		
+	os.environ.setdefault('HTTP_PROXY', proxy_url)
+	os.environ.setdefault('HTTPS_PROXY', proxy_url)
+	os.environ.setdefault('http_proxy', proxy_url)
+	os.environ.setdefault('https_proxy', proxy_url)
 	os.environ.setdefault('NO_PROXY', 'localhost,127.0.0.1,::1')
 
 

@@ -1,6 +1,7 @@
 """
-Django Channels JWT 认证中间件
-用于WebSocket连接的JWT Token验证
+WebSocket 使用自定义的 JWTAuthMiddleware
+通过查询参数 ?token=<jwt_token> 传递
+WebSocket 无法使用标准的 HTTP 认证头
 """
 import logging
 from urllib.parse import parse_qs

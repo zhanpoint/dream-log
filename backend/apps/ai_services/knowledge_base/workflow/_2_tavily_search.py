@@ -16,7 +16,8 @@ import httpx
 
 from langchain_tavily import TavilySearch
 
-from ...config import TAVILY_API_KEY, PROCESSED_URLS_FILE_PATH, PROXY_URL
+from ...config import PROCESSED_URLS_FILE_PATH, PROXY_URL
+from config.env_loader import env
 from ..quality_assessment import UnifiedQualityEvaluator
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,8 @@ class TavilyDreamSearcher:
         Args:
             max_workers: 最大并发搜索数
         """
-        if not TAVILY_API_KEY:
+        tavily_api_key = env('TAVILY_API_KEY', default='')
+        if not tavily_api_key:
             raise ValueError("TAVILY_API_KEY is required")
         
         # V3.4 - 代理配置
@@ -127,7 +129,7 @@ class TavilyDreamSearcher:
         
         # API配置 - 遵循Tavily最佳实践
         self.search_tool = TavilySearch(
-            api_key=TAVILY_API_KEY,
+            api_key=tavily_api_key,
             max_results=5,  # 适中的结果数量，平衡质量和多样性
             search_depth="advanced",  # 高级搜索获得更好的内容质量
             include_answer=False,  # 确保返回搜索结果列表

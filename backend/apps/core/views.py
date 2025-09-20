@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from config.env_config import FEATURE_FLAGS
+from config.env_manager import settings
 from .serializers import ContactSerializer, FeedbackSerializer
 from .tasks import send_contact_email_task
 import logging
@@ -27,9 +27,10 @@ class FeatureFlagsAPIView(APIView):
         """
         try:
             # 只返回前端需要的功能开关
+            feature_flags = settings.features.settings
             frontend_flags = {
-                'SMS_SERVICE_ENABLED': FEATURE_FLAGS.get('SMS_SERVICE_ENABLED', False),
-                'EMAIL_SERVICE_ENABLED': FEATURE_FLAGS.get('EMAIL_SERVICE_ENABLED', True),
+                'SMS_SERVICE_ENABLED': feature_flags.get('SMS_SERVICE_ENABLED', False),
+                'EMAIL_SERVICE_ENABLED': feature_flags.get('EMAIL_SERVICE_ENABLED', True),
                 'PASSWORD_LOGIN_ENABLED': True,  # 密码登录始终启用
             }
             

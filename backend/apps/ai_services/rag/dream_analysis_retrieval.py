@@ -9,7 +9,7 @@ from typing import List, Optional
 from langchain_core.documents import Document
 from langchain_voyageai import VoyageAIRerank
 
-from ..config import VOYAGE_API_KEY
+from config.env_loader import env
 from ..knowledge_base.workflow._6_vectorstore import get_vectorstore
 
 logger = logging.getLogger(__name__)
@@ -45,12 +45,13 @@ class DreamAnalysisRAGRetriever:
     
     def _initialize_reranker(self) -> Optional[VoyageAIRerank]:
         """初始化VoyageAI重排序器"""
-        if not VOYAGE_API_KEY:
+        voyage_api_key = env('VOYAGE_API_KEY', default='')
+        if not voyage_api_key:
             return None
             
         try:
             return VoyageAIRerank(
-                voyageai_api_key=VOYAGE_API_KEY,
+                voyageai_api_key=voyage_api_key,
                 model='rerank-2.5-lite',
                 top_k=self.top_n_final
             )

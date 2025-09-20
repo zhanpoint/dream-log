@@ -5,11 +5,12 @@
 import logging
 import base64
 from typing import Dict, Any, Optional
-from google import genai
+from google.ai import generativelanguage as genai
 from langchain_core.messages import HumanMessage
 
 from ..graph.dream_assistant_state import OverallState, ImageGenerationRequest
-from ..config import get_image_prompt_llm, GOOGLE_API_KEY
+from ..config import get_image_prompt_llm
+from config.env_loader import env
 from ..prompts.dream_assistant_prompts import prompt_manager
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,10 @@ class DreamVisualizer:
     def __init__(self):
         self.llm = get_image_prompt_llm()
         # 初始化 Gemini 客户端
-        self.client = genai.Client(api_key=GOOGLE_API_KEY)
+        google_api_key = env('GOOGLE_API_KEY', default='')
+        if not google_api_key:
+            raise ValueError("GOOGLE_API_KEY is required for image generation")
+        self.client = genai.Client(api_key=google_api_key)
     
     def __call__(self, state: OverallState) -> Dict[str, Any]:
         """生成梦境图像""" 

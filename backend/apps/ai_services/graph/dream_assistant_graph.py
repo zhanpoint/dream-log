@@ -7,7 +7,7 @@ import uuid
 from typing import Dict, Any, List, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import BaseMessage, HumanMessage
-from decouple import config
+from config.env_loader import env
 
 from ..graph.dream_assistant_state import OverallState
 from ..agents.orchestrator import DreamAssistantOrchestrator
@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 def get_langgraph_db_url():
     """构建LangGraph专用的数据库连接URL"""
     return (
-        f"postgresql://{config('LANGGRAPH_DB_USER', default='postgres')}:"
-        f"{config('LANGGRAPH_DB_PASSWORD', default='password')}@"
-        f"{config('LANGGRAPH_DB_HOST', default='localhost')}:"
-        f"{config('LANGGRAPH_DB_PORT', default='5432')}/"
-        f"{config('LANGGRAPH_DB_NAME', default='langgraph_db')}"
+        f"postgresql://{env('LANGGRAPH_DB_USER', default='postgres')}:"
+        f"{env('LANGGRAPH_DB_PASSWORD', default='password')}@"
+        f"{env('LANGGRAPH_DB_HOST', default='localhost')}:"
+        f"{env('LANGGRAPH_DB_PORT', default='5432')}/"
+        f"{env('LANGGRAPH_DB_NAME', default='langgraph_db')}"
     )
 
 

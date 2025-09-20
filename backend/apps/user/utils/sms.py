@@ -6,7 +6,7 @@ from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.auth.credentials import StsTokenCredential
 from aliyunsdkcore.request import CommonRequest
 from aliyunsdksts.request.v20150401.AssumeRoleRequest import AssumeRoleRequest
-from config.env_config import ALIYUN_CONFIG
+from config.env_manager import settings
 from django.core.cache import cache
 from datetime import datetime
 from dateutil import parser
@@ -20,10 +20,11 @@ class SMSService:
 
     def __init__(self):
         # 从Django配置中读取阿里云访问凭证
-        self.access_key_id = ALIYUN_CONFIG.get('access_key_id')
-        self.access_key_secret = ALIYUN_CONFIG.get('access_key_secret')
-        self.sts_role_arn = ALIYUN_CONFIG.get('sts_role_sms_arn')
-        self.region_id = ALIYUN_CONFIG.get('region_id', 'cn-wuhan-lr')
+        aliyun_config = settings.aliyun.settings
+        self.access_key_id = aliyun_config.get('access_key_id')
+        self.access_key_secret = aliyun_config.get('access_key_secret')
+        self.sts_role_arn = aliyun_config.get('sts_role_sms_arn')
+        self.endpoint = aliyun_config.get('endpoint')
         # 缓存键名
         self.cache_key = 'aliyun_sts_credentials'  # 应该根据session ID来确定缓存键
         # 设置提前刷新阈值(秒)，凭证过期前5分钟就刷新
@@ -85,7 +86,7 @@ class SMSService:
             if remaining_seconds > self.refresh_threshold:
                 return cached_credentials
 
-        client = AcsClient(self.access_key_id, self.access_key_secret, self.region_id)
+        client = AcsClient(self.access_key_id, self.access_key_secret, self.endpoint)
 
         request = AssumeRoleRequest()
         request.set_accept_format('json')
@@ -124,7 +125,7 @@ class SMSService:
                 sts_credentials['security_token']
             )
 
-            client = AcsClient(region_id=self.region_id, credential=credentials)
+            client = AcsClient(endpoint=self.endpoint, credential=credentials)
 
             request = CommonRequest()
             request.set_accept_format('json')
@@ -135,7 +136,7 @@ class SMSService:
             request.set_action_name('SendSms')
 
             request.add_query_param('PhoneNumbers', phone_numbers)
-            request.add_query_param('SignName', ALIYUN_CONFIG.get('sms_sign_name'))
+            request.add_query_param('SignName', settings.aliyun.settings.get('sms_sign_name'))
             request.add_query_param('TemplateCode', template_code)
 
             if template_param:
@@ -168,10 +169,11 @@ class SMSService:
             logging.error(f"无法将短信验证码存储到Redis，手机号: {phone}")
             return False
 
+        aliyun_config = settings.aliyun.settings
         template_map = {
-            'register': ALIYUN_CONFIG.get('sms_template_code_register'),
-            'login': ALIYUN_CONFIG.get('sms_template_code_login'),
-            'reset_password': ALIYUN_CONFIG.get('sms_template_code_resetpassword')
+            'register': aliyun_config.get('sms_template_code_register'),
+            'login': aliyun_config.get('sms_template_code_login'),
+            'reset_password': aliyun_config.get('sms_template_code_resetpassword')
         }
         
         template_code = template_map.get(scene, template_map['register'])

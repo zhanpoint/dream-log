@@ -14,10 +14,10 @@ from langchain_core.documents import Document
 
 
 from ...config import (
-    VOYAGE_API_KEY,
     CHROMA_CLOUD_API_KEY,
-    CHROMA_COLLECTION_NAME, CHROMA_TENANT, CHROMA_DATABASE, EMBEDDING_MODEL
+    CHROMA_COLLECTION_NAME, CHROMA_TENANT, CHROMA_DATABASE
 )
+from config.env_loader import env
 
 logger = logging.getLogger(__name__)
 
@@ -78,9 +78,14 @@ class OptimizedDreamVectorStore:
     def __init__(self):
         """初始化优化的向量存储"""
         # 初始化组件
+        embedding_model = env('EMBEDDING_MODEL', default='voyage-3.5-lite')
+        voyage_api_key = env('VOYAGE_API_KEY', default='')
+        if not voyage_api_key:
+            raise ValueError("VOYAGE_API_KEY is required")
+        
         self.embeddings = VoyageAIEmbeddings(
-            model=EMBEDDING_MODEL,
-            voyage_api_key=VOYAGE_API_KEY,
+            model=embedding_model,
+            voyage_api_key=voyage_api_key,
         )
         self.vectorstore: Optional[Chroma] = None
         

@@ -1,43 +1,44 @@
-# syntax=docker/dockerfile:1
+# 基础镜像
+FROM python:3.13-slim as builder
 
-# ---- Builder Stage ----
-FROM python:3.9-slim as builder
-
-# 安装系统依赖和构建工具
+# 安装系统依赖
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libmariadb-dev \
     libpq-dev \
     pkg-config \
+    curl \
+    ca-certificates \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 设置环境变量
+# 设置环境变量(将 /root/.local/bin 添加到 PATH，方便使用 uv)
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PATH=/root/.local/bin:$PATH
 
+# 设置工作目录
 WORKDIR /app
 
-# 优化依赖安装，充分利用Docker缓存
-COPY requirements_deploy.txt .
+# 复制依赖文件
+COPY pyproject.toml uv.lock .
 
-# 创建虚拟环境并安装依赖
-RUN python -m venv /opt/venv
-# BuildKit 功能，挂载一个持久缓存目录 /root/.cache/pip，pip 会缓存已下载的包，下一次构建镜像时可以复用，不用重新下载，加快构建速度。
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/venv/bin/pip install --no-cache-dir \
-    -r requirements_deploy.txt
+# 安装 uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -y
+
+# 使用 uv sync 进行可重复构建，只安装运行时依赖
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
 
 # ---- Production Stage ----
-FROM python:3.9-slim AS production
+FROM python:3.13-slim AS production
 
-# 创建应用用户
+# 创建非特权用户 appuser，遵循安全最佳实践
 RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
 
-# 安装运行时依赖
+# 安装运行时必需的库，不包含开发工具
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     dos2unix \
@@ -49,32 +50,23 @@ RUN apt-get update && \
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # 使用虚拟环境的 Python 和工具
-    PATH=/opt/venv/bin:$PATH \
-    # 设置项目根目录到 Python 路径，虚拟环境自动处理第三方库
+    PATH="/app/.venv/bin:$PATH" \
     PYTHONPATH=/app \
     DJANGO_SETTINGS_MODULE=config.settings.prod
 
 WORKDIR /app
 
 # 从构建器阶段拷贝虚拟环境
-COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app/.venv /app/.venv
 
-# 创建必要的目录
-RUN mkdir -p /app/scripts /app/logs /app/media && \
+# 拷贝应用代码并设置权限（单层优化）
+COPY --chown=appuser:appuser ./scripts ./apps ./config ./manage.py /app/
+
+# 创建运行时目录并处理启动脚本
+RUN mkdir -p /app/logs /app/media && \
+    dos2unix /app/scripts/start.sh && \
+    chmod +x /app/scripts/start.sh && \
     chown -R appuser:appuser /app
-
-# 拷贝启动脚本并设置权限
-COPY --chown=appuser:appuser ./scripts/start.sh /app/scripts/start.sh
-
-# 拷贝应用代码
-COPY --chown=appuser:appuser ./apps /app/apps
-COPY --chown=appuser:appuser ./config /app/config
-COPY --chown=appuser:appuser ./manage.py /app/manage.py
-
-# 修复脚本行尾符并设置权限
-RUN dos2unix /app/scripts/start.sh && \
-    chmod +x /app/scripts/start.sh
 
 # 切换到非 root 用户
 USER appuser

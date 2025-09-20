@@ -6,7 +6,7 @@ from django.core.cache import cache
 from apps.user.models import User
 from apps.user.utils.sms import SMSService
 from apps.user.utils.email import EmailService
-from config.env_config import FEATURE_FLAGS
+from config.env_manager import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class VerificationService:
             tuple: (success: bool, error: str, wait_time: int)
         """
         # 检查短信服务是否启用
-        if not FEATURE_FLAGS.get('SMS_SERVICE_ENABLED'):
+        if not settings.features.settings.get('SMS_SERVICE_ENABLED'):
             return False, "短信服务暂时不可用，请使用邮箱验证码", 0
         
         # 检查用户存在性

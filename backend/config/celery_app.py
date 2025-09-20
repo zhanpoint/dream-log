@@ -65,28 +65,6 @@ app.conf.task_routes = {
     'apps.core.tasks.email_tasks.*': {'queue': 'io_queue'},
     'apps.dream.tasks.image_cleanup_tasks.schedule_image_deletion': {'queue': 'io_queue'},
     'apps.ai_services.tasks.dream_analysis_tasks.*': {'queue': 'io_queue'},
-    
-    # 推送通知任务 - 消息推送、通知发送
-    # 'apps.*.tasks.*push*': {'queue': 'push_queue'},
-    # 'apps.*.tasks.*notification*': {'queue': 'push_queue'},
-    
-    # # 社区互动任务 - 评论、点赞、关注
-    # 'apps.*.tasks.*comment*': {'queue': 'community_queue'},
-    # 'apps.*.tasks.*like*': {'queue': 'community_queue'},
-    # 'apps.*.tasks.*follow*': {'queue': 'community_queue'},
-    # 'apps.*.tasks.*community*': {'queue': 'community_queue'},
-    
-    # 支付处理任务 - 支付回调、账单处理
-    # 'apps.*.tasks.*payment*': {'queue': 'payment_queue'},
-    # 'apps.*.tasks.*billing*': {'queue': 'payment_queue'},
-    # 'apps.*.tasks.*order*': {'queue': 'payment_queue'},
-    
-    # 长耗时任务 - 知识库构建
-    # 'apps.ai_services.tasks.knowledge_base_tasks.*': {'queue': 'long_tasks_queue'},
-    
-    # 维护清理任务 - 定期清理
-    # 'apps.dream.tasks.image_cleanup_tasks.cleanup_*': {'queue': 'maintenance_queue'},
-    # 'apps.dream.tasks.token_tasks.cleanup_*': {'queue': 'maintenance_queue'},
 }
 
 

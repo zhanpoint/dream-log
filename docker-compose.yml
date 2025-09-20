@@ -65,7 +65,6 @@ services:
     container_name: dream_log_backend_daphne
     command: /app/scripts/start.sh
     volumes:
-      - media_volume:/app/media
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
@@ -112,137 +111,6 @@ services:
     networks:
       - dream-log-net
 
-  # 6b. 支付处理Worker (高稳定性要求)
-  # worker_payment:
-  #   image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
-  #   container_name: dream_log_worker_payment
-  #   command: celery -A config.celery_app worker -l warning -Q payment_queue -n payment_worker@%h --pool=prefork --concurrency=1
-  #   volumes:
-  #     - logs_volume:/app/logs
-  #   env_file: ./.env
-  #   environment:
-  #     - HTTP_PROXY=http://host.docker.internal:7897
-  #     - HTTPS_PROXY=http://host.docker.internal:7897
-  #     - NO_PROXY=localhost,127.0.0.1,::1,backend,db,postgres,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
-  #     - APP_ENV=prod
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     cache:
-  #       condition: service_started
-  #     broker:
-  #       condition: service_started
-  #   restart: on-failure
-  #   networks:
-  #     - dream-log-net
-
-  # # 6c. CPU密集型Worker (AI分析、图片处理)
-  # worker_cpu:
-  #   image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
-  #   container_name: dream_log_worker_cpu
-  #   command: celery -A config.celery_app worker -l warning -Q cpu_queue -n cpu_worker@%h --pool=prefork --concurrency=3
-  #   volumes:
-  #     - logs_volume:/app/logs
-  #   env_file: ./.env
-  #   environment:
-  #     - HTTP_PROXY=http://host.docker.internal:7897
-  #     - HTTPS_PROXY=http://host.docker.internal:7897
-  #     - NO_PROXY=localhost,127.0.0.1,::1,backend,db,postgres,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
-  #     - APP_ENV=prod
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     cache:
-  #       condition: service_started
-  #     broker:
-  #       condition: service_started
-  #   restart: on-failure
-  #   networks:
-  #     - dream-log-net
-
-  # # 6d. 长耗时任务Worker (知识库构建、大数据处理)
-  # worker_long_tasks:
-  #   image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
-  #   container_name: dream_log_worker_long_tasks
-  #   command: celery -A config.celery_app worker -l warning -Q long_tasks_queue -n long_tasks_worker@%h --pool=prefork --concurrency=1
-  #   volumes:
-  #     - logs_volume:/app/logs
-  #   env_file: ./.env
-  #   environment:
-  #     - HTTP_PROXY=http://host.docker.internal:7897
-  #     - HTTPS_PROXY=http://host.docker.internal:7897
-  #     - NO_PROXY=localhost,127.0.0.1,::1,backend,db,postgres,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
-  #     - APP_ENV=prod
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     cache:
-  #       condition: service_started
-  #     broker:
-  #       condition: service_started
-  #   restart: on-failure
-  #   networks:
-  #     - dream-log-net
-
-  # 6e. 维护清理Worker (定期清理、系统维护)
-  # worker_maintenance:
-  #   image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
-  #   container_name: dream_log_worker_maintenance
-  #   command: celery -A config.celery_app worker -l warning -Q maintenance_queue -n maintenance_worker@%h --pool=prefork --concurrency=1
-  #   volumes:
-  #     - logs_volume:/app/logs
-  #   env_file: ./.env
-  #   environment:
-  #     - HTTP_PROXY=http://host.docker.internal:7897
-  #     - HTTPS_PROXY=http://host.docker.internal:7897
-  #     - NO_PROXY=localhost,127.0.0.1,::1,backend,db,postgres,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
-  #     - APP_ENV=prod
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     cache:
-  #       condition: service_started
-  #     broker:
-  #       condition: service_started
-  #   restart: on-failure
-  #   networks:
-  #     - dream-log-net
-
-  # # 6f. 默认队列Worker (未分类的常规任务)
-  # worker_default:
-  #   image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
-  #   container_name: dream_log_worker_default
-  #   command: celery -A config.celery_app worker -l warning -Q default_queue -n default_worker@%h --pool=prefork --concurrency=1
-  #   volumes:
-  #     - logs_volume:/app/logs
-  #   env_file: ./.env
-  #   environment:
-  #     - HTTP_PROXY=http://host.docker.internal:7897
-  #     - HTTPS_PROXY=http://host.docker.internal:7897
-  #     - NO_PROXY=localhost,127.0.0.1,::1,backend,db,postgres,cache,broker,frontend-nginx,nginx,172.16.0.0/12,172.17.0.0/16,172.18.0.0/16,host.docker.internal
-  #     - APP_ENV=prod
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   depends_on:
-  #     backend:
-  #       condition: service_started
-  #     cache:
-  #       condition: service_started
-  #     broker:
-  #       condition: service_started
-  #   restart: on-failure
-  #   networks:
-  #     - dream-log-net
-
-
   # 6g. Celery Beat 定时任务调度器
   beat:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
@@ -278,8 +146,6 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      # 媒体文件卷挂载
-      - media_volume:/app/media:ro
       # SSL 证书挂载
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /var/www/certbot:/var/www/certbot:ro
@@ -294,7 +160,6 @@ services:
 volumes:
   mysql_data:
   postgres_data:
-  media_volume: 
   logs_volume: {}
 
 # 网络定义
