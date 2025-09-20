@@ -6,7 +6,7 @@ from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.auth.credentials import StsTokenCredential
 from aliyunsdkcore.request import CommonRequest
 from aliyunsdksts.request.v20150401.AssumeRoleRequest import AssumeRoleRequest
-from config.env_manager import settings
+from config.env_manager import env_manager
 from django.core.cache import cache
 from datetime import datetime
 from dateutil import parser
@@ -20,7 +20,7 @@ class SMSService:
 
     def __init__(self):
         # 从Django配置中读取阿里云访问凭证
-        aliyun_config = settings.aliyun.settings
+        aliyun_config = env_manager.aliyun.settings
         self.access_key_id = aliyun_config.get('access_key_id')
         self.access_key_secret = aliyun_config.get('access_key_secret')
         self.sts_role_arn = aliyun_config.get('sts_role_sms_arn')
@@ -136,7 +136,7 @@ class SMSService:
             request.set_action_name('SendSms')
 
             request.add_query_param('PhoneNumbers', phone_numbers)
-            request.add_query_param('SignName', settings.aliyun.settings.get('sms_sign_name'))
+            request.add_query_param('SignName', env_manager.aliyun.settings.get('sms_sign_name'))
             request.add_query_param('TemplateCode', template_code)
 
             if template_param:
@@ -169,7 +169,7 @@ class SMSService:
             logging.error(f"无法将短信验证码存储到Redis，手机号: {phone}")
             return False
 
-        aliyun_config = settings.aliyun.settings
+        aliyun_config = env_manager.aliyun.settings
         template_map = {
             'register': aliyun_config.get('sms_template_code_register'),
             'login': aliyun_config.get('sms_template_code_login'),

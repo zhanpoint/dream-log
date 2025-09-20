@@ -4,7 +4,7 @@ from aliyunsdksts.request.v20150401 import AssumeRoleRequest
 import json
 import time
 import uuid
-from config.env_manager import settings
+from config.env_manager import env_manager
 import re
 from urllib.parse import urlparse, unquote, quote
 import os
@@ -17,7 +17,7 @@ class OSS:
             raise ValueError("用户ID不能为空")
                 
         self.user_id = str(user_id)
-        aliyun_config = settings.aliyun.settings
+        aliyun_config = env_manager.aliyun.settings
         self.access_key_id = aliyun_config.get('access_key_id')
         self.access_key_secret = aliyun_config.get('access_key_secret')
         self.role_arn = aliyun_config.get('sts_role_oss_arn')

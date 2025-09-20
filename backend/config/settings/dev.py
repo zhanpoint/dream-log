@@ -2,10 +2,10 @@
 开发环境配置
 """
 from .base import *
-from ..env_manager import settings
+from ..env_manager import env_manager
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = settings.debug
+DEBUG = env_manager.debug
 
 # Django Debug Toolbar 设置
 INTERNAL_IPS = [

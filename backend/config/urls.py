@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import setting
+from django.conf import settings
 
 urlpatterns = [
     # API主路由 - 将所有应用的API路由统一整合到 /api/ 前缀下
