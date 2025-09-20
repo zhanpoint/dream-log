@@ -1,14 +1,13 @@
 #!/bin/sh
 
+# 切换到工作目录，确保后续命令在正确的上下文中执行
+cd /app || exit
+
 # 遇到任何错误则终止脚本
 set -e
 
-# 确保工作目录与 Python 搜索路径正确
-cd /app
-export PYTHONPATH=/app:${PYTHONPATH}
-export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.prod}
-
 # --- 数据库就绪检查 ---
+echo "等待数据库就绪..."
 python manage.py wait_for_db --timeout=5
 
 # --- 数据库和应用初始化 ---
