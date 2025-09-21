@@ -14,10 +14,10 @@ class DatabaseConfig:
     def default_database(self) -> Dict[str, Any]:
         return {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': env('DB_NAME', default='dream'),
-            'USER': env('DB_USER', default='root'),
-            'PASSWORD': env('DB_PASSWORD', default=''),
-            'HOST': env('DB_HOST', default='localhost'),
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
             'PORT': env('DB_PORT'),
             'OPTIONS': {
                 'charset': 'utf8mb4',
@@ -82,7 +82,7 @@ class RabbitMQConfig:
         return {
             'host': env('RABBITMQ_HOST'),
             'port': env('RABBITMQ_PORT'),
-            'user': env('RABBITMQ_DEFAULT_USER', default='guest'),
+            'user': env('RABBITMQ_DEFAULT_USER'),
             'password': env('RABBITMQ_DEFAULT_PASS'),
             'vhost': env('RABBITMQ_VHOST'),
         }

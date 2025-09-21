@@ -136,7 +136,7 @@ class OSS:
         try:
             cors_rule = oss2.models.CorsRule(
                 allowed_origins=['*'],
-                allowed_methods=['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+                allowed_methods=['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'OPTIONS'],
                 allowed_headers=['*'],
                 expose_headers=['ETag', 'x-oss-request-id'],
                 max_age_seconds=3600
@@ -151,6 +151,8 @@ class OSS:
         original_proxies = self._clear_proxy_env()
         
         try:
+            # 确保桶存在且已配置正确的 CORS（包含 OPTIONS）
+            self.ensure_bucket_exists()
             file_key = self.get_user_upload_path(filename, file_type)
             auth = oss2.Auth(self.access_key_id, self.access_key_secret)
             bucket = oss2.Bucket(auth, self.endpoint, self.bucket_name)
