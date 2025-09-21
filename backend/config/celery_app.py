@@ -4,9 +4,7 @@ import sys
 from celery import Celery
 from kombu import Exchange, Queue
 from celery.signals import task_prerun, task_postrun, worker_process_init
-
 from config.env_loader import load_environment_variables
-load_environment_variables()
 
 app = Celery('DreamLog')
 

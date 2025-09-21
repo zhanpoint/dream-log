@@ -56,6 +56,3 @@ def load_environment_variables() -> None:
 
 # 立即加载环境变量
 load_environment_variables()
-
-# 导出环境变量访问器，供其他模块使用
-__all__ = ['env']
