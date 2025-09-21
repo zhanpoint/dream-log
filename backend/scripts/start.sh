@@ -7,7 +7,7 @@ cd /app || exit
 set -e
 
 # --- 数据库就绪检查 ---      
-python manage.py wait_for_db --timeout=5
+python manage.py wait_for_db --timeout=30
 
 # --- 数据库和应用初始化 ---
 python manage.py migrate --noinput
