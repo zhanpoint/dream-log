@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -7,9 +6,8 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from '@/components/ui/tooltip';
-import { getInitials } from '@/lib/utils';
-import { getUserAvatarUrl, handleAvatarError } from '@/utils/avatar';
-import { useAuth } from '@/hooks/useAuth';
+import { getInitials, getUserAvatarUrl, handleAvatarError } from '@/utils/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const UserAvatar = () => {

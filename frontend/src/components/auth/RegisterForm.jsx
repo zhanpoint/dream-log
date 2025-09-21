@@ -12,9 +12,9 @@ import { emailService } from "@/services/notification/email";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import "./css/DreamTheme.css";
-import "./css/pc-responsive.css";
-import { useAuth } from "@/hooks/useAuth";
+import "@/styles/ui/DreamTheme.css";
+import "@/styles/ui/pc-responsive.css";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * 注册表单组件

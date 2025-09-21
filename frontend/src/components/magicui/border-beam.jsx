@@ -1,5 +1,5 @@
 "use client";;
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { motion } from "motion/react";
 
 export const BorderBeam = ({

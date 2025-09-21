@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useWebSocket = (url) => {
     const [connectionState, setConnectionState] = useState('Disconnected');

@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 
 /**
  * 加载中的Spinner组件

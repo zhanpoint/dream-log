@@ -10,7 +10,7 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/h
 import AiTitleGenerator from '@/components/ui/ai-title-generator';
 import EditorErrorBoundary from '@/components/ui/EditorErrorBoundary';
 const TiptapEditor = React.lazy(() => import('@/components/ui/tiptap-editor'));
-import '@/components/ui/css/tiptap-editor.css';
+import '@/styles/ui/tiptap-editor.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,13 +21,13 @@ import { EnhancedResizableTextarea } from '@/components/ui/enhanced-resizable-te
 import { Badge } from '@/components/ui/badge';
 import RecurringDreamField from '@/components/ui/recurring-dream-field';
 
-import { DREAM_CATEGORIES, MOOD_OPTIONS, SLEEP_QUALITY_OPTIONS, PRIVACY_OPTIONS, TAG_TYPES } from '@/constants/dreamConstants';
+import { DREAM_CATEGORIES, MOOD_OPTIONS, SLEEP_QUALITY_OPTIONS, PRIVACY_OPTIONS, TAG_TYPES } from '@/constants/dream';
 import notification from '@/utils/notification';
 import api from '@/services/api';
 import { uploadImage, markImagesForDeletion } from '@/services/oss';
 import { useImageUndoRedo } from '@/hooks/useUndoRedo';
-import { cn } from '@/lib/utils';
-import './css/CreateDream.css';
+import { cn } from '@/utils/ui';
+import '@/styles/pages/CreateDream.css';
 
 const CreateDream = () => {
   const { t, i18n, forceUpdateKey } = useI18nContext();

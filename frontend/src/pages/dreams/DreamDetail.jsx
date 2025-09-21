@@ -11,13 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import DreamAIAnalyzer from '@/components/ui/dream-ai-analyzer';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import notification from '@/utils/notification';
 import api from '@/services/api';
-import { cn } from '@/lib/utils';
-import './css/DreamDetail.css';
+import { cn } from '@/utils/ui';
+import '@/styles/pages/DreamDetail.css';
 
-import { getCategoryConfig, getMoodConfig, getSleepQualityConfig, getPrivacyConfig } from '@/constants/dreamConstants';
+import { getCategoryConfig, getMoodConfig, getSleepQualityConfig, getPrivacyConfig } from '@/constants/dream';
 
 const DreamDetail = () => {
     const { id } = useParams();

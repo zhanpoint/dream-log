@@ -149,7 +149,7 @@ class UnifiedAuthService {
                 };
             }
         } catch (error) {
-            return this._handleAuthError(error, `${resetType}_reset`);
+            return this._handleAuthError(error, `${method}_reset`);
         }
     }
 

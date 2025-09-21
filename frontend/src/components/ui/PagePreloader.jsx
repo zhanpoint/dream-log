@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * 页面预加载器 - React 19 优化版本
@@ -16,13 +16,13 @@ const PagePreloader = () => {
             const preload = () => {
                 if (isAuthenticated) {
                     // 【修复】完全避免预加载编辑器相关页面，防止提前触发 TDZ
-                    import('../../pages/MyDreams').catch(() => { });
-                    import('../../pages/DreamDetail').catch(() => { });
-                    import('../../pages/StatisticsPage').catch(() => { });
+                    import('../../pages/dreams/MyDreams').catch(() => { });
+                    import('../../pages/dreams/DreamDetail').catch(() => { });
+                    import('../../pages/core/StatisticsPage').catch(() => { });
                     // 不再预加载 CreateDream 和 EditDream，避免编辑器依赖问题
                 } else {
                     // 未登录用户：预加载认证页面
-                    import('../../pages/LoginPage').catch(() => { });
+                    import('../../pages/auth/LoginPage').catch(() => { });
                 }
             };
 

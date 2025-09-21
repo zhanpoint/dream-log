@@ -11,10 +11,10 @@ import { smsService } from "@/services/notification/sms";
 import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import "./css/DreamTheme.css";
-import "./css/pc-responsive.css";
+import "@/styles/ui/DreamTheme.css";
+import "@/styles/ui/pc-responsive.css";
 
 /**
  * 密码重置表单组件

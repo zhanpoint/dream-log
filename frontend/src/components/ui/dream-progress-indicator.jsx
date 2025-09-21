@@ -3,7 +3,7 @@
 以优雅的抽象弧线呈现进度，符合梦境美学
 */
 import React, { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 
 const DreamProgressIndicator = ({
     progress = 0,

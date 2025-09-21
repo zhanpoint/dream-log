@@ -1,5 +1,4 @@
-import React from 'react';
-import './flag-icon.css';
+import '@/styles/ui/flag-icon.css';
 
 /**
  * 国旗图标组件 - 使用SVG图标替代Emoji确保跨浏览器兼容性

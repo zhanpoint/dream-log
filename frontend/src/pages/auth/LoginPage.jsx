@@ -1,7 +1,6 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { DualLoginForm } from "@/features/auth/components/DualLoginForm";
+import { DualLoginForm } from "@/components/auth/DualLoginForm";
 import { useI18nContext } from "@/contexts/I18nContext";
 import "@/styles/features/auth.css";
 
@@ -22,7 +21,7 @@ function LoginPage() {
                     </Link>
 
                     <Link to="/" className="auth-logo">
-                        <img src="/assets/logo.svg" className="auth-logo-image" alt="Dreamlog" />
+                        <img src="/logo.svg" className="auth-logo-image" alt="Dreamlog" />
                         <span className="auth-logo-text">Dreamlog</span>
                     </Link>
 
@@ -44,5 +43,4 @@ function LoginPage() {
     );
 }
 
-export { LoginPage };
 export default LoginPage; 

@@ -1,19 +1,19 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
-import PrivateRoute from "./features/auth/components/PrivateRoute";
+import PrivateRoute from "./components/auth/PrivateRoute";
 import RouteLoadingSpinner from "./components/ui/RouteLoadingSpinner";
 
 // 懒加载页面组件 - 提升首次访问性能
-const HomePage = lazy(() => import("./pages/HomePage"));
-const LoginPage = lazy(() => import("./pages/LoginPage").then(module => ({ default: module.LoginPage })));
-const Register = lazy(() => import("./pages/RegisterPage"));
-const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const HomePage = lazy(() => import("./pages/core/HomePage"));
+const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
+const Register = lazy(() => import("./pages/auth/RegisterPage"));
+const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
 
 // 需要认证的页面组件 - 按需加载
 // 【修复】编辑器相关页面使用更安全的懒加载方式
 const CreateDream = lazy(() =>
-    import("./pages/CreateDream").then(module => ({
+    import("./pages/dreams/CreateDream").then(module => ({
         default: module.default
     })).catch(error => {
         console.error('Failed to load CreateDream:', error);
@@ -22,7 +22,7 @@ const CreateDream = lazy(() =>
 );
 
 const EditDream = lazy(() =>
-    import("./pages/EditDream").then(module => ({
+    import("./pages/dreams/EditDream").then(module => ({
         default: module.default
     })).catch(error => {
         console.error('Failed to load EditDream:', error);
@@ -31,17 +31,17 @@ const EditDream = lazy(() =>
 );
 
 // 其他页面保持原有加载方式
-const DreamDetail = lazy(() => import("./pages/DreamDetail"));
-const MyDreams = lazy(() => import("./pages/MyDreams"));
-const StatisticsPage = lazy(() => import("./pages/StatisticsPage"));
-const DreamAssistantPage = lazy(() => import("./pages/DreamAssistantPage"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const DreamDetail = lazy(() => import("./pages/dreams/DreamDetail"));
+const MyDreams = lazy(() => import("./pages/dreams/MyDreams"));
+const StatisticsPage = lazy(() => import("./pages/core/StatisticsPage"));
+const DreamAssistantPage = lazy(() => import("./pages/core/DreamAssistantPage"));
+const SettingsPage = lazy(() => import("./pages/user/SettingsPage"));
 
 // 法律合规页面
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
-const Disclaimer = lazy(() => import("./pages/Disclaimer"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
+const Disclaimer = lazy(() => import("./pages/legal/Disclaimer"));
 
 /**
  * 懒加载组件包装器 - 提供统一的加载状态

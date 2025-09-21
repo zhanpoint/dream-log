@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 import { Label } from './label';
 import { ResizableTextarea } from './resizable-textarea';
 

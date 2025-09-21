@@ -6,12 +6,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    // 【修复】React 插件配置，确保兼容性
     react({
-      // React 19 兼容性配置
       jsxRuntime: 'automatic',
       jsxImportSource: 'react',
       babel: {
@@ -20,7 +17,6 @@ export default defineConfig({
         }
       }
     }),
-    // Tailwind CSS 4 Vite 插件 - 需要在 React 之后
     tailwindcss(),
   ],
 
@@ -28,7 +24,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    // 【新增】确保正确解析 ES 模块，防止重复导入
     dedupe: ['react', 'react-dom', 'react-router-dom'],
   },
 
@@ -58,9 +53,6 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        // 采用默认 chunk 命名
-        // 保持最简配置，避免对加载顺序产生副作用
-        // 优化的代码分割策略 - 支持路由懒加载
         manualChunks(id) {
           // 页面级别仍按路由懒加载拆分
           if (id.includes('src/pages/')) {
@@ -89,7 +81,6 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    // 【修复】强制预构建关键依赖，确保模块正确加载
     include: [
       'react',
       'react-dom',

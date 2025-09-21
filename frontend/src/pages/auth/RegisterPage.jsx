@@ -1,14 +1,14 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 import { useI18nContext } from "@/contexts/I18nContext";
 import "@/styles/features/auth.css";
 
 /**
- * 重置密码页面组件
+ * 注册页面组件
+ * 展示用户注册表单
  */
-export function ResetPasswordPage() {
+function Register() {
     const { t } = useI18nContext();
 
     return (
@@ -18,27 +18,27 @@ export function ResetPasswordPage() {
                 <div className="auth-header-container">
                     <Link to="/" className="auth-back-button dream-link">
                         <ArrowLeft />
-                        {t('auth.resetPassword.links.backToHome', '返回首页')}
+                        {t('auth.register.links.backToHome', '返回首页')}
                     </Link>
 
                     <Link to="/" className="auth-logo">
-                        <img src="/assets/logo.svg" className="auth-logo-image" alt="Dreamlog" />
+                        <img src="/logo.svg" className="auth-logo-image" alt="Dreamlog" />
                         <span className="auth-logo-text">Dreamlog</span>
                     </Link>
 
                     <Link to="/login" className="auth-back-button auth-secondary-button">
                         <ArrowLeft className="rotate-180" />
-                        {t('auth.resetPassword.links.backToLogin', '返回登录')}
+                        {t('auth.register.links.backToLogin', '返回登录')}
                     </Link>
                 </div>
             </header>
 
             <div className="auth-container">
                 <div className="auth-content">
-                    <ResetPasswordForm />
+                    <RegisterForm />
                 </div>
 
-                {/* 背景装饰元素 */}
+                {/* 背景装饰 */}
                 <div className="bg-decoration bg-decoration-1"></div>
                 <div className="bg-decoration bg-decoration-2"></div>
                 <div className="bg-decoration bg-decoration-3"></div>
@@ -47,4 +47,4 @@ export function ResetPasswordPage() {
     );
 }
 
-export default ResetPasswordPage; 
+export default Register; 

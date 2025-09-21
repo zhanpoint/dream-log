@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.jsx";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
@@ -13,8 +13,8 @@ import notification from "@/utils/notification";
 import { useFeatureFlags } from "@/contexts/FeatureFlagContext";
 import { useI18nContext } from "@/contexts/I18nContext";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import "./css/DreamTheme.css";
-import "./css/pc-responsive.css";
+import "@/styles/ui/DreamTheme.css";
+import "@/styles/ui/pc-responsive.css";
 
 /**
  * 三模式登录表单组件

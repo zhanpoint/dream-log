@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 
 /**
  * React 19 最佳实践的打字动画组件

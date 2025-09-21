@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Wand2, Loader2 } from 'lucide-react';
 import { Button } from './button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 import api from '@/services/api';
 import notification from '@/utils/notification';
-import './css/ai-title-generator.css';
+import '@/styles/ui/ai-title-generator.css';
 import { useI18nContext } from '@/contexts/I18nContext';
 
 /**

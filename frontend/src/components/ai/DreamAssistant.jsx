@@ -1,23 +1,20 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect, startTransition } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect, startTransition } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useI18nContext } from '@/contexts/I18nContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Send,
-    Plus,
     Edit,
     Settings,
     Loader2,
     Image as ImageIcon,
     Mic,
     Bot,
-    User,
     Search,
     ArrowDown,
     Trash2,

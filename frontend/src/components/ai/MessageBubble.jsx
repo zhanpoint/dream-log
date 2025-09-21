@@ -102,7 +102,7 @@ const MessageBubble = ({ message, isUser }) => {
     return (
         <div className="group flex gap-3 max-w-4xl mr-auto">
             <Avatar className="flex-shrink-0 h-8 w-8">
-                <AvatarImage src="/assets/logo.svg" />
+                <AvatarImage src="/logo.svg" />
                 <AvatarFallback className="bg-green-600 text-white">
                     <Bot className="h-4 w-4" />
                 </AvatarFallback>

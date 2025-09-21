@@ -6,15 +6,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Brain, Sparkles, AlertCircle, CheckCircle, BookOpen, Lightbulb, X, ChevronDown, ChevronUp, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BorderBeam } from '@/components/magicui/border-beam';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useI18nContext } from '@/contexts/I18nContext';
 import api from '@/services/api';
 import notification from '@/utils/notification';
-import { cn } from '@/lib/utils';
-import './css/ai-dream-analyzer.css';
+import '@/styles/ui/ai-dream-analyzer.css';
 
 // 分析状态配置 - 简化版本
 const getAnalysisStatus = (t) => ({

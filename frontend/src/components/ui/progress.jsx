@@ -1,5 +1,6 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from 'react';
+import * as ProgressPrimitive from '@radix-ui/react-progress';
+import { cn } from '@/utils/ui';
 
 const Progress = React.forwardRef(({ className, value = 0, max = 100, ...props }, ref) => {
     const percentage = Math.min(Math.max((value / max) * 100, 0), 100);

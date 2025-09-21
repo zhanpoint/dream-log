@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 /**
- * 渐进式加载钩子 - React 19优化版本
- * 避免循环依赖，使用 ref 和 useMemo 优化性能
+ * 渐进式加载钩子
  */
 export const useProgressiveLoading = (initialData = [], batchSize = 30, delay = 150) => {
     const [displayedData, setDisplayedData] = useState([]);

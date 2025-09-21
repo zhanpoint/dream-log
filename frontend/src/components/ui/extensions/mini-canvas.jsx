@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18nContext } from '@/contexts/I18nContext';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 import { Save, X, Undo, Redo, Eraser } from 'lucide-react';
 
 const MiniCanvas = ({ onComplete, onCancel }) => {

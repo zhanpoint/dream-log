@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext.jsx';
 import { TypingAnimation } from '@/components/ui/TypingAnimation.jsx';
 

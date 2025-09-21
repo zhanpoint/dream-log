@@ -364,13 +364,9 @@ class OSSUploadService {
 
 const ossUploadService = new OSSUploadService();
 
+// 导出实际被使用的函数
 export const uploadImage = (file, onProgress) => ossUploadService.uploadImage(file, onProgress);
 export const uploadAvatar = (file, onProgress) => ossUploadService.uploadAvatar(file, onProgress);
-export const listFiles = (prefix, maxKeys) => ossUploadService.listFiles(prefix, maxKeys);
-export const deleteFile = (fileKey) => ossUploadService.deleteFile(fileKey);
 export const markImagesForDeletion = (imageUrls) => ossUploadService.markImagesForDeletion(imageUrls);
-export const isValidImageFile = (file) => ossUploadService.isValidImageFile(file);
-export const uploadWithSignature = (file, fileType) => ossUploadService.uploadWithSignature(file, null, fileType);
-export const completeUpload = (fileKey, accessUrl) => ossUploadService.completeUpload(fileKey, accessUrl);
 
 export default ossUploadService; 

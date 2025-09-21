@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Settings, User, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { MultilingualSeo } from '@/components/seo/MultilingualSeo';
-import './css/SettingsPage.css';
+import '@/styles/pages/SettingsPage.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';

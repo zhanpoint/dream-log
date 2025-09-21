@@ -13,12 +13,12 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/components/ui/dialog';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { profileManager } from '@/services/auth/profileManager';
 import notification from '@/utils/notification';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { unifiedAuthService } from '@/services/auth';
+import unifiedAuthService from '@/services/auth/unifiedAuth';
 
 /**
  * 账号安全设置组件

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Book, Menu, X, Brain, Eye, Lightbulb } from "lucide-react";
-import "./Navbar.css";
-import { useAuth } from "@/hooks/useAuth";
+import "@/styles/layout/Navbar.css";
+import { useAuth } from "@/contexts/AuthContext";
 import UserAvatar from "@/components/user/UserAvatar";
 import ThemeToggle from "@/components/ui/theme-toggle";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button.jsx";
 const Navbar = ({
     logo = {
         url: "/",
-        src: "/assets/logo.svg",
+        src: "/logo.svg",
         alt: "Dream Log",
         title: "Dream Log",
     }

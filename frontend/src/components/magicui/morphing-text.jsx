@@ -1,7 +1,7 @@
 "use client";;
 import { useCallback, useEffect, useRef } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 
 const morphTime = 1.5;
 const cooldownTime = 0.5;

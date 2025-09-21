@@ -24,8 +24,8 @@ import CategoryModeToggle from '@/components/ui/category-mode-toggle';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useI18nContext } from '@/contexts/I18nContext';
-import { cn } from '@/lib/utils';
-import { getCategoryConfig, getMoodConfig } from '@/constants/dreamConstants';
+import { cn } from '@/utils/ui';
+import { getCategoryConfig, getMoodConfig } from '@/constants/dream';
 
 const getSleepQualityOptions = (t) => [
     { value: 'very_poor', label: t('dreams:sleepQuality.very_poor', '很差') },

@@ -3,7 +3,7 @@ SVG圆弧进度条组件
 提供宁静优雅的等待体验
 */
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 
 const CircularProgress = ({
     progress = 0,

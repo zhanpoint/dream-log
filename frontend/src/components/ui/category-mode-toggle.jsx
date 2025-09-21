@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Layers } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 import { useI18nContext } from '@/contexts/I18nContext';
 
 /**

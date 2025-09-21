@@ -13,7 +13,7 @@ import AdvancedFilter from '@/components/ui/advanced-filter';
 import notification from '@/utils/notification';
 import api from '@/services/api';
 import useProgressiveLoading from '@/hooks/useProgressiveLoading';
-import './css/MyDreams.css';
+import '@/styles/pages/MyDreams.css';
 
 // 懒加载虚拟化网格组件
 const VirtualizedDreamGrid = lazy(() => import('@/components/ui/VirtualizedDreamGrid'));

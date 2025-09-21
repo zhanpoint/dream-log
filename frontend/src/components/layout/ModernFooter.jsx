@@ -102,7 +102,7 @@ const ModernFooter = () => {
                         className="flex-shrink-0 lg:max-w-sm"
                     >
                         <div className="flex items-center gap-3 mb-4">
-                            <img src="/assets/logo.svg" alt="Dream Log" className="w-8 h-8 rounded-lg" />
+                            <img src="/logo.svg" alt="Dream Log" className="w-8 h-8 rounded-lg" />
                             <div>
                                 <h4 className="text-white dark:text-white light:text-gray-800 font-semibold">
                                     Dream Log
@@ -181,7 +181,7 @@ const ModernFooter = () => {
                             rel="noreferrer"
                             className="text-gray-300 dark:text-gray-400 light:text-gray-700 hover:text-purple-500 transition-colors duration-200 flex items-center gap-1"
                         >
-                            <img src="/assets/备案图标.png" alt="公安备案" className="w-3 h-3" />
+                            <img src="/beian.png" alt="公安备案" className="w-3 h-3" />
                             豫公网安备41911002000051号
                         </a>
                     </div>

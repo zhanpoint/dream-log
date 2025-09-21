@@ -70,7 +70,7 @@ const languageDetectorOptions = {
 i18n
     .use(LanguageDetector)
     .use(resourcesToBackend((language, namespace) => {
-        return import(`../locales/${language}/${namespace}.json`);
+        return import(`./${language}/${namespace}.json`);
     }))
     .use(initReactI18next)
     .init({

@@ -1,4 +1,4 @@
-import API from './api';
+import api from './api';
 
 /**
  * 联系我们/反馈建议服务 - 简化版
@@ -11,7 +11,7 @@ class ContactService {
      */
     async submitContact(message) {
         try {
-            const response = await API.post('/system/contact/', { message });
+            const response = await api.post('/system/contact/', { message });
             return {
                 success: true,
                 data: response.data,
@@ -19,11 +19,11 @@ class ContactService {
             };
         } catch (error) {
             console.error('提交联系表单失败:', error);
-            
+
             // 处理错误响应
             const errorMessage = error.response?.data?.message || '提交失败，请稍后重试';
             const errors = error.response?.data?.errors || {};
-            
+
             return {
                 success: false,
                 message: errorMessage,
@@ -39,7 +39,7 @@ class ContactService {
      */
     async submitFeedback(message) {
         try {
-            const response = await API.post('/system/feedback/', { message });
+            const response = await api.post('/system/feedback/', { message });
             return {
                 success: true,
                 data: response.data,
@@ -47,11 +47,11 @@ class ContactService {
             };
         } catch (error) {
             console.error('提交反馈表单失败:', error);
-            
+
             // 处理错误响应
             const errorMessage = error.response?.data?.message || '提交失败，请稍后重试';
             const errors = error.response?.data?.errors || {};
-            
+
             return {
                 success: false,
                 message: errorMessage,

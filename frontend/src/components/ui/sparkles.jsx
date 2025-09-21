@@ -1,7 +1,7 @@
 "use client";
 import React, { useId } from "react";
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/ui";
 import { motion, useAnimation } from "framer-motion";
 
 // 自定义Particles组件，没有使用tsparticles，简化实现

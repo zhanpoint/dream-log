@@ -19,7 +19,7 @@ import {
     AlignLeft, AlignCenter, AlignRight, AlignJustify // 新增：导入对齐图标
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/ui';
 import { DreamSeparator } from './extensions/dream-separator';
 import { MiniCanvas } from './extensions/mini-canvas';
 import { ResizableEditor } from './extensions/resizable-editor';

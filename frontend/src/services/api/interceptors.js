@@ -2,17 +2,6 @@ import notification from "@/utils/notification";
 import { tokenManager } from '../auth/tokenManager';
 import axios from 'axios';
 
-/**
- * 检查是否是认证相关的API请求
- * @param {string} url - 请求URL
- * @returns {boolean} 是否是认证相关请求
- */
-const isAuthError = (url) => {
-    if (!url) return false;
-    const authPaths = ['/auth/sessions/', '/users/', '/auth/tokens/', '/users/me/password/'];
-    return authPaths.some(path => url.includes(path));
-};
-
 // 令牌刷新状态管理
 let isRefreshing = false;
 let failedQueue = [];

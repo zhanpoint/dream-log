@@ -45,6 +45,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+# 
+手册
 
 # ===backend===
 # Python (backend specific)
