@@ -136,7 +136,7 @@ class OSS:
         try:
             cors_rule = oss2.models.CorsRule(
                 allowed_origins=['*'],
-                allowed_methods=['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+                allowed_methods=['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'OPTIONS'],
                 allowed_headers=['*'],
                 expose_headers=['ETag', 'x-oss-request-id'],
                 max_age_seconds=3600

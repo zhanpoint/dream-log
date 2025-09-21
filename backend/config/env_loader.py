@@ -43,16 +43,12 @@ def load_environment_variables() -> None:
     current_file = Path(__file__).resolve()
     if app_env == 'dev':
         project_root = current_file.parent.parent
-    else:
-        project_root = current_file.parent.parent.parent
-    
-    env_path = project_root / '.env'
-    
-    # 加载 .env 文件
-    if env_path.exists():
-        environ.Env.read_env(str(env_path), overwrite=True)
-    else:
-        print(f"Warning: .env file not found at {env_path}")
+        env_path = project_root / '.env'
+        if env_path.exists():
+            environ.Env.read_env(str(env_path), overwrite=True)
+        else:
+            print(f"Warning: .env file not found at {env_path}")
+
 
 # 立即加载环境变量
 load_environment_variables()
