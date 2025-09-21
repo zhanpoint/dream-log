@@ -11,10 +11,6 @@ def main() -> None:
     """
     运行管理命令。
     """
-    # 设置环境变量
-    app_env = os.environ.get('APP_ENV', 'dev')
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'config.settings.{app_env}')
-    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

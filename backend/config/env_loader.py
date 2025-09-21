@@ -35,16 +35,15 @@ def load_environment_variables() -> None:
     """
     加载环境变量，自动检测 .env 文件位置
     """
-    # 检测运行环境
+    # 设置运行环境
     app_env = os.environ.get('APP_ENV', 'dev')
-    
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'config.settings.{app_env}')
+
     # 根据环境确定项目根目录
     current_file = Path(__file__).resolve()
     if app_env == 'dev':
-        # 开发环境：backend/.env
         project_root = current_file.parent.parent
     else:
-        # 生产环境：/app/.env (Docker 容器中的工作目录)
         project_root = current_file.parent.parent.parent
     
     env_path = project_root / '.env'
