@@ -149,6 +149,10 @@ services:
       # SSL 证书挂载
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /var/www/certbot:/var/www/certbot:ro
+      # 新增：挂载测试页面目录
+      - /root/test:/usr/share/nginx/test:ro
+      # 修复：挂载Nginx配置文件以应用更改
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       backend:
         condition: service_started

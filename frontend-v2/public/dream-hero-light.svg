@@ -1,0 +1,92 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 浅色背景 -->
+  <rect width="1200" height="800" fill="#ffffff"/>
+  
+  <!-- 渐变背景 -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.15" />
+      <stop offset="50%" style="stop-color:#c084fc;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.15" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 光晕效果 -->
+  <circle cx="600" cy="400" r="400" fill="url(#glow)"/>
+  
+  <!-- 主容器 - 模拟应用界面 -->
+  <rect x="100" y="100" width="1000" height="600" rx="20" fill="#fafafa" stroke="#e5e5e5" stroke-width="2"/>
+  
+  <!-- 顶部导航栏 -->
+  <rect x="100" y="100" width="1000" height="60" rx="20" fill="#f4f4f5"/>
+  <rect x="100" y="160" width="1000" height="1" fill="#d4d4d8"/>
+  
+  <!-- Logo 区域 -->
+  <circle cx="140" cy="130" r="15" fill="#a78bfa"/>
+  <rect x="170" y="120" width="120" height="20" rx="4" fill="#d4d4d8"/>
+  
+  <!-- 导航项 -->
+  <rect x="350" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
+  <rect x="430" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
+  <rect x="510" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
+  
+  <!-- 右侧按钮 -->
+  <rect x="950" y="115" width="130" height="30" rx="8" fill="#a78bfa"/>
+  
+  <!-- 主内容区域 -->
+  <g transform="translate(150, 200)">
+    <!-- 标题区域 -->
+    <rect x="0" y="0" width="400" height="30" rx="6" fill="url(#grad1)"/>
+    <rect x="0" y="45" width="300" height="20" rx="4" fill="#d4d4d8"/>
+    <rect x="0" y="75" width="350" height="20" rx="4" fill="#d4d4d8"/>
+    
+    <!-- 卡片列表 -->
+    <rect x="0" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+    <rect x="300" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+    <rect x="600" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+    
+    <!-- 卡片内容装饰 -->
+    <circle cx="40" cy="170" r="12" fill="#a78bfa" opacity="0.6"/>
+    <rect x="70" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
+    <rect x="20" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="20" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="20" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
+    
+    <circle cx="340" cy="170" r="12" fill="#c084fc" opacity="0.6"/>
+    <rect x="370" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
+    <rect x="320" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="320" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="320" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
+    
+    <circle cx="640" cy="170" r="12" fill="#a78bfa" opacity="0.6"/>
+    <rect x="670" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
+    <rect x="620" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="620" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
+    <rect x="620" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
+  </g>
+  
+  <!-- 装饰性太阳图标 -->
+  <circle cx="950" cy="250" r="40" fill="#fbbf24" opacity="0.3"/>
+  <circle cx="950" cy="250" r="30" fill="#fbbf24" opacity="0.5"/>
+  
+  <!-- 光线装饰 -->
+  <line x1="950" y1="190" x2="950" y2="210" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="950" y1="290" x2="950" y2="310" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="890" y1="250" x2="910" y2="250" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="990" y1="250" x2="1010" y2="250" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  
+  <!-- 星星装饰 -->
+  <circle cx="200" cy="250" r="2" fill="#a78bfa" opacity="0.4"/>
+  <circle cx="350" cy="200" r="2" fill="#c084fc" opacity="0.4"/>
+  <circle cx="850" cy="350" r="2" fill="#a78bfa" opacity="0.4"/>
+  <circle cx="1050" cy="280" r="2" fill="#c084fc" opacity="0.4"/>
+  <circle cx="180" cy="650" r="2" fill="#a78bfa" opacity="0.4"/>
+  <circle cx="1020" cy="620" r="2" fill="#c084fc" opacity="0.4"/>
+  
+  <!-- Dream Log 水印 -->
+  <text x="600" y="750" font-family="Arial, sans-serif" font-size="24" fill="#a1a1aa" text-anchor="middle">Dream Log - 探索你的梦境世界</text>
+</svg>
