@@ -5,6 +5,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { UserAvatar } from "@/components/user-avatar";
 import { AuthToken, AuthUser } from "@/lib/auth-api";
+import { Moon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -63,11 +64,18 @@ export function SiteHeader() {
             {!isAuthPage && (
               <>
                 {isAuthenticated && currentUser ? (
-                  <Link
-                    href="/settings"
-                    className="flex items-center gap-2 px-2 py-1 rounded-lg transition-all duration-200 hover:opacity-80 hover:-translate-y-0.5"
-                    title={t("common.settings")}
-                  >
+                  <>
+                    <Link href="/dreams">
+                      <Button variant="ghost" size="sm" className="hidden sm:inline-flex gap-1.5">
+                        <Moon className="h-4 w-4" />
+                        我的梦境
+                      </Button>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="flex items-center gap-2 px-2 py-1 rounded-lg transition-all duration-200 hover:opacity-80 hover:-translate-y-0.5"
+                      title={t("common.settings")}
+                    >
                     <UserAvatar
                       userId={currentUser.id}
                       avatar={currentUser.avatar}
@@ -80,6 +88,7 @@ export function SiteHeader() {
                       </span>
                     )}
                   </Link>
+                  </>
                 ) : (
                   <div className="auth-buttons">
                     <Link href="/auth">

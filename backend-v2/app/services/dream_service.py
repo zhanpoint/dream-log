@@ -17,7 +17,12 @@ from app.models.dream_tag import DreamTag, Tag
 from app.models.dream_trigger import DreamTrigger
 from app.models.dream_type import DreamType, DreamTypeMapping
 from app.models.enums import AIProcessingStatus, AwakeningState, PrivacyLevel
-from app.schemas.dreams import CreateDreamRequest, CreateTagRequest, UpdateDreamRequest, UpdateTagRequest
+from app.schemas.dreams import (
+    CreateDreamRequest,
+    CreateTagRequest,
+    UpdateDreamRequest,
+    UpdateTagRequest,
+)
 
 
 class DreamService:
@@ -103,7 +108,7 @@ class DreamService:
             .options(
                 selectinload(Dream.emotions),
                 selectinload(Dream.type_mappings).selectinload(DreamTypeMapping.dream_type),
-                selectinload(Dream.tags),
+                selectinload(Dream.tags).selectinload(DreamTag.tag),
                 selectinload(Dream.attachments),
                 selectinload(Dream.insight),
             )
@@ -183,7 +188,7 @@ class DreamService:
         stmt = (
             base.options(
                 selectinload(Dream.type_mappings).selectinload(DreamTypeMapping.dream_type),
-                selectinload(Dream.tags),
+                selectinload(Dream.tags).selectinload(DreamTag.tag),
                 selectinload(Dream.attachments),
             )
             .offset(offset)
