@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.constants.dreams import COMMON_TRIGGERS, DREAM_TYPES
+from app.constants.dreams import DREAM_TYPES
 from app.constants.emotions import PRIMARY_EMOTIONS_VOCAB
 
 
@@ -18,13 +18,15 @@ class CreateDreamRequest(BaseModel):
     """创建梦境请求"""
 
     # 基础信息
-    title: str | None = Field(None, max_length=200)
+    title: str | None = Field(None, max_length=20)
     dream_date: date = Field(..., description="梦境发生日期")
     dream_time: time | None = None
-    content: str = Field(..., min_length=1, description="梦境内容")
+    content: str = Field(..., min_length=1, max_length=1000, description="梦境内容")
     is_nap: bool = False
 
     # 睡眠上下文
+    sleep_start_time: datetime | None = Field(None, description="入睡时间")
+    awakening_time: datetime | None = Field(None, description="醒来时间")
     sleep_duration_minutes: int | None = Field(None, ge=0, le=1440)
     awakening_state: str | None = None
     sleep_quality: int | None = Field(None, ge=1, le=5)
@@ -43,15 +45,14 @@ class CreateDreamRequest(BaseModel):
     completeness_score: int | None = Field(None, ge=1, le=5)
 
     # 现实关联
-    life_context: str | None = None
+    life_context: str | None = Field(None, max_length=500)
     reality_correlation: int | None = Field(None, ge=1, le=4)
-    user_interpretation: str | None = None
-
-    # 触发因素
-    triggers: list[str] | None = None
+    user_interpretation: str | None = Field(None, max_length=300)
 
     # 隐私
     privacy_level: str = "PRIVATE"
+    # 标题是否由 AI 生成（用于前端独立生成标题场景）
+    title_generated_by_ai: bool = False
 
     @field_validator("primary_emotion")
     @classmethod
@@ -67,15 +68,6 @@ class CreateDreamRequest(BaseModel):
             for dt in v:
                 if dt not in DREAM_TYPES:
                     raise ValueError(f"无效的梦境类型: {dt}")
-        return v
-
-    @field_validator("triggers")
-    @classmethod
-    def validate_triggers(cls, v: list[str] | None) -> list[str] | None:
-        if v:
-            for t in v:
-                if t not in COMMON_TRIGGERS:
-                    raise ValueError(f"无效的触发因素: {t}")
         return v
 
     @field_validator("awakening_state")
@@ -96,12 +88,15 @@ class CreateDreamRequest(BaseModel):
 class UpdateDreamRequest(BaseModel):
     """更新梦境请求 (PATCH, 所有字段可选)"""
 
-    title: str | None = Field(None, max_length=200)
+    title: str | None = Field(None, max_length=20)
     dream_date: date | None = None
     dream_time: time | None = None
-    content: str | None = Field(None, min_length=1)
+    content: str | None = Field(None, min_length=1, max_length=1000)
     is_nap: bool | None = None
 
+    # 可选睡眠时间字段，在 PATCH 时可以省略
+    sleep_start_time: datetime | None = None
+    awakening_time: datetime | None = None
     sleep_duration_minutes: int | None = Field(None, ge=0, le=1440)
     awakening_state: str | None = None
     sleep_quality: int | None = Field(None, ge=1, le=5)
@@ -117,13 +112,13 @@ class UpdateDreamRequest(BaseModel):
     vividness_level: int | None = Field(None, ge=1, le=5)
     completeness_score: int | None = Field(None, ge=1, le=5)
 
-    life_context: str | None = None
+    life_context: str | None = Field(None, max_length=500)
     reality_correlation: int | None = Field(None, ge=1, le=4)
-    user_interpretation: str | None = None
+    user_interpretation: str | None = Field(None, max_length=300)
 
-    triggers: list[str] | None = None
     privacy_level: str | None = None
     is_favorite: bool | None = None
+    title_generated_by_ai: bool | None = None
 
 
 # ============= 响应 Schemas =============
@@ -136,17 +131,16 @@ class TagResponse(BaseModel):
 
     id: UUID
     name: str
-    color: str | None = None
 
 
-class EmotionResponse(BaseModel):
-    """情绪响应"""
+class TriggerResponse(BaseModel):
+    """触发因素响应"""
 
     model_config = ConfigDict(from_attributes=True)
 
-    emotion_type: str
-    score: float
-    source: str
+    name: str
+    confidence: int | None = None
+    reasoning: str | None = None
 
 
 class DreamTypeResponse(BaseModel):
@@ -154,7 +148,17 @@ class DreamTypeResponse(BaseModel):
 
     type_name: str
     display_name: str
-    icon_emoji: str | None = None
+
+
+class AttachmentResponse(BaseModel):
+    """附件响应"""
+
+    id: UUID
+    attachment_type: str
+    file_url: str
+    thumbnail_url: str | None = None
+    mime_type: str | None = None
+    duration: int | None = None
 
 
 class DreamListItem(BaseModel):
@@ -178,6 +182,10 @@ class DreamListItem(BaseModel):
     is_favorite: bool
     is_draft: bool
     created_at: datetime
+
+    # 元数据（列表展示用）
+    privacy_level: str = "PRIVATE"
+    view_count: int = 0
 
     # 关联数据
     dream_types: list[str] = []
@@ -204,6 +212,8 @@ class DreamDetailResponse(BaseModel):
     is_nap: bool
 
     # 睡眠
+    sleep_start_time: datetime | None = None
+    awakening_time: datetime | None = None
     sleep_duration_minutes: int | None
     awakening_state: str | None
     sleep_quality: int | None
@@ -214,20 +224,13 @@ class DreamDetailResponse(BaseModel):
     primary_emotion: str | None
     emotion_intensity: int | None
     emotion_residual: bool | None
-    emotion_conflict_index: float | None
-    emotions: list[EmotionResponse] = []
+
+    # 触发因素
+    triggers: list[TriggerResponse] = []
 
     # 特征
     lucidity_level: int | None
     vividness_level: int | None
-
-    # 感官
-    sensory_visual: float | None
-    sensory_auditory: float | None
-    sensory_tactile: float | None
-    sensory_olfactory: float | None
-    sensory_gustatory: float | None
-    sensory_spatial: float | None
 
     # 现实关联
     reality_correlation: int | None
@@ -236,12 +239,14 @@ class DreamDetailResponse(BaseModel):
     ai_processed: bool
     ai_processing_status: str
     ai_processed_at: datetime | None
+    ai_image_url: str | None = None
 
     # 洞察 (来自 dream_insights)
     life_context: str | None = None
     user_interpretation: str | None = None
     content_structured: dict | None = None
     ai_analysis: dict | None = None
+    reflection_answers: list[dict] | None = None
 
     # 元数据
     privacy_level: str
@@ -253,6 +258,7 @@ class DreamDetailResponse(BaseModel):
     dream_types: list[str] = []
     tags: list[TagResponse] = []
     attachments_count: int = 0
+    attachments: list[AttachmentResponse] = []
 
     # 时间戳
     created_at: datetime
@@ -268,21 +274,50 @@ class DreamListResponse(BaseModel):
     items: list[DreamListItem]
 
 
+class DreamStatsResponse(BaseModel):
+    """梦境统计（我的梦境页用）"""
+
+    total: int = Field(..., description="全部梦境数量")
+    consecutive_days: int = Field(..., description="连续记录天数")
+    this_week_count: int = Field(..., description="本周记录数")
+    this_month_count: int = Field(..., description="本月记录数")
+
+
 # ============= 标签 Schemas =============
 
 
 class CreateTagRequest(BaseModel):
     """创建标签"""
 
-    name: str = Field(..., min_length=1, max_length=50)
-    color: str | None = Field(None, pattern=r"^#[0-9a-fA-F]{6}$")
+    name: str = Field(..., min_length=2, max_length=20)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, v: str) -> str:
+        name = v.strip()
+        if not name:
+            raise ValueError("标签名称不能为空")
+        if len(name) < 2 or len(name) > 20:
+            raise ValueError("标签名称长度需为 2-20 个字符")
+        return name
 
 
 class UpdateTagRequest(BaseModel):
     """更新标签"""
 
-    name: str | None = Field(None, min_length=1, max_length=50)
-    color: str | None = Field(None, pattern=r"^#[0-9a-fA-F]{6}$")
+    name: str | None = Field(None, min_length=2, max_length=20)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        name = v.strip()
+        if not name:
+            raise ValueError("标签名称不能为空")
+        if len(name) < 2 or len(name) > 20:
+            raise ValueError("标签名称长度需为 2-20 个字符")
+        return name
 
 
 # ============= 分析状态 Schemas =============
@@ -311,3 +346,19 @@ class AnalysisStatusResponse(BaseModel):
     ai_processing_status: str
     ai_processed_at: datetime | None = None
     tasks: list[AnalysisTaskResponse] = []
+
+
+# ============= AI 生成 Schemas =============
+
+
+class GenerateTitleRequest(BaseModel):
+    """生成标题请求（不依赖梦境 ID）"""
+
+    content: str = Field(..., min_length=1, description="梦境完整内容")
+
+
+class AddReflectionAnswerRequest(BaseModel):
+    """添加反思问题回答"""
+
+    question: str = Field(..., min_length=1, max_length=200)
+    answer: str = Field(..., min_length=1, max_length=500)

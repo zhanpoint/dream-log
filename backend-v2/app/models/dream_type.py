@@ -15,7 +15,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    Text,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -43,8 +42,6 @@ class DreamType(Base):
         index=True,
     )
     display_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    icon_emoji: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     # 统计字段
     usage_count: Mapped[int] = mapped_column(Integer, default=0)

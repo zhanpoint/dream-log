@@ -33,8 +33,7 @@ class Tag(Base):
         nullable=False,
         index=True,
     )
-    name: Mapped[str] = mapped_column(String(50), nullable=False)
-    color: Mapped[str | None] = mapped_column(String(7), nullable=True)  # HEX 颜色
+    name: Mapped[str] = mapped_column(String(20), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

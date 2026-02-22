@@ -1,0 +1,136 @@
+# Google Cloud Speech-to-Text API 配置指南
+
+## 概述
+
+本指南说明如何配置 Google Cloud Speech-to-Text API，用于将用户的语音输入转换为文字。
+
+---
+
+## 第一步：创建 Google Cloud 服务账号
+
+### 1.1 访问 Google Cloud Console
+
+打开浏览器访问：https://console.cloud.google.com/iam-admin/serviceaccounts
+
+### 1.2 创建服务账号
+
+1. 点击 **"创建服务账号"** 按钮
+2. 填写服务账号名称（例如：`speech-to-text-service`）
+3. 点击 **"创建并继续"**
+
+### 1.3 授予权限
+
+1. 在 **"授予此服务账号访问项目的权限"** 步骤中
+2. 选择角色：**"Cloud Speech 客户端"** 或 **"Editor"**
+3. 点击 **"继续"** → **"完成"**
+
+### 1.4 创建并下载 JSON 密钥
+
+1. 在服务账号列表中，点击刚创建的服务账号
+2. 进入 **"密钥"** 标签页
+3. 点击 **"添加密钥"** → **"创建新密钥"**
+4. 选择 **"JSON"** 格式
+5. 点击 **"创建"**，系统会自动下载 JSON 文件
+
+---
+
+## 第二步：启用 Speech-to-Text API
+
+### 2.1 启用 API 服务
+
+打开以下链接（将 `PROJECT_ID` 替换为你的项目 ID）：
+
+```
+https://console.developers.google.com/apis/api/speech.googleapis.com/overview?project=PROJECT_ID
+```
+
+例如：
+```
+https://console.developers.google.com/apis/api/speech.googleapis.com/overview?project=dream-log-486312
+```
+
+### 2.2 点击启用按钮
+
+在打开的页面中，点击蓝色的 **"ENABLE"（启用）** 按钮。
+
+### 2.3 配置结算账户
+
+- 如果系统提示需要绑定结算账户，请按照提示操作
+- **注意**：Google Cloud 通常有免费额度（每月 60 分钟免费语音转录）
+- 即便在免费额度内使用，Google 也通常要求项目必须关联一个有效的信用卡或结算账户
+
+### 2.4 等待生效
+
+API 启用后，通常需要等待 **1-3 分钟** 才能完全生效。
+
+---
+
+## 第三步：配置环境变量
+
+### 3.1 查看 JSON 密钥内容
+
+打开下载的 JSON 文件，内容类似：
+
+```json
+{
+  "type": "service_account",
+  "project_id": "dreamlog-xxxxx",
+  "private_key_id": "abc123...",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+  "client_email": "speech-to-text@dreamlog-xxxxx.iam.gserviceaccount.com",
+  "client_id": "123456789...",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  ...
+}
+```
+
+### 3.2 配置 .env 文件
+
+在项目的 `.env` 文件中添加以下配置：
+
+**方式一：使用文件路径（推荐）**
+
+```env
+GOOGLE_CLOUD_PROJECT=dreamlog-xxxxx
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key.json
+```
+
+**方式二：使用 JSON 字符串**
+
+将整个 JSON 内容压缩成一行：
+
+```env
+GOOGLE_CLOUD_PROJECT=dreamlog-xxxxx
+GOOGLE_CLOUD_CREDENTIALS_JSON='{"type":"service_account","project_id":"dreamlog-xxxxx","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",...}'
+```
+
+---
+
+## 常见问题排查
+
+### 问题 1：`SERVICE_DISABLED` 错误
+
+**症状**：报错信息包含 `SERVICE_DISABLED`
+
+**原因**：Speech-to-Text API 未在 Google Cloud 项目中启用
+
+**解决方案**：
+1. 按照 **第二步** 中的步骤启用 API
+2. 等待 1-3 分钟生效
+3. 重启后端服务：
+   ```bash
+   # 按 CTRL+C 停止当前服务
+   uv run python scripts/dev.py
+   ```
+
+### 问题 2：`PERMISSION_DENIED` 错误
+
+**症状**：报错信息为 `PERMISSION_DENIED`，但不包含 `SERVICE_DISABLED`
+
+**原因**：通常是服务账号权限不足
+
+**解决方案**：
+1. 确认服务账号已被授予 **"Cloud Speech 客户端"** 或 **"Editor"** 角色
+2. 检查 `GOOGLE_APPLICATION_CREDENTIALS` 环境变量是否正确指向 JSON 密钥文件
+3. 确保 JSON 密钥文件内容完整且未被修改

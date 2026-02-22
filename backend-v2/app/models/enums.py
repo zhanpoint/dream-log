@@ -62,16 +62,6 @@ class EmotionSource(str, enum.Enum):
     AI = "AI"
 
 
-class TriggerCategory(str, enum.Enum):
-    """触发因素分类"""
-
-    FOOD = "FOOD"
-    ACTIVITY = "ACTIVITY"
-    EMOTION = "EMOTION"
-    ENVIRONMENT = "ENVIRONMENT"
-    SUBSTANCE = "SUBSTANCE"
-
-
 class AttachmentType(str, enum.Enum):
     """附件类型"""
 
@@ -102,42 +92,16 @@ class SymbolCategory(str, enum.Enum):
 class RelationType(str, enum.Enum):
     """梦境关联类型"""
 
-    SIMILAR = "SIMILAR"  # 相似梦境 (AI推荐)
-    CONTINUATION = "CONTINUATION"  # 续集/系列梦
-    CONTRAST = "CONTRAST"  # 对比梦境
-    THEMATIC = "THEMATIC"  # 主题相关
-
-
-class AnalysisTaskType(str, enum.Enum):
-    """分析任务类型"""
-
-    STRUCTURE = "STRUCTURE"
-    EMOTION = "EMOTION"
-    SYMBOL = "SYMBOL"
-    INSIGHT = "INSIGHT"
-    TITLE_GEN = "TITLE_GEN"
+    SIMILAR = "SIMILAR"  # 相似梦境 (AI 自动发现)
+    CONTINUATION = "CONTINUATION"  # 续集梦境 (用户手动标记)
 
 
 class InsightType(str, enum.Enum):
     """洞察报告类型"""
 
-    WEEKLY = "WEEKLY"
-    MONTHLY = "MONTHLY"
-    PATTERN = "PATTERN"
-    RECOMMENDATION = "RECOMMENDATION"
-
-
-class InsightFrequency(str, enum.Enum):
-    """洞察生成频率"""
-
-    WEEKLY = "WEEKLY"
-    BIWEEKLY = "BIWEEKLY"
-    MONTHLY = "MONTHLY"
-
-
-class NotificationMethod(str, enum.Enum):
-    """通知方式"""
-
-    EMAIL = "EMAIL"
-    PUSH = "PUSH"
-    BOTH = "BOTH"
+    MONTHLY = "MONTHLY"                 # 月度报告（定期）
+    WEEKLY = "WEEKLY"                   # 周报（定期）
+    ANNUAL = "ANNUAL"                   # 年度回顾（定期）
+    EMOTION_HEALTH = "EMOTION_HEALTH"   # 情绪健康分析（专题）
+    SLEEP_QUALITY = "SLEEP_QUALITY"     # 睡眠质量分析（专题）
+    THEME_PATTERN = "THEME_PATTERN"     # 梦境主题模式（专题）

@@ -69,8 +69,31 @@ class Settings(BaseSettings):
 
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
-    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
-    google_api_key: str | None = Field(default=None, alias="GOOGLE_API_KEY")
+
+    # AI 模型配置（两阶段：基础分析 + 标题 + 深度洞察 + 图像生成）
+    ai_model_text_analysis: str = Field(default="openai/gpt-4o", alias="AI_MODEL_TEXT_ANALYSIS")
+    ai_model_title_generation: str = Field(default="google/gemini-flash-1.5", alias="AI_MODEL_TITLE_GENERATION")
+    ai_model_insight_generation: str = Field(default="openai/gpt-4o", alias="AI_MODEL_INSIGHT_GENERATION")
+    ai_model_image_generation: str = Field(default="google/gemini-2.5-flash-image", alias="AI_MODEL_IMAGE_GENERATION")
+    ai_model_embedding: str = Field(default="openai/text-embedding-3-large", alias="AI_MODEL_EMBEDDING")
+    # AI 模型参数
+    ai_embedding_dimensions: int = Field(default=1024, alias="AI_EMBEDDING_DIMENSIONS")
+
+    # 语音转录 Provider 开关: "google" | "xfyun"
+    voice_transcribe_provider: Literal["google", "xfyun"] = Field(
+        default="xfyun", alias="VOICE_TRANSCRIBE_PROVIDER"
+    )
+
+    # Google Cloud 配置（语音转录）
+    google_cloud_project: str | None = Field(default=None, alias="GOOGLE_CLOUD_PROJECT")
+    google_cloud_credentials_json: str | None = Field(
+        default=None, alias="GOOGLE_CLOUD_CREDENTIALS_JSON"
+    )
+
+    # 讯飞星火配置（实时语音转写大模型）
+    xfyun_app_id: str | None = Field(default=None, alias="XFYUN_APP_ID")
+    xfyun_access_key_id: str | None = Field(default=None, alias="XFYUN_ACCESS_KEY_ID")
+    xfyun_access_key_secret: str | None = Field(default=None, alias="XFYUN_ACCESS_KEY_SECRET")
 
     # 阿里云 OSS 配置
     aliyun_oss_access_key_id: str | None = Field(default=None, alias="ALIYUN_OSS_ACCESS_KEY_ID")

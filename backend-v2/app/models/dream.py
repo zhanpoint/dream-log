@@ -31,11 +31,10 @@ from app.models.enums import AIProcessingStatus, AwakeningState, PrivacyLevel
 from app.models.user import shanghai_now
 
 if TYPE_CHECKING:
-    from app.models.dream_analysis import DreamAnalysisTask
     from app.models.dream_attachment import DreamAttachment
     from app.models.dream_embedding import DreamEmbedding
-    from app.models.dream_emotion import DreamEmotion
     from app.models.dream_insight import DreamInsight
+    from app.models.dream_relation import DreamRelation
     from app.models.dream_symbol import DreamSymbol
     from app.models.dream_tag import DreamTag
     from app.models.dream_trigger import DreamTrigger
@@ -72,8 +71,11 @@ class Dream(Base):
     recorded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=shanghai_now
     )
+    sleep_start_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, comment="入睡时间"
+    )
     awakening_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True, comment="醒来时间"
     )
     is_nap: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -96,22 +98,16 @@ class Dream(Base):
     primary_emotion: Mapped[str | None] = mapped_column(String(32), nullable=True)
     emotion_intensity: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     emotion_residual: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    emotion_conflict_index: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # ========== 梦境特征 ==========
     lucidity_level: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     vividness_level: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
 
-    # ========== 感官体验 (0-1 浮点数) ==========
-    sensory_visual: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sensory_auditory: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sensory_tactile: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sensory_olfactory: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sensory_gustatory: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sensory_spatial: Mapped[float | None] = mapped_column(Float, nullable=True)
-
     # ========== 现实关联 ==========
     reality_correlation: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+
+    # ========== AI 生成图像 ==========
+    ai_image_url: Mapped[str | None] = mapped_column(Text, nullable=True, comment="AI 生成的梦境图像 OSS URL")
 
     # ========== AI 分析状态 ==========
     ai_processed: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -152,32 +148,43 @@ class Dream(Base):
     )
 
     # ========== ORM 关系 ==========
+    # cascade 使删除梦境时 ORM 先删关联行，避免先 SET dream_id=NULL 触发 NOT NULL 约束
     insight: Mapped[DreamInsight | None] = relationship(
-        "DreamInsight", back_populates="dream", uselist=False, lazy="noload"
+        "DreamInsight", back_populates="dream", uselist=False, lazy="noload", cascade="all, delete-orphan"
     )
     embedding: Mapped[DreamEmbedding | None] = relationship(
-        "DreamEmbedding", back_populates="dream", uselist=False, lazy="noload"
-    )
-    emotions: Mapped[list[DreamEmotion]] = relationship(
-        "DreamEmotion", back_populates="dream", lazy="selectin"
+        "DreamEmbedding", back_populates="dream", uselist=False, lazy="noload", cascade="all, delete-orphan"
     )
     type_mappings: Mapped[list[DreamTypeMapping]] = relationship(
-        "DreamTypeMapping", back_populates="dream", lazy="selectin"
+        "DreamTypeMapping", back_populates="dream", lazy="selectin", cascade="all, delete-orphan"
     )
     trigger_mappings: Mapped[list[DreamTrigger]] = relationship(
-        "DreamTrigger", back_populates="dream", lazy="selectin"
+        "DreamTrigger", back_populates="dream", lazy="selectin", cascade="all, delete-orphan"
     )
     attachments: Mapped[list[DreamAttachment]] = relationship(
-        "DreamAttachment", back_populates="dream", lazy="selectin"
+        "DreamAttachment", back_populates="dream", lazy="selectin", cascade="all, delete-orphan"
     )
     symbols: Mapped[list[DreamSymbol]] = relationship(
-        "DreamSymbol", back_populates="dream", lazy="noload"
+        "DreamSymbol", back_populates="dream", lazy="noload", cascade="all, delete-orphan"
     )
     tags: Mapped[list[DreamTag]] = relationship(
-        "DreamTag", back_populates="dream", lazy="selectin"
+        "DreamTag", back_populates="dream", lazy="selectin", cascade="all, delete-orphan"
     )
-    analysis_tasks: Mapped[list[DreamAnalysisTask]] = relationship(
-        "DreamAnalysisTask", back_populates="dream", lazy="noload"
+
+    # 梦境关联
+    outgoing_relations: Mapped[list[DreamRelation]] = relationship(
+        "DreamRelation",
+        foreign_keys="[DreamRelation.source_dream_id]",
+        back_populates="source_dream",
+        lazy="noload",
+        cascade="all, delete-orphan",
+    )
+    incoming_relations: Mapped[list[DreamRelation]] = relationship(
+        "DreamRelation",
+        foreign_keys="[DreamRelation.target_dream_id]",
+        back_populates="target_dream",
+        lazy="noload",
+        cascade="all, delete-orphan",
     )
 
     # ========== 复合索引 ==========

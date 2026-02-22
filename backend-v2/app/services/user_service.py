@@ -169,9 +169,9 @@ async def update_avatar(
     """
     user = await get_user_by_id(user_id, db)
     
-    # 如果有旧头像且是OSS上的文件，尝试删除
+    # 如果有旧头像且是OSS上的文件，尝试删除（头像在 public bucket）
     if user.avatar:
-        delete_oss_file_from_url(user.avatar, user_id)
+        delete_oss_file_from_url(user.avatar, user_id, bucket_type="public")
     
     user.avatar = avatar_url
     

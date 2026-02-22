@@ -126,8 +126,14 @@ frontend/*.njsproj
 frontend/*.sln
 frontend/*.sw?
 
-
-
+# legacy
+frontend
+backend
+legacy
+backend-v2/src/Cloud Speech.json
+.cursor
+.cursorignore
+.kiro
 
 
 

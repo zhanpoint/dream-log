@@ -2,6 +2,8 @@
 FastAPI 应用主入口
 """
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -9,22 +11,55 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.redis import close_redis, init_redis
+from app.core.redis import close_redis, get_redis, init_redis
+from app.core.sse_manager import run_redis_sse_subscriber
+
+logger = logging.getLogger(__name__)
+
+# 客户端主动断开连接时 Windows 上 asyncio 可能抛出的异常，视为正常断开，不刷 traceback
+# WinError 10054 = ConnectionResetError
+_CLIENT_DISCONNECT_EXCEPTIONS = (
+    ConnectionResetError,
+    BrokenPipeError,
+    ConnectionAbortedError,
+)
+
+
+def _asyncio_exception_handler(loop: asyncio.AbstractEventLoop, context: dict) -> None:
+    """自定义 asyncio 异常处理器：客户端断开导致的错误仅打 DEBUG，避免刷屏"""
+    exc = context.get("exception")
+    if exc is not None and isinstance(exc, _CLIENT_DISCONNECT_EXCEPTIONS):
+        msg = context.get("message", "")
+        logger.debug("客户端断开连接: %s - %s", type(exc).__name__, msg)
+        return
+    # 其他异常交给默认处理器
+    loop.default_exception_handler(context)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """应用生命周期管理"""
     # 启动时执行
+    loop = asyncio.get_running_loop()
+    loop.set_exception_handler(_asyncio_exception_handler)
+
     print(f" 环境: {settings.app_env}")
 
     # 初始化 Redis 连接
     await init_redis()
     print("✅ Redis 连接已建立")
 
+    # 启动 SSE Redis 订阅（接收 Worker 发布的分析状态，推送给前端）
+    sse_subscriber_task = asyncio.create_task(run_redis_sse_subscriber(get_redis))
+
     yield
 
     # 关闭时执行
+    sse_subscriber_task.cancel()
+    try:
+        await sse_subscriber_task
+    except asyncio.CancelledError:
+        pass
     await close_redis()
     print("✅ Redis 连接已关闭")
     print(f"👋 {settings.app_name} 关闭中...")
@@ -65,10 +100,13 @@ async def health_check() -> dict[str, str]:
 
 
 # 注册路由
-from app.api import auth, dreams, oauth, user
+from app.api import auth, dreams, insights, notifications, oauth, user, voice_ws
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(oauth.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
 app.include_router(dreams.router, prefix="/api")
 app.include_router(dreams.tag_router, prefix="/api")
+app.include_router(voice_ws.router, prefix="/api")
+app.include_router(insights.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")

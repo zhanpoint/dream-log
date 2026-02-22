@@ -7,9 +7,11 @@ import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 
 export default function HeroSection() {
   const { t } = useTranslation();
+  const router = useRouter();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
   
@@ -18,7 +20,10 @@ export default function HeroSection() {
       id="hero"
       className="relative mx-auto mt-32 max-w-[80rem] px-6 text-center md:px-8"
     >
-      <div className="hero-tag backdrop-filter-[12px] inline-flex h-8 items-center justify-between rounded-full border border-border/50 bg-accent/90 px-4 text-sm transition-all ease-in hover:cursor-pointer hover:bg-accent group gap-1 translate-y-[-1rem] animate-fade-in opacity-0">
+      <div 
+        onClick={() => router.push("/dreams")}
+        className="hero-tag backdrop-filter-[12px] inline-flex h-8 items-center justify-between rounded-full border border-border/50 bg-accent/90 px-4 text-sm transition-all ease-in hover:cursor-pointer hover:bg-accent group gap-1 translate-y-[-1rem] animate-fade-in opacity-0"
+      >
         <TextShimmer className="inline-flex items-center justify-center">
           <span className="font-medium hero-tag-text">
             {t("marketing.hero.tag")}
@@ -34,7 +39,10 @@ export default function HeroSection() {
         {t("marketing.hero.subtitleLine1")}
         <br className="hidden md:block" /> {t("marketing.hero.subtitleLine2")}
       </p>
-      <ShinyButton className="translate-y-[-1rem] animate-fade-in opacity-0 ease-in-out [--animation-delay:600ms] text-base">
+      <ShinyButton 
+        onClick={() => router.push("/dreams/new")}
+        className="translate-y-[-1rem] animate-fade-in opacity-0 ease-in-out [--animation-delay:600ms] text-base"
+      >
         {t("marketing.hero.cta")}
         <ArrowRightIcon className="size-5 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
       </ShinyButton>

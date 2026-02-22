@@ -140,6 +140,7 @@ const resources = {
         sidebar: {
           profile: "个人资料",
           account: "账户安全",
+          insights: "洞察报告",
         },
         // 个人资料
         profile: {
@@ -430,6 +431,7 @@ const resources = {
         sidebar: {
           profile: "Profile",
           account: "Account Security",
+          insights: "Insights",
         },
         profile: {
           title: "Profile",
@@ -717,6 +719,7 @@ const resources = {
         sidebar: {
           profile: "プロフィール",
           account: "アカウントセキュリティ",
+          insights: "インサイト",
         },
         profile: {
           title: "プロフィール",

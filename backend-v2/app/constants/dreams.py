@@ -56,19 +56,3 @@ SENSORY_TYPES = [
     "gustatory",
     "spatial",
 ]
-
-# 常见触发因素词表
-COMMON_TRIGGERS = [
-    "late_night_meal",
-    "spicy_food",
-    "alcohol",
-    "caffeine",
-    "horror_movie",
-    "intense_exercise",
-    "high_stress_workday",
-    "meditation",
-    "relationship_conflict",
-    "sleep_deprivation",
-    "new_environment",
-    "medication",
-]

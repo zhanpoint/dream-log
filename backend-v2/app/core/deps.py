@@ -5,7 +5,7 @@ FastAPI 依赖注入
 from collections.abc import AsyncGenerator
 
 from arq.connections import ArqRedis
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,6 +43,48 @@ async def get_current_user(
     """获取当前登录用户"""
     try:
         token = credentials.credentials
+        payload = TokenService.verify_token(token, token_type="access")
+        user_id = payload.get("sub")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的令牌"
+            )
+
+        user_service = UserService(db)
+        user = await user_service.get_by_id(user_id)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在"
+            )
+
+        return user
+
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="令牌验证失败"
+        )
+
+
+async def get_current_user_optional_token(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """获取当前登录用户（支持 query 参数 token，用于 SSE）"""
+    token = None
+    if credentials:
+        token = credentials.credentials
+    else:
+        token = request.query_params.get("token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="未提供认证令牌"
+        )
+
+    try:
         payload = TokenService.verify_token(token, token_type="access")
         user_id = payload.get("sub")
 

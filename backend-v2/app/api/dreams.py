@@ -6,21 +6,26 @@ from datetime import date
 from uuid import UUID
 
 from arq.connections import ArqRedis
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_arq_redis, get_current_user, get_db
+from app.core.deps import get_arq_redis, get_current_user, get_current_user_optional_token, get_db
+from app.core.sse_manager import sse_event_generator, sse_manager
 from app.models.user import User
 from app.schemas.dreams import (
+    AddReflectionAnswerRequest,
+    AttachmentResponse,
     AnalysisStatusResponse,
-    AnalysisTaskResponse,
     CreateDreamRequest,
     CreateTagRequest,
     DreamDetailResponse,
     DreamListItem,
     DreamListResponse,
-    EmotionResponse,
+    DreamStatsResponse,
+    GenerateTitleRequest,
     TagResponse,
+    TriggerResponse,
     UpdateDreamRequest,
     UpdateTagRequest,
 )
@@ -47,6 +52,8 @@ def _build_list_item(dream) -> DreamListItem:
         ai_processing_status=dream.ai_processing_status.value if dream.ai_processing_status else "PENDING",
         is_favorite=dream.is_favorite,
         is_draft=dream.is_draft,
+        privacy_level=dream.privacy_level.value if dream.privacy_level else "PRIVATE",
+        view_count=dream.view_count,
         created_at=dream.created_at,
         dream_types=[
             m.dream_type.type_name.value
@@ -54,7 +61,7 @@ def _build_list_item(dream) -> DreamListItem:
             if m.dream_type
         ],
         tags=[
-            TagResponse(id=dt.tag.id, name=dt.tag.name, color=dt.tag.color)
+            TagResponse(id=dt.tag.id, name=dt.tag.name)
             for dt in dream.tags
             if dt.tag
         ],
@@ -78,6 +85,8 @@ def _build_detail(dream) -> DreamDetailResponse:
         completeness_score=dream.completeness_score,
         is_nap=dream.is_nap,
         # 睡眠
+        sleep_start_time=dream.sleep_start_time,
+        awakening_time=dream.awakening_time,
         sleep_duration_minutes=dream.sleep_duration_minutes,
         awakening_state=dream.awakening_state.value if dream.awakening_state else None,
         sleep_quality=dream.sleep_quality,
@@ -87,36 +96,27 @@ def _build_detail(dream) -> DreamDetailResponse:
         primary_emotion=dream.primary_emotion,
         emotion_intensity=dream.emotion_intensity,
         emotion_residual=dream.emotion_residual,
-        emotion_conflict_index=dream.emotion_conflict_index,
-        emotions=[
-            EmotionResponse(
-                emotion_type=e.emotion_type.value,
-                score=e.score,
-                source=e.source.value,
-            )
-            for e in dream.emotions
+        # 触发因素
+        triggers=[
+            TriggerResponse(name=t.trigger_name, confidence=t.confidence, reasoning=t.reasoning)
+            for t in dream.trigger_mappings
         ],
         # 特征
         lucidity_level=dream.lucidity_level,
         vividness_level=dream.vividness_level,
-        # 感官
-        sensory_visual=dream.sensory_visual,
-        sensory_auditory=dream.sensory_auditory,
-        sensory_tactile=dream.sensory_tactile,
-        sensory_olfactory=dream.sensory_olfactory,
-        sensory_gustatory=dream.sensory_gustatory,
-        sensory_spatial=dream.sensory_spatial,
         # 现实关联
         reality_correlation=dream.reality_correlation,
         # AI
         ai_processed=dream.ai_processed,
         ai_processing_status=dream.ai_processing_status.value if dream.ai_processing_status else "PENDING",
         ai_processed_at=dream.ai_processed_at,
+        ai_image_url=dream.ai_image_url,
         # 洞察
         life_context=insight.life_context if insight else None,
         user_interpretation=insight.user_interpretation if insight else None,
         content_structured=insight.content_structured if insight else None,
         ai_analysis=insight.ai_analysis if insight else None,
+        reflection_answers=insight.reflection_answers if insight else None,
         # 元数据
         privacy_level=dream.privacy_level.value if dream.privacy_level else "PRIVATE",
         is_favorite=dream.is_favorite,
@@ -129,11 +129,22 @@ def _build_detail(dream) -> DreamDetailResponse:
             if m.dream_type
         ],
         tags=[
-            TagResponse(id=dt.tag.id, name=dt.tag.name, color=dt.tag.color)
+            TagResponse(id=dt.tag.id, name=dt.tag.name)
             for dt in dream.tags
             if dt.tag
         ],
         attachments_count=len(dream.attachments) if dream.attachments else 0,
+        attachments=[
+            AttachmentResponse(
+                id=att.id,
+                attachment_type=att.attachment_type.value,
+                file_url=att.file_url,
+                thumbnail_url=att.thumbnail_url,
+                mime_type=att.mime_type,
+                duration=att.duration,
+            )
+            for att in (dream.attachments or [])
+        ],
         # 时间
         created_at=dream.created_at,
         updated_at=dream.updated_at,
@@ -197,6 +208,17 @@ async def list_dreams(
     )
 
 
+@router.get("/stats", response_model=DreamStatsResponse)
+async def get_dream_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DreamStatsResponse:
+    """获取梦境统计：全部数量、连续记录天数、本周/本月记录数"""
+    service = DreamService(db)
+    data = await service.get_dream_stats(current_user.id)
+    return DreamStatsResponse(**data)
+
+
 @router.get("/{dream_id}", response_model=DreamDetailResponse)
 async def get_dream(
     dream_id: UUID,
@@ -247,6 +269,30 @@ async def toggle_favorite(
     return {"is_favorite": is_fav}
 
 
+@router.post("/{dream_id}/view")
+async def increment_view_count(
+    dream_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, int]:
+    """记录一次有效浏览"""
+    service = DreamService(db)
+    view_count = await service.increment_view_count(dream_id, current_user.id)
+    return {"view_count": view_count}
+
+
+@router.post("/generate-title")
+async def generate_title_standalone(
+    request: GenerateTitleRequest,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """独立生成标题（不依赖梦境 ID，用于创建/编辑梦境时实时生成）"""
+    from app.services.ai_service import ai_service
+
+    title = await ai_service.generate_title(content=request.content)
+    return {"title": title}
+
+
 @router.post("/{dream_id}/analyze")
 async def trigger_analysis(
     dream_id: UUID,
@@ -254,7 +300,7 @@ async def trigger_analysis(
     db: AsyncSession = Depends(get_db),
     arq: ArqRedis = Depends(get_arq_redis),
 ) -> dict[str, str]:
-    """手动触发 AI 分析"""
+    """手动触发 AI 分析（支持多次重新分析）"""
     service = DreamService(db)
     dream = await service.get_dream(dream_id, current_user.id)
 
@@ -266,6 +312,48 @@ async def trigger_analysis(
 
     await arq.enqueue_job("analyze_dream", str(dream.id))
     return {"message": "AI 分析已加入队列", "status": "PENDING"}
+
+
+@router.post("/{dream_id}/reflection-answers", response_model=DreamDetailResponse)
+async def add_reflection_answer(
+    dream_id: UUID,
+    body: AddReflectionAnswerRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DreamDetailResponse:
+    """添加一条对反思问题的回答，并返回最新详情"""
+    service = DreamService(db)
+    dream = await service.add_reflection_answer(
+        dream_id,
+        current_user.id,
+        question=body.question,
+        answer=body.answer,
+    )
+    return _build_detail(dream)
+
+
+@router.get("/{dream_id}/analysis-stream")
+async def dream_analysis_stream(
+    dream_id: UUID,
+    request: Request,
+    current_user: User = Depends(get_current_user_optional_token),
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+    """SSE 流：实时推送梦境分析状态更新（支持 query 参数 token）"""
+    service = DreamService(db)
+    dream = await service.get_dream(dream_id, current_user.id)
+
+    queue = await sse_manager.connect(current_user.id)
+
+    return StreamingResponse(
+        sse_event_generator(request, current_user.id, queue),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/{dream_id}/analysis-status", response_model=AnalysisStatusResponse)
@@ -282,20 +370,111 @@ async def get_analysis_status(
         ai_processed=data["ai_processed"],
         ai_processing_status=data["ai_processing_status"],
         ai_processed_at=data["ai_processed_at"],
-        tasks=[
-            AnalysisTaskResponse(
-                id=t.id,
-                task_type=t.task_type.value,
-                status=t.status.value,
-                model_name=t.model_name,
-                error_message=t.error_message,
-                started_at=t.started_at,
-                completed_at=t.completed_at,
-                processing_time_ms=t.processing_time_ms,
-            )
-            for t in data["tasks"]
-        ],
+        tasks=data["tasks"],
     )
+
+
+@router.post("/{dream_id}/generate-image")
+async def generate_dream_image(
+    dream_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """使用 AI 根据梦境内容生成一张梦境图像，上传至 OSS，
+    删除旧图像，将新 URL 持久化到数据库，并返回新 URL。
+    """
+    from fastapi import HTTPException
+    from app.services.ai_service import ai_service
+    from app.services.oss_service import OSSService, get_oss_service
+
+    service = DreamService(db)
+    dream = await service.get_dream(dream_id, current_user.id)
+
+    try:
+        new_image_url = await ai_service.generate_dream_image(
+            dream_content=dream.content or "",
+            dream_title=dream.title,
+            user_id=current_user.id,
+            dream_id=dream_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"图像生成失败: {e!s}")
+
+    # 删除旧 OSS 文件（仅当旧 URL 是 OSS 地址时才尝试删除）
+    old_url = dream.ai_image_url
+    if old_url and "aliyuncs.com" in old_url:
+        try:
+            old_key = OSSService.extract_file_key_from_url(old_url, current_user.id)
+            if old_key:
+                # AI 图像存储在 public bucket
+                oss = get_oss_service(str(current_user.id), bucket_type="public")
+                oss.delete_file(old_key)
+        except Exception:
+            pass  # 删除失败不阻断流程
+
+    # 将新 URL 持久化到数据库
+    dream.ai_image_url = new_image_url
+    await db.commit()
+
+    return {"image_url": new_image_url}
+
+
+@router.get("/{dream_id}/similar", response_model=list[DreamListItem])
+async def get_similar_dreams(
+    dream_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[DreamListItem]:
+    """获取相似梦境推荐"""
+    from sqlalchemy import select
+    from app.models.dream import Dream
+    from app.models.dream_relation import DreamRelation
+    from app.models.enums import RelationType
+    
+    service = DreamService(db)
+    # 验证梦境存在且属于当前用户
+    await service.get_dream(dream_id, current_user.id)
+    
+    # 查询相似梦境关联
+    stmt = (
+        select(DreamRelation)
+        .where(
+            DreamRelation.source_dream_id == dream_id,
+            DreamRelation.relation_type == RelationType.SIMILAR,
+        )
+        .order_by(DreamRelation.similarity_score.desc())
+        .limit(5)
+    )
+    result = await db.execute(stmt)
+    relations = result.scalars().all()
+    
+    if not relations:
+        return []
+    
+    # 获取目标梦境（含关联数据，供 _build_list_item 使用）
+    from sqlalchemy.orm import selectinload
+    from app.models.dream_tag import DreamTag, Tag
+    from app.models.dream_type import DreamTypeMapping, DreamType
+    target_ids = [r.target_dream_id for r in relations]
+    # 保持与 relations 相同的相似度排序
+    id_to_score = {r.target_dream_id: r.similarity_score for r in relations}
+    stmt = (
+        select(Dream)
+        .options(
+            selectinload(Dream.type_mappings).selectinload(DreamTypeMapping.dream_type),
+            selectinload(Dream.tags).selectinload(DreamTag.tag),
+            selectinload(Dream.attachments),
+        )
+        .where(
+            Dream.id.in_(target_ids),
+            Dream.deleted_at.is_(None),
+        )
+    )
+    result = await db.execute(stmt)
+    dreams = list(result.scalars().unique().all())
+    dreams.sort(key=lambda d: id_to_score.get(d.id, 0), reverse=True)
+    
+    return [_build_list_item(d) for d in dreams]
 
 
 # ============= 标签 API =============
@@ -311,7 +490,7 @@ async def list_tags(
     """获取用户所有标签"""
     service = DreamService(db)
     tags = await service.get_user_tags(current_user.id)
-    return [TagResponse(id=t.id, name=t.name, color=t.color) for t in tags]
+    return [TagResponse(id=t.id, name=t.name) for t in tags]
 
 
 @tag_router.post("", response_model=TagResponse, status_code=201)
@@ -323,7 +502,7 @@ async def create_tag(
     """创建标签"""
     service = DreamService(db)
     tag = await service.create_tag(current_user.id, request)
-    return TagResponse(id=tag.id, name=tag.name, color=tag.color)
+    return TagResponse(id=tag.id, name=tag.name)
 
 
 @tag_router.patch("/{tag_id}", response_model=TagResponse)
@@ -336,7 +515,7 @@ async def update_tag(
     """更新标签"""
     service = DreamService(db)
     tag = await service.update_tag(tag_id, current_user.id, request)
-    return TagResponse(id=tag.id, name=tag.name, color=tag.color)
+    return TagResponse(id=tag.id, name=tag.name)
 
 
 @tag_router.delete("/{tag_id}", status_code=204)
@@ -373,3 +552,74 @@ async def remove_tag_from_dream(
     """移除梦境标签"""
     service = DreamService(db)
     await service.remove_tag_from_dream(dream_id, tag_id, current_user.id)
+
+
+# ============= 附件 API =============
+
+
+@router.post("/{dream_id}/attachments/presign")
+async def get_attachment_upload_url(
+    dream_id: UUID,
+    filename: str = Query(..., description="文件名"),
+    content_type: str = Query("image/jpeg", description="MIME 类型"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """获取附件预签名上传 URL"""
+    service = DreamService(db)
+    await service.get_dream(dream_id, current_user.id)  # 验证归属
+
+    from app.services.oss_service import get_oss_service
+
+    # 按类型分目录
+    category = "audio" if content_type.startswith("audio/") else "images"
+    oss = get_oss_service(str(current_user.id), bucket_type="private")
+    file_key = oss.get_attachment_upload_path(str(dream_id), filename, category)
+    result = oss.generate_presigned_url(filename, content_type, file_key=file_key)
+    return result
+
+
+@router.post("/{dream_id}/attachments", status_code=201)
+async def create_attachment(
+    dream_id: UUID,
+    file_url: str = Query(...),
+    attachment_type: str = Query(..., pattern="^(IMAGE|AUDIO|VIDEO)$"),
+    file_size: int | None = Query(None),
+    mime_type: str | None = Query(None),
+    duration: int | None = Query(None, description="音频时长(秒)"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """创建附件记录 (前端上传完成后调用)"""
+    service = DreamService(db)
+    att = await service.create_attachment(
+        dream_id=dream_id,
+        user_id=current_user.id,
+        file_url=file_url,
+        attachment_type=attachment_type,
+        file_size=file_size,
+        mime_type=mime_type,
+        duration=duration,
+    )
+    return {
+        "id": str(att.id),
+        "file_url": att.file_url,
+        "attachment_type": att.attachment_type.value,
+        "created_at": att.created_at.isoformat() if att.created_at else None,
+    }
+
+
+@router.delete("/{dream_id}/attachments/{attachment_id}", status_code=204)
+async def delete_attachment(
+    dream_id: UUID,
+    attachment_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """删除附件"""
+    service = DreamService(db)
+    await service.delete_attachment(dream_id, attachment_id, current_user.id)
+
+
+# 语音转文字已迁移到 WebSocket 实时流式转录
+# 见 app/api/voice_ws.py -> /ws/voice/transcribe

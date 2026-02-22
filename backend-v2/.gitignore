@@ -60,3 +60,6 @@ dmypy.json
 
 # Alembic
 alembic/versions/*.pyc
+
+# tiktoken 编码缓存（避免提交到仓库）
+.tiktoken_cache/

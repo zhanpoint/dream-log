@@ -26,8 +26,6 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('type_name', sa.Enum('NORMAL', 'LUCID', 'NIGHTMARE', 'RECURRING', 'SYMBOLIC', 'VIVID', name='dream_type_enum'), nullable=False),
     sa.Column('display_name', sa.String(length=50), nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('icon_emoji', sa.String(length=10), nullable=True),
     sa.Column('usage_count', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -198,7 +196,7 @@ def upgrade() -> None:
         result = conn.execute(sa.text("SELECT 1 FROM pg_available_extensions WHERE name = 'vector'"))
         if result.fetchone():
             op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-            op.execute("ALTER TABLE dream_embeddings ADD COLUMN content_embedding vector(3072)")
+            op.execute("ALTER TABLE dream_embeddings ADD COLUMN content_embedding vector(1024)")
             op.execute("""
                 CREATE INDEX idx_content_embedding_hnsw
                 ON dream_embeddings
@@ -207,7 +205,7 @@ def upgrade() -> None:
             """)
         else:
             print("WARNING: pgvector extension not available. Skipping vector column creation.")
-            print("Install pgvector and run: ALTER TABLE dream_embeddings ADD COLUMN content_embedding vector(3072);")
+            print("Install pgvector and run: ALTER TABLE dream_embeddings ADD COLUMN content_embedding vector(1024);")
     except Exception as e:
         print(f"WARNING: Could not create pgvector column: {e}")
         print("Install pgvector and run the vector migration manually.")
@@ -303,13 +301,13 @@ def upgrade() -> None:
 
     # 插入梦境类型字典数据
     op.execute("""
-        INSERT INTO dream_types (id, type_name, display_name, description, icon_emoji, usage_count) VALUES
-        (gen_random_uuid(), 'NORMAL', '普通梦', '日常的梦境', '💭', 0),
-        (gen_random_uuid(), 'LUCID', '清醒梦', '知道自己在做梦', '🧠', 0),
-        (gen_random_uuid(), 'NIGHTMARE', '噩梦', '令人恐惧或不安', '😱', 0),
-        (gen_random_uuid(), 'RECURRING', '重复梦', '之前梦到过类似的', '🔄', 0),
-        (gen_random_uuid(), 'SYMBOLIC', '象征性强', '充满象征和隐喻', '🎭', 0),
-        (gen_random_uuid(), 'VIVID', '特别清晰', '如同现实般清晰', '✨', 0)
+        INSERT INTO dream_types (id, type_name, display_name, usage_count) VALUES
+        (gen_random_uuid(), 'NORMAL', '普通梦', 0),
+        (gen_random_uuid(), 'LUCID', '清醒梦', 0),
+        (gen_random_uuid(), 'NIGHTMARE', '噩梦', 0),
+        (gen_random_uuid(), 'RECURRING', '重复梦', 0),
+        (gen_random_uuid(), 'SYMBOLIC', '象征性强', 0),
+        (gen_random_uuid(), 'VIVID', '特别清晰', 0)
     """)
 
     # 插入常见触发因素字典数据

@@ -48,7 +48,9 @@ class DreamInsight(Base):
 
     # AI 分析大文本
     ai_analysis: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    # 结构: {summary, cognitive_analysis, emotion_analysis, narrative_structure, sleep_correlation, recommendations}
+
+    # 用户对反思问题的回答列表（JSON 数组）
+    reflection_answers: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(

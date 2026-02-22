@@ -1,0 +1,226 @@
+# Windows 安装 pgvector 扩展指南
+
+## 简介
+
+pgvector 是 PostgreSQL 的向量相似度搜索扩展，支持存储和查询向量数据（如 AI embeddings）。本文档介绍如何在 Windows 系统上为本地 PostgreSQL 安装 pgvector 扩展。
+
+## 前置条件
+
+### 1. PostgreSQL（必需）
+- **下载地址**: https://www.postgresql.org/download/windows/
+- **推荐版本**: PostgreSQL 16 或 17
+- **安装路径示例**: `C:\Program Files\PostgreSQL\17`
+- **重要**: 安装时必须勾选以下组件：
+  - ✅ Command Line Tools
+  - ✅ Development Tools（包含头文件和库文件）
+
+### 2. Visual Studio C++ 构建工具（必需）
+- **下载地址**: https://visualstudio.microsoft.com/zh-hans/downloads/
+- **选项 A**: Visual Studio 2022 Community（免费）
+  - 安装时选择 "使用 C++ 的桌面开发" 工作负载
+- **选项 B**: Build Tools for Visual Studio 2022（仅构建工具，更轻量）
+
+### 3. Git（必需）
+- **下载地址**: https://git-scm.com/download/win
+- 用于下载 pgvector 源码
+
+## 安装步骤
+
+### 步骤 1: 打开开发者命令提示符
+
+1. 按 `Win` 键，搜索 **"x64 Native Tools Command Prompt for VS 2022"**
+2. **右键** → **以管理员身份运行**
+
+> ⚠️ 必须使用 x64 Native Tools Command Prompt，普通 CMD 无法编译
+
+### 步骤 2: 设置 PostgreSQL 路径
+
+根据你的 PostgreSQL 安装路径设置环境变量：
+
+```cmd
+set "PGROOT=C:\Program Files\PostgreSQL\17"
+```
+
+**路径说明**:
+- PostgreSQL 16 → 改为 `C:\Program Files\PostgreSQL\16`
+- PostgreSQL 15 → 改为 `C:\Program Files\PostgreSQL\15`
+- 自定义安装路径 → 修改为实际路径
+
+### 步骤 3: 下载 pgvector 源码
+
+```cmd
+cd %TEMP%
+git clone --branch v0.8.1 https://github.com/pgvector/pgvector.git
+cd pgvector
+```
+
+**版本说明**:
+- `v0.8.1` 是当前（2026年初）最新稳定版
+- 可替换为其他版本，如 `v0.7.4`
+- 去掉 `--branch v0.8.1` 可使用最新开发版（可能不稳定）
+
+### 步骤 4: 编译并安装
+
+```cmd
+nmake /F Makefile.win
+nmake /F Makefile.win install
+```
+
+**说明**:
+- 第一条命令：编译源码
+- 第二条命令：安装到 PostgreSQL 扩展目录
+- 整个过程通常需要 1-3 分钟
+
+### 步骤 5: 在数据库中启用扩展
+
+使用 **pgAdmin** 或 **psql** 连接到数据库（需要超级用户权限）：
+
+```sql
+CREATE EXTENSION vector;
+```
+
+成功后会显示 `CREATE EXTENSION`。
+
+## 验证安装
+
+### 方法 1: 检查扩展是否存在
+
+```sql
+SELECT * FROM pg_extension WHERE extname = 'vector';
+```
+
+### 方法 2: 检查向量类型
+
+```sql
+SELECT typname FROM pg_type WHERE typname IN ('vector', 'halfvec', 'sparsevec');
+```
+
+应该能看到 `vector`、`halfvec`、`sparsevec` 三种类型。
+
+### 方法 3: 功能测试
+
+```sql
+-- 创建测试表
+CREATE TABLE test_vectors (
+    id serial PRIMARY KEY,
+    embedding vector(3)
+);
+
+-- 插入测试数据
+INSERT INTO test_vectors (embedding) VALUES 
+    ('[1,2,3]'), 
+    ('[4,5,6]'),
+    ('[7,8,9]');
+
+-- 向量相似度查询（欧氏距离）
+SELECT id, embedding 
+FROM test_vectors 
+ORDER BY embedding <-> '[3,1,2]' 
+LIMIT 1;
+
+-- 清理测试数据
+DROP TABLE test_vectors;
+```
+
+如果查询正常返回结果，说明 pgvector 安装成功！
+
+## 常见问题
+
+### 问题 1: 找不到 `cl.exe`
+
+**原因**: 未使用正确的命令提示符  
+**解决**: 必须使用 "x64 Native Tools Command Prompt for VS 2022"
+
+### 问题 2: 找不到 `postgres.lib` 或头文件
+
+**原因**: `PGROOT` 路径设置错误  
+**解决**: 
+1. 检查 PostgreSQL 实际安装路径
+2. 确认安装时勾选了 "Development Tools"
+3. 重新设置 `PGROOT` 环境变量
+
+### 问题 3: `LNK2019: unresolved external symbol`
+
+**可能原因**:
+- PostgreSQL 版本与 pgvector 不兼容
+- Visual Studio 版本过旧
+
+**解决**:
+1. 升级到 Visual Studio 2022
+2. 使用 PostgreSQL 正式版（避免 RC 版本）
+3. 尝试使用 pgvector 的其他版本
+
+### 问题 4: 编译成功但 `CREATE EXTENSION` 失败
+
+**原因**: 可能是权限问题或文件未正确复制  
+**解决**:
+1. 确认以管理员身份运行命令提示符
+2. 检查 PostgreSQL 扩展目录是否有 `vector.dll` 和 `vector--*.sql` 文件
+   - 路径: `C:\Program Files\PostgreSQL\17\lib\vector.dll`
+   - 路径: `C:\Program Files\PostgreSQL\17\share\extension\vector*.sql`
+
+## 使用示例
+
+### 存储 OpenAI Embeddings
+
+```sql
+-- 创建梦境表（假设使用 text-embedding-3-small，维度 1536）
+CREATE TABLE dreams (
+    id serial PRIMARY KEY,
+    content text,
+    embedding vector(1536)
+);
+
+-- 插入数据（embedding 从 AI 模型获取）
+INSERT INTO dreams (content, embedding) 
+VALUES ('我梦见在飞翔', '[0.1, 0.2, ..., 0.5]');
+
+-- 相似度搜索（余弦距离）
+SELECT id, content, 1 - (embedding <=> '[0.1, 0.2, ..., 0.5]') AS similarity
+FROM dreams
+ORDER BY embedding <=> '[0.1, 0.2, ..., 0.5]'
+LIMIT 5;
+```
+
+### 距离运算符
+
+| 运算符 | 距离类型 | 说明 |
+|--------|----------|------|
+| `<->` | 欧氏距离 (L2) | 最常用 |
+| `<=>` | 余弦距离 | 适合归一化向量 |
+| `<#>` | 内积距离 | 负内积 |
+
+### 创建索引（提升查询性能）
+
+```sql
+-- IVFFlat 索引（适合中等规模数据）
+CREATE INDEX ON dreams USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
+
+-- HNSW 索引（更快但占用更多内存）
+CREATE INDEX ON dreams USING hnsw (embedding vector_l2_ops);
+```
+
+## 参考资料
+
+- **pgvector GitHub**: https://github.com/pgvector/pgvector
+- **pgvector 文档**: https://github.com/pgvector/pgvector#readme
+- **PostgreSQL 官网**: https://www.postgresql.org/
+
+## 更新扩展
+
+如需更新到新版本：
+
+```cmd
+cd %TEMP%\pgvector
+git pull
+git checkout v0.8.2  # 替换为新版本号
+nmake /F Makefile.win clean
+nmake /F Makefile.win
+nmake /F Makefile.win install
+```
+
+然后在数据库中执行：
+
+```sql
+ALTER EXTENSION vector UPDATE TO '0.8.2';
+```

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { User, Shield } from "lucide-react";
+import { User, Shield, Sparkles } from "lucide-react";
 
 const menuItems = [
   {
@@ -18,6 +18,12 @@ const menuItems = [
     href: "/settings/account",
     icon: Shield,
     labelKey: "settings.sidebar.account",
+  },
+  {
+    id: "insights",
+    href: "/settings/insights",
+    icon: Sparkles,
+    labelKey: "settings.sidebar.insights",
   },
 ];
 

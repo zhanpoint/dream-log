@@ -11,6 +11,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,45 +23,77 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar as DateRangeCalendar } from "@/components/ui/calendar";
 import {
+  DREAM_TYPES,
   DREAM_TYPE_ICON_MAP,
   DREAM_TYPE_LABEL_MAP,
   EMOTION_COLOR_MAP,
-  EMOTION_EMOJI_MAP,
+  EMOTION_CATEGORIES,
 } from "@/lib/constants";
 import {
   DreamApi,
   type DreamListItem,
   type DreamListParams,
+  type DreamStats,
 } from "@/lib/dream-api";
-import { cn } from "@/lib/utils";
+import { cn, getHighlightSegments } from "@/lib/utils";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar,
-  Heart,
+  CalendarRange,
+  Check,
+  ChevronDown,
+  Eye,
+  Flame,
+  Globe,
   Loader2,
+  Lock,
   Moon,
   Plus,
   Search,
   Sparkles,
   Star,
+  Edit,
+  Trash2,
+  Tag,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function MyDreamsPage() {
   const [dreams, setDreams] = useState<DreamListItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<DreamStats | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("dream_date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [dreamTypeFilter, setDreamTypeFilter] = useState<string[]>([]);
+  const [emotionFilter, setEmotionFilter] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  const [dateTo, setDateTo] = useState<string | null>(null);
 
   const pageSize = 12;
+
+  /** 情绪选项扁平列表（用于筛选） */
+  const emotionOptions = EMOTION_CATEGORIES.flatMap((c) => c.emotions);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await DreamApi.getStats();
+      setStats(data);
+    } catch {
+      setStats(null);
+    }
+  }, []);
 
   const fetchDreams = useCallback(async () => {
     setLoading(true);
@@ -68,6 +105,10 @@ export default function MyDreamsPage() {
         sort_order: sortOrder,
         search: search.trim() || undefined,
         is_favorite: favoriteOnly || undefined,
+        dream_type: dreamTypeFilter.length ? dreamTypeFilter.join(",") : undefined,
+        emotion: emotionFilter.length ? emotionFilter.join(",") : undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
       };
       const res = await DreamApi.list(params);
       setDreams(res.items);
@@ -77,14 +118,51 @@ export default function MyDreamsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, sortBy, sortOrder, search, favoriteOnly]);
+  }, [page, sortBy, sortOrder, search, favoriteOnly, dreamTypeFilter, emotionFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchDreams();
   }, [fetchDreams]);
 
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   // 搜索防抖
   const [searchInput, setSearchInput] = useState("");
+  // 搜索历史（最近 10 条，localStorage）
+  const SEARCH_HISTORY_KEY = "dream-search-history";
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [searchOpen, setSearchOpen] = useState(false);
+  const addSearchToHistory = useCallback((term: string) => {
+    const t = term.trim();
+    if (!t) return;
+    setSearchHistory((prev) => {
+      const next = [t, ...prev.filter((x) => x !== t)].slice(0, 10);
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  const removeSearchFromHistory = useCallback((term: string) => {
+    setSearchHistory((prev) => {
+      const next = prev.filter((x) => x !== term);
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -115,126 +193,483 @@ export default function MyDreamsPage() {
 
   return (
     <div className="min-h-screen">
-      {/* 顶部统计区 */}
-      <div className="bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 backdrop-blur-xl border-b">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold">我的梦境</h1>
-              <p className="text-muted-foreground mt-1">
-                共记录了 {total} 个梦境
-              </p>
-            </div>
-            <Link href="/dreams/new">
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                记录新梦境
-              </Button>
-            </Link>
-          </div>
+      {/* 标题 + 统计 */}
+      <div className="mt-4">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <h1 className="text-3xl font-bold tracking-tight">我的梦境</h1>
+            
+            {/* 统计数据 */}
+            <div className="flex flex-wrap items-center gap-8">
+              {/*
+                统计优先使用后端 /dreams/stats 返回的数据：
+                - total: 全部梦境数量
+                - consecutive_days: 连续记录天数
+                - this_week_count: 本周记录
+                - this_month_count: 本月记录
+                如果 stats 还未加载，则回退为 0（total 则回退为分页 total）。
+              */}
 
-          {/* 快速统计卡片 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Moon className="w-8 h-8 text-primary/60" />
-                <div>
-                  <p className="text-2xl font-bold">{total}</p>
-                  <p className="text-xs text-muted-foreground">全部梦境</p>
+              {/* 全部梦境 */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <Moon className="h-5 w-5 text-primary" />
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Star className="w-8 h-8 text-amber-500/60" />
                 <div>
-                  <p className="text-2xl font-bold">
-                    {dreams.filter((d) => d.is_favorite).length}
+                  <p className="text-2xl font-bold leading-none tabular-nums">
+                    {stats?.total ?? total}
                   </p>
-                  <p className="text-xs text-muted-foreground">收藏梦境</p>
+                  <p className="text-xs text-muted-foreground mt-1">全部梦境</p>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Sparkles className="w-8 h-8 text-primary/60" />
+              </div>
+
+              {/* 连续记录天数 */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {dreams.filter((d) => d.ai_processed).length}
+                  <p className="text-2xl font-bold leading-none tabular-nums">
+                    {stats?.consecutive_days ?? 0}
                   </p>
-                  <p className="text-xs text-muted-foreground">AI 已分析</p>
+                  <p className="text-xs text-muted-foreground mt-1">连续记录天数</p>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Heart className="w-8 h-8 text-rose-500/60" />
+              </div>
+
+              {/* 本周记录数 */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+                  <Calendar className="h-5 w-5 text-emerald-500" />
+                </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {new Set(dreams.map((d) => d.primary_emotion).filter(Boolean)).size}
+                  <p className="text-2xl font-bold leading-none tabular-nums">
+                    {stats?.this_week_count ?? 0}
                   </p>
-                  <p className="text-xs text-muted-foreground">情绪种类</p>
+                  <p className="text-xs text-muted-foreground mt-1">本周记录</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* 本月记录数 */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
+                  <Calendar className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold leading-none tabular-nums">
+                    {stats?.this_month_count ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">本月记录</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 搜索与过滤栏 */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b">
+      <div className="sticky top-0 z-40 bg-background">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap flex-1">
+            <div className="relative w-full sm:w-80 md:w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="搜索梦境内容..."
+                placeholder="搜索梦境..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const term = searchInput.trim();
+                    if (term) addSearchToHistory(term);
+                    setSearchOpen(false);
+                  }
+                }}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 180)}
+                className="pl-10 h-10"
               />
+              {searchOpen && searchHistory.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 py-1 rounded-lg border bg-popover shadow-lg z-50 backdrop-blur-sm">
+                  <p className="px-3 py-1.5 text-xs text-muted-foreground">最近搜索</p>
+                  {searchHistory.map((term, i) => (
+                    <div
+                      key={`${term}-${i}`}
+                      className="group relative flex items-center gap-2 px-3 py-2 hover:bg-muted/30 transition-colors"
+                    >
+                      <button
+                        type="button"
+                        className="flex-1 text-left text-sm truncate"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearchInput(term);
+                          setSearch(term);
+                          setPage(1);
+                          setSearchOpen(false);
+                        }}
+                      >
+                        {term}
+                      </button>
+                      <button
+                        type="button"
+                        className="shrink-0 transition-all invisible group-hover:visible"
+                        style={{ color: 'rgb(156, 163, 175)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(239, 68, 68)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(156, 163, 175)'}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeSearchFromHistory(term);
+                        }}
+                        title="删除"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <Select
               value={`${sortBy}_${sortOrder}`}
               onValueChange={(v) => {
-                const [by, order] = v.split("_");
+                // 解析格式：dream_date_asc -> ["dream_date", "asc"]
+                const parts = v.split("_");
+                const order = parts[parts.length - 1]; // 最后一部分是排序方向
+                const by = parts.slice(0, -1).join("_"); // 前面的部分重新组合为排序字段
                 setSortBy(by);
                 setSortOrder(order);
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="排序" />
+              <SelectTrigger className="w-32 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                <div className="flex items-center gap-1.5">
+                  <span 
+                    className="text-base leading-none text-muted-foreground group-hover/select:text-primary transition-colors font-medium" 
+                    aria-hidden
+                  >
+                    ⇅
+                  </span>
+                  <SelectValue placeholder="排序" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="dream_date_desc">最新优先</SelectItem>
                 <SelectItem value="dream_date_asc">最早优先</SelectItem>
-                <SelectItem value="created_at_desc">最近创建</SelectItem>
-                <SelectItem value="vividness_level_desc">清晰度</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* 日期范围（按用户习惯：排序后先选时间） */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className={cn(
+                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                    (dateFrom || dateTo) && "border-primary/50 bg-primary/5"
+                  )}
+                >
+                  <CalendarRange className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  {dateFrom || dateTo ? (
+                    <span className="text-sm">
+                      {dateFrom ? format(new Date(dateFrom), "M/d", { locale: zhCN }) : "…"} — {dateTo ? format(new Date(dateTo), "M/d", { locale: zhCN }) : "…"}
+                    </span>
+                  ) : (
+                    "日期范围"
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <DateRangeCalendar
+                  mode="range"
+                  selected={
+                    dateFrom && dateTo
+                      ? { from: new Date(dateFrom), to: new Date(dateTo) }
+                      : dateFrom
+                        ? { from: new Date(dateFrom), to: undefined }
+                        : undefined
+                  }
+                  onSelect={(range) => {
+                    if (range?.from) {
+                      setDateFrom(format(range.from, "yyyy-MM-dd"));
+                      setDateTo(range?.to ? format(range.to, "yyyy-MM-dd") : null);
+                      setPage(1);
+                    }
+                  }}
+                  locale={zhCN}
+                  numberOfMonths={1}
+                />
+                {(dateFrom || dateTo) && (
+                  <div className="p-2 border-t">
+                    <button
+                      type="button"
+                      className="w-full text-xs text-foreground py-2 rounded-md transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:scale-[1.02] active:scale-[0.98]"
+                      onClick={() => { setDateFrom(null); setDateTo(null); setPage(1); }}
+                    >
+                      清除日期
+                    </button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* 梦境类型筛选（多选） */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className={cn(
+                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                    dreamTypeFilter.length > 0 && "border-primary/50 bg-primary/5"
+                  )}
+                >
+                  <Tag className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  梦境类型
+                  {dreamTypeFilter.length > 0 && (
+                    <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
+                      {dreamTypeFilter.length}
+                    </Badge>
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="filter-popover-content w-56 p-2" align="start">
+                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">可多选</p>
+                <div className="max-h-64 overflow-y-auto space-y-0.5">
+                  {DREAM_TYPES.map((type) => {
+                    const selected = dreamTypeFilter.includes(type.value);
+                    return (
+                      <button
+                        key={type.value}
+                        type="button"
+                        className={cn(
+                          "filter-popover-option w-full flex items-center gap-2 rounded-md px-2 py-2 text-sm text-left transition-colors",
+                          selected && "filter-popover-option-selected bg-primary/15 text-primary",
+                          !selected && "hover:bg-muted"
+                        )}
+                        onClick={() => {
+                          setDreamTypeFilter((prev) =>
+                            selected ? prev.filter((v) => v !== type.value) : [...prev, type.value]
+                          );
+                          setPage(1);
+                        }}
+                      >
+                        <div className={cn(
+                          "w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                          selected ? "bg-primary border-primary" : "border-muted-foreground/30"
+                        )}>
+                          {selected && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />}
+                        </div>
+                        <div 
+                          className="w-2 h-2 rounded-full shrink-0" 
+                          style={{ backgroundColor: type.color }}
+                        />
+                        {type.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {dreamTypeFilter.length > 0 && (
+                  <button
+                    type="button"
+                    className="mt-2 w-full text-xs text-foreground hover:bg-primary/10 hover:text-primary rounded-md py-2 transition-all duration-200"
+                    onClick={() => { setDreamTypeFilter([]); setPage(1); }}
+                  >
+                    清除
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* 情绪筛选（多选） */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className={cn(
+                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                    emotionFilter.length > 0 && "border-primary/50 bg-primary/5"
+                  )}
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  情绪
+                  {emotionFilter.length > 0 && (
+                    <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
+                      {emotionFilter.length}
+                    </Badge>
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="filter-popover-content w-56 p-2" align="start">
+                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">可多选</p>
+                <div className="max-h-64 overflow-y-auto space-y-0.5">
+                  {emotionOptions.map((emotion) => {
+                    const selected = emotionFilter.includes(emotion);
+                    const emotionColor = EMOTION_COLOR_MAP[emotion] || "#9ca3af";
+                    return (
+                      <button
+                        key={emotion}
+                        type="button"
+                        className={cn(
+                          "filter-popover-option w-full flex items-center gap-2 rounded-md px-2 py-2 text-sm text-left transition-colors",
+                          selected && "filter-popover-option-selected bg-primary/15 text-primary",
+                          !selected && "hover:bg-muted"
+                        )}
+                        onClick={() => {
+                          setEmotionFilter((prev) =>
+                            selected ? prev.filter((e) => e !== emotion) : [...prev, emotion]
+                          );
+                          setPage(1);
+                        }}
+                      >
+                        <div className={cn(
+                          "w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                          selected ? "bg-primary border-primary" : "border-muted-foreground/30"
+                        )}>
+                          {selected && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />}
+                        </div>
+                        <div 
+                          className="w-2 h-2 rounded-full shrink-0" 
+                          style={{ backgroundColor: emotionColor }}
+                        />
+                        {emotion}
+                      </button>
+                    );
+                  })}
+                </div>
+                {emotionFilter.length > 0 && (
+                  <button
+                    type="button"
+                    className="mt-2 w-full text-xs text-foreground hover:bg-primary/10 hover:text-primary rounded-md py-2 transition-all duration-200"
+                    onClick={() => { setEmotionFilter([]); setPage(1); }}
+                  >
+                    清除
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* 收藏（放最后，与其余四按钮样式一致） */}
             <Button
-              variant={favoriteOnly ? "default" : "outline"}
-              size="sm"
+              variant="outline"
+              size="default"
               onClick={() => {
                 setFavoriteOnly(!favoriteOnly);
                 setPage(1);
               }}
-              className="gap-1.5"
+              className={cn(
+                "group/filter gap-1.5 h-10 transition-all duration-200 text-foreground",
+                "hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                favoriteOnly 
+                  ? "border-amber-500/50 bg-amber-500/5 text-amber-600 dark:text-amber-400 shadow-md" 
+                  : ""
+              )}
             >
-              <Star className="w-3.5 h-3.5" />
+              <Star className={cn(
+                "w-3.5 h-3.5 transition-all duration-200 shrink-0",
+                favoriteOnly 
+                  ? "fill-amber-500 text-amber-500" 
+                  : "opacity-80 group-hover/filter:opacity-100 group-hover/filter:text-amber-500 group-hover/filter:scale-110 group-hover/filter:rotate-12"
+              )} />
               收藏
             </Button>
+            </div>
+            
+            {/* 筛选结果统计 - 简约版 */}
+            {!loading && (search || dreamTypeFilter.length > 0 || emotionFilter.length > 0 || dateFrom || dateTo || favoriteOnly) && (
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-muted-foreground">
+                  共 <span className="font-semibold text-foreground">{total}</span> 条记录
+                </span>
+                <button
+                  type="button"
+                  className="group/clear flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                    setDreamTypeFilter([]);
+                    setEmotionFilter([]);
+                    setDateFrom(null);
+                    setDateTo(null);
+                    setFavoriteOnly(false);
+                    setPage(1);
+                  }}
+                  title="清除所有筛选"
+                >
+                  <svg 
+                    className="w-3.5 h-3.5 text-muted-foreground group-hover/clear:text-red-500 dark:group-hover/clear:text-red-400 transition-all duration-200 group-hover/clear:rotate-90" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
+          
+          {/* 搜索历史快捷词 */}
+          {searchHistory.length > 0 && !searchOpen && (
+            <div className="flex flex-wrap gap-1.5 items-center mt-2.5">
+              <span className="text-sm text-muted-foreground">最近：</span>
+              {searchHistory.slice(0, 5).map((term, i) => (
+                <div
+                  key={`${term}-${i}`}
+                  className="group relative"
+                >
+                  <button
+                    type="button"
+                    className="text-sm px-2.5 py-1.5 rounded-md bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors max-w-[120px] truncate leading-none"
+                    onClick={() => {
+                      setSearchInput(term);
+                      setSearch(term);
+                      setPage(1);
+                    }}
+                  >
+                    {term}
+                  </button>
+                  <button
+                    type="button"
+                    className="absolute -top-1.5 -right-1.5 transition-all hover:scale-110 invisible group-hover:visible"
+                    style={{ color: 'rgb(156, 163, 175)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(239, 68, 68)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(156, 163, 175)'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeSearchFromHistory(term);
+                    }}
+                    title="删除"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 梦境卡片网格 */}
+      {/* 梦境卡片网格：Grid 平铺填满宽度，避免右侧留白 */}
       <div className="container mx-auto px-4 py-8">
         {loading ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="break-inside-avoid">
+              <Card key={i}>
                 <CardHeader>
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-3 w-1/2 mt-2" />
@@ -253,22 +688,44 @@ export default function MyDreamsPage() {
               开始记录你的第一个梦境吧
             </p>
             <Link href="/dreams/new">
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
+              <Button variant="ghost" size="default" className="gap-2 record-dream-btn">
+                <svg 
+                  className="h-4 w-4" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
                 记录新梦境
               </Button>
             </Link>
           </div>
         ) : (
           <>
-            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-              {dreams.map((dream) => (
-                <DreamCard
-                  key={dream.id}
-                  dream={dream}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {dreams.map((dream, idx) => (
+                  <motion.div
+                    key={dream.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  >
+                    <DreamCard
+                      dream={dream}
+                      onToggleFavorite={toggleFavorite}
+                      index={idx}
+                      searchKeyword={search.trim() || undefined}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
 
             {/* 分页 */}
@@ -279,6 +736,7 @@ export default function MyDreamsPage() {
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
+                  className="text-foreground hover:border-primary/50 hover:scale-105 hover:-translate-x-1 transition-all duration-200"
                 >
                   上一页
                 </Button>
@@ -290,6 +748,7 @@ export default function MyDreamsPage() {
                   size="sm"
                   disabled={page >= totalPages}
                   onClick={() => setPage(page + 1)}
+                  className="text-foreground hover:border-primary/50 hover:scale-105 hover:translate-x-1 transition-all duration-200"
                 >
                   下一页
                 </Button>
@@ -298,6 +757,30 @@ export default function MyDreamsPage() {
           </>
         )}
       </div>
+
+      {/* 右下角浮动按钮：记录新梦境 */}
+      <Link
+        href="/dreams/new"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        style={{
+          background: "linear-gradient(135deg, oklch(58% 0.28 275) 0%, oklch(65% 0.30 280) 100%)",
+          boxShadow: "0 4px 20px oklch(58% 0.28 275 / 0.4), 0 2px 8px rgb(0 0 0 / 0.15)",
+        }}
+        aria-label="记录新梦境"
+      >
+        <svg 
+          className="h-5 w-5" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+      </Link>
     </div>
   );
 }
@@ -307,121 +790,230 @@ export default function MyDreamsPage() {
 function DreamCard({
   dream,
   onToggleFavorite,
+  index,
+  searchKeyword,
 }: {
   dream: DreamListItem;
   onToggleFavorite: (e: React.MouseEvent, id: string) => void;
+  index: number;
+  searchKeyword?: string;
 }) {
-  const borderColor =
-    EMOTION_COLOR_MAP[dream.primary_emotion ?? ""] ?? "var(--border)";
+  const router = useRouter();
+
+  const renderHighlight = (text: string, keyPrefix: string) => {
+    if (!searchKeyword || !text) return text;
+    const segments = getHighlightSegments(text, searchKeyword);
+    return segments.map((seg, i) =>
+      typeof seg === "string" ? (
+        <span key={`${keyPrefix}-${i}`}>{seg}</span>
+      ) : (
+        <mark key={`${keyPrefix}-${i}`} className="bg-primary/10 text-primary font-medium rounded px-1 mx-0.5 ring-1 ring-primary/20">
+          {seg.text}
+        </mark>
+      )
+    );
+  };
+  
+  // 定义多种颜色，确保每个卡片颜色不同
+  const borderColors = [
+    "oklch(65% 0.30 275)", // 紫色
+    "oklch(60% 0.25 260)", // 蓝紫色
+    "oklch(65% 0.28 200)", // 蓝色
+    "oklch(60% 0.25 180)", // 青色
+    "oklch(65% 0.28 160)", // 青绿色
+    "oklch(60% 0.25 140)", // 绿色
+    "oklch(65% 0.28 90)",  // 黄绿色
+    "oklch(60% 0.25 60)",  // 黄色
+    "oklch(65% 0.28 40)",  // 橙色
+    "oklch(60% 0.25 20)",  // 橙红色
+    "oklch(65% 0.28 350)", // 粉红色
+    "oklch(60% 0.25 320)", // 玫红色
+  ];
+  
+  // 使用梦境ID的哈希值来确定颜色，确保同一个梦境始终是同一个颜色
+  // 同时避免相邻卡片颜色相同
+  let colorIndex = 0;
+  if (dream.id) {
+    // 使用ID的哈希值
+    let hash = 0;
+    for (let i = 0; i < dream.id.length; i++) {
+      hash = dream.id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    colorIndex = Math.abs(hash) % borderColors.length;
+  } else {
+    // 如果没有ID，使用索引
+    colorIndex = index % borderColors.length;
+  }
+  
+  // 如果有情绪颜色就使用，否则使用计算出的颜色
+  const borderColor = dream.primary_emotion 
+    ? (EMOTION_COLOR_MAP[dream.primary_emotion] ?? borderColors[colorIndex])
+    : borderColors[colorIndex];
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/dreams/${dream.id}/edit`);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("确定要删除这个梦境吗？")) return;
+    try {
+      await DreamApi.delete(dream.id);
+      toast.success("梦境已删除");
+      window.location.reload();
+    } catch {
+      toast.error("删除失败");
+    }
+  };
 
   return (
     <Link href={`/dreams/${dream.id}`}>
       <Card
-        className="group break-inside-avoid overflow-hidden hover:shadow-2xl transition-all duration-300 border-l-4 hover:border-l-8 cursor-pointer"
+        className="group break-inside-avoid overflow-hidden hover:shadow-2xl dream-card-hover border-l-4 hover:border-l-6 cursor-pointer transition-all duration-300"
         style={{ borderLeftColor: borderColor }}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-1">
-                {dream.title || "无标题梦境"}
-              </CardTitle>
-              <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {format(new Date(dream.dream_date), "M月d日", {
-                    locale: zhCN,
-                  })}
+              {/* 标题行：标题 + AI徽章 */}
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-1">
+                  {searchKeyword
+                    ? renderHighlight(dream.title || "无标题梦境", "title")
+                    : (dream.title || "无标题梦境")}
+                </CardTitle>
+                {/* AI已分析徽章 - 紧靠标题 */}
+                {dream.ai_processed && (
+                  <div 
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, oklch(58% 0.28 275 / 0.1) 0%, oklch(65% 0.30 280 / 0.1) 100%)",
+                      border: "1px solid oklch(60% 0.29 277 / 0.2)",
+                    }}
+                  >
+                    <Sparkles className="w-3 h-3" style={{ color: "oklch(60% 0.29 277)" }} />
+                    <span
+                      style={{
+                        background: "linear-gradient(135deg, oklch(58% 0.28 275) 0%, oklch(65% 0.30 280) 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      AI已分析
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* 元信息行：日期、浏览、隐私 */}
+              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1.5">
+                <span className="flex items-center gap-1.5 shrink-0">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  {format(new Date(dream.dream_date), "M月d日", { locale: zhCN })}
                 </span>
-                {dream.title_generated_by_ai && (
-                  <span className="flex items-center gap-1 text-primary">
-                    <Sparkles className="w-3 h-3" />
-                    AI
+                <span className="flex items-center gap-1.5 shrink-0">
+                  <Eye className="w-4 h-4 text-green-500" />
+                  浏览 {dream.view_count ?? 0}
+                </span>
+                {dream.privacy_level && (
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    {dream.privacy_level === "PRIVATE" && (
+                      <>
+                        <Lock className="w-4 h-4 text-purple-500" />
+                        <span>仅自己</span>
+                      </>
+                    )}
+                    {dream.privacy_level === "FRIENDS" && (
+                      <>
+                        <Users className="w-4 h-4 text-blue-500" />
+                        <span>好友可见</span>
+                      </>
+                    )}
+                    {dream.privacy_level === "PUBLIC" && (
+                      <>
+                        <Globe className="w-4 h-4 text-cyan-500" />
+                        <span>公开</span>
+                      </>
+                    )}
                   </span>
                 )}
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "shrink-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity",
-                dream.is_favorite && "opacity-100",
-              )}
-              onClick={(e) => onToggleFavorite(e, dream.id)}
-            >
-              <Star
+            
+            {/* 操作按钮组 */}
+            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => onToggleFavorite(e, dream.id)}
+                title="收藏"
                 className={cn(
-                  "w-4 h-4",
-                  dream.is_favorite && "fill-amber-400 text-amber-400",
+                  "h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn",
+                  dream.is_favorite && "opacity-100"
                 )}
-              />
-            </Button>
+              >
+                <Star
+                  className={cn(
+                    "w-4 h-4 transition-all duration-200",
+                    dream.is_favorite
+                      ? "fill-amber-400 text-amber-400 stroke-amber-400"
+                      : "text-muted-foreground group-hover/btn:text-amber-400 group-hover/btn:stroke-amber-400 group-hover/btn:scale-110 group-hover/btn:rotate-6"
+                  )}
+                  strokeWidth={2}
+                />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleEdit}
+                title="编辑"
+                className="h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn"
+              >
+                <Edit
+                  className="w-4 h-4 transition-all duration-200 text-muted-foreground group-hover/btn:text-blue-500 group-hover/btn:stroke-blue-500 group-hover/btn:scale-110"
+                  strokeWidth={2}
+                />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDelete}
+                title="删除"
+                className="h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn"
+              >
+                <Trash2
+                  className="w-4 h-4 transition-all duration-200 text-muted-foreground group-hover/btn:text-destructive group-hover/btn:stroke-destructive group-hover/btn:scale-110"
+                  strokeWidth={2}
+                />
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="pb-3">
           <p className="text-sm line-clamp-3 text-muted-foreground leading-relaxed">
-            {dream.content_preview}
+            {searchKeyword
+              ? renderHighlight(dream.content_preview, "content")
+              : dream.content_preview}
           </p>
-        </CardContent>
-
-        <CardFooter className="flex-col items-start gap-3 pt-3 border-t">
-          {/* 情绪 + 类型 */}
-          <div className="flex items-center gap-2 w-full">
-            {dream.primary_emotion && (
-              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <span className="text-xl">
-                  {EMOTION_EMOJI_MAP[dream.primary_emotion] ?? "💭"}
-                </span>
-                <span className="text-sm font-medium truncate">
-                  {dream.primary_emotion}
-                </span>
-                {dream.emotion_intensity && (
-                  <div className="flex-1 max-w-[80px] h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all"
-                      style={{
-                        width: `${(dream.emotion_intensity / 5) * 100}%`,
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="flex gap-1 shrink-0">
-              {dream.dream_types.map((t) => (
-                <Badge key={t} variant="secondary" className="text-xs px-1.5">
-                  {DREAM_TYPE_ICON_MAP[t] ?? "💭"}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* 标签 */}
-          {dream.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+          {searchKeyword && dream.tags && dream.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
               {dream.tags.map((tag) => (
                 <Badge
                   key={tag.id}
                   variant="outline"
-                  className="text-xs"
-                  style={{ borderColor: tag.color ?? undefined }}
+                  className="gap-1 bg-primary/10 border-primary/30 text-primary font-normal text-xs h-5 px-2"
                 >
-                  #{tag.name}
+                  <Tag className="w-3 h-3" />
+                  <span>{renderHighlight(tag.name, `tag-${tag.id}`)}</span>
                 </Badge>
               ))}
             </div>
           )}
-
-          {/* AI 状态 */}
-          {dream.ai_processed && (
-            <div className="flex items-center gap-1.5 text-xs text-primary">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI 已分析</span>
-            </div>
-          )}
-        </CardFooter>
+        </CardContent>
       </Card>
     </Link>
   );

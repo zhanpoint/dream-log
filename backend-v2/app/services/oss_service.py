@@ -7,6 +7,7 @@ import re
 import time
 import uuid
 from typing import Any, Literal
+from urllib.parse import unquote, urlparse
 
 try:
     import oss2
@@ -93,17 +94,25 @@ class OSSService:
 
         return f"{self.user_prefix}avatars/{unique_filename}"
 
+    def get_attachment_upload_path(self, dream_id: str, filename: str, category: str = "images") -> str:
+        """获取梦境附件上传路径"""
+        safe_filename = self._sanitize_filename(filename)
+        unique_filename = f"{uuid.uuid4().hex[:8]}_{safe_filename}"
+        return f"{self.user_prefix}dreams/{dream_id}/{category}/{unique_filename}"
+
     def generate_presigned_url(
         self,
         filename: str,
         content_type: str = "image/jpeg",
         expires: int = 3600,
+        file_key: str | None = None,
     ) -> dict[str, Any]:
         """生成预签名上传 URL"""
         original_proxies = self._clear_proxy_env()
 
         try:
-            file_key = self.get_avatar_upload_path(filename)
+            if not file_key:
+                file_key = self.get_avatar_upload_path(filename)
             bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
 
             # 生成上传 URL
@@ -149,6 +158,30 @@ class OSSService:
                 # 降级：返回公开 URL（可能无法访问）
                 return f"https://{self.bucket_name}.{endpoint_host}/{file_key}"
 
+    def get_ai_image_upload_path(self, dream_id: str, filename: str = "") -> str:
+        """获取 AI 生成图像的上传路径"""
+        unique_name = f"{uuid.uuid4().hex}.png" if not filename else f"{uuid.uuid4().hex[:8]}_{filename}"
+        return f"{self.user_prefix}dreams/{dream_id}/ai-images/{unique_name}"
+
+    def upload_bytes(
+        self,
+        data: bytes,
+        file_key: str,
+        content_type: str = "image/png",
+    ) -> str:
+        """直接将 bytes 数据上传到 OSS，返回稳定访问 URL。"""
+        original_proxies = self._clear_proxy_env()
+        try:
+            bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
+            bucket.put_object(
+                file_key,
+                data,
+                headers={"Content-Type": content_type},
+            )
+            return self.get_stable_url(file_key)
+        finally:
+            self._restore_proxy_env(original_proxies)
+
     def delete_file(self, file_key: str) -> bool:
         """删除文件"""
         try:
@@ -171,39 +204,30 @@ class OSSService:
     @staticmethod
     def extract_file_key_from_url(url: str, user_id: str | uuid.UUID) -> str | None:
         """
-        从OSS URL中提取file_key
-        
-        支持的URL格式:
-        - https://bucket.endpoint.aliyuncs.com/users/{user_id}/avatars/xxx.jpg
-        - https://bucket.endpoint.aliyuncs.com/users/{user_id}/avatars/xxx.jpg?signature=...
-        
-        Args:
-            url: OSS文件URL
-            user_id: 用户ID
-            
-        Returns:
-            file_key或None
+        从OSS URL中提取file_key。
+
+        支持路径为 URL 编码的格式（如 users%2F{user_id}%2Fdreams%2F...），
+        与未编码格式（如 /users/{user_id}/...）。
         """
         if not url or "aliyuncs.com" not in url:
             return None
-        
+
         try:
-            # 移除查询参数
-            url_without_params = url.split("?")[0]
-            
-            # 提取路径部分 (从第一个/users/开始)
-            if "/users/" not in url_without_params:
+            parsed = urlparse(url)
+            # 路径可能被编码为 users%2Fuid%2Fdreams%2F...，需先解码再匹配 /users/
+            path_decoded = unquote(parsed.path or "")
+
+            if "/users/" not in path_decoded:
                 return None
-            
-            # 找到 /users/ 的位置并提取后面的部分
-            users_index = url_without_params.index("/users/")
-            file_key = url_without_params[users_index + 1:]  # +1 跳过开头的 /
-            
-            # 验证file_key是否属于该用户
+
+            users_index = path_decoded.index("/users/")
+            # +1 跳过开头的 "/"，得到 users/uid/dreams/...
+            file_key = path_decoded[users_index + 1 :]
+
             user_prefix = f"users/{str(user_id)}/"
             if file_key.startswith(user_prefix):
                 return file_key
-            
+
             return None
         except Exception:
             return None
@@ -222,24 +246,31 @@ def get_oss_service(user_id: str | uuid.UUID, bucket_type: Literal["public", "pr
     return OSSService(user_id, bucket_type)
 
 
-def delete_oss_file_from_url(url: str | None, user_id: str | uuid.UUID) -> bool:
+def delete_oss_file_from_url(
+    url: str | None,
+    user_id: str | uuid.UUID,
+    bucket_type: Literal["public", "private"] = "private",
+) -> bool:
     """
     从URL删除OSS文件的便捷函数
-    
+
+    注意：梦境附件存储在 private bucket，删除附件时必须传 bucket_type="private"。
+
     Args:
         url: OSS文件URL
         user_id: 用户ID
-        
+        bucket_type: 文件所在 Bucket 类型，与上传时一致（附件为 private）
+
     Returns:
         是否删除成功
     """
     if not url:
         return False
-    
+
     try:
         file_key = OSSService.extract_file_key_from_url(url, user_id)
         if file_key:
-            oss_service = get_oss_service(user_id)
+            oss_service = get_oss_service(user_id, bucket_type=bucket_type)
             return oss_service.delete_file(file_key)
         return False
     except Exception:

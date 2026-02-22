@@ -16,10 +16,8 @@ from app.core.database import Base
 # 导入所有模型，确保 Alembic 能检测到它们
 from app.models import (  # noqa: F401
     Dream,
-    DreamAnalysisTask,
     DreamAttachment,
     DreamEmbedding,
-    DreamEmotion,
     DreamInsight,
     DreamRelation,
     DreamSymbol,
@@ -30,7 +28,6 @@ from app.models import (  # noqa: F401
     Symbol,
     Tag,
     TokenBlacklist,
-    Trigger,
     User,
     UserInsight,
     UserInsightSettings,
