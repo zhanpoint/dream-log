@@ -1,8 +1,4 @@
-.cursor/
 .idea/
-.vscode/
-.trae/
-.claude/
 # Ignore all .env files by default
 .env
 # Allow example envs to be tracked
@@ -112,9 +108,7 @@ frontend
 backend
 legacy
 backend-v2/src/Cloud Speech.json
-.cursor
 .cursorignore
-.kiro
 
 
 
