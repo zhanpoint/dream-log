@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { insightAPI, type Insight } from "@/lib/insight-api";
-import { EMOTION_COLORS, EMOTION_LABELS } from "@/lib/emotion-utils";
+import { EMOTION_COLORS, getEmotionLabel } from "@/lib/emotion-utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
 import {
   AlertCircle,
   ArrowLeft,
@@ -25,12 +26,72 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 // ===== 类型 =====
-interface KeyInsight { message: string }
-interface ActionItem { action: string; why: string }
+interface KeyInsight {
+  message: string;
+}
+
+interface ActionItem {
+  action: string;
+  why: string;
+}
+
+type WeeklyStats = {
+  total_dreams?: number;
+  avg_sleep_quality?: number;
+};
+
+type WeeklyCharts = {
+  emotion_distribution?: Record<string, number>;
+  sleep_quality_trend?: Array<{ date: string; quality: number }>;
+};
+
+type WeeklyAi = {
+  weekly_summary?: string;
+  key_insights?: KeyInsight[];
+  action_items?: ActionItem[];
+};
+
+type WeeklyPeriod = {
+  week_start?: string;
+  week_end?: string;
+};
+
+type WeeklyData = {
+  statistics?: WeeklyStats;
+  ai_analysis?: WeeklyAi;
+  charts?: WeeklyCharts;
+  period?: WeeklyPeriod;
+  record_days?: number;
+  streak_days?: number;
+};
+
+// ===== 辅助函数 =====
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
+
+function getSleepQualityText(score: number, t: (key: string) => string): string {
+  if (score >= 4.5) return t("insights.report.veryGood");
+  if (score >= 3.5) return t("insights.report.good");
+  if (score >= 2.5) return t("insights.report.average");
+  if (score >= 1.5) return t("insights.report.poor");
+  return t("insights.report.veryPoor");
+}
 
 export default function WeeklyReportPage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
   const { id } = useParams<{ id: string }>();
   const [insight, setInsight] = useState<Insight | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,12 +103,12 @@ export default function WeeklyReportPage() {
         setInsight(data);
         if (!data.is_read) await insightAPI.markAsRead(id);
       } catch {
-        toast.error("加载报告失败");
+        toast.error(t("insights.report.loadFailed"));
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -64,27 +125,35 @@ export default function WeeklyReportPage() {
   if (!insight) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground">报告不存在</p>
-        <Link href="/insights"><Button variant="link" className="mt-2">返回报告中心</Button></Link>
+        <p className="text-muted-foreground">{t("insights.report.reportNotFound")}</p>
+        <Link href="/insights"><Button variant="link" className="mt-2">{t("insights.report.backToInsights")}</Button></Link>
       </div>
     );
   }
 
-  const data = insight.data as Record<string, unknown>;
-  const stats = (data.statistics || {}) as Record<string, unknown>;
-  const ai = (data.ai_analysis || {}) as Record<string, unknown>;
-  const charts = (data.charts || {}) as Record<string, unknown>;
-  const period = (data.period || {}) as Record<string, string>;
+  const data = insight.data as WeeklyData;
+  const stats: WeeklyStats = data.statistics || {};
+  const ai: WeeklyAi = data.ai_analysis || {};
+  const charts: WeeklyCharts = data.charts || {};
+  const period: WeeklyPeriod = data.period || {};
 
-  const keyInsights = (ai.key_insights || []) as KeyInsight[];
-  const actionItems = (ai.action_items || []) as ActionItem[];
-  const emotionDist = (charts.emotion_distribution || {}) as Record<string, number>;
-  const sleepTrend = (charts.sleep_quality_trend || []) as Array<{ date: string; quality: number }>;
-  const recordDays = (data.record_days as number) || 0;
-  const streakDays = (data.streak_days as number) || 0;
+  const keyInsights = ai.key_insights || [];
+  const actionItems = ai.action_items || [];
+  const emotionDist = charts.emotion_distribution || {};
+  const sleepTrend = charts.sleep_quality_trend || [];
+  const recordDays = data.record_days ?? 0;
+  const streakDays = data.streak_days ?? 0;
 
-  const weekStart = period.week_start ? format(new Date(period.week_start), "M月d日", { locale: zhCN }) : "";
-  const weekEnd = period.week_end ? format(new Date(period.week_end), "M月d日", { locale: zhCN }) : "";
+  const weekStart = period.week_start
+    ? format(new Date(period.week_start), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "MMM d", {
+        locale: dateLocale,
+      })
+    : "";
+  const weekEnd = period.week_end
+    ? format(new Date(period.week_end), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "MMM d", {
+        locale: dateLocale,
+      })
+    : "";
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -100,7 +169,7 @@ export default function WeeklyReportPage() {
               <ArrowLeft className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold truncate">周报：{weekStart}-{weekEnd}</h1>
+          <h1 className="text-xl font-bold truncate">{t("insights.main.weeklyLabel")}：{weekStart}-{weekEnd}</h1>
         </div>
         <DeleteReportButton insightId={insight.id} redirectTo="/insights" className="h-9 w-9 p-0 rounded-lg shrink-0" />
       </div>
@@ -113,27 +182,27 @@ export default function WeeklyReportPage() {
             <div className="flex flex-col items-center gap-2">
               <Cloud className="h-5 w-5 text-indigo-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">{Number(stats.total_dreams) || 0}</p>
-              <p className="text-xs text-muted-foreground">梦境总数</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.dreamCount")}</p>
             </div>
             
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">
-                <SleepQualityText value={Number(stats.avg_sleep_quality) || 0} />
+                {getSleepQualityText(Number(stats.avg_sleep_quality) || 0, t)}
               </p>
-              <p className="text-xs text-muted-foreground">平均睡眠质量</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.avgSleepQuality")}</p>
             </div>
             
             <div className="flex flex-col items-center gap-2">
               <Flame className="h-5 w-5 text-orange-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">{streakDays}</p>
-              <p className="text-xs text-muted-foreground">连续记录天数</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.streakDays")}</p>
             </div>
             
             <div className="flex flex-col items-center gap-2">
               <Calendar className="h-5 w-5 text-green-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">{recordDays}</p>
-              <p className="text-xs text-muted-foreground">本周记录</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.weeklyRecord")}</p>
             </div>
           </div>
 
@@ -142,7 +211,7 @@ export default function WeeklyReportPage() {
             <div className="flex flex-col pl-8 border-l border-border/50">
               <div className="flex items-center gap-2 h-5 mb-4">
                 <Heart className="h-5 w-5 text-rose-500" />
-                <p className="text-xs text-muted-foreground">主要情绪</p>
+                <p className="text-xs text-muted-foreground">{t("insights.report.mainEmotions")}</p>
               </div>
               <div className="flex flex-col gap-2.5">
                 {Object.entries(emotionDist)
@@ -158,7 +227,7 @@ export default function WeeklyReportPage() {
                         className="text-sm"
                         style={{ color: (EMOTION_COLORS as Record<string, string>)[emotion] || "#64748b" }}
                       >
-                        {(EMOTION_LABELS as Record<string, string>)[emotion] || emotion}
+                        {getEmotionLabel(emotion, t)}
                       </span>
                     </div>
                   ))}
@@ -172,7 +241,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-1 py-2">
             <div className="flex items-center gap-1.5 mb-3 px-1">
               <BookOpen className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium">本周总结</h3>
+              <h3 className="text-sm font-medium">{t("insights.report.weeklySummary")}</h3>
             </div>
             <div className="px-4 py-1">
               <p className="text-base leading-relaxed text-muted-foreground">{String(ai.weekly_summary)}</p>
@@ -185,7 +254,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-1 py-2">
             <div className="flex items-center gap-1.5 mb-3 px-1">
               <Sparkles className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium">核心洞察</h3>
+              <h3 className="text-sm font-medium">{t("insights.report.coreInsights")}</h3>
             </div>
             <div className="space-y-4">
               {keyInsights.map((insight, i) => (
@@ -207,7 +276,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-1.5 px-1">
               <TrendingUp className="h-4 w-4 text-blue-500" />
-              <h3 className="text-sm font-medium">睡眠质量趋势</h3>
+              <h3 className="text-sm font-medium">{t("insights.report.sleepQualityTrend")}</h3>
             </div>
             <div className="border rounded-lg p-4">
               <EChartsWrapper
@@ -216,7 +285,7 @@ export default function WeeklyReportPage() {
                   grid: { top: 20, bottom: 40, left: 50, right: 30 },
                   xAxis: {
                     type: "category",
-                    data: sleepTrend.map((d) => format(new Date(d.date), "M/d", { locale: zhCN })),
+                    data: sleepTrend.map((d) => format(new Date(d.date), "M/d", { locale: dateLocale })),
                   },
                   yAxis: { 
                     type: "value", 
@@ -227,11 +296,11 @@ export default function WeeklyReportPage() {
                       formatter: (value: number) => {
                         const labels: Record<number, string> = {
                           0: "0",
-                          1: "很差",
-                          2: "较差",
-                          3: "一般",
-                          4: "良好",
-                          5: "非常好"
+                          1: t("insights.report.veryPoor"),
+                          2: t("insights.report.poor"),
+                          3: t("insights.report.average"),
+                          4: t("insights.report.good"),
+                          5: t("insights.report.veryGood")
                         };
                         return labels[value] || value.toString();
                       }
@@ -244,7 +313,7 @@ export default function WeeklyReportPage() {
                     areaStyle: { opacity: 0.2 },
                     lineStyle: { width: 2 },
                     markLine: {
-                      data: [{ type: "average", name: "平均" }],
+                      data: [{ type: "average", name: t("insights.report.average") }],
                       silent: true,
                     },
                   }],
@@ -252,18 +321,8 @@ export default function WeeklyReportPage() {
                     trigger: "axis",
                     formatter: (params: any) => {
                       const value = params[0].value;
-                      const labels: Record<number, string> = {
-                        1: "很差",
-                        2: "较差",
-                        3: "一般",
-                        4: "良好",
-                        5: "非常好"
-                      };
-                      const qualityText = value >= 4.5 ? "非常好" :
-                                         value >= 3.5 ? "良好" :
-                                         value >= 2.5 ? "一般" :
-                                         value >= 1.5 ? "较差" : "很差";
-                      return `${params[0].name}<br/>睡眠质量: ${qualityText} (${value})`;
+                      const qualityText = getSleepQualityText(value, t);
+                      return `${params[0].name}<br/>${t("insights.report.sleepQuality")}: ${qualityText} (${value})`;
                     }
                   },
                 }}
@@ -277,7 +336,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-1.5 px-1">
               <Heart className="h-4 w-4 text-rose-500" />
-              <h3 className="text-sm font-medium">情绪分布</h3>
+              <h3 className="text-sm font-medium">{t("insights.report.emotionDistribution")}</h3>
             </div>
             <div className="border rounded-lg p-4">
               <EChartsWrapper
@@ -289,7 +348,7 @@ export default function WeeklyReportPage() {
                     radius: ["40%", "70%"],
                     center: ["50%", "42%"],
                     data: Object.entries(emotionDist).map(([k, v]) => ({
-                      name: (EMOTION_LABELS as Record<string, string>)[k] || k,
+                      name: getEmotionLabel(k, t),
                       value: Math.round((v as number) * 100),
                     })),
                     label: { formatter: "{b}: {c}%" },
@@ -311,7 +370,7 @@ export default function WeeklyReportPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-1.5 px-1">
               <CheckCircle2 className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-medium">行动建议</h3>
+              <h3 className="text-sm font-medium">{t("insights.report.actionSuggestions")}</h3>
             </div>
             <div className="space-y-3">
               {actionItems.map((item, i) => (
@@ -338,23 +397,11 @@ export default function WeeklyReportPage() {
           <div className="mt-8 pt-6 border-t border-border/40">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4 shrink-0 text-amber-500/70" />
-              <span>记录更多梦境，下次分析会更准确</span>
+              <span>{t("insights.report.insufficientDataWeekly")}</span>
             </div>
           </div>
         )}
       </div>
     </div>
   );
-}
-
-function SleepQualityText({ value }: { value: number }) {
-  const getQualityText = (score: number): string => {
-    if (score >= 4.5) return "非常好";
-    if (score >= 3.5) return "良好";
-    if (score >= 2.5) return "一般";
-    if (score >= 1.5) return "较差";
-    return "很差";
-  };
-
-  return <>{getQualityText(value)}</>;
 }

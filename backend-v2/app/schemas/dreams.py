@@ -18,7 +18,7 @@ class CreateDreamRequest(BaseModel):
     """创建梦境请求"""
 
     # 基础信息
-    title: str | None = Field(None, max_length=20)
+    title: str | None = Field(None, max_length=50)
     dream_date: date = Field(..., description="梦境发生日期")
     dream_time: time | None = None
     content: str = Field(..., min_length=1, max_length=1000, description="梦境内容")
@@ -54,6 +54,10 @@ class CreateDreamRequest(BaseModel):
     # 标题是否由 AI 生成（用于前端独立生成标题场景）
     title_generated_by_ai: bool = False
 
+    # 社区字段
+    is_seeking_interpretation: bool = False
+    emotion_tags: list[str] = []
+
     @field_validator("primary_emotion")
     @classmethod
     def validate_primary_emotion(cls, v: str | None) -> str | None:
@@ -88,7 +92,7 @@ class CreateDreamRequest(BaseModel):
 class UpdateDreamRequest(BaseModel):
     """更新梦境请求 (PATCH, 所有字段可选)"""
 
-    title: str | None = Field(None, max_length=20)
+    title: str | None = Field(None, max_length=50)
     dream_date: date | None = None
     dream_time: time | None = None
     content: str | None = Field(None, min_length=1, max_length=1000)

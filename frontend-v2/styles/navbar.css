@@ -145,6 +145,24 @@
   color: oklch(70% 0.30 275);
 }
 
+/* 梦境探索 - 指南针图标橙色 */
+.nav-link:has(svg.lucide-compass) svg {
+  color: oklch(65% 0.25 40);
+}
+
+.dark .nav-link:has(svg.lucide-compass) svg {
+  color: oklch(75% 0.22 45);
+}
+
+/* 梦境社区 - 用户图标绿色 */
+.nav-link:has(svg.lucide-users) svg {
+  color: oklch(60% 0.20 150);
+}
+
+.dark .nav-link:has(svg.lucide-users) svg {
+  color: oklch(70% 0.22 155);
+}
+
 /* 悬浮时图标效果 */
 .nav-link:hover svg {
   transform: scale(1.15) rotate(-8deg);
@@ -182,6 +200,40 @@
     135deg,
     oklch(65% 0.30 275 / 0.15) 0%,
     oklch(70% 0.28 280 / 0.10) 100%
+  );
+}
+
+/* 梦境探索悬浮特效 */
+.nav-link:has(svg.lucide-compass):hover {
+  background: linear-gradient(
+    135deg,
+    oklch(65% 0.25 40 / 0.12) 0%,
+    oklch(70% 0.22 45 / 0.08) 100%
+  );
+}
+
+.dark .nav-link:has(svg.lucide-compass):hover {
+  background: linear-gradient(
+    135deg,
+    oklch(75% 0.22 45 / 0.15) 0%,
+    oklch(80% 0.20 50 / 0.10) 100%
+  );
+}
+
+/* 梦境社区悬浮特效 */
+.nav-link:has(svg.lucide-users):hover {
+  background: linear-gradient(
+    135deg,
+    oklch(60% 0.20 150 / 0.12) 0%,
+    oklch(65% 0.18 155 / 0.08) 100%
+  );
+}
+
+.dark .nav-link:has(svg.lucide-users):hover {
+  background: linear-gradient(
+    135deg,
+    oklch(70% 0.22 155 / 0.15) 0%,
+    oklch(75% 0.20 160 / 0.10) 100%
   );
 }
 
@@ -253,6 +305,60 @@
   box-shadow: 
     0 0 0 1px oklch(65% 0.30 275 / 0.3),
     0 2px 12px oklch(65% 0.30 275 / 0.25);
+}
+
+/* 梦境探索激活状态 - 橙色主题 */
+.nav-link:has(svg.lucide-compass).active {
+  color: oklch(65% 0.25 40);
+  background: linear-gradient(
+    135deg,
+    oklch(65% 0.25 40 / 0.1) 0%,
+    oklch(70% 0.22 45 / 0.08) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 
+    0 0 0 1px oklch(65% 0.25 40 / 0.2),
+    0 2px 8px oklch(65% 0.25 40 / 0.15);
+}
+
+.dark .nav-link:has(svg.lucide-compass).active {
+  color: oklch(75% 0.22 45);
+  background: linear-gradient(
+    135deg,
+    oklch(75% 0.22 45 / 0.15) 0%,
+    oklch(80% 0.20 50 / 0.12) 100%
+  );
+  box-shadow: 
+    0 0 0 1px oklch(75% 0.22 45 / 0.3),
+    0 2px 12px oklch(75% 0.22 45 / 0.25);
+}
+
+/* 梦境社区激活状态 - 绿色主题 */
+.nav-link:has(svg.lucide-users).active {
+  color: oklch(60% 0.20 150);
+  background: linear-gradient(
+    135deg,
+    oklch(60% 0.20 150 / 0.1) 0%,
+    oklch(65% 0.18 155 / 0.08) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 
+    0 0 0 1px oklch(60% 0.20 150 / 0.2),
+    0 2px 8px oklch(60% 0.20 150 / 0.15);
+}
+
+.dark .nav-link:has(svg.lucide-users).active {
+  color: oklch(70% 0.22 155);
+  background: linear-gradient(
+    135deg,
+    oklch(70% 0.22 155 / 0.15) 0%,
+    oklch(75% 0.20 160 / 0.12) 100%
+  );
+  box-shadow: 
+    0 0 0 1px oklch(70% 0.22 155 / 0.3),
+    0 2px 12px oklch(70% 0.22 155 / 0.25);
 }
 
 /* 激活状态图标 */

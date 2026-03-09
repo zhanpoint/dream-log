@@ -3,26 +3,26 @@
 import { SiteHeader } from "@/components/site-header";
 import { AuthToken } from "@/lib/auth-api";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const checked = useRef(false);
+
+  // 同步检查 token（localStorage 是同步的，不需要 useState + useEffect 的两阶段渲染）
+  const isAuthenticated = typeof window !== "undefined" ? AuthToken.isAuthenticated() : true;
 
   useEffect(() => {
+    if (checked.current) return;
+    checked.current = true;
     if (!AuthToken.isAuthenticated()) {
-      router.push("/auth");
-    } else {
-      setReady(true);
+      router.replace("/auth");
     }
   }, [router]);
 
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">加载中...</div>
-      </div>
-    );
+  // 未登录时不渲染内容，跳转由 useEffect 处理
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (

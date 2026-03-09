@@ -6,7 +6,7 @@ from datetime import date
 from uuid import UUID
 
 from arq.connections import ArqRedis
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Header
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,6 +29,7 @@ from app.schemas.dreams import (
     UpdateDreamRequest,
     UpdateTagRequest,
 )
+from app.services.community_service import CommunityService
 from app.services.dream_service import DreamService
 
 router = APIRouter(prefix="/dreams", tags=["梦境"])
@@ -164,6 +165,11 @@ async def create_dream(
     service = DreamService(db)
     dream = await service.create_dream(request, current_user.id)
 
+    # 创建后自动刷新精选快照（公开梦境）
+    if dream.privacy_level and dream.privacy_level.value == "PUBLIC":
+        await CommunityService(db).refresh_featured_snapshot(dream.id)
+        await db.commit()
+
     # 重新查询以加载关联数据
     dream = await service.get_dream(dream.id, current_user.id)
     return _build_detail(dream)
@@ -241,6 +247,13 @@ async def update_dream(
     """更新梦境"""
     service = DreamService(db)
     await service.update_dream(dream_id, current_user.id, request)
+
+    # 更新后自动刷新精选快照（公开梦境）
+    dream = await service.get_dream(dream_id, current_user.id)
+    if dream.privacy_level and dream.privacy_level.value == "PUBLIC":
+        await CommunityService(db).refresh_featured_snapshot(dream_id)
+        await db.commit()
+
     # 重新查询以加载关联数据
     dream = await service.get_dream(dream_id, current_user.id)
     return _build_detail(dream)
@@ -283,13 +296,21 @@ async def increment_view_count(
 
 @router.post("/generate-title")
 async def generate_title_standalone(
-    request: GenerateTitleRequest,
+    body: GenerateTitleRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     """独立生成标题（不依赖梦境 ID，用于创建/编辑梦境时实时生成）"""
-    from app.services.ai_service import ai_service
+    from app.services.ai_service import ai_service, get_target_language_from_locale
 
-    title = await ai_service.generate_title(content=request.content)
+    # 从请求头推断目标语言（由前端 Axios 拦截器注入 Accept-Language）
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
+
+    title = await ai_service.generate_title(
+        content=body.content,
+        target_language=target_language,
+    )
     return {"title": title}
 
 
@@ -299,6 +320,7 @@ async def trigger_analysis(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     arq: ArqRedis = Depends(get_arq_redis),
+    accept_language: str | None = Header(None, alias="Accept-Language"),
 ) -> dict[str, str]:
     """手动触发 AI 分析（支持多次重新分析）"""
     service = DreamService(db)
@@ -310,7 +332,8 @@ async def trigger_analysis(
     dream.ai_processed = False
     await db.commit()
 
-    await arq.enqueue_job("analyze_dream", str(dream.id))
+    # 将前端当前语言一并传入任务，保证 AI 输出语言与界面一致
+    await arq.enqueue_job("analyze_dream", str(dream.id), accept_language)
     return {"message": "AI 分析已加入队列", "status": "PENDING"}
 
 
@@ -385,7 +408,7 @@ async def generate_dream_image(
     """
     from fastapi import HTTPException
     from app.services.ai_service import ai_service
-    from app.services.oss_service import OSSService, get_oss_service
+    from app.services.oss_service import get_oss_service
 
     service = DreamService(db)
     dream = await service.get_dream(dream_id, current_user.id)
@@ -400,15 +423,11 @@ async def generate_dream_image(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"图像生成失败: {e!s}")
 
-    # 删除旧 OSS 文件（仅当旧 URL 是 OSS 地址时才尝试删除）
+    # 删除旧 OSS 文件（AI 图像存储在 public bucket）
     old_url = dream.ai_image_url
-    if old_url and "aliyuncs.com" in old_url:
+    if old_url:
         try:
-            old_key = OSSService.extract_file_key_from_url(old_url, current_user.id)
-            if old_key:
-                # AI 图像存储在 public bucket
-                oss = get_oss_service(str(current_user.id), bucket_type="public")
-                oss.delete_file(old_key)
+            await get_oss_service().delete_object_by_url(old_url, bucket_type="public")
         except Exception:
             pass  # 删除失败不阻断流程
 
@@ -573,9 +592,13 @@ async def get_attachment_upload_url(
 
     # 按类型分目录
     category = "audio" if content_type.startswith("audio/") else "images"
-    oss = get_oss_service(str(current_user.id), bucket_type="private")
-    file_key = oss.get_attachment_upload_path(str(dream_id), filename, category)
-    result = oss.generate_presigned_url(filename, content_type, file_key=file_key)
+    oss = get_oss_service()
+    result = await oss.generate_attachment_upload_signature(
+        dream_id=dream_id,
+        filename=filename,
+        content_type=content_type,
+        category=category,
+    )
     return result
 
 

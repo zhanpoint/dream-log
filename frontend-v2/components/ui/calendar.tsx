@@ -11,12 +11,14 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  locale,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
   const defaultClassNames = getDefaultClassNames()
 
   return (
     <DayPicker
+      locale={locale}
       showOutsideDays={showOutsideDays}
       className={cn(
         "p-6 [--cell-size:3.25rem] bg-popover text-popover-foreground",

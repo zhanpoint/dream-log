@@ -44,6 +44,7 @@ import {
   COMPLETENESS_LEVELS,
 } from "@/lib/constants";
 import { DreamApi, type CreateDreamPayload, type DreamDetail } from "@/lib/dream-api";
+import { getEmotionLabel } from "@/lib/emotion-utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -73,9 +74,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 type DreamEditorProps = {
   mode?: "create" | "edit";
@@ -84,6 +86,8 @@ type DreamEditorProps = {
 
 export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [generatingTitle, setGeneratingTitle] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(300);
@@ -155,6 +159,24 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
     "PRIVATE"
   );
   const [titleGeneratedByAI, setTitleGeneratedByAI] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isSeekingInterpretation, setIsSeekingInterpretation] = useState(false);
+
+  // 从 URL 预填（仅创建模式）：?seek=1&privacy=PUBLIC
+  useEffect(() => {
+    if (mode !== "create") return;
+
+    const seek = searchParams.get("seek");
+    const privacy = searchParams.get("privacy");
+
+    if (seek === "1" || seek === "true") {
+      setIsSeekingInterpretation(true);
+    }
+
+    if (privacy === "PUBLIC") {
+      setPrivacyLevel("PUBLIC");
+    }
+  }, [mode, searchParams]);
 
   // 附件
   const [imageFiles, setImageFiles] = useState<UploadedFile[]>([]);
@@ -328,6 +350,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
       (initialDream.privacy_level as "PRIVATE" | "FRIENDS" | "PUBLIC") ?? "PRIVATE"
     );
     setTitleGeneratedByAI(initialDream.title_generated_by_ai ?? false);
+    setIsAnonymous((initialDream as any).is_anonymous ?? false);
+    setIsSeekingInterpretation((initialDream as any).is_seeking_interpretation ?? false);
   }, [mode, initialDream]);
 
   const handleSubmit = async () => {
@@ -395,6 +419,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         user_interpretation: userInterpretation.trim() || undefined,
         privacy_level: privacyLevel,
         title_generated_by_ai: titleGeneratedByAI,
+        is_anonymous: isAnonymous || undefined,
+        is_seeking_interpretation: isSeekingInterpretation || undefined,
       };
 
       const dream =
@@ -535,7 +561,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" 
               />
             </svg>
-            {mode === "edit" ? "编辑梦境" : "记录梦境"}
+            {mode === "edit" ? t("dreams.new.titleEdit") : t("dreams.new.titleCreate")}
           </h1>
         </div>
 
@@ -570,8 +596,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="group">
               <Label className="text-sm font-medium mb-2 flex items-center gap-2">
                 <Wand2 className="w-4 h-4 text-primary transition-all duration-300 group-focus-within:text-amber-500 group-focus-within:scale-110 group-focus-within:rotate-12" />
-                <span className="transition-colors duration-300 group-focus-within:text-amber-500">梦境标题</span>
-                <span className="text-sm text-muted-foreground/70 font-normal">(可选)</span>
+                <span className="transition-colors duration-300 group-focus-within:text-amber-500">{t("dreams.new.dreamTitle")}</span>
+                <span className="text-sm text-muted-foreground/70 font-normal">({t("dreams.new.optional")})</span>
               </Label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -583,12 +609,12 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       // 用户手动编辑后，不再标记为 AI 生成
                       setTitleGeneratedByAI(false);
                     }}
-                    maxLength={20}
+                    maxLength={50}
                     className="text-sm h-10 border border-border/60 bg-transparent focus-visible:border-amber-500/80 dark:focus-visible:border-amber-400/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-[0_0_15px_rgba(251,191,36,0.15)] dark:focus-visible:shadow-[0_0_20px_rgba(251,191,36,0.2)] placeholder:text-sm placeholder:text-muted-foreground/90 dark:placeholder:text-foreground placeholder:opacity-100 px-4 py-3 pr-14 rounded-lg transition-all duration-300"
                   />
                   {/* 字数统计 */}
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                    {title.length}/20
+                    {title.length}/50
                   </span>
                 </div>
                 <TooltipProvider delayDuration={300}>
@@ -631,13 +657,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         ) : (
                           <>
                             <Wand2 className="w-3.5 h-3.5" />
-                            <span>AI生成</span>
+                            <span>{t("dreams.new.aiGenerate")}</span>
                           </>
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="max-w-xs">
-                      <p className="text-xs">根据梦境内容生成标题</p>
+                      <p className="text-xs">{t("dreams.new.generateTitleTooltip")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -648,7 +674,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="group">
               <Label className="text-sm font-medium mb-2 flex items-center gap-2">
                 <Eye className="w-4 h-4 text-primary transition-all duration-300 group-focus-within:text-blue-500 group-focus-within:scale-110" />
-                <span className="transition-colors duration-300 group-focus-within:text-blue-500">梦境内容</span>
+                <span className="transition-colors duration-300 group-focus-within:text-blue-500">{t("dreams.new.dreamContent")}</span>
               </Label>
               <div 
                 ref={containerRef}
@@ -682,7 +708,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         type="file"
                         accept="image/*"
                         multiple
-                        title="选择图片"
+                        title={t("dreams.new.selectImage")}
                         className="hidden"
                         id="dream-image-input"
                         onChange={(e) => {
@@ -706,7 +732,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       <label
                         htmlFor="dream-image-input"
                         className="relative flex items-center justify-center p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer hover:scale-110 hover:-translate-y-0.5"
-                        title="上传图片"
+                        title={t("dreams.new.uploadImage")}
                       >
                         <ImagePlus className="w-5 h-5 transition-transform duration-200" />
                         {totalImageCount > 0 && (
@@ -722,7 +748,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       type="button"
                       onClick={() => setDrawingBoardOpen(true)}
                       className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5"
-                      title="画板"
+                      title={t("dreams.new.drawingBoard")}
                     >
                       <PenTool className="w-5 h-5" />
                     </button>
@@ -750,7 +776,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     background: 'linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.5) 50%)',
                     borderRadius: '0 0 6px 0'
                   }}
-                  title="拖曳调整高度"
+                  title={t("dreams.new.dragToResize")}
                 />
               </div>
 
@@ -787,7 +813,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                           />
                           <button
                             type="button"
-                            title="取消该图片（保存时将从云端移除）"
+                            title={t("dreams.new.cancelImage")}
                             onClick={() =>
                               setRemovedAttachmentIds((prev) => [...prev, att.id])
                             }
@@ -812,7 +838,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       />
                       <button
                         type="button"
-                        title="删除图片"
+                        title={t("dreams.new.deleteImage")}
                         onClick={() => {
                           URL.revokeObjectURL(f.preview);
                           setImageFiles(imageFiles.filter((img) => img.id !== f.id));
@@ -841,7 +867,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
             <div className="px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
               <span className="text-xs text-muted-foreground">
-                以下信息可选，有助于 AI 生成更精准的梦境分析和长期洞察
+                {t("dreams.new.optionalInfo")}
               </span>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
@@ -860,7 +886,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
               <div className="flex items-center gap-2">
                 <Heart className="w-5 h-5 text-primary" />
-                <CardTitle className="text-base text-primary">情绪感受</CardTitle>
+                <CardTitle className="text-base text-primary">{t("dreams.new.emotionSection")}</CardTitle>
               </div>
               <ChevronDown
                 className={cn(
@@ -875,13 +901,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             {/* 步骤1: 主导情绪 */}
             <div>
               <Label className="text-sm font-medium mb-3 block">
-                1. 梦中最主要的感觉是？
+                {t("dreams.new.emotionQuestion")}
               </Label>
               <div className="space-y-3">
                 {EMOTION_CATEGORIES.map((cat) => (
                   <div key={cat.name}>
                     <p className="text-xs font-medium text-foreground mb-2">
-                      {cat.label}
+                      {t(`dreams.new.${cat.name}Emotions`)}
                     </p>
                     <div className={cn(
                       "flex gap-2",
@@ -910,7 +936,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                               setPrimaryEmotion(primaryEmotion === e ? "" : e)
                             }
                           >
-                            {e}
+                            {getEmotionLabel(e, t)}
                           </Badge>
                         );
                       })}
@@ -962,7 +988,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
               <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground">
-                AI 会根据梦境内容自动识别更多情绪细节
+                {t("dreams.new.aiEmotionHint")}
               </p>
             </div>
           </CardContent>
@@ -983,7 +1009,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
               <div className="flex items-center gap-2">
                 <Moon className="w-5 h-5 text-blue-500" />
-                <CardTitle className="text-base text-blue-500">睡眠信息</CardTitle>
+                <CardTitle className="text-base text-blue-500">{t("dreams.new.sleepSection")}</CardTitle>
               </div>
               <ChevronDown
                 className={cn(
@@ -999,7 +1025,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="space-y-6">
               <div className="flex items-end gap-4 flex-wrap">
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">入睡时间</Label>
+                  <Label className="text-sm font-medium mb-2 block">{t("dreams.new.sleepStartTime")}</Label>
                   <div className="relative flex items-center">
                     <Clock className="absolute left-3 h-4 w-4 text-foreground pointer-events-none z-10 transition-colors duration-200" />
                     <Input
@@ -1019,7 +1045,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">醒来时间</Label>
+                  <Label className="text-sm font-medium mb-2 block">{t("dreams.new.wakeTime")}</Label>
                   <div className="relative flex items-center">
                     <Clock className="absolute left-3 h-4 w-4 text-foreground pointer-events-none z-10 transition-colors duration-200" />
                     <Input
@@ -1039,13 +1065,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">睡了多久</Label>
+                  <Label className="text-sm font-medium mb-2 block">{t("dreams.new.sleepDuration")}</Label>
                   <div className="flex items-center gap-2 h-10">
                     <Input
                       type="number"
                       min="0"
                       max="23"
-                      placeholder="小时"
+                      placeholder={t("dreams.new.hours")}
                       value={sleepHours}
                       onChange={(e) => setSleepHours(e.target.value)}
                       className="w-16 h-10 text-center border border-border/60 hover:border-primary/50 hover:shadow-md hover:scale-105 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all duration-200"
@@ -1055,7 +1081,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       type="number"
                       min="0"
                       max="59"
-                      placeholder="分钟"
+                      placeholder={t("dreams.new.minutes")}
                       value={sleepMinutes}
                       onChange={(e) => setSleepMinutes(e.target.value)}
                       className="w-16 h-10 text-center border border-border/60 hover:border-primary/50 hover:shadow-md hover:scale-105 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all duration-200"
@@ -1069,7 +1095,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             {/* 质量 */}
             <div>
               <Label className="text-sm font-medium mb-3 block">
-                昨晚睡得怎么样？
+                {t("dreams.new.sleepQualityQuestion")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {SLEEP_QUALITIES.map((q) => (
@@ -1085,7 +1111,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     )}
                   >
                     <span className="text-sm text-foreground">
-                      {q.desc}
+                      {t(`dreams.new.sleepQuality${q.value}`)}
                     </span>
                   </button>
                 ))}
@@ -1094,7 +1120,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
             {/* 深度 */}
             <div>
-              <Label className="text-sm font-medium mb-3 block">睡眠深度</Label>
+              <Label className="text-sm font-medium mb-3 block">{t("dreams.new.sleepDepth")}</Label>
               <div className="flex gap-2">
                 {SLEEP_DEPTHS.map((d) => (
                   <button
@@ -1109,7 +1135,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     )}
                   >
                     <span className="text-sm text-foreground">
-                      {d.label}
+                      {t(`dreams.new.sleepDepth${d.value}`)}
                     </span>
                   </button>
                 ))}
@@ -1119,18 +1145,17 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             {/* 醒来状态 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Label className="text-sm font-medium">醒来方式</Label>
+                <Label className="text-sm font-medium">{t("dreams.new.awakeningState")}</Label>
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs">
-                      <div className="space-y-1.5 text-xs">
-                        <p><span className="font-medium">自然醒来：</span>没有外界干扰，自然清醒</p>
-                        <p><span className="font-medium">闹钟唤醒：</span>被闹钟或提醒叫醒</p>
-                        <p><span className="font-medium">受惊醒来：</span>被突然的声音或事件惊醒</p>
-                        <p><span className="font-medium">逐渐清醒：</span>慢慢地从睡眠中醒来</p>
+                      <div className="space-y-1.5 text-xs whitespace-pre-line">
+                        {t("dreams.new.awakeningStateTooltip").split('\n').map((line, i) => (
+                          <p key={i}>{line}</p>
+                        ))}
                       </div>
                     </TooltipContent>
                   </Tooltip>
@@ -1150,7 +1175,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     )}
                   >
                     <span className="text-sm text-foreground">
-                      {a.label}
+                      {t(`dreams.new.awakening${a.value.charAt(0) + a.value.slice(1).toLowerCase()}`)}
                     </span>
                   </button>
                 ))}
@@ -1163,7 +1188,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     id="is-nap"
                   />
                   <Label htmlFor="is-nap" className="text-sm cursor-pointer">
-                    是否午睡/小憩
+                    {t("dreams.new.isNap")}
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1173,7 +1198,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     id="sleep-fragmented"
                   />
                   <Label htmlFor="sleep-fragmented" className="text-sm cursor-pointer">
-                    是否多次醒来<span className="text-muted-foreground">(睡眠碎片化会影响梦境质量)</span>
+                    {t("dreams.new.isFragmented")}<span className="text-muted-foreground">{t("dreams.new.fragmentedHint")}</span>
                   </Label>
                 </div>
               </div>
@@ -1183,7 +1208,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
               <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground">
-                AI 会分析睡眠数据与梦境的关联，发现你的睡眠模式
+                {t("dreams.new.aiSleepHint")}
               </p>
             </div>
           </CardContent>
@@ -1204,7 +1229,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-purple-500" />
-                <CardTitle className="text-base text-purple-500">梦境特征</CardTitle>
+                <CardTitle className="text-base text-purple-500">{t("dreams.new.characteristicsSection")}</CardTitle>
               </div>
               <ChevronDown
                 className={cn(
@@ -1218,9 +1243,9 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
           <CardContent className="pt-5 pb-6 space-y-6">
             {/* 类型 */}
             <div>
-              <Label className="text-sm font-medium mb-3 block">梦境类型</Label>
+              <Label className="text-sm font-medium mb-3 block">{t("dreams.new.dreamType")}</Label>
               <div className="flex flex-wrap gap-2">
-                {DREAM_TYPES.map((t) => {
+                {DREAM_TYPES.map((dtype) => {
                   const iconConfig = {
                     MessageCircle: { 
                       component: MessageCircle, 
@@ -1258,14 +1283,14 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       bgColor: "bg-cyan-500/15",
                       borderColor: "border-cyan-500/50"
                     },
-                  }[t.icon];
+                  }[dtype.icon];
                   
                   const IconComponent = iconConfig?.component;
-                  const isSelected = dreamTypes.includes(t.value);
+                  const isSelected = dreamTypes.includes(dtype.value);
                   
                   return (
                     <Badge
-                      key={t.value}
+                      key={dtype.value}
                       variant="outline"
                       className={cn(
                         "cursor-pointer hover:scale-105 transition-all duration-200 px-3 py-2",
@@ -1275,15 +1300,15 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         // 覆盖默认的 hover 背景
                         !isSelected && "hover:bg-primary/5 dark:hover:bg-primary/10"
                       )}
-                      onClick={() => toggleDreamType(t.value)}
-                      title={t.desc}
+                      onClick={() => toggleDreamType(dtype.value)}
+                      title={t(`dreams.new.dreamType${dtype.value.charAt(0) + dtype.value.slice(1).toLowerCase()}Desc`)}
                     >
                       {IconComponent && (
                         <IconComponent 
                           className={cn("w-3.5 h-3.5 mr-1.5", iconConfig.color)} 
                         />
                       )}
-                      {t.label}
+                      {t(`dreams.new.dreamType${dtype.value.charAt(0) + dtype.value.slice(1).toLowerCase()}`)}
                     </Badge>
                   );
                 })}
@@ -1323,7 +1348,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             {/* 清晰度 */}
             <div>
               <Label className="text-sm font-medium mb-3 block">
-                梦境清晰度
+                {t("dreams.new.dreamClarity")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {VIVIDNESS_LEVELS.map((v) => (
@@ -1339,8 +1364,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     )}
                   >
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs font-medium text-foreground">{v.label}</span>
-                      <span className="text-[10px] text-muted-foreground leading-tight">{v.desc}</span>
+                      <span className="text-xs font-medium text-foreground">{t(`dreams.new.vividness${v.value}`)}</span>
+                      <span className="text-[10px] text-muted-foreground leading-tight">{t(`dreams.new.vividness${v.value}Desc`)}</span>
                     </div>
                   </button>
                 ))}
@@ -1350,7 +1375,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             {/* 完整度 */}
             <div>
               <Label className="text-sm font-medium mb-3 block">
-                记忆完整度
+                {t("dreams.new.memoryCompleteness")}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {COMPLETENESS_LEVELS.map((c) => (
@@ -1366,8 +1391,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     )}
                   >
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs font-medium text-foreground">{c.label}</span>
-                      <span className="text-[10px] text-muted-foreground leading-tight">{c.desc}</span>
+                      <span className="text-xs font-medium text-foreground">{t(`dreams.new.completeness${c.value}`)}</span>
+                      <span className="text-[10px] text-muted-foreground leading-tight">{t(`dreams.new.completeness${c.value}Desc`)}</span>
                     </div>
                   </button>
                 ))}
@@ -1378,7 +1403,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
             <div className="flex items-start gap-2 p-3 rounded-lg bg-purple-500/5 border border-purple-500/20">
               <Sparkles className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground">
-                AI 会识别梦境类型和意识状态，提供专业的心理学解析
+                {t("dreams.new.aiCharacteristicsHint")}
               </p>
             </div>
           </CardContent>
@@ -1394,7 +1419,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
               <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group border-b border-border/60">
                 <div className="flex items-center gap-2">
                   <Link2 className="w-5 h-5 text-green-500" />
-                  <CardTitle className="text-base text-green-500">与现实的关联</CardTitle>
+                  <CardTitle className="text-base text-green-500">{t("dreams.new.realityConnectionSection")}</CardTitle>
                 </div>
                 <ChevronDown
                   className={cn(
@@ -1409,11 +1434,11 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 {/* 前一天事件 */}
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    前一天发生了什么？
+                    {t("dreams.new.whatHappenedYesterday")}
                   </Label>
                   <div className="relative group">
                     <Textarea
-                      placeholder="简单描述前一天的主要事件、情绪或压力源..."
+                      placeholder={t("dreams.new.whatHappenedPlaceholder")}
                       value={lifeContext}
                       onChange={(e) => {
                         const newValue = e.target.value;
@@ -1437,7 +1462,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         background: 'linear-gradient(135deg, transparent 50%, rgba(34, 197, 94, 0.5) 50%)',
                         borderRadius: '0 0 6px 0'
                       }}
-                      title="拖曳调整高度"
+                      title={t("dreams.new.dragToResize")}
                     />
                   </div>
                 </div>
@@ -1445,7 +1470,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 {/* 关联程度 */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">
-                    这个梦和现实生活的关联度？
+                    {t("dreams.new.realityCorrelation")}
                   </Label>
                   <div className="grid grid-cols-4 gap-2">
                     {REALITY_CORRELATIONS.map((r) => (
@@ -1462,10 +1487,10 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       >
                         <div className="flex items-center justify-center gap-1.5 font-medium text-xs mb-0.5">
                           <span className="text-sm">{r.icon}</span>
-                          {r.label}
+                          {t(`dreams.new.reality${r.value}`)}
                         </div>
                         <div className="text-[10px] text-muted-foreground leading-tight">
-                          {r.desc}
+                          {t(`dreams.new.reality${r.value}Desc`)}
                         </div>
                       </button>
                     ))}
@@ -1475,11 +1500,11 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 {/* 个人解读 */}
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    你自己的理解
+                    {t("dreams.new.yourInterpretation")}
                   </Label>
                   <div className="relative group">
                     <Textarea
-                      placeholder="你觉得这个梦可能在表达什么？"
+                      placeholder={t("dreams.new.yourInterpretationPlaceholder")}
                       value={userInterpretation}
                       onChange={(e) => {
                         const newValue = e.target.value;
@@ -1504,7 +1529,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         background: 'linear-gradient(135deg, transparent 50%, rgba(34, 197, 94, 0.5) 50%)',
                         borderRadius: '0 0 6px 0'
                       }}
-                      title="拖曳调整高度"
+                      title={t("dreams.new.dragToResize")}
                     />
                   </div>
                 </div>
@@ -1513,7 +1538,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/5 border border-green-500/20">
                   <Sparkles className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                   <p className="text-xs text-muted-foreground">
-                    AI 会理解梦境的深层含义，发现生活事件与梦境的联系
+                    {t("dreams.new.aiRealityHint")}
                   </p>
                 </div>
               </CardContent>
@@ -1526,56 +1551,105 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-8"
+          className="flex flex-col gap-4 pb-8"
         >
-          {/* 隐私级别选择 - 左侧 */}
-          <div className="flex items-center gap-3 text-xs sm:text-sm">
-            <span className="text-muted-foreground whitespace-nowrap">谁可以看到这条梦境？</span>
-            <div className="inline-flex rounded-full border border-border/40 dark:border-border/30 bg-transparent p-0.5 backdrop-blur-sm">
-              {[
-                { value: "PRIVATE", label: "仅自己", title: "只有你自己能看到" },
-                { value: "FRIENDS", label: "好友", title: "未来支持好友可见" },
-                { value: "PUBLIC", label: "公开", title: "所有人都可以看到" },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  title={opt.title}
-                  onClick={() => setPrivacyLevel(opt.value as typeof privacyLevel)}
-                  className={cn(
-                    "relative px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ease-out whitespace-nowrap",
-                    privacyLevel === opt.value
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105"
-                      : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted/30 dark:hover:bg-white/5 hover:scale-[1.02]"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          {/* 公开发布选项：仅在 PUBLIC 时显示 */}
+          {privacyLevel === "PUBLIC" && (
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 p-3 rounded-xl border border-border/60 bg-transparent">
+              <div className="flex items-center gap-2.5">
+                <Switch
+                  id="is-anonymous"
+                  checked={isAnonymous}
+                  onCheckedChange={setIsAnonymous}
+                />
+                <Label htmlFor="is-anonymous" className="text-sm cursor-pointer">
+                  匿名发布
+                </Label>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-xs">匿名发布后，其他用户将无法看到你的用户名，显示为「匿名梦友」</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="h-5 w-px bg-border/60 hidden sm:block" />
+              <div className="flex items-center gap-2.5">
+                <Switch
+                  id="is-seeking-interpretation"
+                  checked={isSeekingInterpretation}
+                  onCheckedChange={setIsSeekingInterpretation}
+                />
+                <Label htmlFor="is-seeking-interpretation" className="text-sm cursor-pointer">
+                  寻求解梦
+                </Label>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-xs">开启后，你的梦境将出现在「解梦求助」频道，吸引更多人为你解读</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 操作按钮 - 右侧紧挨着 */}
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="text-foreground hover:text-foreground dark:hover:text-foreground border-border/70 hover:border-border hover:bg-accent/80 dark:hover:bg-accent/90 hover:scale-105 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-            >
-              <Link href="/dreams">取消</Link>
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting || !content.trim()}
-              className="gap-2 min-w-[120px] hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 transition-all duration-200"
-            >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              保存梦境
-            </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {/* 隐私级别选择 - 左侧 */}
+            <div className="flex items-center gap-3 text-xs sm:text-sm">
+              <span className="text-muted-foreground whitespace-nowrap">{t("dreams.new.visibilityQuestion")}</span>
+              <div className="inline-flex rounded-full border border-border/40 dark:border-border/30 bg-transparent p-0.5 backdrop-blur-sm">
+                {[
+                  { value: "PRIVATE", label: t("dreams.new.visibilityPrivate"), title: "只有你自己能看到" },
+                  { value: "FRIENDS", label: t("dreams.new.visibilityFriends"), title: "未来支持好友可见" },
+                  { value: "PUBLIC", label: t("dreams.new.visibilityPublic"), title: "所有人都可以看到" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    title={opt.title}
+                    onClick={() => setPrivacyLevel(opt.value as typeof privacyLevel)}
+                    className={cn(
+                      "relative px-3 py-1 text-xs font-medium rounded-full transition-all duration-300 ease-out whitespace-nowrap",
+                      privacyLevel === opt.value
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105"
+                        : "text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted/30 dark:hover:bg-white/5 hover:scale-[1.02]"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 操作按钮 - 右侧紧挨着 */}
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="outline"
+                className="text-foreground hover:text-foreground dark:hover:text-foreground border-border/70 hover:border-border hover:bg-accent/80 dark:hover:bg-accent/90 hover:scale-105 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+              >
+                <Link href="/dreams">{t("dreams.new.cancel")}</Link>
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting || !content.trim()}
+                className="gap-2 min-w-[120px] hover:scale-105 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 transition-all duration-200"
+              >
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {t("dreams.new.save")}
+              </Button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

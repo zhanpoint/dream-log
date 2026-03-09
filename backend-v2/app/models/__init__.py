@@ -24,7 +24,12 @@ from app.models.enums import (
     StorageBucket,
     SymbolCategory,
 )
+from app.models.community import Bookmark, Comment, CommentLike, Report, Resonance, UserFollow
+from app.models.community_group import Community, CommunityMember
+from app.models.dm import DirectMessage, DmConversation
+from app.models.exploration import ExplorationArticle, ExplorationSymbol
 from app.models.notification import Notification, NotificationType
+from app.models.search_history import SearchHistory
 from app.models.token_blacklist import TokenBlacklist
 from app.models.user import RegistrationMethod, User
 from app.models.user_insight import UserInsight, UserInsightSettings
@@ -33,6 +38,7 @@ __all__ = [
     # 用户模型
     "User",
     "RegistrationMethod",
+    "SearchHistory",
     "TokenBlacklist",
     # 梦境核心
     "Dream",
@@ -51,6 +57,22 @@ __all__ = [
     # 用户洞察
     "UserInsight",
     "UserInsightSettings",
+    # 梦境探索
+    "ExplorationSymbol",
+    "ExplorationArticle",
+    # 社区模块
+    "Resonance",
+    "Comment",
+    "CommentLike",
+    "UserFollow",
+    "Bookmark",
+    "Report",
+    # 梦境社群
+    "Community",
+    "CommunityMember",
+    # 私信
+    "DmConversation",
+    "DirectMessage",
     # 通知
     "Notification",
     "NotificationType",

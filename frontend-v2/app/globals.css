@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+/* 本地系统字体栈，避免 next/font/google 在受限网络中下载失败警告 */
+:root {
+  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+}
+
 /* Tailwind CSS v4 theme configuration */
 @theme {
   /* 浅色主题 - 柔和的梦境清晨色调 */
@@ -24,7 +31,7 @@
   --color-input: oklch(82% 0.012 280);
   --color-ring: oklch(58% 0.28 275);
   --radius: 0.5rem;
-  
+
   /* Custom properties */
   --navigation-height: 3.5rem;
   --color-one: #a78bfa;
@@ -83,7 +90,7 @@
   * {
     border-color: oklch(var(--border));
   }
-  
+
   html {
     overflow-x: hidden;
     width: 100%;
@@ -98,16 +105,24 @@
     color: oklch(var(--foreground)) !important;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   /* 确保 Tailwind 的 bg-background 类正确工作 */
   .bg-background {
     background-color: oklch(var(--background)) !important;
   }
-  
+
   .text-foreground {
     color: oklch(var(--foreground)) !important;
   }
-  
+
+  .text-foreground\/90 {
+    color: oklch(var(--foreground) / 0.9) !important;
+  }
+
+  html.dark .text-foreground\/90 {
+    color: oklch(98% 0.005 280 / 0.8) !important;
+  }
+
   .auth-secondary {
     color: oklch(var(--foreground) / 0.88) !important;
   }
@@ -115,7 +130,15 @@
   .auth-tertiary {
     color: oklch(var(--foreground) / 0.72) !important;
   }
-  
+
+  .text-accent-foreground {
+    color: oklch(var(--accent-foreground)) !important;
+  }
+
+  html.dark .text-accent-foreground {
+    color: oklch(98% 0.005 280) !important;
+  }
+
   .text-muted-foreground {
     color: oklch(var(--muted-foreground)) !important;
   }
@@ -127,11 +150,11 @@
   .dark .auth-divider-text {
     color: oklch(var(--foreground)) !important;
   }
-  
+
   .bg-card {
     background-color: oklch(var(--card)) !important;
   }
-  
+
   .text-card-foreground {
     color: oklch(var(--card-foreground)) !important;
   }
@@ -143,7 +166,7 @@
   .text-popover-foreground {
     color: oklch(var(--popover-foreground)) !important;
   }
-  
+
   .border-border {
     border-color: oklch(var(--border)) !important;
   }
@@ -185,6 +208,13 @@
     color: oklch(65% 0.30 275) !important;
   }
 
+  /* 暗色下下拉菜单项 hover 背景：使用更暗的颜色 */
+  html.dark [data-radix-dropdown-menu-content] button:hover,
+  html.dark [data-radix-dropdown-menu-content] [role="menuitem"]:hover,
+  html.dark [data-radix-dropdown-menu-content] [data-menuitem]:hover {
+    background-color: oklch(15% 0.04 270) !important;
+  }
+
   .auth-card {
     background-color: oklch(var(--card));
     border-color: oklch(var(--border));
@@ -200,21 +230,86 @@
   }
 
   .dark .auth-card-hover {
-    background-color: oklch(16% 0.05 270);
+    background-color: oklch(18% 0.05 270);
   }
-  
+
+  /* 热门关键词标签悬浮样式 */
+  .hot-keyword-btn {
+    color: oklch(var(--muted-foreground));
+  }
+  .hot-keyword-btn:hover {
+    background-color: oklch(58% 0.28 275 / 0.15) !important;
+    color: oklch(58% 0.28 275) !important;
+    border-color: oklch(58% 0.28 275 / 0.5) !important;
+  }
+  html.dark .hot-keyword-btn:hover {
+    background-color: oklch(65% 0.30 275 / 0.2) !important;
+    color: oklch(65% 0.30 275) !important;
+    border-color: oklch(65% 0.30 275 / 0.5) !important;
+  }
+
+  /* 清空按钮悬浮样式 */
+  .clear-btn {
+    color: oklch(var(--muted-foreground));
+  }
+  .clear-btn:hover {
+    color: oklch(58% 0.28 275) !important;
+  }
+  html.dark .clear-btn:hover {
+    color: oklch(65% 0.30 275) !important;
+  }
+
+  /* 排序按钮悬浮样式 */
+  .sort-btn {
+    border-color: oklch(85% 0.02 280 / 0.8);
+  }
+  html.dark .sort-btn {
+    border-color: oklch(40% 0.05 270 / 0.8);
+  }
+  .sort-btn:not([data-active="true"]):hover {
+    border-color: oklch(58% 0.28 275 / 0.6) !important;
+    color: oklch(58% 0.28 275) !important;
+  }
+  html.dark .sort-btn:not([data-active="true"]):hover {
+    border-color: oklch(65% 0.30 275 / 0.6) !important;
+    color: oklch(65% 0.30 275) !important;
+  }
+  .sort-btn[data-active="true"]:hover {
+    color: oklch(98% 0 0) !important;
+  }
+
+  /* 返回按钮悬浮样式 */
+  .back-btn {
+    color: oklch(var(--muted-foreground)) !important;
+  }
+  .back-btn:hover,
+  .back-btn:focus,
+  .back-btn:focus-visible {
+    background-color: transparent !important;
+    color: oklch(var(--foreground)) !important;
+  }
+  html.dark .back-btn {
+    color: oklch(65% 0.03 280) !important;
+  }
+  html.dark .back-btn:hover,
+  html.dark .back-btn:focus,
+  html.dark .back-btn:focus-visible {
+    background-color: transparent !important;
+    color: oklch(98% 0.005 280) !important;
+  }
+
   .bg-accent {
     background-color: oklch(var(--accent)) !important;
   }
-  
+
   .bg-muted {
     background-color: oklch(var(--muted)) !important;
   }
-  
+
   .bg-primary {
     background-color: oklch(var(--primary)) !important;
   }
-  
+
   .text-primary {
     color: oklch(var(--primary)) !important;
   }
@@ -248,7 +343,7 @@
   .dark .ai-deep-analysis-body {
     color: oklch(var(--muted-foreground)) !important;
   }
-  
+
   /* Hero Section 标题样式 - 确保在明暗主题下都清晰可见 */
   .hero-title {
     background-image: linear-gradient(
@@ -260,7 +355,7 @@
     -webkit-background-clip: text;
     background-clip: text;
   }
-  
+
   .dark .hero-title {
     background-image: linear-gradient(
       to right bottom,
@@ -269,23 +364,23 @@
       oklch(98% 0.005 280 / 0.95) 100%
     );
   }
-  
+
   /* Hero Section 标签按钮样式 - 确保文字清晰可见 */
   .hero-tag {
     backdrop-filter: blur(12px);
     /* 浅色主题：浅色背景 */
     background-color: oklch(92% 0.015 275 / 0.9) !important;
   }
-  
+
   /* 深色主题：深色背景，只有文字是白色 */
   .dark .hero-tag {
     background-color: oklch(20% 0.06 275 / 0.6) !important;
   }
-  
+
   .dark .hero-tag:hover {
     background-color: oklch(20% 0.06 275 / 0.8) !important;
   }
-  
+
   /* 覆盖 TextShimmer 的默认颜色 - 使用更具体的选择器 */
   .hero-tag p.text-neutral-600,
   .hero-tag p.dark\:text-neutral-400,
@@ -294,14 +389,14 @@
     background-image: none !important;
     -webkit-text-fill-color: oklch(15% 0.025 280) !important;
   }
-  
+
   .dark .hero-tag p.text-neutral-600,
   .dark .hero-tag p.dark\:text-neutral-400,
   .dark .hero-tag p {
     color: oklch(98% 0.005 280) !important;
     -webkit-text-fill-color: oklch(98% 0.005 280) !important;
   }
-  
+
   .hero-tag .hero-tag-text,
   .hero-tag .hero-tag-icon,
   .hero-tag span,
@@ -311,7 +406,7 @@
     color: oklch(15% 0.025 280) !important;
     -webkit-text-fill-color: oklch(15% 0.025 280) !important;
   }
-  
+
   .dark .hero-tag .hero-tag-text,
   .dark .hero-tag .hero-tag-icon,
   .dark .hero-tag span,
@@ -321,33 +416,33 @@
     color: oklch(98% 0.005 280) !important;
     -webkit-text-fill-color: oklch(98% 0.005 280) !important;
   }
-  
+
   /* Hero Section 副标题样式 - 确保文字清晰可见 */
   .hero-subtitle {
     color: oklch(15% 0.025 280 / 0.9) !important;
   }
-  
+
   .dark .hero-subtitle {
     color: oklch(98% 0.005 280 / 0.95) !important;
   }
-  
+
   /* Hero Section 图片主题切换 */
   .hero-image-light {
     display: block;
   }
-  
+
   .hero-image-dark {
     display: none;
   }
-  
+
   .dark .hero-image-light {
     display: none;
   }
-  
+
   .dark .hero-image-dark {
     display: block;
   }
-  
+
   /* Shiny Button 动画 */
   @keyframes shimmer {
     0% {
@@ -357,7 +452,7 @@
       background-position: 200% 0;
     }
   }
-  
+
   .animate-shimmer {
     animation: shimmer 3s infinite;
   }
@@ -623,4 +718,85 @@ main {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
+}
+
+@theme inline {
+  --animate-gradient: gradient 8s linear infinite;
+  @keyframes gradient {
+  to {
+    background-position: var(--bg-size, 300%) 0;
+    }
+  }
+}
+
+/* ===== 页面路由过渡进度条 ===== */
+#nprogress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, oklch(58% 0.28 275), oklch(65% 0.3 280));
+  z-index: 9999;
+  border-radius: 0 2px 2px 0;
+  transition: width 0.2s ease, opacity 0.4s ease;
+  box-shadow: 
+    0 0 10px oklch(58% 0.28 275 / 0.8),
+    0 0 20px oklch(58% 0.28 275 / 0.5),
+    0 0 30px oklch(58% 0.28 275 / 0.3);
+}
+
+/* 暗色模式下进度条更亮 */
+.dark #nprogress-bar {
+  background: linear-gradient(90deg, oklch(72% 0.28 275), oklch(78% 0.3 280));
+}
+
+/* ===== 全局点击响应优化（消除 300ms 移动端延迟） ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ===== 页面内容出现动画（减少视觉跳动感） ===== */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main > * {
+  animation: page-enter 0.15s ease-out;
+}
+
+/* ===== 骨架屏闪光动画 ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(var(--muted) / 0.8) 25%,
+    oklch(var(--muted) / 0.4) 50%,
+    oklch(var(--muted) / 0.8) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ===== 按钮点击态优化（即时视觉反馈） ===== */
+button:active:not(:disabled),
+[role="button"]:active:not([aria-disabled="true"]) {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
+/* ===== Link 过渡优化（消除闪烁） ===== */
+a {
+  transition: color 0.15s ease, opacity 0.15s ease;
 }

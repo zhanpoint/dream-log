@@ -23,7 +23,7 @@ from sqlalchemy import (
     Time,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -126,6 +126,26 @@ class Dream(Base):
     )
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     view_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    # ========== 社区字段 ==========
+    is_seeking_interpretation: Mapped[bool] = mapped_column(Boolean, default=False)
+    community_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    is_anonymous: Mapped[bool] = mapped_column(Boolean, default=False)
+    anonymous_alias: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    resonance_count: Mapped[int] = mapped_column(Integer, default=0)
+    comment_count: Mapped[int] = mapped_column(Integer, default=0)
+    interpretation_count: Mapped[int] = mapped_column(Integer, default=0)
+    bookmark_count: Mapped[int] = mapped_column(Integer, default=0)
+    share_count: Mapped[int] = mapped_column(Integer, default=0)
+    adopted_interpretation_count: Mapped[int] = mapped_column(Integer, default=0)
+    heat_score: Mapped[float] = mapped_column(Float, default=0.0)
+    inspiration_score: Mapped[float] = mapped_column(Float, default=0.0)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    feature_mode: Mapped[str] = mapped_column(String(16), default="AUTO", nullable=False)
+    featured_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    featured_score_snapshot: Mapped[float | None] = mapped_column(Float, nullable=True)
+    featured_updated_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    emotion_tags: Mapped[list] = mapped_column(JSONB, default=list)
 
     # ========== 关联 ==========
     parent_dream_id: Mapped[uuid.UUID | None] = mapped_column(

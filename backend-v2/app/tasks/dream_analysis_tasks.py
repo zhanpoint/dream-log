@@ -203,7 +203,7 @@ def _format_dream_context(dream: Dream, insight: DreamInsight | None) -> str:
     return base
 
 
-async def analyze_dream(ctx: dict, dream_id: str) -> dict:
+async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = None) -> dict:
     """
     完整梦境分析工作流（两阶段）
 
@@ -213,7 +213,7 @@ async def analyze_dream(ctx: dict, dream_id: str) -> dict:
     更新 Dream 主表状态
     """
     from app.core.database import async_session_maker
-    from app.services.ai_service import ai_service
+    from app.services.ai_service import ai_service, get_target_language_from_locale
 
     logger.info(f"开始分析梦境: {dream_id}")
     start_time = datetime.now()
@@ -239,6 +239,8 @@ async def analyze_dream(ctx: dict, dream_id: str) -> dict:
             # 更新状态为处理中
             dream.ai_processing_status = AIProcessingStatus.PROCESSING
             await db.commit()
+
+            target_language = get_target_language_from_locale(accept_language)
 
             # 发送 SSE 事件：分析开始（通过 Redis 推送到 API 进程再转发给前端）
             try:
@@ -278,8 +280,8 @@ async def analyze_dream(ctx: dict, dream_id: str) -> dict:
 
             # 阶段1（并行）：标题 + 基础分析（合并 structure + emotion + trigger + sleep）
             phase1_results = await asyncio.gather(
-                ai_service.generate_title(content) if need_title else _noop(),
-                ai_service.analyze_basic(dream_context),
+                ai_service.generate_title(content, target_language=target_language) if need_title else _noop(),
+                ai_service.analyze_basic(dream_context, target_language=target_language),
                 return_exceptions=True,
             )
             title_result, basic_result = phase1_results
@@ -329,7 +331,11 @@ async def analyze_dream(ctx: dict, dream_id: str) -> dict:
 
             # 阶段2（串行）：深度洞察（依赖阶段1结果）
             try:
-                insight_analysis_result = await ai_service.generate_insight(dream_context, basic_analysis)
+                insight_analysis_result = await ai_service.generate_insight(
+                    dream_context,
+                    basic_analysis,
+                    target_language=target_language,
+                )
             except Exception as e:
                 logger.warning(f"阶段2深度洞察失败: {e}")
                 insight_analysis_result = None
@@ -461,3 +467,49 @@ async def analyze_dream(ctx: dict, dream_id: str) -> dict:
                 await db.rollback()
 
             return {"status": "failed", "dream_id": dream_id, "error": str(e)}
+
+
+async def update_inspiration_scores() -> dict:
+    """
+    定期后台任务：重算所有公开梦境的灵感分，并自动标记高分梦境为精选。
+    调用方式：直接 await，或由 APScheduler/Celery beat 定期触发。
+    """
+    from app.core.database import async_session_maker
+    from app.models.enums import PrivacyLevel
+    from sqlalchemy import update as sa_update
+
+    processed = 0
+    featured_new = 0
+
+    async with async_session_maker() as db:
+        try:
+            stmt = select(Dream).where(
+                Dream.privacy_level == PrivacyLevel.PUBLIC,
+                Dream.deleted_at.is_(None),
+            )
+            dreams = (await db.execute(stmt)).scalars().all()
+
+            for dream in dreams:
+                score = (
+                    dream.resonance_count * 2.0
+                    + dream.comment_count * 1.5
+                    + dream.interpretation_count * 3.0
+                )
+                # 高分阈值自动精选（>= 30 分）
+                should_feature = score >= 30.0
+                if should_feature and not dream.is_featured:
+                    featured_new += 1
+                await db.execute(
+                    sa_update(Dream)
+                    .where(Dream.id == dream.id)
+                    .values(inspiration_score=score, is_featured=should_feature if should_feature else dream.is_featured)
+                )
+                processed += 1
+
+            await db.commit()
+            logger.info(f"灵感分更新完成: 处理 {processed} 条，新精选 {featured_new} 条")
+            return {"processed": processed, "featured_new": featured_new}
+        except Exception as e:
+            logger.error(f"灵感分更新失败: {e}")
+            await db.rollback()
+            return {"error": str(e)}

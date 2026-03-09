@@ -6,7 +6,7 @@ import enum
 import uuid
 from datetime import date, datetime, timezone, timedelta
 
-from sqlalchemy import Date, DateTime, Enum, String, Text, text
+from sqlalchemy import Date, DateTime, Enum, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -57,6 +57,15 @@ class User(Base):
     registration_method: Mapped[RegistrationMethod] = mapped_column(
         Enum(RegistrationMethod), default=RegistrationMethod.EMAIL
     )
+
+    # ========== 社区字段 ==========
+    dreamer_title: Mapped[str] = mapped_column(String(50), default="做梦者")
+    dreamer_level: Mapped[int] = mapped_column(Integer, default=1)
+    inspiration_points: Mapped[int] = mapped_column(Integer, default=0)
+    public_dream_count: Mapped[int] = mapped_column(Integer, default=0)
+    interpretation_count: Mapped[int] = mapped_column(Integer, default=0)
+    follower_count: Mapped[int] = mapped_column(Integer, default=0)
+    following_count: Mapped[int] = mapped_column(Integer, default=0)
 
     # 时间戳（东八区上海时间）
     created_at: Mapped[datetime] = mapped_column(

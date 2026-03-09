@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
 
+    # Dify 工作流（梦境符号批量生成）
+    dify_api_key: str | None = Field(default=None, alias="DIFY_API_KEY")
+    dify_api_url: str = Field(
+        default="https://api.dify.ai/v1/workflows/run",
+        alias="DIFY_API_URL",
+    )
+
     # AI 模型配置（两阶段：基础分析 + 标题 + 深度洞察 + 图像生成）
     ai_model_text_analysis: str = Field(default="openai/gpt-4o", alias="AI_MODEL_TEXT_ANALYSIS")
     ai_model_title_generation: str = Field(default="google/gemini-flash-1.5", alias="AI_MODEL_TITLE_GENERATION")
@@ -78,6 +85,7 @@ class Settings(BaseSettings):
     ai_model_embedding: str = Field(default="openai/text-embedding-3-large", alias="AI_MODEL_EMBEDDING")
     # AI 模型参数
     ai_embedding_dimensions: int = Field(default=1024, alias="AI_EMBEDDING_DIMENSIONS")
+
 
     # 语音转录 Provider 开关: "google" | "xfyun"
     voice_transcribe_provider: Literal["google", "xfyun"] = Field(

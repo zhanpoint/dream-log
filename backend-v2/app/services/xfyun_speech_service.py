@@ -132,7 +132,12 @@ class XfyunSpeechService:
         logger.info("连接讯飞实时转写服务...")
 
         try:
-            ws_ctx = websockets.connect(url, ping_interval=20, ping_timeout=10)
+            ws_ctx = websockets.connect(
+                url,
+                ping_interval=20,
+                ping_timeout=10,
+                open_timeout=30,  # 延长握手超时，缓解网络延迟/跨境访问
+            )
         except Exception as e:
             raise RuntimeError(f"讯飞连接初始化失败: {e}") from e
 
@@ -228,6 +233,11 @@ class XfyunSpeechService:
                         await recv_task
                     except (asyncio.CancelledError, Exception):
                         pass
+        except TimeoutError as e:
+            raise RuntimeError(
+                "讯飞语音服务连接超时。请检查网络连接或稍后重试；"
+                "若在海外环境，讯飞 API 可能无法访问。"
+            ) from e
         except websockets.exceptions.InvalidMessage as e:
             message = str(e)
             if "35010" in message:

@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Integer,
     String,
     Text,
     text,
@@ -94,8 +95,13 @@ class UserInsightSettings(Base):
     # 显示变化对比（默认关闭）
     show_comparison: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # 模式发现配置
+    pattern_discovery_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    pattern_min_occurrences: Mapped[int] = mapped_column(Integer, default=3)
+
     # 通知配置（统一开关，控制所有定期报告的通知）
     notify_on_reports: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_on_pattern: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(

@@ -10,9 +10,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config.featured import FEATURED_CONFIG
 from app.core.config import settings
 from app.core.redis import close_redis, get_redis, init_redis
 from app.core.sse_manager import run_redis_sse_subscriber
+from app.tasks.featured_tasks import featured_recalc_daily_loop, featured_recalc_hourly_loop
 
 logger = logging.getLogger(__name__)
 
@@ -52,14 +54,25 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # 启动 SSE Redis 订阅（接收 Worker 发布的分析状态，推送给前端）
     sse_subscriber_task = asyncio.create_task(run_redis_sse_subscriber(get_redis))
 
+    featured_hourly_task = None
+    featured_daily_task = None
+    if FEATURED_CONFIG.recalc_hourly_enabled:
+        featured_hourly_task = asyncio.create_task(featured_recalc_hourly_loop())
+    if FEATURED_CONFIG.recalc_daily_enabled:
+        featured_daily_task = asyncio.create_task(featured_recalc_daily_loop())
+
     yield
 
     # 关闭时执行
-    sse_subscriber_task.cancel()
-    try:
-        await sse_subscriber_task
-    except asyncio.CancelledError:
-        pass
+    for task in (featured_hourly_task, featured_daily_task, sse_subscriber_task):
+        if task:
+            task.cancel()
+    for task in (featured_hourly_task, featured_daily_task, sse_subscriber_task):
+        if task:
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
     await close_redis()
     print("✅ Redis 连接已关闭")
     print(f"👋 {settings.app_name} 关闭中...")
@@ -100,7 +113,7 @@ async def health_check() -> dict[str, str]:
 
 
 # 注册路由
-from app.api import auth, dreams, insights, notifications, oauth, user, voice_ws
+from app.api import auth, community, dm, dreams, exploration, insights, notifications, oauth, user, voice_ws
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(oauth.router, prefix="/api")
@@ -110,3 +123,6 @@ app.include_router(dreams.tag_router, prefix="/api")
 app.include_router(voice_ws.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(notifications.router, prefix="/api")
+app.include_router(exploration.router, prefix="/api")
+app.include_router(community.router, prefix="/api")
+app.include_router(dm.router, prefix="/api")

@@ -2,13 +2,28 @@
 
 import * as React from "react"
 import { format } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { zhCN, enUS, ja } from "date-fns/locale"
+import type { Locale } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+// 根据 i18n 语言代码获取 date-fns locale
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
 
 interface DatePickerProps {
   date?: Date
@@ -21,9 +36,15 @@ export function DatePicker({
   date,
   onDateChange,
   className,
-  placeholder = "选择日期",
+  placeholder,
 }: DatePickerProps) {
+  const { t, i18n } = useTranslation()
+  const dateLocale = getDateLocale(i18n.language)
   const [open, setOpen] = React.useState(false)
+  
+  // 根据语言设置日期格式
+  const dateFormat = dateLocale === zhCN || dateLocale === ja ? "yyyy年M月d日" : "MMM d, yyyy"
+  const defaultPlaceholder = dateLocale === zhCN ? "选择日期" : dateLocale === ja ? "日付を選択" : "Select date"
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -44,10 +65,10 @@ export function DatePicker({
           <CalendarIcon className="mr-2 h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
           {date ? (
             <span className="font-medium text-foreground">
-              {format(date, "yyyy年M月d日", { locale: zhCN })}
+              {format(date, dateFormat, { locale: dateLocale })}
             </span>
           ) : (
-            <span>{placeholder}</span>
+            <span>{placeholder || defaultPlaceholder}</span>
           )}
         </Button>
       </PopoverTrigger>
@@ -66,7 +87,7 @@ export function DatePicker({
             }
           }}
           initialFocus
-          locale={zhCN}
+          locale={dateLocale}
         />
       </PopoverContent>
     </Popover>

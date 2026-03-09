@@ -15,6 +15,9 @@ from app.core.database import Base
 
 # 导入所有模型，确保 Alembic 能检测到它们
 from app.models import (  # noqa: F401
+    Bookmark,
+    Comment,
+    CommentLike,
     Dream,
     DreamAttachment,
     DreamEmbedding,
@@ -25,10 +28,15 @@ from app.models import (  # noqa: F401
     DreamTrigger,
     DreamType,
     DreamTypeMapping,
+    ExplorationArticle,
+    ExplorationSymbol,
+    Report,
+    Resonance,
     Symbol,
     Tag,
     TokenBlacklist,
     User,
+    UserFollow,
     UserInsight,
     UserInsightSettings,
 )

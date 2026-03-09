@@ -19,7 +19,6 @@ from app.schemas.user import (
     UpdateProfileRequest,
     UserProfileResponse,
 )
-from app.services.oss_service import get_oss_service
 from app.services.user_service import (
     change_email,
     change_password,
@@ -62,8 +61,12 @@ async def get_avatar_upload_signature(
     获取头像上传预签名 URL
     """
     try:
-        oss_service = get_oss_service(current_user.id)
-        result = oss_service.generate_presigned_url(
+        # 延迟导入，避免模块级导入异常导致整个应用启动失败
+        from app.services.oss_service import get_oss_service
+
+        oss_service = get_oss_service()
+        result = await oss_service.generate_avatar_upload_signature(
+            user_id=current_user.id,
             filename=request.file_name,
             content_type=request.content_type,
         )

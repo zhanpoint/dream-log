@@ -29,6 +29,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          id="language-selector-trigger"
           variant="ghost"
           size="icon"
           className={`navbar-language-selector ${className}`}

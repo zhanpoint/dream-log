@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { Loader2, Plus, Tag as TagIcon, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface DreamTagManagerProps {
   dreamId: string;
@@ -37,6 +38,7 @@ export function DreamTagManager({
   currentTags,
   onTagsChange,
 }: DreamTagManagerProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,9 +53,9 @@ export function DreamTagManager({
       const tags = await TagApi.list();
       setAllTags(tags);
     } catch {
-      toast.error("加载标签失败");
+      toast.error(t("dreams.detail.tagManager.loadFailed"));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (open) {
@@ -70,11 +72,11 @@ export function DreamTagManager({
       if (addedTag) {
         const newTags = [...currentTags, addedTag];
         onTagsChange?.(newTags);
-        toast.success(`已添加标签 #${addedTag.name}`);
+        toast.success(`${t("dreams.detail.tagManager.addSuccess")} #${addedTag.name}`);
       }
       // 不关闭弹出框，允许连续添加多个标签
     } catch {
-      toast.error("添加标签失败");
+      toast.error(t("dreams.detail.tagManager.addFailed"));
     } finally {
       setLoading(false);
     }
@@ -89,10 +91,10 @@ export function DreamTagManager({
       onTagsChange?.(newTags);
       const removedTag = currentTags.find((t) => t.id === tagId);
       if (removedTag) {
-        toast.success(`已移除标签 #${removedTag.name}`);
+        toast.success(`${t("dreams.detail.tagManager.removeSuccess")} #${removedTag.name}`);
       }
     } catch {
-      toast.error("移除标签失败");
+      toast.error(t("dreams.detail.tagManager.removeFailed"));
     } finally {
       setLoading(false);
     }
@@ -102,24 +104,24 @@ export function DreamTagManager({
   const handleCreateTag = async () => {
     const name = searchValue.trim();
     if (!name) {
-      toast.error("标签名称不能为空");
+      toast.error(t("dreams.detail.tagManager.nameEmpty"));
       return;
     }
     
     // 验证长度：2-20 个字符
     if (name.length < 2) {
-      toast.error("标签名称至少需要 2 个字符");
+      toast.error(t("dreams.detail.tagManager.nameTooShort"));
       return;
     }
     
     if (name.length > 20) {
-      toast.error("标签名称不能超过 20 个字符");
+      toast.error(t("dreams.detail.tagManager.nameTooLong"));
       return;
     }
 
     // 检查是否已存在
     if (allTags.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
-      toast.error("标签已存在");
+      toast.error(t("dreams.detail.tagManager.nameExists"));
       return;
     }
 
@@ -129,10 +131,10 @@ export function DreamTagManager({
       if (!allTags.some((t) => t.id === tag.id)) {
         setAllTags((prev) => [tag, ...prev]);
       }
-      toast.success(`已创建标签 #${tag.name}，请点击标签将其添加到当前梦境`);
+      toast.success(`${t("dreams.detail.tagManager.createSuccess")} #${tag.name}，${t("dreams.detail.tagManager.createSuccessHint")}`);
       setSearchValue("");
     } catch {
-      toast.error("创建标签失败");
+      toast.error(t("dreams.detail.tagManager.createFailed"));
     } finally {
       setCreating(false);
     }
@@ -194,12 +196,12 @@ export function DreamTagManager({
                 ) : (
                   <Plus className="w-3.5 h-3.5 group-hover:text-primary transition-colors" />
                 )}
-                <span className="text-xs group-hover:text-primary transition-colors">添加标签</span>
+                <span className="text-xs group-hover:text-primary transition-colors">{t("dreams.detail.tagManager.addTag")}</span>
               </Button>
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent side="top">
-            <p>为梦境添加标签以便分类和搜索</p>
+            <p>{t("dreams.detail.tagManager.tooltip")}</p>
           </TooltipContent>
         </Tooltip>
         
@@ -207,7 +209,7 @@ export function DreamTagManager({
           <Command shouldFilter={false}>
               <div className="relative">
                 <CommandInput
-                  placeholder="搜索或创建标签..."
+                  placeholder={t("dreams.detail.tagManager.searchPlaceholder")}
                   value={searchValue}
                   onValueChange={setSearchValue}
                   className={cn(searchValue.trim() && "pr-[52px]")}
@@ -232,7 +234,7 @@ export function DreamTagManager({
               <CommandList>
                 {normalizedSearchValue && filteredAvailableTags.length === 0 && (
                   <div className="py-4 text-center text-sm">
-                    <p className="text-muted-foreground mb-2 text-xs">未找到标签</p>
+                    <p className="text-muted-foreground mb-2 text-xs">{t("dreams.detail.tagManager.notFound")}</p>
                     <Button
                       size="sm"
                       variant="outline"
@@ -245,14 +247,14 @@ export function DreamTagManager({
                       ) : (
                         <Plus className="w-3 h-3" />
                       )}
-                      创建 &ldquo;{normalizedSearchValue}&rdquo;
+                      {t("dreams.detail.tagManager.create")} &ldquo;{normalizedSearchValue}&rdquo;
                     </Button>
                   </div>
                 )}
                 {currentTags.length > 0 && (
                   <CommandGroup>
                     <div className="px-2 pb-2 pt-2 text-xs font-medium text-muted-foreground">
-                      已选标签（点击取消）
+                      {t("dreams.detail.tagManager.selectedTags")}
                     </div>
                     <div className="flex flex-wrap gap-2 px-2 pb-2">
                       {currentTags.map((tag, index) => (
@@ -276,7 +278,7 @@ export function DreamTagManager({
                 {filteredAvailableTags.length > 0 && (
                   <CommandGroup>
                     <div className="px-2 pb-2 pt-2 text-xs font-medium text-muted-foreground">
-                      可用标签
+                      {t("dreams.detail.tagManager.availableTags")}
                     </div>
                     <div className="flex flex-wrap gap-2 px-2 pb-2">
                       {filteredAvailableTags.map((tag, index) => (

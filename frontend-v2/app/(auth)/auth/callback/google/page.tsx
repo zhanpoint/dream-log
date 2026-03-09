@@ -1,22 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authAPI, AuthHelpers } from "@/lib/auth";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-/**
- * Google OAuth 回调页面
- */
-export default function GoogleCallbackPage() {
+/** 防止 Strict Mode 下重复请求：OAuth code 仅能使用一次 */
+let _callbackProcessed = false;
+
+function GoogleCallbackContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (_callbackProcessed) return;
+    _callbackProcessed = true;
+
     const handleCallback = async () => {
       // 获取授权码
       const code = searchParams.get("code");
@@ -24,6 +27,7 @@ export default function GoogleCallbackPage() {
 
       // 检查是否有错误
       if (errorParam) {
+        _callbackProcessed = false;
         setError(
           errorParam === "access_denied"
             ? "用户取消了授权"
@@ -34,6 +38,7 @@ export default function GoogleCallbackPage() {
 
       // 检查是否有授权码
       if (!code) {
+        _callbackProcessed = false;
         setError("未获取到授权码");
         return;
       }
@@ -42,9 +47,10 @@ export default function GoogleCallbackPage() {
         // 调用后端处理 OAuth 回调
         const response = await authAPI.handleGoogleOAuthCallback(code);
 
-        // 登录成功,跳转到首页
+        // 登录成功,跳转到首页（成功后无需重置 _callbackProcessed，页面将跳转）
         AuthHelpers.handleLoginSuccess(response, "/");
       } catch (err: any) {
+        _callbackProcessed = false;
         console.error("Google OAuth callback error:", err);
         setError(err.translationKey || "auth.unknownError");
       }
@@ -91,5 +97,18 @@ export default function GoogleCallbackPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">加载中...</p>
+      </div>
+    }>
+      <GoogleCallbackContent />
+    </Suspense>
   );
 }

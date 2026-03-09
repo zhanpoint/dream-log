@@ -102,11 +102,11 @@ async def get_unread_summary(
 async def cleanup_expired(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> None:
-    """清理过期报告"""
+) -> dict[str, int]:
+    """清理过期报告，返回删除条数"""
     service = InsightService(db)
-    await service.cleanup_expired(current_user.id)
-    return None
+    count = await service.cleanup_expired(current_user.id)
+    return {"count": count}
 
 
 @router.post("/cleanup/all")

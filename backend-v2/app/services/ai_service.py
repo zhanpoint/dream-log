@@ -3,7 +3,7 @@ AI 分析服务
 基于 LangChain LCEL，统一通过 OpenRouter 调用多种 AI 模型
 """
 
-import base64
+import asyncio
 import base64
 import logging
 import os
@@ -43,6 +43,28 @@ from app.prompts.dream_analysis import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def get_target_language_from_locale(locale: str | None) -> str:
+    """
+    将前端传来的语言代码/首选语言映射为提示词中使用的 {target_language} 描述。
+
+    约定：
+    - zh-CN / zh 开头: 中文
+    - en / en-*       : English
+    - ja / ja-*       : 日语
+    其它情况默认中文，保证提示词始终可用。
+    """
+    if not locale:
+        return "中文"
+    v = locale.strip().lower()
+    if v.startswith("en"):
+        return "English"
+    if v.startswith("ja"):
+        return "日语"
+    if v.startswith("zh"):
+        return "中文"
+    return "中文"
 
 
 def _create_llm(
@@ -98,15 +120,19 @@ class AIService:
 
     # ========== 公开方法 ==========
 
-    async def generate_title(self, content: str) -> str:
+    async def generate_title(self, content: str, *, target_language: str) -> str:
         """生成梦境标题（仅使用梦境内容，20字限制在 prompt 中）"""
-        result = await _title_chain.ainvoke({"content": content})
+        result = await _title_chain.ainvoke(
+            {"content": content, "target_language": target_language}
+        )
         title = result.strip().strip('"\'《》「」')
         return title if title else "无题之梦"
 
-    async def analyze_basic(self, dream_context: str) -> dict:
+    async def analyze_basic(self, dream_context: str, *, target_language: str) -> dict:
         """阶段1：基础分析（合并 snapshot + 情绪 + 触发因素 + 睡眠），低温精确。"""
-        return await _basic_analysis_chain.ainvoke({"dream_context": dream_context})
+        return await _basic_analysis_chain.ainvoke(
+            {"dream_context": dream_context, "target_language": target_language}
+        )
 
     def _format_triggers_for_insight(self, triggers: list) -> str:
         """将 triggers 列表格式化为供 INSIGHT 使用的可读文本。"""
@@ -122,18 +148,23 @@ class AIService:
         self,
         dream_context: str,
         basic_analysis: dict,
+        *,
+        target_language: str,
     ) -> dict:
         """阶段2：生成深度洞察（依赖阶段1结果），中高温共情。"""
         basic = basic_analysis or {}
         triggers_text = self._format_triggers_for_insight(basic.get("triggers") or [])
-        return await _insight_chain.ainvoke({
-            "dream_context": dream_context,
-            "snapshot": basic.get("snapshot") or "无",
-            "emotional_summary": basic.get("emotional_summary") or "无",
-            "emotion_interpretation": basic.get("emotion_interpretation") or "无",
-            "triggers": triggers_text,
-            "sleep_analysis_text": basic.get("sleep_analysis_text") or "无",
-        })
+        return await _insight_chain.ainvoke(
+            {
+                "dream_context": dream_context,
+                "snapshot": basic.get("snapshot") or "无",
+                "emotional_summary": basic.get("emotional_summary") or "无",
+                "emotion_interpretation": basic.get("emotion_interpretation") or "无",
+                "triggers": triggers_text,
+                "sleep_analysis_text": basic.get("sleep_analysis_text") or "无",
+                "target_language": target_language,
+            }
+        )
 
     async def generate_dream_image(
         self,
@@ -142,20 +173,60 @@ class AIService:
         user_id: str | UUID | None = None,
         dream_id: str | UUID | None = None,
     ) -> str:
-        """使用配置的图像生成模型，根据梦境内容生成一张梦境图像。
-
-        生成后将图像上传至阿里云 OSS（public bucket），返回稳定访问 URL。
-        若 OSS 不可用则降级返回 base64 data URI。
-        """
+        """使用配置的图像生成模型，根据梦境内容生成一张梦境图像。"""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY 未配置")
 
         title_section = f"Dream title: {dream_title}\n\n" if dream_title else ""
-        prompt = IMAGE_GENERATION_PROMPT.format(
+        base_prompt = IMAGE_GENERATION_PROMPT.format(
             title_section=title_section,
             dream_content=dream_content,
         )
 
+        image_bytes: bytes | None = None
+        mime_type = "image/png"
+        last_response: dict | None = None
+
+        # 重试应对模型偶发只返回文本不返回图像的问题
+        for attempt in range(1, 4):
+            prompt = (
+                f"{base_prompt}\n\n"
+                "IMPORTANT: Return an image output in this response. "
+                "Do not return text-only answer."
+            )
+            image_bytes, mime_type, last_response = await self._generate_image_once(prompt)
+            if image_bytes is not None:
+                break
+
+            logger.warning("第 %s 次图像生成未返回图像，准备重试", attempt)
+            await asyncio.sleep(1.2 * attempt)
+
+        if image_bytes is None:
+            logger.error(f"图像生成响应完整内容: {last_response}")
+            raise RuntimeError("图像生成失败：模型未返回可用图像，请稍后重试")
+
+        # 上传至阿里云 OSS（public bucket）
+        if user_id and dream_id:
+            try:
+                from app.services.oss_service import get_oss_service
+
+                oss = get_oss_service()
+                uploaded = await oss.upload_public_ai_image(
+                    dream_id=dream_id,
+                    content=image_bytes,
+                    content_type=mime_type,
+                )
+                url = await oss.get_public_access_url(uploaded.object_key)
+                logger.info(f"AI 图像已上传至 OSS: {uploaded.object_key}")
+                return url
+            except Exception as oss_err:
+                logger.warning(f"OSS 上传失败，降级返回 base64: {oss_err}")
+
+        # 降级：返回 base64 data URI
+        b64 = base64.b64encode(image_bytes).decode()
+        return f"data:{mime_type};base64,{b64}"
+
+    async def _generate_image_once(self, prompt: str) -> tuple[bytes | None, str, dict | None]:
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 f"{OPENROUTER_BASE_URL}/chat/completions",
@@ -180,31 +251,11 @@ class AIService:
 
         choices = data.get("choices", [])
         if not choices:
-            raise RuntimeError("图像生成响应中没有 choices")
+            return None, "image/png", data
 
         message = choices[0].get("message", {})
         image_bytes, mime_type = self._extract_image_from_message(message)
-
-        if image_bytes is None:
-            logger.error(f"图像生成响应完整内容: {data}")
-            raise RuntimeError("图像生成响应中未找到图像数据，请检查模型是否支持图像输出")
-
-        # 上传至阿里云 OSS
-        if user_id and dream_id:
-            try:
-                from app.services.oss_service import get_oss_service
-                oss = get_oss_service(str(user_id), bucket_type="public")
-                file_key = oss.get_ai_image_upload_path(str(dream_id))
-                url = oss.upload_bytes(image_bytes, file_key, content_type=mime_type)
-                logger.info(f"AI 图像已上传至 OSS: {file_key}")
-                return url
-            except Exception as oss_err:
-                logger.warning(f"OSS 上传失败，降级返回 base64: {oss_err}")
-
-        # 降级：返回 base64 data URI
-        b64 = base64.b64encode(image_bytes).decode()
-        ext = mime_type.split("/")[-1] if "/" in mime_type else "png"
-        return f"data:{mime_type};base64,{b64}"
+        return image_bytes, mime_type, data
 
     def _extract_image_from_message(self, message: dict) -> tuple[bytes | None, str]:
         """从 OpenRouter 响应消息中提取图像 bytes 和 MIME 类型。

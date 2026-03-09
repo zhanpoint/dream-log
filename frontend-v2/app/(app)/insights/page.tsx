@@ -24,7 +24,21 @@ import {
   subWeeks,
   subYears,
 } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
+
+// 根据 i18n 语言代码获取 date-fns locale
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
 import {
   Award,
   BarChart3,
@@ -42,14 +56,15 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 // ========== 类型 ==========
 
 interface ReportCardConfig {
   type: InsightType;
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
-  description: string;
+  descriptionKey: string;
   isNew?: boolean;
   href?: (id: string) => string;
 }
@@ -57,23 +72,23 @@ interface ReportCardConfig {
 const PERIODIC_REPORTS: ReportCardConfig[] = [
   {
     type: "WEEKLY",
-    label: "周报",
+    labelKey: "insights.main.weeklyLabel",
     icon: <Calendar className="h-5 w-5 text-blue-500" />,
-    description: "每周梦境总结与情绪趋势",
+    descriptionKey: "insights.main.weeklyDesc",
     href: (id) => `/insights/weekly/${id}`,
   },
   {
     type: "MONTHLY",
-    label: "月报",
+    labelKey: "insights.main.monthlyLabel",
     icon: <CalendarDays className="h-5 w-5 text-primary" />,
-    description: "月度综合分析与建议",
+    descriptionKey: "insights.main.monthlyDesc",
     href: (id) => `/insights/monthly/${id}`,
   },
   {
     type: "ANNUAL",
-    label: "年度回顾",
+    labelKey: "insights.main.annualLabel",
     icon: <Award className="h-5 w-5 text-amber-500" />,
-    description: "年度成长轨迹与精选梦境",
+    descriptionKey: "insights.main.annualDesc",
     href: (id) => `/insights/annual/${id}`,
   },
 ];
@@ -81,46 +96,46 @@ const PERIODIC_REPORTS: ReportCardConfig[] = [
 const THEME_REPORTS = [
   {
     type: "EMOTION_HEALTH" as InsightType,
-    label: "情绪健康",
+    labelKey: "insights.theme.emotionLabel",
     icon: <Heart className="h-5 w-5 text-rose-500" />,
-    description: "情绪波动、压力源与调节建议",
+    descriptionKey: "insights.theme.emotionDesc",
     href: "/insights/emotion",
   },
   {
     type: "SLEEP_QUALITY" as InsightType,
-    label: "睡眠质量",
+    labelKey: "insights.theme.sleepLabel",
     icon: <Moon className="h-5 w-5 text-indigo-500" />,
-    description: "睡眠模式、清醒梦训练与改善建议",
+    descriptionKey: "insights.theme.sleepDesc",
     href: "/insights/sleep",
   },
   {
     type: "THEME_PATTERN" as InsightType,
-    label: "梦境主题",
+    labelKey: "insights.theme.themeLabel",
     icon: <Brain className="h-5 w-5 text-violet-500" />,
-    description: "重复梦境、高频符号与主题模式",
+    descriptionKey: "insights.theme.themeDesc",
     href: "/insights/theme",
   },
 ];
 
-function formatWeeklyRange(start: Date, end: Date): string {
-  return `${format(start, "yyyy年M月d日", { locale: zhCN })} – ${format(
-    end,
-    "yyyy年M月d日",
-    { locale: zhCN },
-  )}`;
+function formatWeeklyRange(start: Date, end: Date, locale: Locale): string {
+  const dateFormat = locale === zhCN || locale === ja ? "yyyy年M月d日" : "MMM d, yyyy";
+  return `${format(start, dateFormat, { locale })} – ${format(end, dateFormat, { locale })}`;
 }
 
-function formatMonthlyLabel(start: Date): string {
-  return format(start, "yyyy年M月", { locale: zhCN });
+function formatMonthlyLabel(start: Date, locale: Locale): string {
+  const dateFormat = locale === zhCN || locale === ja ? "yyyy年M月" : "MMM yyyy";
+  return format(start, dateFormat, { locale });
 }
 
-function formatAnnualLabel(start: Date): string {
-  return format(start, "yyyy年", { locale: zhCN });
+function formatAnnualLabel(start: Date, locale: Locale): string {
+  const dateFormat = locale === zhCN || locale === ja ? "yyyy年" : "yyyy";
+  return format(start, dateFormat, { locale });
 }
 
 // ========== 主页面 ==========
 
 export default function InsightsPage() {
+  const { t } = useTranslation();
   const [weeklyInsights, setWeeklyInsights] = useState<Insight[]>([]);
   const [monthlyInsights, setMonthlyInsights] = useState<Insight[]>([]);
   const [annualInsights, setAnnualInsights] = useState<Insight[]>([]);
@@ -181,7 +196,7 @@ export default function InsightsPage() {
 
       if (thisFetchId !== fetchIdRef.current) return;
 
-      const toItems = (s: PromiseSettledResult<{ items?: unknown[] }>) =>
+      const toItems = (s: PromiseSettledResult<{ items?: Insight[] }>): Insight[] =>
         s.status === "fulfilled" && Array.isArray(s.value?.items) ? s.value.items : [];
       setWeeklyInsights(toItems(weeklySettled));
       setMonthlyInsights(toItems(monthlySettled));
@@ -192,7 +207,7 @@ export default function InsightsPage() {
         (weeklySettled.status === "rejected" && !isCancel(weeklySettled)) ||
         (monthlySettled.status === "rejected" && !isCancel(monthlySettled)) ||
         (annualSettled.status === "rejected" && !isCancel(annualSettled));
-      if (hasRealFailure) toast.error("加载报告失败");
+      if (hasRealFailure) toast.error(t("insights.theme.loadFailed"));
 
       const [unreadResult, statsResult] = await Promise.all([
         insightAPI.getUnreadSummary().catch(() => defaultUnread),
@@ -214,7 +229,7 @@ export default function InsightsPage() {
     } catch (_err) {
       if (fetchIdRef.current !== thisFetchId) return;
       if (!isCancelLikeError(_err)) {
-        toast.error("加载报告失败");
+        toast.error(t("insights.theme.loadFailed"));
       }
     } finally {
       if (fetchIdRef.current === thisFetchId) setLoading(false);
@@ -230,7 +245,7 @@ export default function InsightsPage() {
       {/* 顶部 Header */}
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold">
-          洞察报告
+          {t("insights.main.title")}
         </h1>
       </div>
 
@@ -240,11 +255,11 @@ export default function InsightsPage() {
           <TabsList className="mb-6">
             <TabsTrigger value="periodic" className="gap-1.5">
               <BarChart3 className="h-4 w-4" />
-              定期报告
+              {t("insights.main.tabPeriodic")}
             </TabsTrigger>
             <TabsTrigger value="theme" className="gap-1.5">
               <Brain className="h-4 w-4" />
-              专题分析
+              {t("insights.main.tabTheme")}
             </TabsTrigger>
           </TabsList>
 
@@ -323,6 +338,8 @@ function PeriodicCard({
   hasUnread: boolean;
   thisWeekDreamCount?: number | null;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
   const [generating, setGenerating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   
@@ -422,7 +439,7 @@ function PeriodicCard({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setGenerating(false);
@@ -431,7 +448,7 @@ function PeriodicCard({
 
   const handleRegenerate = async () => {
     if (!selectedInsight) {
-      toast.info("请先生成报告");
+      toast.info(t("insights.theme.generateFirst"));
       return;
     }
     if (!selectedPeriodRange) return;
@@ -449,7 +466,7 @@ function PeriodicCard({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setRegenerating(false);
@@ -459,10 +476,10 @@ function PeriodicCard({
   return (
     <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {config.icon}
-            <CardTitle className="text-lg">{config.label}</CardTitle>
+            <CardTitle className="text-lg">{t(config.labelKey)}</CardTitle>
           </div>
           {hasUnread && (
             <Badge
@@ -474,7 +491,7 @@ function PeriodicCard({
           )}
         </div>
         <CardDescription className="text-xs leading-relaxed">
-          {config.description}
+          {t(config.descriptionKey)}
         </CardDescription>
       </CardHeader>
 
@@ -495,10 +512,10 @@ function PeriodicCard({
             <span className="text-xs text-muted-foreground text-center truncate flex-1">
               {selectedPeriodRange
                 ? isWeekly
-                  ? formatWeeklyRange(selectedPeriodRange.start, selectedPeriodRange.end)
+                  ? formatWeeklyRange(selectedPeriodRange.start, selectedPeriodRange.end, dateLocale)
                   : isMonthly
-                    ? formatMonthlyLabel(selectedPeriodRange.start)
-                    : formatAnnualLabel(selectedPeriodRange.start)
+                    ? formatMonthlyLabel(selectedPeriodRange.start, dateLocale)
+                    : formatAnnualLabel(selectedPeriodRange.start, dateLocale)
                 : ""}
             </span>
             <Button
@@ -514,10 +531,10 @@ function PeriodicCard({
 
         {insufficientData && isWeekly && isSelectedThisWeek ? (
           <div className="p-6 text-center">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">数据不足</p>
-            <p className="text-xs text-muted-foreground mb-4">本周至少需要3个梦境记录</p>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">{t("insights.main.insufficientWeeklyTitle")}</p>
+            <p className="text-xs text-muted-foreground mb-4">{t("insights.main.insufficientWeeklySubtitle")}</p>
             <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/dreams/new">去记录梦境</Link>
+              <Link href="/dreams/new">{t("insights.main.goRecordDream")}</Link>
             </Button>
           </div>
         ) : latestInsight ? (
@@ -533,7 +550,25 @@ function PeriodicCard({
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <p className="text-sm font-medium line-clamp-1">
-                  {latestInsight.title}
+                  {(() => {
+                    if (config.type === "WEEKLY" && latestInsight.time_period_start) {
+                      const start = new Date(latestInsight.time_period_start);
+                      const year = start.getFullYear();
+                      const month = start.getMonth() + 1;
+                      const day = start.getDate();
+                      return t("insights.report.weeklyReportTitle", { year, month, day });
+                    } else if (config.type === "MONTHLY" && latestInsight.time_period_start) {
+                      const start = new Date(latestInsight.time_period_start);
+                      const year = start.getFullYear();
+                      const month = start.getMonth() + 1;
+                      return t("insights.report.monthlyReportTitle", { year, month });
+                    } else if (config.type === "ANNUAL" && latestInsight.time_period_start) {
+                      const start = new Date(latestInsight.time_period_start);
+                      const year = start.getFullYear();
+                      return t("insights.report.annualReportTitle", { year });
+                    }
+                    return latestInsight.title;
+                  })()}
                 </p>
                 {!latestInsight.is_read && (
                   <span className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
@@ -550,15 +585,16 @@ function PeriodicCard({
                     if (config.type === "WEEKLY" && latestInsight.time_period_start && latestInsight.time_period_end) {
                       const start = new Date(latestInsight.time_period_start);
                       const end = new Date(latestInsight.time_period_end);
-                      return `${format(start, "yyyy年M月d日", { locale: zhCN })} – ${format(end, "yyyy年M月d日", { locale: zhCN })}`;
+                      return formatWeeklyRange(start, end, dateLocale);
                     } else if (config.type === "MONTHLY" && latestInsight.time_period_start) {
                       const start = new Date(latestInsight.time_period_start);
-                      return format(start, "yyyy年M月", { locale: zhCN });
+                      return formatMonthlyLabel(start, dateLocale);
                     } else if (config.type === "ANNUAL" && latestInsight.time_period_start) {
                       const start = new Date(latestInsight.time_period_start);
-                      return format(start, "yyyy年", { locale: zhCN });
+                      return formatAnnualLabel(start, dateLocale);
                     }
-                    return format(new Date(latestInsight.created_at), "yyyy年M月d日", { locale: zhCN });
+                    const dateFormat = dateLocale === zhCN || dateLocale === ja ? "yyyy年M月d日" : "MMM d, yyyy";
+                    return format(new Date(latestInsight.created_at), dateFormat, { locale: dateLocale });
                   })()}
                 </span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
@@ -567,7 +603,7 @@ function PeriodicCard({
           </Link>
         ) : (
           <div className="p-6 rounded-lg border-2 border-dashed border-border/60 text-center">
-            <p className="text-sm text-muted-foreground mb-3">暂无报告</p>
+            <p className="text-sm text-muted-foreground mb-3">{t("insights.main.noReport")}</p>
             <Button
               variant="outline"
               size="sm"
@@ -580,7 +616,7 @@ function PeriodicCard({
               ) : (
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5 group-hover/btn:rotate-180 transition-transform duration-500" />
               )}
-              立即生成
+              {t("insights.main.generateNow")}
             </Button>
           </div>
         )}
@@ -589,7 +625,7 @@ function PeriodicCard({
         <div className="mt-4 pt-4 border-t space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              共 {insights.length} 条报告
+              {t("insights.main.reportsCount", { count: insights.length })}
             </span>
             <Button
               variant="ghost"
@@ -603,7 +639,7 @@ function PeriodicCard({
               ) : (
                 <RefreshCw className="h-3 w-3 mr-1 group-hover/btn:rotate-180 transition-transform duration-500" />
               )}
-              重新生成报告
+              {t("insights.main.regenerate")}
             </Button>
           </div>
         </div>
@@ -624,6 +660,8 @@ function PeriodicSectionList({
   onRefresh: () => void;
 }) {
   const [generating, setGenerating] = useState(false);
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -644,7 +682,7 @@ function PeriodicSectionList({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setGenerating(false);
@@ -657,7 +695,7 @@ function PeriodicSectionList({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             {config.icon}
-            {config.label}
+            {t(config.labelKey)}
             {config.isNew && (
               <Badge
                 variant="secondary"
@@ -678,16 +716,16 @@ function PeriodicSectionList({
             ) : (
               <RefreshCw className="h-3.5 w-3.5" />
             )}
-            <span className="ml-1.5">生成</span>
+            <span className="ml-1.5">{t("insights.theme.generate")}</span>
           </Button>
         </div>
-        <CardDescription>{config.description}</CardDescription>
+        <CardDescription>{t(config.descriptionKey)}</CardDescription>
       </CardHeader>
 
       <CardContent>
         {insights.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4 text-center">
-            暂无报告，点击&quot;生成&quot;生成最新报告
+            {t("insights.theme.noReportClickGenerate")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -717,7 +755,7 @@ function PeriodicSectionList({
                       <span className="h-2 w-2 rounded-full bg-primary" />
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(insight.created_at), "M/d", { locale: zhCN })}
+                      {format(new Date(insight.created_at), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "M/d", { locale: dateLocale })}
                     </span>
                     <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
@@ -754,6 +792,8 @@ function PeriodicSection({
   const [generating, setGenerating] = useState(false);
   // 当前显示的偏移量（0 = 上一期，1 = 上上一期, ...）
   const [offset, setOffset] = useState(0);
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
   const totalSlots = maxHistory;
 
   // 根据 offset 计算对应时间段标签
@@ -821,7 +861,7 @@ function PeriodicSection({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setGenerating(false);
@@ -834,7 +874,7 @@ function PeriodicSection({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             {config.icon}
-            {config.label}
+            {t(config.labelKey)}
             {config.isNew && (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary">
                 NEW
@@ -849,7 +889,7 @@ function PeriodicSection({
               className="h-7 w-7"
               onClick={() => setOffset((o) => Math.min(o + 1, totalSlots - 1))}
               disabled={isAtEnd}
-              title="查看更早的报告"
+              title={t("insights.theme.viewEarlierReports")}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -862,7 +902,7 @@ function PeriodicSection({
               className="h-7 w-7"
               onClick={() => setOffset((o) => Math.max(o - 1, 0))}
               disabled={offset === 0}
-              title="查看更近的报告"
+              title={t("insights.theme.viewRecentReports")}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -878,16 +918,16 @@ function PeriodicSection({
               ) : (
                 <RefreshCw className="h-3.5 w-3.5" />
               )}
-              <span className="ml-1.5">生成</span>
+              <span className="ml-1.5">{t("insights.theme.generate")}</span>
             </Button>
           </div>
         </div>
-        <CardDescription>{config.description}</CardDescription>
+        <CardDescription>{t(config.descriptionKey)}</CardDescription>
       </CardHeader>
       <CardContent>
         {isAtEnd && !currentInsight ? (
           <p className="text-sm text-muted-foreground py-3 text-center">
-            更早的报告已归档
+            {t("insights.theme.archivedReports")}
           </p>
         ) : currentInsight ? (
           <Link href={config.href ? config.href(currentInsight.id) : "#"}>
@@ -908,7 +948,7 @@ function PeriodicSection({
                   <span className="h-2 w-2 rounded-full bg-primary" />
                 )}
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(currentInsight.created_at), "M/d", { locale: zhCN })}
+                  {format(new Date(currentInsight.created_at), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "M/d", { locale: dateLocale })}
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
@@ -939,6 +979,8 @@ function ThemeReportCard({
   config: typeof THEME_REPORTS[0]; 
   hasUnread: boolean;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -993,13 +1035,13 @@ function ThemeReportCard({
 
   const handleGenerate = async () => {
     if (!customStart || !customEnd || customStart > customEnd) {
-      toast.error("请选择有效的日期范围");
+      toast.error(t("insights.theme.selectValidDateRange"));
       return;
     }
     setGenerating(true);
     try {
       await insightAPI.generateTheme({
-        report_type: config.type,
+        report_type: config.type as "EMOTION_HEALTH" | "SLEEP_QUALITY" | "THEME_PATTERN",
         start_date: format(customStart, "yyyy-MM-dd"),
         end_date: format(customEnd, "yyyy-MM-dd"),
         with_comparison: false,
@@ -1008,7 +1050,7 @@ function ThemeReportCard({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setGenerating(false);
@@ -1017,13 +1059,13 @@ function ThemeReportCard({
 
   const handleRegenerate = async () => {
     if (!customStart || !customEnd || customStart > customEnd) {
-      toast.error("请选择有效的日期范围");
+      toast.error(t("insights.theme.endDateBeforeStart"));
       return;
     }
     setRegenerating(true);
     try {
       await insightAPI.generateTheme({
-        report_type: config.type,
+        report_type: config.type as "EMOTION_HEALTH" | "SLEEP_QUALITY" | "THEME_PATTERN",
         start_date: format(customStart, "yyyy-MM-dd"),
         end_date: format(customEnd, "yyyy-MM-dd"),
         with_comparison: false,
@@ -1032,7 +1074,7 @@ function ThemeReportCard({
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
-      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || "生成失败，请稍后重试");
+      const msg = typeof backendMsg === "string" ? backendMsg : (err?.message || t("insights.theme.generateFailed"));
       toast.error(msg);
     } finally {
       setRegenerating(false);
@@ -1040,9 +1082,9 @@ function ThemeReportCard({
   };
 
   const quickRanges = [
-    { label: "最近7天", days: 7 },
-    { label: "最近30天", days: 30 },
-    { label: "最近90天", days: 90 },
+    { label: t("insights.theme.last7Days"), days: 7 },
+    { label: t("insights.theme.last30Days"), days: 30 },
+    { label: t("insights.theme.last90Days"), days: 90 },
   ];
 
   const handleQuickRange = (days: number) => {
@@ -1058,7 +1100,7 @@ function ThemeReportCard({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {config.icon}
-            <CardTitle className="text-lg">{config.label}</CardTitle>
+            <CardTitle className="text-lg">{t(config.labelKey)}</CardTitle>
           </div>
           {hasUnread && (
             <Badge
@@ -1070,7 +1112,7 @@ function ThemeReportCard({
           )}
         </div>
         <CardDescription className="text-xs leading-relaxed">
-          {config.description}
+          {t(config.descriptionKey)}
         </CardDescription>
       </CardHeader>
 
@@ -1081,36 +1123,45 @@ function ThemeReportCard({
           /* 有报告：显示报告列表 */
           <div className="space-y-3">
             {/* 显示最新报告或全部报告 */}
-            {(showAllReports ? insights : [insights[0]]).map((insight) => (
-              <Link key={insight.id} href={`${config.href}?id=${insight.id}`} className="block">
-                <div
-                  className={cn(
-                    "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all cursor-pointer",
-                    !insight.is_read && "border-primary/60"
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium line-clamp-1">
-                      {insight.title}
-                    </p>
-                    {!insight.is_read && (
-                      <span className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+            {(showAllReports ? insights : [insights[0]]).map((insight) => {
+              // 从 insight.data 中获取日期范围
+              const insightData = insight.data as Record<string, unknown>;
+              const period = (insightData.period || {}) as Record<string, string>;
+              const dateRange = period.start_date && period.end_date 
+                ? `${format(new Date(period.start_date), "MM/dd")}-${format(new Date(period.end_date), "MM/dd")}`
+                : "";
+              
+              return (
+                <Link key={insight.id} href={`${config.href}?id=${insight.id}`} className="block">
+                  <div
+                    className={cn(
+                      "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all cursor-pointer",
+                      !insight.is_read && "border-primary/60"
                     )}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-sm font-medium line-clamp-1">
+                        {t(config.labelKey)} {dateRange}
+                      </p>
+                      {!insight.is_read && (
+                        <span className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+                      )}
+                    </div>
+                    {insight.narrative && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {insight.narrative}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(insight.created_at), dateLocale === zhCN || dateLocale === ja ? "yyyy年M月d日" : "MMM d, yyyy", { locale: dateLocale })}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
                   </div>
-                  {insight.narrative && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                      {insight.narrative}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(insight.created_at), "yyyy年M月d日", { locale: zhCN })}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
             
             {/* 查看全部报告按钮 */}
             {insights.length > 0 && (
@@ -1119,7 +1170,7 @@ function ThemeReportCard({
                 className="group w-full py-2 text-xs transition-all cursor-pointer"
               >
                 <span className="text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:underline underline-offset-4 transition-all">
-                  {showAllReports ? "收起" : "查看全部报告"}
+                  {showAllReports ? t("insights.main.collapseReports") : t("insights.main.viewAllReports")}
                 </span>
               </button>
             )}
@@ -1127,7 +1178,7 @@ function ThemeReportCard({
         ) : (
           /* 无报告：显示暂无报告 */
           <div className="p-6 rounded-lg border-2 border-dashed border-border/60 text-center">
-            <p className="text-sm text-muted-foreground mb-3">暂无报告</p>
+            <p className="text-sm text-muted-foreground mb-3">{t("insights.main.noReport")}</p>
             <Button
               variant="outline"
               size="sm"
@@ -1136,9 +1187,9 @@ function ThemeReportCard({
               className="group/btn text-primary border-primary/50 hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-105 transition-all duration-200"
             >
               {generating ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />生成中</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />{t("insights.theme.generating")}</>
               ) : (
-                <><Sparkles className="h-3.5 w-3.5 mr-1.5 group-hover/btn:rotate-180 transition-transform duration-500" />立即生成</>
+                <><Sparkles className="h-3.5 w-3.5 mr-1.5 group-hover/btn:rotate-180 transition-transform duration-500" />{t("insights.main.generateNow")}</>
               )}
             </Button>
           </div>
@@ -1148,7 +1199,7 @@ function ThemeReportCard({
         <div className="mt-4 pt-4 border-t space-y-2">
           {/* 引导提示 */}
           <p className="text-xs text-muted-foreground text-center">
-            选择时间范围生成专题分析报告
+            {t("insights.main.themeGuide")}
           </p>
           
           {/* 快速选择按钮 */}
@@ -1177,20 +1228,20 @@ function ThemeReportCard({
             <DatePicker
               date={customStart}
               onDateChange={setCustomStart}
-              placeholder="开始日期"
+              placeholder={t("insights.theme.startDate")}
             />
-            <span className="text-xs text-muted-foreground">至</span>
+            <span className="text-xs text-muted-foreground">{t("insights.theme.to")}</span>
             <DatePicker
               date={customEnd}
               onDateChange={setCustomEnd}
-              placeholder="结束日期"
+              placeholder={t("insights.theme.endDate")}
             />
           </div>
           
           {/* 错误提示（仅在日期无效时显示） */}
           {customStart && customEnd && customStart > customEnd && (
             <div className="text-center">
-              <p className="text-xs text-red-500">结束日期不能早于开始日期</p>
+              <p className="text-xs text-red-500">{t("insights.theme.endDateBeforeStart")}</p>
             </div>
           )}
           
@@ -1204,9 +1255,9 @@ function ThemeReportCard({
               className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent hover:scale-105 transition-all duration-200 group/btn"
             >
               {regenerating ? (
-                <><Loader2 className="h-3 w-3 animate-spin mr-1" />生成中</>
+                <><Loader2 className="h-3 w-3 animate-spin mr-1" />{t("insights.theme.generating")}</>
               ) : (
-                <><RefreshCw className="h-3 w-3 mr-1 group-hover/btn:rotate-180 transition-transform duration-500" />生成新报告</>
+                <><RefreshCw className="h-3 w-3 mr-1 group-hover/btn:rotate-180 transition-transform duration-500" />{t("insights.theme.generateReport")}</>
               )}
             </Button>
           </div>

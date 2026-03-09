@@ -38,8 +38,9 @@ import {
   type DreamStats,
 } from "@/lib/dream-api";
 import { cn, getHighlightSegments } from "@/lib/utils";
+import { getEmotionLabel } from "@/lib/emotion-utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, ja, enUS } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar,
@@ -65,8 +66,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function MyDreamsPage() {
+  const { t, i18n } = useTranslation();
   const [dreams, setDreams] = useState<DreamListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState<DreamStats | null>(null);
@@ -83,17 +86,8 @@ export default function MyDreamsPage() {
 
   const pageSize = 12;
 
-  /** 情绪选项扁平列表（用于筛选） */
+  /** 情绪选项扁平列表（用于筛选，memo 避免每次渲染重算） */
   const emotionOptions = EMOTION_CATEGORIES.flatMap((c) => c.emotions);
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const data = await DreamApi.getStats();
-      setStats(data);
-    } catch {
-      setStats(null);
-    }
-  }, []);
 
   const fetchDreams = useCallback(async () => {
     setLoading(true);
@@ -110,23 +104,23 @@ export default function MyDreamsPage() {
         date_from: dateFrom || undefined,
         date_to: dateTo || undefined,
       };
-      const res = await DreamApi.list(params);
+      // 并行加载梦境列表和统计数据，两个请求同时发出
+      const [res] = await Promise.all([
+        DreamApi.list(params),
+        stats === null ? DreamApi.getStats().then(setStats).catch(() => {}) : Promise.resolve(),
+      ]);
       setDreams(res.items);
       setTotal(res.total);
     } catch {
-      toast.error("加载梦境列表失败");
+      toast.error(t("dreams.list.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [page, sortBy, sortOrder, search, favoriteOnly, dreamTypeFilter, emotionFilter, dateFrom, dateTo]);
+  }, [page, sortBy, sortOrder, search, favoriteOnly, dreamTypeFilter, emotionFilter, dateFrom, dateTo, stats]);
 
   useEffect(() => {
     fetchDreams();
   }, [fetchDreams]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
 
   // 搜索防抖
   const [searchInput, setSearchInput] = useState("");
@@ -197,7 +191,7 @@ export default function MyDreamsPage() {
       <div className="mt-4">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">我的梦境</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t("dreams.list.title")}</h1>
             
             {/* 统计数据 */}
             <div className="flex flex-wrap items-center gap-8">
@@ -219,7 +213,9 @@ export default function MyDreamsPage() {
                   <p className="text-2xl font-bold leading-none tabular-nums">
                     {stats?.total ?? total}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">全部梦境</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("dreams.list.statsTotal")}
+                  </p>
                 </div>
               </div>
 
@@ -232,7 +228,9 @@ export default function MyDreamsPage() {
                   <p className="text-2xl font-bold leading-none tabular-nums">
                     {stats?.consecutive_days ?? 0}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">连续记录天数</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("dreams.list.statsStreak")}
+                  </p>
                 </div>
               </div>
 
@@ -245,7 +243,9 @@ export default function MyDreamsPage() {
                   <p className="text-2xl font-bold leading-none tabular-nums">
                     {stats?.this_week_count ?? 0}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">本周记录</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("dreams.list.statsWeek")}
+                  </p>
                 </div>
               </div>
 
@@ -258,7 +258,9 @@ export default function MyDreamsPage() {
                   <p className="text-2xl font-bold leading-none tabular-nums">
                     {stats?.this_month_count ?? 0}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">本月记录</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("dreams.list.statsMonth")}
+                  </p>
                 </div>
               </div>
             </div>
@@ -274,7 +276,7 @@ export default function MyDreamsPage() {
             <div className="relative w-full sm:w-80 md:w-96">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="搜索梦境..."
+                placeholder={t("dreams.list.searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -290,7 +292,7 @@ export default function MyDreamsPage() {
               />
               {searchOpen && searchHistory.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 py-1 rounded-lg border bg-popover shadow-lg z-50 backdrop-blur-sm">
-                  <p className="px-3 py-1.5 text-xs text-muted-foreground">最近搜索</p>
+                  <p className="px-3 py-1.5 text-xs text-muted-foreground">{t("dreams.list.recentSearch")}</p>
                   {searchHistory.map((term, i) => (
                     <div
                       key={`${term}-${i}`}
@@ -320,7 +322,7 @@ export default function MyDreamsPage() {
                           e.stopPropagation();
                           removeSearchFromHistory(term);
                         }}
-                        title="删除"
+                        title={t("dreams.list.delete")}
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M18 6L6 18M6 6l12 12" />
@@ -343,7 +345,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-32 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+              <SelectTrigger className="w-40 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
                 <div className="flex items-center gap-1.5">
                   <span 
                     className="text-base leading-none text-muted-foreground group-hover/select:text-primary transition-colors font-medium" 
@@ -355,8 +357,8 @@ export default function MyDreamsPage() {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dream_date_desc">最新优先</SelectItem>
-                <SelectItem value="dream_date_asc">最早优先</SelectItem>
+                <SelectItem value="dream_date_desc">{t("dreams.list.sortNewest")}</SelectItem>
+                <SelectItem value="dream_date_asc">{t("dreams.list.sortOldest")}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -378,7 +380,7 @@ export default function MyDreamsPage() {
                       {dateFrom ? format(new Date(dateFrom), "M/d", { locale: zhCN }) : "…"} — {dateTo ? format(new Date(dateTo), "M/d", { locale: zhCN }) : "…"}
                     </span>
                   ) : (
-                    "日期范围"
+                    t("dreams.list.dateRange")
                   )}
                   <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
                 </Button>
@@ -400,7 +402,7 @@ export default function MyDreamsPage() {
                       setPage(1);
                     }
                   }}
-                  locale={zhCN}
+                  locale={i18n.language === "ja" ? ja : i18n.language === "en" ? enUS : zhCN}
                   numberOfMonths={1}
                 />
                 {(dateFrom || dateTo) && (
@@ -410,7 +412,7 @@ export default function MyDreamsPage() {
                       className="w-full text-xs text-foreground py-2 rounded-md transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:scale-[1.02] active:scale-[0.98]"
                       onClick={() => { setDateFrom(null); setDateTo(null); setPage(1); }}
                     >
-                      清除日期
+                      {t("dreams.list.clearDate")}
                     </button>
                   </div>
                 )}
@@ -430,7 +432,7 @@ export default function MyDreamsPage() {
                   )}
                 >
                   <Tag className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
-                  梦境类型
+                  {t("dreams.list.dreamType")}
                   {dreamTypeFilter.length > 0 && (
                     <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
                       {dreamTypeFilter.length}
@@ -440,7 +442,7 @@ export default function MyDreamsPage() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="filter-popover-content w-56 p-2" align="start">
-                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">可多选</p>
+                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">{t("dreams.list.multiSelect")}</p>
                 <div className="max-h-64 overflow-y-auto space-y-0.5">
                   {DREAM_TYPES.map((type) => {
                     const selected = dreamTypeFilter.includes(type.value);
@@ -470,7 +472,7 @@ export default function MyDreamsPage() {
                           className="w-2 h-2 rounded-full shrink-0" 
                           style={{ backgroundColor: type.color }}
                         />
-                        {type.label}
+                        {t(`dreamTypes.${type.value}`)}
                       </button>
                     );
                   })}
@@ -481,7 +483,7 @@ export default function MyDreamsPage() {
                     className="mt-2 w-full text-xs text-foreground hover:bg-primary/10 hover:text-primary rounded-md py-2 transition-all duration-200"
                     onClick={() => { setDreamTypeFilter([]); setPage(1); }}
                   >
-                    清除
+                    {t("dreams.list.clear")}
                   </button>
                 )}
               </PopoverContent>
@@ -500,7 +502,7 @@ export default function MyDreamsPage() {
                   )}
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
-                  情绪
+                  {t("dreams.list.emotion")}
                   {emotionFilter.length > 0 && (
                     <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
                       {emotionFilter.length}
@@ -510,7 +512,7 @@ export default function MyDreamsPage() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="filter-popover-content w-56 p-2" align="start">
-                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">可多选</p>
+                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">{t("dreams.list.multiSelect")}</p>
                 <div className="max-h-64 overflow-y-auto space-y-0.5">
                   {emotionOptions.map((emotion) => {
                     const selected = emotionFilter.includes(emotion);
@@ -541,7 +543,7 @@ export default function MyDreamsPage() {
                           className="w-2 h-2 rounded-full shrink-0" 
                           style={{ backgroundColor: emotionColor }}
                         />
-                        {emotion}
+                        {getEmotionLabel(emotion, t)}
                       </button>
                     );
                   })}
@@ -552,7 +554,7 @@ export default function MyDreamsPage() {
                     className="mt-2 w-full text-xs text-foreground hover:bg-primary/10 hover:text-primary rounded-md py-2 transition-all duration-200"
                     onClick={() => { setEmotionFilter([]); setPage(1); }}
                   >
-                    清除
+                    {t("dreams.list.clear")}
                   </button>
                 )}
               </PopoverContent>
@@ -580,16 +582,16 @@ export default function MyDreamsPage() {
                   ? "fill-amber-500 text-amber-500" 
                   : "opacity-80 group-hover/filter:opacity-100 group-hover/filter:text-amber-500 group-hover/filter:scale-110 group-hover/filter:rotate-12"
               )} />
-              收藏
+              {t("dreams.list.favorite")}
             </Button>
             </div>
             
             {/* 筛选结果统计 - 简约版 */}
             {!loading && (search || dreamTypeFilter.length > 0 || emotionFilter.length > 0 || dateFrom || dateTo || favoriteOnly) && (
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-muted-foreground">
-                  共 <span className="font-semibold text-foreground">{total}</span> 条记录
-                </span>
+                  <span className="text-muted-foreground">
+                    {t("dreams.list.filteredCount", { count: total })}
+                  </span>
                 <button
                   type="button"
                   className="group/clear flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
@@ -603,7 +605,7 @@ export default function MyDreamsPage() {
                     setFavoriteOnly(false);
                     setPage(1);
                   }}
-                  title="清除所有筛选"
+                    title={t("dreams.list.clearFilters")}
                 >
                   <svg 
                     className="w-3.5 h-3.5 text-muted-foreground group-hover/clear:text-red-500 dark:group-hover/clear:text-red-400 transition-all duration-200 group-hover/clear:rotate-90" 
@@ -624,7 +626,7 @@ export default function MyDreamsPage() {
           {/* 搜索历史快捷词 */}
           {searchHistory.length > 0 && !searchOpen && (
             <div className="flex flex-wrap gap-1.5 items-center mt-2.5">
-              <span className="text-sm text-muted-foreground">最近：</span>
+              <span className="text-sm text-muted-foreground">{t("dreams.list.recent")}</span>
               {searchHistory.slice(0, 5).map((term, i) => (
                 <div
                   key={`${term}-${i}`}
@@ -651,7 +653,7 @@ export default function MyDreamsPage() {
                       e.stopPropagation();
                       removeSearchFromHistory(term);
                     }}
-                    title="删除"
+                    title={t("dreams.list.delete")}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M18 6L6 18M6 6l12 12" />
@@ -683,9 +685,11 @@ export default function MyDreamsPage() {
         ) : dreams.length === 0 ? (
           <div className="text-center py-20">
             <Moon className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">还没有梦境记录</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              {t("dreams.list.emptyTitle")}
+            </h3>
             <p className="text-muted-foreground mb-6">
-              开始记录你的第一个梦境吧
+              {t("dreams.list.emptySubtitle")}
             </p>
             <Link href="/dreams/new">
               <Button variant="ghost" size="default" className="gap-2 record-dream-btn">
@@ -701,7 +705,7 @@ export default function MyDreamsPage() {
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                 </svg>
-                记录新梦境
+                {t("dreams.list.emptyButton")}
               </Button>
             </Link>
           </div>
@@ -738,7 +742,7 @@ export default function MyDreamsPage() {
                   onClick={() => setPage(page - 1)}
                   className="text-foreground hover:border-primary/50 hover:scale-105 hover:-translate-x-1 transition-all duration-200"
                 >
-                  上一页
+                  {t("dreams.list.prevPage")}
                 </Button>
                 <span className="text-sm text-muted-foreground px-3">
                   {page} / {totalPages}
@@ -750,7 +754,7 @@ export default function MyDreamsPage() {
                   onClick={() => setPage(page + 1)}
                   className="text-foreground hover:border-primary/50 hover:scale-105 hover:translate-x-1 transition-all duration-200"
                 >
-                  下一页
+                  {t("dreams.list.nextPage")}
                 </Button>
               </div>
             )}
@@ -766,7 +770,7 @@ export default function MyDreamsPage() {
           background: "linear-gradient(135deg, oklch(58% 0.28 275) 0%, oklch(65% 0.30 280) 100%)",
           boxShadow: "0 4px 20px oklch(58% 0.28 275 / 0.4), 0 2px 8px rgb(0 0 0 / 0.15)",
         }}
-        aria-label="记录新梦境"
+        aria-label={t("dreams.list.floatButtonAria")}
       >
         <svg 
           className="h-5 w-5" 
@@ -799,6 +803,7 @@ function DreamCard({
   searchKeyword?: string;
 }) {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   const renderHighlight = (text: string, keyPrefix: string) => {
     if (!searchKeyword || !text) return text;
@@ -859,13 +864,13 @@ function DreamCard({
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("确定要删除这个梦境吗？")) return;
+    if (!confirm(t("dreams.list.confirmDelete"))) return;
     try {
       await DreamApi.delete(dream.id);
-      toast.success("梦境已删除");
+      toast.success(t("dreams.list.deleteSuccess"));
       window.location.reload();
     } catch {
-      toast.error("删除失败");
+      toast.error(t("dreams.list.deleteFailed"));
     }
   };
 
@@ -903,7 +908,7 @@ function DreamCard({
                         backgroundClip: "text",
                       }}
                     >
-                      AI已分析
+                      {t("dreams.list.aiAnalyzed")}
                     </span>
                   </div>
                 )}
@@ -912,30 +917,32 @@ function DreamCard({
               <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1.5">
                 <span className="flex items-center gap-1.5 shrink-0">
                   <Calendar className="w-4 h-4 text-blue-500" />
-                  {format(new Date(dream.dream_date), "M月d日", { locale: zhCN })}
+                  {format(new Date(dream.dream_date), i18n.language === "en" ? "MMM d" : "M月d日", { 
+                    locale: i18n.language === "ja" ? ja : i18n.language === "en" ? enUS : zhCN 
+                  })}
                 </span>
                 <span className="flex items-center gap-1.5 shrink-0">
                   <Eye className="w-4 h-4 text-green-500" />
-                  浏览 {dream.view_count ?? 0}
+                  {dream.view_count ?? 0} {t("dreams.list.views")}
                 </span>
                 {dream.privacy_level && (
                   <span className="flex items-center gap-1.5 shrink-0">
                     {dream.privacy_level === "PRIVATE" && (
                       <>
                         <Lock className="w-4 h-4 text-purple-500" />
-                        <span>仅自己</span>
+                        <span>{t("dreams.detail.onlyMe")}</span>
                       </>
                     )}
                     {dream.privacy_level === "FRIENDS" && (
                       <>
                         <Users className="w-4 h-4 text-blue-500" />
-                        <span>好友可见</span>
+                        <span>{t("dreams.detail.friendsOnly")}</span>
                       </>
                     )}
                     {dream.privacy_level === "PUBLIC" && (
                       <>
                         <Globe className="w-4 h-4 text-cyan-500" />
-                        <span>公开</span>
+                        <span>{t("dreams.detail.public")}</span>
                       </>
                     )}
                   </span>
@@ -949,7 +956,7 @@ function DreamCard({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => onToggleFavorite(e, dream.id)}
-                title="收藏"
+                title={t("dreams.list.favorite")}
                 className={cn(
                   "h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn",
                   dream.is_favorite && "opacity-100"
@@ -969,7 +976,7 @@ function DreamCard({
                 variant="ghost"
                 size="icon"
                 onClick={handleEdit}
-                title="编辑"
+                title={t("common.edit")}
                 className="h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn"
               >
                 <Edit
@@ -981,7 +988,7 @@ function DreamCard({
                 variant="ghost"
                 size="icon"
                 onClick={handleDelete}
-                title="删除"
+                title={t("dreams.list.delete")}
                 className="h-8 w-8 hover:bg-transparent transition-all duration-200 group/btn"
               >
                 <Trash2

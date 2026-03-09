@@ -19,7 +19,7 @@ import {
 import { DreamApi, type DreamDetail, type Tag } from "@/lib/dream-api";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { enUS, ja, zhCN } from "date-fns/locale";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -57,6 +57,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { getEmotionLabel } from "@/lib/emotion-utils";
 
 type SimilarDreamItem = {
   id: string;
@@ -98,6 +100,7 @@ export default function DreamDetailPage() {
   const params = useParams();
   const router = useRouter();
   const dreamId = params.id as string;
+  const { t, i18n } = useTranslation();
 
   const [dream, setDream] = useState<DreamDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,39 +114,82 @@ export default function DreamDetailPage() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reflectionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // 根据当前语言获取 date-fns locale
+  const getDateLocale = () => {
+    switch (i18n.language) {
+      case "zh-CN":
+        return zhCN;
+      case "ja":
+        return ja;
+      case "en":
+        return enUS;
+      default:
+        return zhCN;
+    }
+  };
+
+  // 根据语言获取日期格式
+  const getDateFormat = () => {
+    return i18n.language === "en" ? "MMM d, yyyy EEEE" : "yyyy年M月d日 EEEE";
+  };
+
+  // 翻译睡眠质量标签
+  const getSleepQualityLabel = (value: string) => {
+    const qualityMap: Record<string, string> = {
+      "1": t("dreams.new.sleepQuality1"),
+      "2": t("dreams.new.sleepQuality2"),
+      "3": t("dreams.new.sleepQuality3"),
+      "4": t("dreams.new.sleepQuality4"),
+      "5": t("dreams.new.sleepQuality5"),
+    };
+    return qualityMap[value] || "";
+  };
+
+  // 翻译清晰度标签
+  const getVividnessLabel = (value: string) => {
+    const vividnessMap: Record<string, string> = {
+      "1": t("dreams.new.vividness1"),
+      "2": t("dreams.new.vividness2"),
+      "3": t("dreams.new.vividness3"),
+      "4": t("dreams.new.vividness4"),
+      "5": t("dreams.new.vividness5"),
+    };
+    return vividnessMap[value] || "";
+  };
+
   const fetchDream = useCallback(async () => {
     try {
       const data = await DreamApi.get(dreamId);
       setDream(data);
-      // 从数据库持久化字段恢复已生成图像状态
       if (data.ai_image_url) {
         setGeneratedImage(data.ai_image_url);
       }
-      // 始终加载相似梦境（基于 embedding，不依赖 AI 分析）
-      DreamApi.getSimilarDreams(dreamId).then(setSimilarDreams).catch(() => {});
 
-      // 同一标签页内仅记录一次浏览，避免刷新/StrictMode 重复计数
-      if (typeof window !== "undefined") {
-        const viewSessionKey = `dream:viewed:${dreamId}`;
-        const viewedInThisTab = sessionStorage.getItem(viewSessionKey) === "1";
-        if (!viewedInThisTab) {
-          sessionStorage.setItem(viewSessionKey, "1");
-          DreamApi.incrementView(dreamId)
-            .then((res) => {
-              setDream((prev) =>
-                prev && prev.id === dreamId
-                  ? { ...prev, view_count: res.view_count }
-                  : prev
-              );
-            })
-            .catch(() => {
-              // 失败时回滚标记，允许后续重试计数
-              sessionStorage.removeItem(viewSessionKey);
-            });
+      // 相似梦境和浏览记录均为非关键路径，延迟 300ms 执行，不阻塞主内容渲染
+      setTimeout(() => {
+        DreamApi.getSimilarDreams(dreamId).then(setSimilarDreams).catch(() => {});
+
+        // 同一标签页内仅记录一次浏览，避免刷新重复计数
+        if (typeof window !== "undefined") {
+          const viewSessionKey = `dream:viewed:${dreamId}`;
+          if (sessionStorage.getItem(viewSessionKey) !== "1") {
+            sessionStorage.setItem(viewSessionKey, "1");
+            DreamApi.incrementView(dreamId)
+              .then((res) => {
+                setDream((prev) =>
+                  prev && prev.id === dreamId
+                    ? { ...prev, view_count: res.view_count }
+                    : prev
+                );
+              })
+              .catch(() => {
+                sessionStorage.removeItem(viewSessionKey);
+              });
+          }
         }
-      }
+      }, 300);
     } catch {
-      toast.error("加载梦境失败");
+      toast.error(t("dreams.detail.loadFailed"));
       router.push("/dreams");
     } finally {
       setLoading(false);
@@ -177,7 +223,7 @@ export default function DreamDetailPage() {
 
       const token = localStorage.getItem("access_token");
       if (!token) {
-        toast.error("未登录，无法接收实时通知");
+        toast.error(t("dreams.detail.notLoggedIn"));
         setAnalyzing(false);
         return;
       }
@@ -209,7 +255,7 @@ export default function DreamDetailPage() {
               eventSource.close();
               eventSourceRef.current = null;
               setAnalyzing(false);
-              toast.error(data.message || "AI 分析失败");
+              toast.error(data.message || t("dreams.detail.analysisFailed"));
             }
             // 移除 PROCESSING 状态的提示
           }
@@ -224,7 +270,7 @@ export default function DreamDetailPage() {
           eventSource.close();
           eventSourceRef.current = null;
           setAnalyzing(false);
-          toast.error("连接中断，请刷新页面查看结果");
+          toast.error(t("dreams.detail.connectionInterrupted"));
         }
       };
 
@@ -234,12 +280,12 @@ export default function DreamDetailPage() {
           eventSourceRef.current = null;
           if (analyzing) {
             setAnalyzing(false);
-            toast.info("分析可能仍在进行中，请稍后刷新查看");
+            toast.info(t("dreams.detail.analysisMaybeInProgress"));
           }
         }
       }, 120000);
     } catch {
-      toast.error("触发分析失败");
+      toast.error(t("dreams.detail.triggerAnalysisFailed"));
       setAnalyzing(false);
     }
   };
@@ -249,10 +295,10 @@ export default function DreamDetailPage() {
     setDeleting(true);
     try {
       await DreamApi.delete(dream.id);
-      toast.success("梦境已删除");
+      toast.success(t("dreams.detail.deleteSuccess"));
       router.push("/dreams");
     } catch {
-      toast.error("删除失败");
+      toast.error(t("dreams.detail.deleteFailed"));
       setDeleting(false);
     }
   };
@@ -263,7 +309,7 @@ export default function DreamDetailPage() {
       const res = await DreamApi.toggleFavorite(dream.id);
       setDream({ ...dream, is_favorite: res.is_favorite });
     } catch {
-      toast.error("操作失败");
+      toast.error(t("dreams.detail.operationFailed"));
     }
   };
 
@@ -273,10 +319,22 @@ export default function DreamDetailPage() {
     try {
       const res = await DreamApi.generateImage(dream.id);
       setGeneratedImage(res.image_url);
-      setDream((prev) => prev ? { ...prev, ai_image_url: res.image_url } : prev);
-      toast.success("梦境图像生成成功");
+      setDream((prev) => (prev ? { ...prev, ai_image_url: res.image_url } : prev));
+      toast.success(t("dreams.detail.imageGenerateSuccess"));
     } catch {
-      toast.error("图像生成失败，请稍后重试");
+      // 兜底：若请求超时/网络抖动，但后端已完成生成，主动拉取最新详情避免误报失败
+      try {
+        const latest = await DreamApi.get(dream.id);
+        if (latest.ai_image_url) {
+          setDream(latest);
+          setGeneratedImage(latest.ai_image_url);
+          toast.success(t("dreams.detail.imageGenerateSuccess"));
+          return;
+        }
+      } catch {
+        // ignore fallback error
+      }
+      toast.error(t("dreams.detail.imageGenerateFailed"));
     } finally {
       setGeneratingImage(false);
     }
@@ -335,7 +393,7 @@ export default function DreamDetailPage() {
               className="gap-1.5 text-foreground hover:text-foreground dark:hover:text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/10 hover:scale-105 hover:-translate-y-0.5 transition-all duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
-              返回列表
+              {t("dreams.detail.backToList")}
             </Button>
           </Link>
         </div>
@@ -347,7 +405,7 @@ export default function DreamDetailPage() {
             <div className="flex items-start justify-between gap-4">
               {/* 标题 */}
               <h1 className="text-xl md:text-2xl font-bold flex-1">
-                {dream.title || "无标题梦境"}
+                {dream.title || t("dreams.detail.noTitle")}
               </h1>
               
               {/* 右侧操作区 */}
@@ -364,7 +422,7 @@ export default function DreamDetailPage() {
                     variant="ghost"
                     size="icon"
                     onClick={handleToggleFavorite}
-                    title="收藏"
+                    title={t("dreams.detail.favorite")}
                     className="hover:bg-transparent transition-all duration-200 group"
                   >
                     <Star
@@ -381,7 +439,7 @@ export default function DreamDetailPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => router.push(`/dreams/${dream.id}/edit`)}
-                    title="编辑"
+                    title={t("dreams.detail.edit")}
                     className="hover:bg-transparent transition-all duration-200 group"
                   >
                     <Edit
@@ -394,7 +452,7 @@ export default function DreamDetailPage() {
                     size="icon"
                     onClick={handleDelete}
                     disabled={deleting}
-                    title="删除"
+                    title={t("dreams.detail.delete")}
                     className="hover:bg-transparent transition-all duration-200 group disabled:opacity-50"
                   >
                     <Trash2
@@ -429,7 +487,7 @@ export default function DreamDetailPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4 flex-wrap">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-blue-500" />
-                  {format(new Date(dream.dream_date), "yyyy年M月d日 EEEE", { locale: zhCN })}
+                  {format(new Date(dream.dream_date), getDateFormat(), { locale: getDateLocale() })}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-amber-500" />
@@ -437,26 +495,26 @@ export default function DreamDetailPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Eye className="w-4 h-4 text-green-500" />
-                  浏览 {dream.view_count}
+                  {t("dreams.detail.views")} {dream.view_count}
                 </span>
                 {dream.privacy_level && (
                   <span className="flex items-center gap-1.5">
                     {dream.privacy_level === "PRIVATE" && (
                       <>
                         <Lock className="w-4 h-4 text-purple-500" />
-                        <span className="text-muted-foreground">仅自己</span>
+                        <span className="text-muted-foreground">{t("dreams.detail.onlyMe")}</span>
                       </>
                     )}
                     {dream.privacy_level === "FRIENDS" && (
                       <>
                         <Users className="w-4 h-4 text-blue-500" />
-                        <span className="text-muted-foreground">好友可见</span>
+                        <span className="text-muted-foreground">{t("dreams.detail.friendsOnly")}</span>
                       </>
                     )}
                     {dream.privacy_level === "PUBLIC" && (
                       <>
                         <Globe className="w-4 h-4 text-cyan-500" />
-                        <span className="text-muted-foreground">公开</span>
+                        <span className="text-muted-foreground">{t("dreams.detail.public")}</span>
                       </>
                     )}
                   </span>
@@ -472,26 +530,26 @@ export default function DreamDetailPage() {
                   <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                     <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-1.5">
                       <Heart className="w-4 h-4" />
-                      情绪感受
+                      {t("dreams.detail.emotionSection")}
                     </h4>
                     <div className="space-y-1.5 text-sm text-muted-foreground">
                       {dream.primary_emotion && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-primary mt-0.5">•</span>
-                          <span>主导情绪：{dream.primary_emotion}</span>
+                          <span>{t("dreams.detail.primaryEmotion")}：{getEmotionLabel(dream.primary_emotion, t)}</span>
                         </div>
                       )}
                       {dream.emotion_intensity && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-primary mt-0.5">•</span>
-                          <span>情绪强度：{["很弱", "轻微", "明显", "强烈", "非常强"][dream.emotion_intensity - 1]}</span>
+                          <span>{t("dreams.detail.emotionIntensity")}：{t(`dreams.detail.emotion${["VeryWeak", "Mild", "Obvious", "Strong", "VeryStrong"][dream.emotion_intensity - 1]}`)}</span>
                         </div>
                       )}
                       {dream.emotion_residual && (
                         <div className="flex items-center gap-1.5 mt-2">
                           <Badge variant="outline" className="gap-1 bg-primary/10 border-primary/30 text-primary font-normal text-xs h-5 px-2">
                             <Heart className="w-3 h-3" />
-                            醒后仍有情绪残留
+                            {t("dreams.detail.emotionResidual")}
                           </Badge>
                         </div>
                       )}
@@ -505,13 +563,13 @@ export default function DreamDetailPage() {
                   <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
                     <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-1.5">
                       <Moon className="w-4 h-4" />
-                      睡眠信息
+                      {t("dreams.detail.sleepSection")}
                     </h4>
                     <div className="space-y-1.5 text-sm text-muted-foreground">
                       {dream.sleep_duration_minutes && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-blue-500 mt-0.5">•</span>
-                          <span>睡眠时长：{Math.floor(dream.sleep_duration_minutes / 60)}h
+                          <span>{t("dreams.detail.sleepDuration")}：{Math.floor(dream.sleep_duration_minutes / 60)}h
                           {dream.sleep_duration_minutes % 60 > 0 && `${dream.sleep_duration_minutes % 60}m`}</span>
                         </div>
                       )}
@@ -528,25 +586,25 @@ export default function DreamDetailPage() {
                       {sleepLabel && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-blue-500 mt-0.5">•</span>
-                          <span>睡眠感受：{sleepLabel.label}</span>
+                          <span>{t("dreams.detail.sleepFeeling")}：{getSleepQualityLabel(sleepLabel.value)}</span>
                         </div>
                       )}
                       {dream.sleep_depth && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-blue-500 mt-0.5">•</span>
-                          <span>睡眠深度：{["浅睡", "中等", "深睡"][dream.sleep_depth - 1]}</span>
+                          <span>{t("dreams.detail.sleepDepth")}：{t(`dreams.detail.sleep${["Shallow", "Medium", "Deep"][dream.sleep_depth - 1]}`)}</span>
                         </div>
                       )}
                       {dream.awakening_state && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-blue-500 mt-0.5">•</span>
-                          <span>醒来方式：{
-                            dream.awakening_state === "NATURAL" ? "自然醒来" :
-                            dream.awakening_state === "ALARM" ? "闹钟唤醒" :
-                            dream.awakening_state === "STARTLED" ? "受惊醒来" :
-                            dream.awakening_state === "GRADUAL" ? "逐渐清醒" :
-                            dream.awakening_state
-                          }</span>
+                          <span>{t("dreams.detail.awakeningMethod")}：{t(`dreams.detail.awakening${
+                            dream.awakening_state === "NATURAL" ? "Natural" :
+                            dream.awakening_state === "ALARM" ? "Alarm" :
+                            dream.awakening_state === "STARTLED" ? "Startled" :
+                            dream.awakening_state === "GRADUAL" ? "Gradual" :
+                            "Natural"
+                          }`)}</span>
                         </div>
                       )}
                       {(dream.is_nap || dream.sleep_fragmented) && (
@@ -554,13 +612,13 @@ export default function DreamDetailPage() {
                           {dream.is_nap && (
                             <Badge variant="outline" className="gap-1 bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 font-normal text-xs h-5 px-2">
                               <Coffee className="w-3 h-3" />
-                              午睡
+                              {t("dreams.detail.nap")}
                             </Badge>
                           )}
                           {dream.sleep_fragmented && (
                             <Badge variant="outline" className="gap-1 bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 font-normal text-xs h-5 px-2">
                               <Waves className="w-3 h-3" />
-                              多次醒来
+                              {t("dreams.detail.multipleAwakenings")}
                             </Badge>
                           )}
                         </div>
@@ -574,37 +632,37 @@ export default function DreamDetailPage() {
                   <div className="p-3 rounded-lg bg-purple-500/5 border border-purple-500/10">
                     <h4 className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4" />
-                      梦境特征
+                      {t("dreams.detail.characteristicsSection")}
                     </h4>
                     <div className="space-y-1.5 text-sm text-muted-foreground">
                       {vividLabel && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-purple-500 mt-0.5">•</span>
-                          <span>梦境清晰度：{vividLabel.label}</span>
+                          <span>{t("dreams.detail.dreamClarity")}：{getVividnessLabel(vividLabel.value)}</span>
                         </div>
                       )}
                       {dream.completeness_score !== null && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-purple-500 mt-0.5">•</span>
-                          <span>记忆完整度：{
-                            dream.completeness_score <= 20 ? "碎片" :
-                            dream.completeness_score <= 40 ? "片段" :
-                            dream.completeness_score <= 60 ? "部分完整" :
-                            dream.completeness_score <= 80 ? "基本完整" :
-                            "完整叙事"
-                          }</span>
+                          <span>{t("dreams.detail.memoryCompleteness")}：{t(`dreams.detail.completeness${
+                            dream.completeness_score <= 20 ? "Fragment" :
+                            dream.completeness_score <= 40 ? "Segment" :
+                            dream.completeness_score <= 60 ? "Partial" :
+                            dream.completeness_score <= 80 ? "Basic" :
+                            "Complete"
+                          }`)}</span>
                         </div>
                       )}
                       {dream.dream_types.length > 0 && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-purple-500 mt-0.5">•</span>
-                          <span>梦境类型：{dream.dream_types.map(t => DREAM_TYPE_LABEL_MAP[t] ?? t).join("、")}</span>
+                          <span>{t("dreams.detail.dreamType")}：{dream.dream_types.map(dtype => t(`dreamTypes.${dtype}`) || DREAM_TYPE_LABEL_MAP[dtype] || dtype).join("、")}</span>
                         </div>
                       )}
                       {dream.lucidity_level && dream.lucidity_level >= 3 && (
                         <div className="flex items-start gap-1.5">
                           <span className="text-purple-500 mt-0.5">•</span>
-                          <span>清醒梦 (清醒度 {dream.lucidity_level}/5)</span>
+                          <span>{t("dreams.detail.lucidDream")} ({t("dreams.detail.lucidity")} {dream.lucidity_level}/5)</span>
                         </div>
                       )}
                     </div>
@@ -617,7 +675,7 @@ export default function DreamDetailPage() {
                 <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/10 mt-3">
                   <h4 className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-1.5">
                     <Target className="w-4 h-4" />
-                    与现实的关联
+                    {t("dreams.detail.realityConnectionSection")}
                   </h4>
                   <div className="space-y-4">
                     {dream.life_context && (
@@ -625,12 +683,10 @@ export default function DreamDetailPage() {
                         <div className="flex-shrink-0 w-1 h-full bg-green-500/30 rounded-full mt-1"></div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1.5">
-                            <p className="text-sm text-muted-foreground">前一天的背景</p>
+                            <p className="text-sm text-muted-foreground">{t("dreams.detail.previousDayContext")}</p>
                             {dream.reality_correlation && (
                               <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 font-normal text-xs">
-                                {["🌀 几乎无关", "🤔 可能有关", "🔗 明显相关", "🎯 高度相关"][
-                                  dream.reality_correlation - 1
-                                ]}
+                                {t(`dreams.detail.correlation${["AlmostNone", "Possible", "Obvious", "High"][dream.reality_correlation - 1]}`)}
                               </Badge>
                             )}
                           </div>
@@ -642,11 +698,9 @@ export default function DreamDetailPage() {
                       <div className="flex items-start gap-2">
                         <div className="flex-shrink-0 w-1 h-full bg-green-500/30 rounded-full mt-1"></div>
                         <div className="flex-1">
-                          <p className="text-sm text-muted-foreground mb-1.5">关联程度</p>
+                          <p className="text-sm text-muted-foreground mb-1.5">{t("dreams.detail.correlationLevel")}</p>
                           <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 font-normal">
-                            {["🌀 几乎无关", "🤔 可能有关", "🔗 明显相关", "🎯 高度相关"][
-                              dream.reality_correlation - 1
-                            ]}
+                            {t(`dreams.detail.correlation${["AlmostNone", "Possible", "Obvious", "High"][dream.reality_correlation - 1]}`)}
                           </Badge>
                         </div>
                       </div>
@@ -655,7 +709,7 @@ export default function DreamDetailPage() {
                       <div className="flex items-start gap-2">
                         <div className="flex-shrink-0 w-1 h-full bg-green-500/30 rounded-full mt-1"></div>
                         <div className="flex-1">
-                          <p className="text-sm text-muted-foreground mb-1.5">个人理解</p>
+                          <p className="text-sm text-muted-foreground mb-1.5">{t("dreams.detail.personalUnderstanding")}</p>
                           <p className="text-sm leading-relaxed italic text-muted-foreground border-l-2 border-green-500/20 pl-3">
                             &ldquo;{dream.user_interpretation}&rdquo;
                           </p>
@@ -673,7 +727,7 @@ export default function DreamDetailPage() {
             <div>
               <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-amber-500">
                 <Sparkles className="w-4 h-4 text-amber-500" />
-                梦境叙述
+                {t("dreams.detail.dreamNarration")}
               </h3>
               <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                 {dream.content}
@@ -686,7 +740,7 @@ export default function DreamDetailPage() {
                 <div>
                   <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-purple-500">
                     <Images className="w-4 h-4 text-purple-500" />
-                    梦境图片
+                    {t("dreams.detail.dreamImages")}
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {imageAttachments.map((attachment) => (
@@ -695,13 +749,13 @@ export default function DreamDetailPage() {
                         href={attachment.file_url}
                         target="_blank"
                         rel="noreferrer"
-                        aria-label="查看梦境附件图片"
-                        title="查看梦境附件图片"
+                        aria-label={t("dreams.detail.viewAttachment")}
+                        title={t("dreams.detail.viewAttachment")}
                         className="relative aspect-square rounded-lg overflow-hidden border border-border/60 hover:border-primary/50 transition-colors"
                       >
                         <Image
                           src={attachment.thumbnail_url || attachment.file_url}
-                          alt="梦境附件图片"
+                          alt={t("dreams.detail.viewAttachment")}
                           fill
                           className="object-cover"
                           unoptimized
@@ -718,7 +772,7 @@ export default function DreamDetailPage() {
             <div>
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-indigo-500">
                 <Wand2 className="w-4 h-4 text-indigo-500" />
-                AI 梦境图像
+                {t("dreams.detail.aiDreamImage")}
               </h3>
 
               {generatedImage ? (
@@ -727,7 +781,7 @@ export default function DreamDetailPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={generatedImage}
-                      alt="AI 生成的梦境图像"
+                      alt={t("dreams.detail.aiGeneratedImage")}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
@@ -745,7 +799,7 @@ export default function DreamDetailPage() {
                       ) : (
                         <RefreshCw className="w-3.5 h-3.5" />
                       )}
-                      重新生成
+                      {t("dreams.detail.regenerateImage")}
                     </Button>
                     <Button
                       variant="outline"
@@ -763,12 +817,12 @@ export default function DreamDetailPage() {
                           a.click();
                           URL.revokeObjectURL(blobUrl);
                         } catch {
-                          toast.error("下载失败，请长按图片手动保存");
+                          toast.error(t("dreams.detail.downloadFailed"));
                         }
                       }}
                     >
                       <Download className="w-3.5 h-3.5" />
-                      保存图像
+                      {t("dreams.detail.saveImage")}
                     </Button>
                   </div>
                 </div>
@@ -776,9 +830,9 @@ export default function DreamDetailPage() {
                 <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-border/40 bg-muted/20 gap-4">
                   <Wand2 className="w-12 h-12 text-indigo-500 dark:text-indigo-400" />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-foreground mb-1">让梦境跃然纸上</p>
+                    <p className="text-sm font-medium text-foreground mb-1">{t("dreams.detail.aiImageTitle")}</p>
                     <p className="text-xs text-muted-foreground max-w-[280px] leading-relaxed">
-                      使用 AI 将你的梦境文字转化为一幅栩栩如生的超现实主义梦境画作
+                      {t("dreams.detail.aiImageDescription")}
                     </p>
                   </div>
                   <Button
@@ -789,12 +843,12 @@ export default function DreamDetailPage() {
                     {generatingImage ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        生成中，请耐心等待...
+                        {t("dreams.detail.generatingPleaseWait")}
                       </>
                     ) : (
                       <>
                         <Wand2 className="w-4 h-4" />
-                        生成梦境图像
+                        {t("dreams.detail.generateImageButton")}
                       </>
                     )}
                   </Button>
@@ -810,7 +864,7 @@ export default function DreamDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Link2 className="w-5 h-5 text-rose-500 dark:text-rose-400" />
-                相似的梦境
+                {t("dreams.detail.similarDreamsTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -822,7 +876,7 @@ export default function DreamDetailPage() {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
-                      {sd.title || "无标题梦境"}
+                      {sd.title || t("dreams.detail.noTitle")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {format(new Date(sd.dream_date), "yyyy年M月d日", { locale: zhCN })}
@@ -847,7 +901,7 @@ export default function DreamDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-center gap-2 text-lg">
                   <Sparkles className="w-6 h-6 text-primary" />
-                  AI 深度解析
+                  {t("dreams.detail.aiAnalysisTitle")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -860,7 +914,7 @@ export default function DreamDetailPage() {
                       <div className="flex items-start gap-3 mb-4">
                         <Sparkles className="w-5 h-5 text-purple-500 dark:text-purple-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <h4 className="text-base font-bold text-purple-700 dark:text-purple-400">梦境内容总结</h4>
+                          <h4 className="text-base font-bold text-purple-700 dark:text-purple-400">{t("dreams.detail.contentSummary")}</h4>
                         </div>
                       </div>
                       <div className="pl-8 space-y-3">
@@ -869,7 +923,7 @@ export default function DreamDetailPage() {
                         )}
                         {cs.key_scenes && cs.key_scenes.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">关键场景</p>
+                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">{t("dreams.detail.keyScenes")}</p>
                             <div className="flex flex-wrap gap-1.5">
                               {cs.key_scenes.map((s, i) => (
                                 <Badge key={i} variant="secondary" className="text-xs font-normal">{s}</Badge>
@@ -879,7 +933,7 @@ export default function DreamDetailPage() {
                         )}
                         {cs.key_symbols && cs.key_symbols.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">象征元素</p>
+                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">{t("dreams.detail.symbolicElements")}</p>
                             <div className="flex flex-wrap gap-1.5">
                               {cs.key_symbols.map((s, i) => (
                                 <Badge key={i} variant="outline" className="text-xs font-normal">{s}</Badge>
@@ -889,7 +943,7 @@ export default function DreamDetailPage() {
                         )}
                         {cs.stress_signals && cs.stress_signals.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">压力信号</p>
+                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">{t("dreams.detail.stressSignals")}</p>
                             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                               {cs.stress_signals.map((s, i) => (
                                 <li key={i} className="leading-relaxed">{s}</li>
@@ -899,7 +953,7 @@ export default function DreamDetailPage() {
                         )}
                         {cs.reflection_questions && cs.reflection_questions.length > 0 && (
                           <div>
-                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">反思问题</p>
+                            <p className="text-sm font-medium text-purple-600/90 dark:text-purple-300 mb-2">{t("dreams.detail.reflectionQuestions")}</p>
                             <ul className="text-sm text-muted-foreground space-y-1.5 list-none pl-0">
                               {cs.reflection_questions.map((q, i) => (
                                 <li key={i} className="flex gap-1.5">
@@ -921,7 +975,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Lightbulb className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-amber-700 dark:text-amber-400">梦境想告诉你什么</h4>
+                        <h4 className="text-base font-bold text-amber-700 dark:text-amber-400">{t("dreams.detail.dreamMessage")}</h4>
                       </div>
                     </div>
                     <div className="pl-8">
@@ -938,19 +992,19 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Heart className="w-5 h-5 text-violet-500 dark:text-violet-400 fill-violet-500/20 dark:fill-violet-400/20 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-violet-700 dark:text-violet-400">你的情绪体验</h4>
+                        <h4 className="text-base font-bold text-violet-700 dark:text-violet-400">{t("dreams.detail.emotionalExperience")}</h4>
                       </div>
                     </div>
                     <div className="space-y-4 pl-8">
                       {aiAnalysis.emotional_summary && (
                         <div>
-                          <p className="text-sm text-violet-600/90 dark:text-violet-300 mb-2">情绪特征</p>
+                          <p className="text-sm text-violet-600/90 dark:text-violet-300 mb-2">{t("dreams.detail.emotionalCharacteristics")}</p>
                           <p className="text-sm text-muted-foreground leading-relaxed">{aiAnalysis.emotional_summary}</p>
                         </div>
                       )}
                       {aiAnalysis.emotion_interpretation && (
                         <div>
-                          <p className="text-sm text-violet-600/90 dark:text-violet-300 mb-2">情绪解读</p>
+                          <p className="text-sm text-violet-600/90 dark:text-violet-300 mb-2">{t("dreams.detail.emotionInterpretation")}</p>
                           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                             {aiAnalysis.emotion_interpretation}
                           </p>
@@ -966,7 +1020,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Sparkles className="w-5 h-5 text-cyan-500 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-cyan-700 dark:text-cyan-400">内心深处的想法</h4>
+                        <h4 className="text-base font-bold text-cyan-700 dark:text-cyan-400">{t("dreams.detail.deepThoughts")}</h4>
                       </div>
                     </div>
                     <div className="pl-8">
@@ -983,7 +1037,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Sparkles className="w-5 h-5 text-orange-500 dark:text-orange-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-orange-700 dark:text-orange-400">梦境符号的含义</h4>
+                        <h4 className="text-base font-bold text-orange-700 dark:text-orange-400">{t("dreams.detail.symbolMeanings")}</h4>
                       </div>
                     </div>
                     <div className="pl-8 space-y-3">
@@ -992,12 +1046,12 @@ export default function DreamDetailPage() {
                           <p className="font-medium text-sm mb-2 text-foreground">{s.symbol}</p>
                           {s.meaning && (
                             <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                              含义：{s.meaning}
+                              {t("dreams.detail.meaning")}：{s.meaning}
                             </p>
                           )}
                           {s.life_connection && (
                             <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                              生活关联：{s.life_connection}
+                              {t("dreams.detail.lifeConnection")}：{s.life_connection}
                             </p>
                           )}
                         </div>
@@ -1012,7 +1066,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Lightbulb className="w-5 h-5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-green-700 dark:text-green-400">给你的建议</h4>
+                        <h4 className="text-base font-bold text-green-700 dark:text-green-400">{t("dreams.detail.recommendationsTitle")}</h4>
                       </div>
                     </div>
                     <div className="pl-8 space-y-3">
@@ -1024,16 +1078,16 @@ export default function DreamDetailPage() {
                               className="p-3 rounded-lg bg-transparent dark:bg-transparent border border-border/40 dark:border-border/20 space-y-2"
                             >
                               <p className="text-sm font-medium text-foreground">
-                                {rec.title || "建议"}
+                                {rec.title || t("dreams.detail.recommendations")}
                               </p>
                               {rec.action && (
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                  行动：{rec.action}
+                                  {t("dreams.detail.action")}：{rec.action}
                                 </p>
                               )}
                               {rec.why && (
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                  原因：{rec.why}
+                                  {t("dreams.detail.why")}：{rec.why}
                                 </p>
                               )}
                             </div>
@@ -1050,7 +1104,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Moon className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-blue-700 dark:text-blue-400">睡眠质量分析</h4>
+                        <h4 className="text-base font-bold text-blue-700 dark:text-blue-400">{t("dreams.detail.sleepAnalysis")}</h4>
                       </div>
                     </div>
                     <div className="pl-8 space-y-3">
@@ -1059,7 +1113,7 @@ export default function DreamDetailPage() {
                       )}
                       {aiAnalysis.sleep_analysis.suggestions && aiAnalysis.sleep_analysis.suggestions.length > 0 && (
                         <div>
-                          <p className="text-sm text-blue-600/90 dark:text-blue-300 mb-2">具体建议</p>
+                          <p className="text-sm text-blue-600/90 dark:text-blue-300 mb-2">{t("dreams.detail.specificSuggestions")}</p>
                           <ul className="space-y-1.5 list-disc list-inside text-sm text-muted-foreground">
                             {aiAnalysis.sleep_analysis.suggestions.map((s, i) => (
                               <li key={i} className="leading-relaxed">{s}</li>
@@ -1077,7 +1131,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Lightbulb className="w-5 h-5 text-teal-500 dark:text-teal-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-teal-700 dark:text-teal-400">思考这些问题</h4>
+                        <h4 className="text-base font-bold text-teal-700 dark:text-teal-400">{t("dreams.detail.reflectOnQuestions")}</h4>
                       </div>
                     </div>
                     <div className="pl-8">
@@ -1099,7 +1153,7 @@ export default function DreamDetailPage() {
                                       <textarea
                                       ref={reflectionTextareaRef}
                                         className="w-full min-h-[80px] text-sm rounded-lg border border-teal-200 dark:border-teal-700/50 bg-transparent px-3 py-2 pb-6 focus:outline-none focus:ring-2 focus:ring-teal-500/50 placeholder:text-muted-foreground/70 resize-none"
-                                        placeholder="写下你的想法..."
+                                        placeholder={t("dreams.detail.writeYourThoughts")}
                                         value={answerText}
                                         onChange={(e) => setAnswerText(e.target.value)}
                                         maxLength={500}
@@ -1123,14 +1177,14 @@ export default function DreamDetailPage() {
                                             setAnswerText("");
                                             setAnsweringQuestion(null);
                                             fetchDream();
-                                            toast.success("已记录你的想法");
+                                            toast.success(t("dreams.detail.thoughtSaved"));
                                           } catch {
-                                            toast.error("保存失败，请稍后重试");
+                                            toast.error(t("dreams.detail.saveFailed"));
                                           }
                                         }}
                                         className="bg-teal-500 hover:bg-teal-600 text-white transition-all duration-200 hover:scale-105"
                                       >
-                                        保存
+                                        {t("common.save")}
                                       </Button>
                                       <Button
                                         size="sm"
@@ -1141,7 +1195,7 @@ export default function DreamDetailPage() {
                                         }}
                                         className="text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 hover:scale-105"
                                       >
-                                        取消
+                                        {t("common.cancel")}
                                       </Button>
                                     </div>
                                   </div>
@@ -1149,7 +1203,7 @@ export default function DreamDetailPage() {
                                   <input
                                     type="text"
                                     className="w-full text-sm rounded-lg border border-border/40 dark:border-border/20 bg-transparent px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 placeholder:text-muted-foreground/70 transition-all"
-                                  placeholder={existingAnswer ? "" : "点击输入你的想法..."}
+                                  placeholder={existingAnswer ? "" : t("dreams.detail.clickToEnterThoughts")}
                                   value={existingAnswer}
                                   readOnly
                                     onFocus={() => {
@@ -1173,7 +1227,7 @@ export default function DreamDetailPage() {
                     <div className="flex items-start gap-3 mb-4">
                       <Zap className="w-5 h-5 text-yellow-500 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-base font-bold text-yellow-700 dark:text-yellow-400">可能的触发原因</h4>
+                        <h4 className="text-base font-bold text-yellow-700 dark:text-yellow-400">{t("dreams.detail.possibleTriggers")}</h4>
                       </div>
                     </div>
                     <div className="pl-8 space-y-3">
@@ -1190,22 +1244,22 @@ export default function DreamDetailPage() {
                 )}
 
                 <div className="flex justify-center">
-                  <Button 
+                  <Button
                     variant="default"
                     size="lg"
-                    className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8" 
-                    onClick={handleAnalyze} 
+                    className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8"
+                    onClick={handleAnalyze}
                     disabled={analyzing}
                   >
                     {analyzing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        AI 分析中...
+                        {t("dreams.detail.analyzing")}
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-                        重新生成分析
+                        {t("dreams.detail.regenerateAnalysis")}
                       </>
                     )}
                   </Button>
@@ -1219,12 +1273,14 @@ export default function DreamDetailPage() {
                   <Sparkles className="w-10 h-10 text-primary/70 dark:text-primary/80" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
-                  {dream.ai_processing_status === "PROCESSING" ? "AI 正在分析中..." : "探索梦境的深层含义"}
+                  {dream.ai_processing_status === "PROCESSING"
+                    ? t("dreams.detail.aiProcessingTitle")
+                    : t("dreams.detail.aiCallToActionTitle")}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {dream.ai_processing_status === "PROCESSING"
-                    ? "AI 正在从心理学视角解读你的梦境，请稍候..."
-                    : "让 AI 从心理学和认知科学角度，为你揭示梦境背后的潜意识信息"}
+                    ? t("dreams.detail.aiProcessingDescription")
+                    : t("dreams.detail.aiCallToActionDescription")}
                 </p>
                 {dream.ai_processing_status !== "PROCESSING" && (
                   <Button 
@@ -1236,12 +1292,12 @@ export default function DreamDetailPage() {
                     {analyzing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        AI 分析中...
+                        {t("dreams.detail.analyzing")}
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-                        开始解读梦境
+                        {t("dreams.detail.startAnalysis")}
                       </>
                     )}
                   </Button>

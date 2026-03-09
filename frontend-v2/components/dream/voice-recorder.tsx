@@ -26,7 +26,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
   const [duration, setDuration] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
@@ -39,7 +39,10 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
 
   /** 清理所有资源 */
   const cleanup = useCallback(() => {
-    clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     if (processorRef.current) {
       processorRef.current.disconnect();

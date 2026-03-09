@@ -1,277 +1,280 @@
-"""
-阿里云 OSS 上传服务
-"""
+"""阿里云 OSS 统一文件服务。"""
 
+from __future__ import annotations
+
+import asyncio
+import mimetypes
 import os
-import re
-import time
 import uuid
-from typing import Any, Literal
-from urllib.parse import unquote, urlparse
+from dataclasses import dataclass
+from typing import Literal
+from urllib.parse import urlparse
 
-try:
-    import oss2
-    from aliyunsdkcore import client
-    from aliyunsdksts.request.v20150401 import AssumeRoleRequest
-    OSS_AVAILABLE = True
-except ImportError:
-    OSS_AVAILABLE = False
+import oss2
 
 from app.core.config import settings
 
+BucketType = Literal["public", "private"]
 
-class OSSService:
-    """阿里云 OSS 服务类"""
 
-    def __init__(self, user_id: str | uuid.UUID, bucket_type: Literal["public", "private"] = "public"):
-        if not OSS_AVAILABLE:
-            raise RuntimeError("OSS SDK 未安装，请运行: uv add oss2 aliyun-python-sdk-core aliyun-python-sdk-sts")
-        
-        if not user_id:
-            raise ValueError("用户ID不能为空")
+@dataclass(slots=True)
+class UploadedObject:
+    object_key: str
+    content_type: str
+    size: int
 
-        # 检查配置
-        if not all([
+
+class OssService:
+    """统一封装 OSS 的上传、签名、删除能力。"""
+
+    def __init__(self) -> None:
+        if not settings.aliyun_oss_access_key_id or not settings.aliyun_oss_access_key_secret:
+            raise ValueError("OSS 凭证未配置")
+        if not settings.aliyun_oss_endpoint:
+            raise ValueError("OSS endpoint 未配置")
+
+        endpoint = settings.aliyun_oss_endpoint
+        if not endpoint.startswith("http"):
+            endpoint = f"https://{endpoint}"
+
+        self._auth = oss2.Auth(
             settings.aliyun_oss_access_key_id,
             settings.aliyun_oss_access_key_secret,
-            settings.aliyun_oss_endpoint,
-        ]):
-            raise RuntimeError("阿里云 OSS 配置不完整，请检查环境变量")
+        )
+        self._endpoint = endpoint
 
-        # 根据类型选择 Bucket
-        if bucket_type == "public":
-            bucket_name = settings.aliyun_oss_public_bucket
-            if not bucket_name:
-                raise RuntimeError("公开 Bucket 未配置，请设置 ALIYUN_OSS_PUBLIC_BUCKET")
-        else:
-            bucket_name = settings.aliyun_oss_private_bucket
-            if not bucket_name:
-                raise RuntimeError("私密 Bucket 未配置，请设置 ALIYUN_OSS_PRIVATE_BUCKET")
+    @staticmethod
+    def _detect_content_type(filename: str | None) -> str:
+        if not filename:
+            return "application/octet-stream"
+        guessed, _ = mimetypes.guess_type(filename)
+        return guessed or "application/octet-stream"
 
-        self.user_id = str(user_id)
-        self.bucket_type = bucket_type
-        self.access_key_id = settings.aliyun_oss_access_key_id
-        self.access_key_secret = settings.aliyun_oss_access_key_secret
-        self.role_arn = settings.aliyun_oss_role_arn
+    @staticmethod
+    def _normalize_object_key(file_url_or_key: str) -> str:
+        if not file_url_or_key:
+            return ""
+        if file_url_or_key.startswith("http://") or file_url_or_key.startswith("https://"):
+            parsed = urlparse(file_url_or_key)
+            return parsed.path.lstrip("/")
+        return file_url_or_key.lstrip("/")
 
-        # 处理 endpoint
-        self.endpoint = settings.aliyun_oss_endpoint.strip()
-        if not self.endpoint.startswith(("http://", "https://")):
-            self.endpoint = f"https://{self.endpoint}"
-
-        self.bucket_name = bucket_name
-        self.user_prefix = f"users/{self.user_id}/"
-        self.auth = oss2.Auth(self.access_key_id, self.access_key_secret)
-
-    def _clear_proxy_env(self) -> dict[str, str]:
-        """清除代理环境变量（避免影响 OSS 请求）"""
-        original_proxies = {}
-        for proxy_var in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY"]:
-            if proxy_var in os.environ:
-                original_proxies[proxy_var] = os.environ[proxy_var]
-                del os.environ[proxy_var]
-        return original_proxies
-
-    def _restore_proxy_env(self, original_proxies: dict[str, str]) -> None:
-        """恢复代理环境变量"""
-        for proxy_var, proxy_value in original_proxies.items():
-            os.environ[proxy_var] = proxy_value
-
-    def _sanitize_filename(self, filename: str) -> str:
-        """清理文件名，确保安全"""
-        name, ext = filename.rsplit(".", 1) if "." in filename else (filename, "")
-        safe_name = re.sub(r"[^a-zA-Z0-9_-]", "_", name)
-        safe_name = safe_name[:50]
-        return f"{safe_name}.{ext}" if ext else safe_name
-
-    def get_avatar_upload_path(self, filename: str = "") -> str:
-        """获取头像上传路径"""
+    @staticmethod
+    def _build_avatar_object_key(user_id: uuid.UUID | str, filename: str | None) -> str:
+        ext = ""
         if filename:
-            safe_filename = self._sanitize_filename(filename)
-            unique_filename = f"{uuid.uuid4().hex[:8]}_{safe_filename}"
-        else:
-            unique_filename = f"{uuid.uuid4().hex}.jpg"
+            _, ext = os.path.splitext(filename)
+            ext = ext.lower()
+        if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+            ext = ".jpg"
+        return f"avatars/{user_id}/{uuid.uuid4().hex}{ext}"
 
-        return f"{self.user_prefix}avatars/{unique_filename}"
+    @staticmethod
+    def _build_dm_object_key(conversation_id: str, filename: str | None) -> str:
+        ext = ""
+        if filename:
+            _, ext = os.path.splitext(filename)
+            ext = ext.lower()
+        if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+            ext = ".jpg"
+        return f"dm/{conversation_id}/{uuid.uuid4().hex}{ext}"
 
-    def get_attachment_upload_path(self, dream_id: str, filename: str, category: str = "images") -> str:
-        """获取梦境附件上传路径"""
-        safe_filename = self._sanitize_filename(filename)
-        unique_filename = f"{uuid.uuid4().hex[:8]}_{safe_filename}"
-        return f"{self.user_prefix}dreams/{dream_id}/{category}/{unique_filename}"
+    @staticmethod
+    def _build_ai_image_object_key(dream_id: uuid.UUID | str, content_type: str | None) -> str:
+        ext_map = {
+            "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+            "image/gif": ".gif",
+        }
+        ext = ext_map.get((content_type or "").lower(), ".png")
+        return f"ai-images/{dream_id}/{uuid.uuid4().hex}{ext}"
 
-    def generate_presigned_url(
+    @staticmethod
+    def _build_attachment_object_key(dream_id: uuid.UUID | str, filename: str, category: str) -> str:
+        safe_category = (category or "files").strip().lower()
+        ext = os.path.splitext(filename)[1].lower() if filename else ""
+        return f"attachments/{dream_id}/{safe_category}/{uuid.uuid4().hex}{ext}"
+
+    def _get_bucket_name(self, bucket_type: BucketType) -> str:
+        bucket_name = (
+            settings.aliyun_oss_public_bucket
+            if bucket_type == "public"
+            else settings.aliyun_oss_private_bucket
+        )
+        if not bucket_name:
+            raise ValueError(f"OSS {bucket_type} bucket 未配置")
+        return bucket_name
+
+    def _get_bucket(self, bucket_type: BucketType) -> oss2.Bucket:
+        return oss2.Bucket(self._auth, self._endpoint, self._get_bucket_name(bucket_type))
+
+    def _bucket_host(self, bucket_type: BucketType) -> str:
+        endpoint_host = self._endpoint.replace("https://", "").replace("http://", "")
+        return f"{self._get_bucket_name(bucket_type)}.{endpoint_host}"
+
+    async def _put_object_with_retry(
         self,
-        filename: str,
-        content_type: str = "image/jpeg",
-        expires: int = 3600,
-        file_key: str | None = None,
-    ) -> dict[str, Any]:
-        """生成预签名上传 URL"""
-        original_proxies = self._clear_proxy_env()
+        *,
+        bucket_type: BucketType,
+        object_key: str,
+        content: bytes,
+        content_type: str,
+        max_attempts: int = 3,
+    ) -> None:
+        last_error: Exception | None = None
+        bucket = self._get_bucket(bucket_type)
 
-        try:
-            if not file_key:
-                file_key = self.get_avatar_upload_path(filename)
-            bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
-
-            # 生成上传 URL
-            upload_url = bucket.sign_url(
-                "PUT",
-                file_key,
-                expires,
-                headers={"Content-Type": content_type},
-            )
-
-            # 生成访问 URL（稳定URL，不含签名）
-            access_url = self.get_stable_url(file_key)
-
-            return {
-                "upload_url": upload_url,
-                "access_url": access_url,
-                "file_key": file_key,
-                "expires_in": expires,
-            }
-        finally:
-            self._restore_proxy_env(original_proxies)
-
-    def get_stable_url(self, file_key: str) -> str:
-        """
-        构造稳定的对象 URL
-        
-        - 公开 Bucket：返回不带签名的公开 URL
-        - 私密 Bucket：返回带签名的 URL（有效期 1 年）
-        """
-        endpoint_host = self.endpoint.replace("https://", "").replace("http://", "").rstrip("/")
-        
-        if self.bucket_type == "public":
-            # 公开 Bucket，返回简洁的公开 URL
-            return f"https://{self.bucket_name}.{endpoint_host}/{file_key}"
-        else:
-            # 私密 Bucket，返回带签名的 URL
-            try:
-                bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
-                # 签名有效期 1 年
-                signed_url = bucket.sign_url("GET", file_key, 31536000)
-                return signed_url
-            except Exception:
-                # 降级：返回公开 URL（可能无法访问）
-                return f"https://{self.bucket_name}.{endpoint_host}/{file_key}"
-
-    def get_ai_image_upload_path(self, dream_id: str, filename: str = "") -> str:
-        """获取 AI 生成图像的上传路径"""
-        unique_name = f"{uuid.uuid4().hex}.png" if not filename else f"{uuid.uuid4().hex[:8]}_{filename}"
-        return f"{self.user_prefix}dreams/{dream_id}/ai-images/{unique_name}"
-
-    def upload_bytes(
-        self,
-        data: bytes,
-        file_key: str,
-        content_type: str = "image/png",
-    ) -> str:
-        """直接将 bytes 数据上传到 OSS，返回稳定访问 URL。"""
-        original_proxies = self._clear_proxy_env()
-        try:
-            bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
+        def _do_upload() -> None:
             bucket.put_object(
-                file_key,
-                data,
+                object_key,
+                content,
                 headers={"Content-Type": content_type},
             )
-            return self.get_stable_url(file_key)
-        finally:
-            self._restore_proxy_env(original_proxies)
 
-    def delete_file(self, file_key: str) -> bool:
-        """删除文件"""
-        try:
-            # 安全检查：只能删除自己的文件
-            if not file_key.startswith(self.user_prefix):
+        for attempt in range(1, max_attempts + 1):
+            try:
+                await asyncio.to_thread(_do_upload)
+                return
+            except Exception as exc:
+                last_error = exc
+                if attempt == max_attempts:
+                    raise
+                await asyncio.sleep(0.8 * attempt)
+
+        if last_error:
+            raise last_error
+
+    async def generate_avatar_upload_signature(
+        self,
+        *,
+        user_id: uuid.UUID | str,
+        filename: str,
+        content_type: str | None = None,
+        expires_seconds: int = 900,
+    ) -> dict[str, str | int]:
+        object_key = self._build_avatar_object_key(user_id, filename)
+        resolved_content_type = content_type or self._detect_content_type(filename)
+
+        def _do_sign() -> tuple[str, str]:
+            bucket = self._get_bucket("public")
+            upload_url = bucket.sign_url(
+                method="PUT",
+                key=object_key,
+                expires=expires_seconds,
+                headers={"Content-Type": resolved_content_type},
+            )
+            access_url = f"https://{self._bucket_host('public')}/{object_key}"
+            return upload_url, access_url
+
+        upload_url, access_url = await asyncio.to_thread(_do_sign)
+        return {
+            "upload_url": upload_url,
+            "access_url": access_url,
+            "file_key": object_key,
+            "expires_in": expires_seconds,
+        }
+
+    async def upload_private_image(
+        self,
+        *,
+        conversation_id: str,
+        filename: str | None,
+        content: bytes,
+    ) -> UploadedObject:
+        object_key = self._build_dm_object_key(conversation_id, filename)
+        content_type = self._detect_content_type(filename)
+
+        await self._put_object_with_retry(
+            bucket_type="private",
+            object_key=object_key,
+            content=content,
+            content_type=content_type,
+        )
+        return UploadedObject(object_key=object_key, content_type=content_type, size=len(content))
+
+    async def upload_public_ai_image(
+        self,
+        *,
+        dream_id: uuid.UUID | str,
+        content: bytes,
+        content_type: str = "image/png",
+    ) -> UploadedObject:
+        object_key = self._build_ai_image_object_key(dream_id, content_type)
+
+        await self._put_object_with_retry(
+            bucket_type="public",
+            object_key=object_key,
+            content=content,
+            content_type=content_type,
+        )
+        return UploadedObject(object_key=object_key, content_type=content_type, size=len(content))
+
+    async def get_public_access_url(self, object_key: str) -> str:
+        normalized_key = self._normalize_object_key(object_key)
+        if not normalized_key:
+            raise ValueError("无效的 object key")
+        return f"https://{self._bucket_host('public')}/{normalized_key}"
+
+    async def generate_attachment_upload_signature(
+        self,
+        *,
+        dream_id: uuid.UUID | str,
+        filename: str,
+        content_type: str,
+        category: str,
+        expires_seconds: int = 900,
+    ) -> dict[str, str | int]:
+        object_key = self._build_attachment_object_key(dream_id, filename, category)
+
+        def _do_sign() -> tuple[str, str]:
+            bucket = self._get_bucket("private")
+            upload_url = bucket.sign_url(
+                method="PUT",
+                key=object_key,
+                expires=expires_seconds,
+                headers={"Content-Type": content_type},
+            )
+            return upload_url, object_key
+
+        upload_url, file_key = await asyncio.to_thread(_do_sign)
+        return {
+            "upload_url": upload_url,
+            "file_key": file_key,
+            "expires_in": expires_seconds,
+        }
+
+    async def sign_private_object_url(self, object_key: str, expires_seconds: int = 3600) -> str:
+        normalized_key = self._normalize_object_key(object_key)
+        if not normalized_key:
+            raise ValueError("无效的 object key")
+
+        def _do_sign() -> str:
+            return self._get_bucket("private").sign_url("GET", normalized_key, expires_seconds)
+
+        return await asyncio.to_thread(_do_sign)
+
+    async def delete_object_by_url(self, file_url_or_key: str, bucket_type: BucketType = "public") -> bool:
+        object_key = self._normalize_object_key(file_url_or_key)
+        if not object_key:
+            return False
+
+        def _do_delete() -> bool:
+            try:
+                self._get_bucket(bucket_type).delete_object(object_key)
+                return True
+            except Exception:
                 return False
 
-            original_proxies = self._clear_proxy_env()
-
-            try:
-                bucket = oss2.Bucket(self.auth, self.endpoint, self.bucket_name)
-                bucket.delete_object(file_key)
-                return True
-            finally:
-                self._restore_proxy_env(original_proxies)
-
-        except Exception:
-            return False
-    
-    @staticmethod
-    def extract_file_key_from_url(url: str, user_id: str | uuid.UUID) -> str | None:
-        """
-        从OSS URL中提取file_key。
-
-        支持路径为 URL 编码的格式（如 users%2F{user_id}%2Fdreams%2F...），
-        与未编码格式（如 /users/{user_id}/...）。
-        """
-        if not url or "aliyuncs.com" not in url:
-            return None
-
-        try:
-            parsed = urlparse(url)
-            # 路径可能被编码为 users%2Fuid%2Fdreams%2F...，需先解码再匹配 /users/
-            path_decoded = unquote(parsed.path or "")
-
-            if "/users/" not in path_decoded:
-                return None
-
-            users_index = path_decoded.index("/users/")
-            # +1 跳过开头的 "/"，得到 users/uid/dreams/...
-            file_key = path_decoded[users_index + 1 :]
-
-            user_prefix = f"users/{str(user_id)}/"
-            if file_key.startswith(user_prefix):
-                return file_key
-
-            return None
-        except Exception:
-            return None
+        return await asyncio.to_thread(_do_delete)
 
 
-def get_oss_service(user_id: str | uuid.UUID, bucket_type: Literal["public", "private"] = "public") -> OSSService:
-    """
-    获取 OSS 服务实例
-    
-    Args:
-        user_id: 用户 ID
-        bucket_type: Bucket 类型
-            - "public": 公开 Bucket（头像、公开图片等）
-            - "private": 私密 Bucket（用户文档、私密文件等）
-    """
-    return OSSService(user_id, bucket_type)
+_oss_service_singleton: OssService | None = None
 
 
-def delete_oss_file_from_url(
-    url: str | None,
-    user_id: str | uuid.UUID,
-    bucket_type: Literal["public", "private"] = "private",
-) -> bool:
-    """
-    从URL删除OSS文件的便捷函数
-
-    注意：梦境附件存储在 private bucket，删除附件时必须传 bucket_type="private"。
-
-    Args:
-        url: OSS文件URL
-        user_id: 用户ID
-        bucket_type: 文件所在 Bucket 类型，与上传时一致（附件为 private）
-
-    Returns:
-        是否删除成功
-    """
-    if not url:
-        return False
-
-    try:
-        file_key = OSSService.extract_file_key_from_url(url, user_id)
-        if file_key:
-            oss_service = get_oss_service(user_id, bucket_type=bucket_type)
-            return oss_service.delete_file(file_key)
-        return False
-    except Exception:
-        return False
+def get_oss_service() -> OssService:
+    global _oss_service_singleton
+    if _oss_service_singleton is None:
+        _oss_service_singleton = OssService()
+    return _oss_service_singleton

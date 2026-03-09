@@ -1,11 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { EChartsWrapper } from "@/components/charts/echarts-wrapper";
 import { ComparisonBanner, ThemeReportShell } from "@/components/insights/theme-report-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Insight } from "@/lib/insight-api";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
 import {
   CheckCircle2,
   Lightbulb,
@@ -16,20 +18,89 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+
+// ===== 辅助函数 =====
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
+
+function getSleepQualityText(score: number, t: (key: string) => string): string {
+  if (score >= 4.5) return t("insights.report.veryGood");
+  if (score >= 3.5) return t("insights.report.good");
+  if (score >= 2.5) return t("insights.report.average");
+  if (score >= 1.5) return t("insights.report.poor");
+  return t("insights.report.veryPoor");
+}
 
 // ===== 类型 =====
-interface SleepPattern { pattern: string; impact: string; suggestion: string }
-interface QualityFactor { factor: string; effect: "positive" | "negative"; evidence: string; action: string }
-interface SleepTip { tip: string; timing: string; expected: string }
-interface GoodHabit { habit: string; benefit: string; encouragement: string }
-interface NotableNight { date: string; note: string }
+interface SleepPattern {
+  pattern: string;
+  impact: string;
+  suggestion: string;
+}
 
-export default function SleepQualityPage() {
+interface QualityFactor {
+  factor: string;
+  effect: "positive" | "negative";
+  evidence: string;
+  action: string;
+}
+
+interface SleepTip {
+  tip: string;
+  timing: string;
+  expected: string;
+}
+
+interface GoodHabit {
+  habit: string;
+  benefit: string;
+  encouragement: string;
+}
+
+interface NotableNight {
+  date: string;
+  note: string;
+}
+
+type SleepAi = {
+  sleep_summary?: string;
+  sleep_patterns?: SleepPattern[];
+  quality_factors?: QualityFactor[];
+  sleep_tips?: SleepTip[];
+  good_habits?: GoodHabit[];
+  notable_nights?: NotableNight[];
+  comparison_insight?: string | null;
+  sleep_improvement?: string | null;
+  weekday_weekend_gap?: string;
+};
+
+type SleepCharts = {
+  sleep_quality_trend?: Array<{ date: string; quality: number }>;
+  weekday_vs_weekend?: { weekday?: number; weekend?: number };
+};
+
+type SleepData = {
+  ai_analysis?: SleepAi;
+  charts?: SleepCharts;
+};
+
+function SleepQualityContent() {
+  const { t } = useTranslation();
   return (
     <ThemeReportShell
       reportType="SLEEP_QUALITY"
-      title="睡眠质量分析"
-      description="深度分析睡眠模式、质量因素与改善建议"
+      title={t("insights.theme.sleepLabel")}
+      description={t("insights.theme.sleepDesc")}
       icon={<Moon className="h-5 w-5 text-indigo-500" />}
       renderReport={(insight, showComparison) => (
         <SleepReport insight={insight} showComparison={showComparison} />
@@ -38,21 +109,32 @@ export default function SleepQualityPage() {
   );
 }
 
+export default function SleepQualityPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">加载中...</div>}>
+      <SleepQualityContent />
+    </Suspense>
+  );
+}
+
 function SleepReport({ insight, showComparison }: { insight: Insight; showComparison: boolean }) {
-  const data = insight.data as Record<string, unknown>;
-  const ai = (data.ai_analysis || {}) as Record<string, unknown>;
-  const charts = (data.charts || {}) as Record<string, unknown>;
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
+  
+  const data = insight.data as SleepData;
+  const ai: SleepAi = data.ai_analysis || {};
+  const charts: SleepCharts = data.charts || {};
 
-  const sleepPatterns = (ai.sleep_patterns || []) as SleepPattern[];
-  const qualityFactors = (ai.quality_factors || []) as QualityFactor[];
-  const sleepTips = (ai.sleep_tips || []) as SleepTip[];
-  const goodHabits = (ai.good_habits || []) as GoodHabit[];
-  const notableNights = (ai.notable_nights || []) as NotableNight[];
-  const comparisonInsight = ai.comparison_insight as string | null | undefined;
-  const sleepImprovement = ai.sleep_improvement as string | null | undefined;
+  const sleepPatterns = ai.sleep_patterns || [];
+  const qualityFactors = ai.quality_factors || [];
+  const sleepTips = ai.sleep_tips || [];
+  const goodHabits = ai.good_habits || [];
+  const notableNights = ai.notable_nights || [];
+  const comparisonInsight = ai.comparison_insight ?? null;
+  const sleepImprovement = ai.sleep_improvement ?? null;
 
-  const sleepTrend = (charts.sleep_quality_trend || []) as Array<{ date: string; quality: number }>;
-  const weekdayVsWeekend = (charts.weekday_vs_weekend || {}) as { weekday: number; weekend: number };
+  const sleepTrend = charts.sleep_quality_trend || [];
+  const weekdayVsWeekend = charts.weekday_vs_weekend || {};
   const weekdayVal = weekdayVsWeekend.weekday ?? 0;
   const weekendVal = weekdayVsWeekend.weekend ?? 0;
   const barDisplayMin = 0.2;
@@ -67,7 +149,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Moon className="h-4 w-4 text-indigo-500" />
-              睡眠状态总结
+              {t("insights.report.sleepStateSummary")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">
@@ -87,7 +169,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-green-600 dark:text-green-400">
               <Sparkles className="h-4 w-4" />
-              值得保持的好习惯
+              {t("insights.report.goodHabitsToKeep")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5 pl-[46px] pr-6 pb-4">
@@ -113,7 +195,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
               <Sparkles className="h-4 w-4" />
-              睡眠改善观察
+              {t("insights.report.sleepImprovementObservation")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">
@@ -126,7 +208,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
       {sleepTrend && sleepTrend.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">睡眠质量趋势</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.sleepQualityTrend")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <EChartsWrapper
@@ -135,7 +217,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                 grid: { top: 30, bottom: 40, left: 50, right: 20 },
                 xAxis: {
                   type: "category",
-                  data: sleepTrend.map((d) => format(new Date(d.date), "M/d", { locale: zhCN })),
+                  data: sleepTrend.map((d) => format(new Date(d.date), dateLocale === zhCN || dateLocale === ja ? "M/d" : "MMM d", { locale: dateLocale })),
                   axisLabel: { rotate: 30, fontSize: 10 },
                 },
                 yAxis: {
@@ -147,8 +229,12 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                   axisLabel: {
                     formatter: (v: number) => {
                       if (v === 0) return "";
-                      const labels = ["", "很低", "低", "中", "高", "很高"];
-                      return labels[v] || "";
+                      if (v === 1) return getSleepQualityText(1, t);
+                      if (v === 2) return getSleepQualityText(2, t);
+                      if (v === 3) return getSleepQualityText(3, t);
+                      if (v === 4) return getSleepQualityText(4, t);
+                      if (v === 5) return getSleepQualityText(5, t);
+                      return "";
                     },
                   },
                 },
@@ -160,7 +246,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                   lineStyle: { width: 2, color: "#6366f1" },
                   itemStyle: { color: "#6366f1" },
                   markLine: {
-                    data: [{ type: "average", name: "平均" }],
+                    data: [{ type: "average", name: t("insights.report.average") }],
                     silent: true,
                     lineStyle: { type: "dashed" },
                     label: { show: false },
@@ -170,9 +256,8 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                   trigger: "axis",
                   formatter: (params: any) => {
                     const p = params[0];
-                    const labels = ["很低", "很低", "低", "中", "高", "很高"];
                     const quality = Math.round(p.value);
-                    return `${p.axisValue}<br/>睡眠质量: ${labels[quality] || quality}`;
+                    return `${p.axisValue}<br/>${t("insights.report.sleepQuality")}: ${getSleepQualityText(quality, t)}`;
                   },
                 },
               }}
@@ -185,7 +270,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
       {(typeof weekdayVsWeekend.weekday === "number" || typeof weekdayVsWeekend.weekend === "number") && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">工作日 vs 周末</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.weekdayVsWeekend")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <EChartsWrapper
@@ -193,7 +278,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
               option={{
                 grid: { top: 20, bottom: 30, left: 60, right: 20 },
                 xAxis: { type: "value", min: 0, max: 5, interval: 1 },
-                yAxis: { type: "category", data: ["工作日", "周末"] },
+                yAxis: { type: "category", data: [t("insights.report.weekday"), t("insights.report.weekend")] },
                 series: [{
                   type: "bar",
                   data: [weekdayBarVal, weekendBarVal],
@@ -223,7 +308,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
       {sleepPatterns.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">发现的睡眠规律</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.discoveredSleepPatterns")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 px-6 pb-4">
             {sleepPatterns.map((p, i) => (
@@ -233,7 +318,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                 {p.suggestion && (
                   <div className="pt-1.5 border-t border-border/30">
                     <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                      <span className="font-medium">建议：</span>{p.suggestion}
+                      <span className="font-medium">{t("insights.report.suggestion")}：</span>{p.suggestion}
                     </p>
                   </div>
                 )}
@@ -247,7 +332,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
       {qualityFactors.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">睡眠质量影响因素</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.sleepQualityFactors")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 px-6 pb-4">
             {qualityFactors.map((f, i) => (
@@ -268,7 +353,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                   {f.action && (
                     <div className="pt-1.5 border-t border-border/30">
                       <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                        <span className="font-medium">行动建议：</span>{f.action}
+                        <span className="font-medium">{t("insights.report.actionAdvice")}：</span>{f.action}
                       </p>
                     </div>
                   )}
@@ -285,14 +370,14 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Star className="h-4 w-4 text-amber-500" />
-              值得关注的夜晚
+              {t("insights.report.notableNights")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 pl-[46px] pr-6 pb-4">
             {notableNights.map((n, i) => (
               <div key={i} className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(n.date), "M月d日", { locale: zhCN })}
+                  {format(new Date(n.date), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "MMM d", { locale: dateLocale })}
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{n.note}</p>
               </div>
@@ -307,7 +392,7 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Lightbulb className="h-4 w-4 text-amber-500" />
-              睡眠改善建议
+              {t("insights.report.sleepImprovementTips")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -318,8 +403,8 @@ function SleepReport({ insight, showComparison }: { insight: Insight; showCompar
                   </div>
                   <div className="space-y-1.5 flex-1">
                     <p className="text-sm font-medium leading-relaxed">{tip.tip}</p>
-                    {tip.timing && <p className="text-xs text-muted-foreground leading-relaxed">执行时间：{tip.timing}</p>}
-                    {tip.expected && <p className="text-xs text-muted-foreground leading-relaxed">预期效果：{tip.expected}</p>}
+                    {tip.timing && <p className="text-xs text-muted-foreground leading-relaxed">{t("insights.report.executionTime")}：{tip.timing}</p>}
+                    {tip.expected && <p className="text-xs text-muted-foreground leading-relaxed">{t("insights.report.expectedEffect")}：{tip.expected}</p>}
                   </div>
                 </div>
               ))}

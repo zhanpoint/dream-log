@@ -4,6 +4,7 @@ import { DeleteReportButton } from "@/components/insights/delete-report-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { insightAPI, type Insight, type InsightSettings } from "@/lib/insight-api";
+import { format } from "date-fns";
 import {
   AlertCircle,
   ArrowLeft,
@@ -72,6 +73,18 @@ export function ThemeReportShell({
     }
   }, [insightIdFromUrl]);
 
+  // 生成带日期范围的标题
+  const titleWithDateRange = (() => {
+    if (!insight) return title;
+    const insightData = insight.data as Record<string, unknown>;
+    const period = (insightData.period || {}) as Record<string, string>;
+    if (period.start_date && period.end_date) {
+      const dateRange = `${format(new Date(period.start_date), "MM/dd")}-${format(new Date(period.end_date), "MM/dd")}`;
+      return `${title} ${dateRange}`;
+    }
+    return title;
+  })();
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       {/* 头部 */}
@@ -89,7 +102,7 @@ export function ThemeReportShell({
           <div className="flex items-center gap-2 min-w-0">
             {icon}
             <div className="min-w-0">
-              <h1 className="text-xl font-bold truncate">{title}</h1>
+              <h1 className="text-xl font-bold truncate">{titleWithDateRange}</h1>
               <p className="text-sm text-muted-foreground truncate">{description}</p>
             </div>
           </div>

@@ -67,6 +67,10 @@ _emotion_chain = _make_chain(EMOTION_HEALTH_PROMPT)
 _sleep_chain = _make_chain(SLEEP_QUALITY_PROMPT)
 _theme_chain = _make_chain(THEME_PATTERN_PROMPT)
 
+# 当前洞察报告缺少前端语言上下文，先统一使用中文。
+# 未来如需支持按用户语言生成，可在调用处将具体语言传入。
+DEFAULT_TARGET_LANGUAGE = "中文"
+
 
 class InsightService:
     """洞察报告服务"""
@@ -77,7 +81,7 @@ class InsightService:
     # ========== 月度报告 ==========
 
     async def generate_monthly_report(
-        self, user_id: uuid.UUID, year: int, month: int
+        self, user_id: uuid.UUID, year: int, month: int, *, target_language: str = DEFAULT_TARGET_LANGUAGE
     ) -> UserInsight | None:
         """为单个用户生成月度报告"""
         start = date(year, month, 1)
@@ -108,6 +112,7 @@ class InsightService:
                 "emotion_distribution": json.dumps(stats["emotion_distribution"], ensure_ascii=False),
                 "top_triggers": json.dumps(stats["top_triggers"], ensure_ascii=False),
                 "dream_contents": dream_contents,
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 月报生成失败: {user_id}, {e}")
@@ -161,7 +166,7 @@ class InsightService:
     # ========== 周报 ==========
 
     async def generate_weekly_report(
-        self, user_id: uuid.UUID, week_start: date
+        self, user_id: uuid.UUID, week_start: date, *, target_language: str = DEFAULT_TARGET_LANGUAGE
     ) -> UserInsight | None:
         """生成周报（week_start 为周一）"""
         week_end = week_start + timedelta(days=6)
@@ -201,6 +206,7 @@ class InsightService:
                 "prev_record_days": prev_record_days,
                 "streak_days": streak,
                 "dream_contents": dream_contents,
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 周报生成失败: {user_id}, {e}")
@@ -255,7 +261,7 @@ class InsightService:
     # ========== 年度回顾 ==========
 
     async def generate_annual_report(
-        self, user_id: uuid.UUID, year: int
+        self, user_id: uuid.UUID, year: int, *, target_language: str = DEFAULT_TARGET_LANGUAGE
     ) -> UserInsight | None:
         """生成年度回顾"""
         start = date(year, 1, 1)
@@ -320,6 +326,7 @@ class InsightService:
                 "avg_sleep_quality": avg_quality,
                 "best_sleep_month": f"{best_month}月",
                 "monthly_dreams": "\n\n".join(monthly_dreams_text),
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 年报生成失败: {user_id}, {e}")
@@ -448,6 +455,7 @@ class InsightService:
                 "emotion_timeline": json.dumps(emotion_timeline[:30], ensure_ascii=False),
                 "total_dreams": stats["total_dreams"],
                 "dream_contents": dream_contents,
+                "target_language": DEFAULT_TARGET_LANGUAGE,
             })
         except Exception as e:
             logger.error(f"AI 情绪健康分析失败: {user_id}, {e}")
@@ -548,6 +556,7 @@ class InsightService:
                 "weekday_quality": weekday_avg,
                 "weekend_quality": weekend_avg,
                 "dream_contents": dream_contents,
+                "target_language": DEFAULT_TARGET_LANGUAGE,
             })
         except Exception as e:
             logger.error(f"AI 睡眠质量分析失败: {user_id}, {e}")
@@ -613,6 +622,7 @@ class InsightService:
                 "days": days,
                 "total_dreams": len(dreams),
                 "dream_contents": dream_contents,
+                "target_language": DEFAULT_TARGET_LANGUAGE,
             })
         except Exception as e:
             logger.error(f"AI 主题分析失败: {user_id}, {e}")
@@ -746,10 +756,10 @@ class InsightService:
         await self.db.commit()
         return True
 
-    async def cleanup_expired(self, user_id: uuid.UUID) -> None:
-        """清理过期报告"""
+    async def cleanup_expired(self, user_id: uuid.UUID) -> int:
+        """清理过期报告，返回删除条数"""
         now = shanghai_now()
-        await self.db.execute(
+        result = await self.db.execute(
             delete(UserInsight).where(
                 UserInsight.user_id == user_id,
                 UserInsight.expires_at.isnot(None),
@@ -757,6 +767,7 @@ class InsightService:
             )
         )
         await self.db.commit()
+        return result.rowcount or 0
 
     async def cleanup_all(self, user_id: uuid.UUID) -> None:
         """清理该用户的所有洞察报告"""

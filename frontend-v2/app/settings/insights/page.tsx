@@ -20,6 +20,7 @@ import {
 import { Award, BarChart3, Bell, Calendar, CalendarDays, GitCompare, Loader2, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_SETTINGS: InsightSettings = {
   monthly_report_enabled: true,
@@ -30,6 +31,7 @@ const DEFAULT_SETTINGS: InsightSettings = {
 };
 
 export default function InsightSettingsPage() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<InsightSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,7 @@ export default function InsightSettingsPage() {
         const data = await insightAPI.getSettings();
         setSettings(data);
       } catch {
-        toast.error("加载设置失败");
+        toast.error(t("settings.insights.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ export default function InsightSettingsPage() {
     try {
       await insightAPI.updateSettings({ [field]: value });
     } catch {
-      toast.error("保存失败");
+      toast.error(t("settings.insights.saveFailed"));
       setSettings(settings);
     } finally {
       setSaving(false);
@@ -70,9 +72,9 @@ export default function InsightSettingsPage() {
     try {
       const updated = await insightAPI.updateSettings(DEFAULT_SETTINGS);
       setSettings(updated);
-      toast.success("已恢复默认设置");
+      toast.success(t("settings.insights.restoreSuccess"));
     } catch {
-      toast.error("恢复失败，请重试");
+      toast.error(t("settings.insights.restoreFailed"));
     } finally {
       setSaving(false);
     }
@@ -82,9 +84,9 @@ export default function InsightSettingsPage() {
     setCleaning(true);
     try {
       const count = await insightAPI.cleanup();
-      toast.success(`已清理 ${count} 条过期报告`);
+      toast.success(t("settings.insights.cleanupSuccess", { count }));
     } catch {
-      toast.error("清理失败");
+      toast.error(t("settings.insights.cleanupFailed"));
     } finally {
       setCleaning(false);
     }
@@ -94,9 +96,9 @@ export default function InsightSettingsPage() {
     setCleaningAll(true);
     try {
       // TODO: 需要添加 cleanupAll API
-      toast.success("已清理所有洞察报告");
+      toast.success(t("settings.insights.cleanupAllSuccess"));
     } catch {
-      toast.error("清理失败");
+      toast.error(t("settings.insights.cleanupFailed"));
     } finally {
       setCleaningAll(false);
     }
@@ -111,7 +113,7 @@ export default function InsightSettingsPage() {
   }
 
   if (!settings) {
-    return <div>加载设置失败</div>;
+    return <div>{t("settings.insights.loadFailedText")}</div>;
   }
 
   return (
@@ -120,30 +122,30 @@ export default function InsightSettingsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Sparkles className="h-6 w-6" />
-            洞察报告设置
+            {t("settings.insights.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            管理 AI 分析报告的生成和通知偏好
+            {t("settings.insights.subtitle")}
           </p>
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" className="shrink-0 hover:bg-primary/10 hover:border-primary/50 transition-colors">
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-              恢复默认设置
+              {t("settings.insights.restoreDefaults")}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>恢复默认设置</AlertDialogTitle>
+              <AlertDialogTitle>{t("settings.insights.restoreDefaultsTitle")}</AlertDialogTitle>
               <AlertDialogDescription>
-                所有洞察报告设置将恢复为默认值。此操作不会删除已生成的报告。
+                {t("settings.insights.restoreDefaultsDesc")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleResetDefaults} disabled={saving}>
-                确认恢复
+                {t("common.confirm")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -155,10 +157,10 @@ export default function InsightSettingsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-primary" />
-            定期报告
+            {t("settings.insights.periodicReports")}
           </CardTitle>
           <CardDescription>
-            系统会定期自动为你生成梦境总结，帮助你追踪记录习惯、发现情绪和睡眠变化
+            {t("settings.insights.periodicReportsDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -167,7 +169,7 @@ export default function InsightSettingsPage() {
             {/* 周报 */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
               <Calendar className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
-              <Label htmlFor="weekly-enabled" className="text-sm cursor-pointer">启用周报</Label>
+              <Label htmlFor="weekly-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableWeekly")}</Label>
               <Switch
                 id="weekly-enabled"
                 checked={settings.weekly_report_enabled ?? true}
@@ -178,7 +180,7 @@ export default function InsightSettingsPage() {
             {/* 月报 */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
               <CalendarDays className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
-              <Label htmlFor="monthly-enabled" className="text-sm cursor-pointer">启用月报</Label>
+              <Label htmlFor="monthly-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableMonthly")}</Label>
               <Switch
                 id="monthly-enabled"
                 checked={settings.monthly_report_enabled}
@@ -189,7 +191,7 @@ export default function InsightSettingsPage() {
             {/* 年度回顾 */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
               <Award className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-              <Label htmlFor="annual-enabled" className="text-sm cursor-pointer">启用年度回顾</Label>
+              <Label htmlFor="annual-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableAnnual")}</Label>
               <Switch
                 id="annual-enabled"
                 checked={settings.annual_report_enabled ?? true}
@@ -205,8 +207,8 @@ export default function InsightSettingsPage() {
             <div className="flex items-center gap-2">
               <GitCompare className="h-4 w-4 text-blue-500" />
               <div>
-                <Label htmlFor="show-comparison" className="text-sm cursor-pointer">变化对比</Label>
-                <p className="text-xs text-muted-foreground">对比本期与上期的变化趋势</p>
+                <Label htmlFor="show-comparison" className="text-sm cursor-pointer">{t("settings.insights.showComparison")}</Label>
+                <p className="text-xs text-muted-foreground">{t("settings.insights.showComparisonDesc")}</p>
               </div>
             </div>
             <Switch
@@ -222,7 +224,7 @@ export default function InsightSettingsPage() {
           <div className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors">
             <Label htmlFor="notify-reports" className="flex items-center gap-1.5 cursor-pointer">
               <Bell className="h-3.5 w-3.5 text-blue-500" />
-              新报告通知
+              {t("settings.insights.notifyReports")}
             </Label>
             <Switch
               id="notify-reports"
@@ -238,18 +240,18 @@ export default function InsightSettingsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Trash2 className="h-4 w-4 text-red-500" />
-            数据管理
+            {t("settings.insights.dataManagement")}
           </CardTitle>
           <CardDescription>
-            管理已生成的洞察报告数据
+            {t("settings.insights.dataManagementDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">清理过期洞察报告</p>
+              <p className="text-sm font-medium">{t("settings.insights.cleanupOld")}</p>
               <p className="text-xs text-muted-foreground">
-                删除超过 6 个月的旧报告
+                {t("settings.insights.cleanupOldDesc")}
               </p>
             </div>
             <AlertDialog>
@@ -261,20 +263,20 @@ export default function InsightSettingsPage() {
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 dark:hover:border-red-800 transition-all min-w-[80px]"
                 >
                   {cleaning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  清理
+                  {t("settings.insights.cleanup")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>清理过期洞察报告</AlertDialogTitle>
+                  <AlertDialogTitle>{t("settings.insights.cleanupOldTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    此操作会删除超过 6 个月的旧报告。确定继续吗？
+                    {t("settings.insights.cleanupOldConfirm")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleCleanup} disabled={cleaning}>
-                    确认清理
+                    {t("settings.insights.confirmCleanup")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -283,9 +285,9 @@ export default function InsightSettingsPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">清理所有洞察报告</p>
+              <p className="text-sm font-medium">{t("settings.insights.cleanupAll")}</p>
               <p className="text-xs text-muted-foreground">
-                删除所有已生成的报告
+                {t("settings.insights.cleanupAllDesc")}
               </p>
             </div>
             <AlertDialog>
@@ -297,20 +299,20 @@ export default function InsightSettingsPage() {
                   className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 dark:hover:border-red-800 transition-all min-w-[80px]"
                 >
                   {cleaningAll && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  清理
+                  {t("settings.insights.cleanup")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>清理所有洞察报告</AlertDialogTitle>
+                  <AlertDialogTitle>{t("settings.insights.cleanupAllTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    此操作会删除你已生成的所有洞察报告记录，且无法恢复。确定继续吗？
+                    {t("settings.insights.cleanupAllConfirm")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleCleanupAll} disabled={cleaningAll}>
-                    确认清理
+                    {t("settings.insights.confirmCleanup")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

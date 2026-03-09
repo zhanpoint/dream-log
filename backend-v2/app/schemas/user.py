@@ -14,7 +14,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class UpdateProfileRequest(BaseModel):
     """更新个人资料请求"""
 
-    username: str | None = Field(None, min_length=3, max_length=20, pattern=r"^[a-zA-Z0-9_]+$")
+    username: str | None = Field(
+        None,
+        min_length=3,
+        max_length=20,
+        # 只做长度限制，内容不做字符种类限制
+    )
     bio: str | None = Field(None, max_length=200)
     birthday: date | None = None
 
@@ -67,7 +72,12 @@ class ChangeEmailRequest(BaseModel):
 class CheckUsernameRequest(BaseModel):
     """检查用户名可用性请求"""
 
-    username: str = Field(..., min_length=3, max_length=20, pattern=r"^[a-zA-Z0-9_]+$")
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=20,
+        # 与 UpdateProfileRequest 保持一致：只做长度限制
+    )
 
 
 # ============= 响应 Schemas =============

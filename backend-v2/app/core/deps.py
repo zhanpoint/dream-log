@@ -22,9 +22,16 @@ security = HTTPBearer()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """获取数据库会话"""
+    """获取数据库会话，请求结束时自动 commit，异常时 rollback"""
     async with async_session_maker() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
 
 
 def get_auth_service(

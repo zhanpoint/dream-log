@@ -6,7 +6,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { UserAvatar } from "@/components/user-avatar";
 import { AuthToken, AuthUser } from "@/lib/auth-api";
-import { Moon, Sparkles } from "lucide-react";
+import { Compass, MessageSquare, Moon, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,25 +21,23 @@ export function SiteHeader() {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    const updateAuthState = () => {
-      const authenticated = AuthToken.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      if (authenticated) {
-        setCurrentUser(AuthUser.get());
-      }
-    };
+    // 初始化时读取一次认证状态
+    const authenticated = AuthToken.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    if (authenticated) {
+      setCurrentUser(AuthUser.get());
+    }
+  }, []); // 仅在挂载时执行一次，pathname 变化不需要重新读取 localStorage
 
-    // 处理用户更新事件：始终读取最新用户信息
+  useEffect(() => {
+    // 处理用户更新事件：仅在用户数据变更时更新
     const handleUserUpdated = () => {
       setCurrentUser(AuthUser.get());
     };
 
-    updateAuthState();
-
-    // 监听用户信息更新事件
     window.addEventListener("auth:user-updated", handleUserUpdated);
     return () => window.removeEventListener("auth:user-updated", handleUserUpdated);
-  }, [pathname]);
+  }, []);
 
   return (
     <>
@@ -63,14 +61,28 @@ export function SiteHeader() {
                     className={`nav-link ${pathname === '/dreams' ? 'active' : ''}`}
                   >
                     <Moon className="h-4 w-4" />
-                    <span>我的梦境</span>
+                    <span>{t("nav.myDreams")}</span>
                   </Link>
                   <Link 
                     href="/insights"
                     className={`nav-link ${pathname.startsWith('/insights') ? 'active' : ''}`}
                   >
                     <Sparkles className="h-4 w-4" />
-                    <span>洞察报告</span>
+                    <span>{t("nav.insights")}</span>
+                  </Link>
+                  <Link 
+                    href="/exploration"
+                    className={`nav-link ${pathname.startsWith('/exploration') ? 'active' : ''}`}
+                  >
+                    <Compass className="h-4 w-4" />
+                    <span>{t("nav.exploration")}</span>
+                  </Link>
+                  <Link 
+                    href="/community"
+                    className={`nav-link ${pathname.startsWith('/community') ? 'active' : ''}`}
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>{t("nav.community")}</span>
                   </Link>
                 </nav>
               )}
@@ -103,8 +115,15 @@ export function SiteHeader() {
                           <path d="M12 20h9" />
                           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                         </svg>
-                        记录梦境
+                        {t("nav.recordDream")}
                       </Button>
+                    </Link>
+                    <Link
+                      href="/community/messages"
+                      className="relative h-9 w-9 inline-flex items-center justify-center rounded-md hover:scale-110 transition-transform duration-200"
+                      title="私信"
+                    >
+                      <MessageSquare className="h-[1.1rem] w-[1.1rem] text-primary" />
                     </Link>
                     <NotificationBell />
                     <Link

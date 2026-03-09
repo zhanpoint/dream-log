@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { insightAPI, type Insight } from "@/lib/insight-api";
-import { EMOTION_COLORS, EMOTION_LABELS } from "@/lib/emotion-utils";
+import { EMOTION_COLORS, getEmotionLabel } from "@/lib/emotion-utils";
+import { format } from "date-fns";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
 import {
   ArrowLeft,
   BookOpen,
@@ -27,30 +30,90 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
-const MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+// ===== 辅助函数 =====
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
 
-// 睡眠质量文字映射
-const SLEEP_QUALITY_TEXT: Record<number, string> = {
-  5: "非常好",
-  4: "良好",
-  3: "一般",
-  2: "较差",
-  1: "很差",
-};
-
-// 获取睡眠质量文字
-const getSleepQualityText = (quality: number): string => {
-  const rounded = Math.round(quality);
-  return SLEEP_QUALITY_TEXT[rounded] || "一般";
-};
+function getSleepQualityText(score: number, t: (key: string) => string): string {
+  if (score >= 4.5) return t("insights.report.veryGood");
+  if (score >= 3.5) return t("insights.report.good");
+  if (score >= 2.5) return t("insights.report.average");
+  if (score >= 1.5) return t("insights.report.poor");
+  return t("insights.report.veryPoor");
+}
 
 // ===== 类型 =====
-interface GrowthMilestone { milestone: string; month: string | number; meaning: string }
-interface BestMoment { month: number; moment: string }
-interface FeaturedDream { id: string; date: string; title: string; summary: string; vividness: number; reason?: string }
+interface GrowthMilestone {
+  milestone: string;
+  month: string | number;
+  meaning: string;
+}
+
+interface BestMoment {
+  month: number;
+  moment: string;
+}
+
+interface FeaturedDream {
+  id: string;
+  date: string;
+  title: string;
+  summary: string;
+  vividness: number;
+  reason?: string;
+}
+
+type AnnualStats = {
+  total_dreams?: number;
+  record_days?: number;
+  max_streak?: number;
+  avg_sleep_quality?: number;
+  best_sleep_month?: number;
+  emotion_distribution?: Record<string, number>;
+};
+
+type AnnualCharts = {
+  monthly_distribution?: Array<{ month: string | number; count: number }>;
+};
+
+type AnnualAi = {
+  year_story?: string;
+  growth_milestones?: GrowthMilestone[];
+  best_moments?: BestMoment[];
+  year_keywords?: string[];
+  emotional_journey?: string;
+  sleep_evolution?: string;
+  habit_achievement?: string;
+  challenges_overcome?: string;
+  next_year_vision?: string;
+};
+
+type AnnualPeriod = {
+  year?: number;
+};
+
+type AnnualData = {
+  statistics?: AnnualStats;
+  ai_analysis?: AnnualAi;
+  charts?: AnnualCharts;
+  featured_dreams?: FeaturedDream[];
+  period?: AnnualPeriod;
+};
 
 export default function AnnualReportPage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
   const { id } = useParams<{ id: string }>();
   const [insight, setInsight] = useState<Insight | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,12 +125,12 @@ export default function AnnualReportPage() {
         setInsight(data);
         if (!data.is_read) await insightAPI.markAsRead(id);
       } catch {
-        toast.error("加载报告失败");
+        toast.error(t("insights.report.loadFailed"));
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -84,24 +147,33 @@ export default function AnnualReportPage() {
   if (!insight) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground">报告不存在</p>
-        <Link href="/insights"><Button variant="link" className="mt-2">返回报告中心</Button></Link>
+        <p className="text-muted-foreground">{t("insights.report.reportNotFound")}</p>
+        <Link href="/insights"><Button variant="link" className="mt-2">{t("insights.report.backToInsights")}</Button></Link>
       </div>
     );
   }
 
-  const data = insight.data as Record<string, unknown>;
-  const stats = (data.statistics || {}) as Record<string, unknown>;
-  const ai = (data.ai_analysis || {}) as Record<string, unknown>;
-  const charts = (data.charts || {}) as Record<string, unknown>;
-  const period = (data.period || {}) as Record<string, number>;
+  const data = insight.data as AnnualData;
+  const stats: AnnualStats = data.statistics || {};
+  const ai: AnnualAi = data.ai_analysis || {};
+  const charts: AnnualCharts = data.charts || {};
+  const period: AnnualPeriod = data.period || {};
 
-  const growthMilestones = (ai.growth_milestones || []) as GrowthMilestone[];
-  const bestMoments = (ai.best_moments || []) as BestMoment[];
-  const yearKeywords = (ai.year_keywords || []) as string[];
-  const featuredDreams = (data.featured_dreams || []) as FeaturedDream[];
-  const monthlyDist = ((charts.monthly_distribution || []) as Array<{ month: string; count: number }>);
-  const emotionDist = ((stats.emotion_distribution || {}) as Record<string, number>);
+  const growthMilestones = ai.growth_milestones || [];
+  const bestMoments = ai.best_moments || [];
+  const yearKeywords = ai.year_keywords || [];
+  const featuredDreams = data.featured_dreams || [];
+  const monthlyDist = charts.monthly_distribution || [];
+  const emotionDist = stats.emotion_distribution || {};
+
+  // 动态生成月份名称
+  const getMonthNames = () => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const date = new Date(2024, i, 1);
+      return format(date, dateLocale === zhCN || dateLocale === ja ? "M月" : "MMM", { locale: dateLocale });
+    });
+  };
+  const MONTH_NAMES = getMonthNames();
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
@@ -117,7 +189,9 @@ export default function AnnualReportPage() {
               <ArrowLeft className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold truncate">{insight.title}</h1>
+          <h1 className="text-xl font-bold truncate">
+            {t("insights.report.annualReportTitle", { year: period.year })}
+          </h1>
         </div>
         <DeleteReportButton insightId={insight.id} redirectTo="/insights" className="h-9 w-9 p-0 rounded-lg shrink-0" />
       </div>
@@ -136,10 +210,10 @@ export default function AnnualReportPage() {
 
       <Tabs defaultValue="data" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="data">年度数据</TabsTrigger>
-          <TabsTrigger value="months">每月亮点</TabsTrigger>
-          <TabsTrigger value="dreams">精选梦境</TabsTrigger>
-          <TabsTrigger value="growth">成长轨迹</TabsTrigger>
+          <TabsTrigger value="data">{t("insights.report.yearDataTab")}</TabsTrigger>
+          <TabsTrigger value="months">{t("insights.report.monthlyHighlightsTab")}</TabsTrigger>
+          <TabsTrigger value="dreams">{t("insights.report.featuredDreamsTab")}</TabsTrigger>
+          <TabsTrigger value="growth">{t("insights.report.growthTrajectoryTab")}</TabsTrigger>
         </TabsList>
 
         {/* ===== 年度数据 ===== */}
@@ -149,33 +223,35 @@ export default function AnnualReportPage() {
             <div className="flex flex-col items-center gap-2">
               <Cloud className="h-5 w-5 text-indigo-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">{stats.total_dreams || 0}</p>
-              <p className="text-xs text-muted-foreground">总记录数</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.totalRecords")}</p>
             </div>
             
             <div className="flex flex-col items-center gap-2">
               <Calendar className="h-5 w-5 text-green-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">{stats.record_days || 0}</p>
-              <p className="text-xs text-muted-foreground">记录天数</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.recordDays")}</p>
             </div>
             
             <div className="flex flex-col items-center gap-2">
               <Flame className="h-5 w-5 text-orange-500 mb-1" />
-              <p className="text-2xl font-semibold text-foreground">{stats.max_streak || 0}天</p>
-              <p className="text-xs text-muted-foreground">最长连续</p>
+              <p className="text-2xl font-semibold text-foreground">{stats.max_streak || 0}</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.maxStreak")}</p>
             </div>
 
             <div className="flex flex-col items-center gap-2">
               <Moon className="h-5 w-5 text-blue-500 mb-1" />
               <p className="text-2xl font-semibold text-foreground">
-                {stats.avg_sleep_quality ? getSleepQualityText(stats.avg_sleep_quality) : '-'}
+                {stats.avg_sleep_quality ? getSleepQualityText(Number(stats.avg_sleep_quality), t) : '-'}
               </p>
-              <p className="text-xs text-muted-foreground">平均睡眠</p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.avgSleep")}</p>
             </div>
 
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-500 mb-1" />
-              <p className="text-2xl font-semibold text-foreground">{stats.best_sleep_month || '-'}月</p>
-              <p className="text-xs text-muted-foreground">最佳睡眠</p>
+              <p className="text-2xl font-semibold text-foreground">
+                {stats.best_sleep_month ? `${stats.best_sleep_month}${dateLocale === zhCN || dateLocale === ja ? "月" : ""}` : '-'}
+              </p>
+              <p className="text-xs text-muted-foreground">{t("insights.report.bestSleepMonth")}</p>
             </div>
           </div>
 
@@ -184,7 +260,7 @@ export default function AnnualReportPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-1.5 px-1">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium">每月梦境记录</h3>
+                <h3 className="text-sm font-medium">{t("insights.report.monthlyDreamRecords")}</h3>
               </div>
               <div className="border rounded-lg p-4">
                 <EChartsWrapper
@@ -218,7 +294,7 @@ export default function AnnualReportPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-1.5 px-1">
                 <Heart className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium">年度情绪分布</h3>
+                <h3 className="text-sm font-medium">{t("insights.report.annualEmotionDistribution")}</h3>
               </div>
               <div className="border rounded-lg p-4">
                 <EChartsWrapper
@@ -228,7 +304,7 @@ export default function AnnualReportPage() {
                       type: "pie",
                       radius: ["35%", "65%"],
                       data: Object.entries(emotionDist).map(([k, v]) => ({
-                        name: (EMOTION_LABELS as Record<string, string>)[k] || k,
+                        name: getEmotionLabel(k, t),
                         value: v,
                         itemStyle: { color: (EMOTION_COLORS as Record<string, string>)[k] },
                       })),
@@ -241,7 +317,7 @@ export default function AnnualReportPage() {
                     tooltip: { 
                       trigger: "item", 
                       formatter: (params: any) => {
-                        return `${params.name}: ${params.value}次`;
+                        return `${params.name}: ${params.value}${t("insights.report.times")}`;
                       }
                     },
                     legend: { bottom: 0, orient: "horizontal", textStyle: { fontSize: 11 } },
@@ -256,7 +332,7 @@ export default function AnnualReportPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-1.5 px-1">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-medium">年度关键词</h3>
+                <h3 className="text-sm font-medium">{t("insights.report.annualKeywords")}</h3>
               </div>
               <div className="flex flex-wrap gap-2.5 px-1">
                 {yearKeywords.map((kw, i) => (
@@ -291,7 +367,7 @@ export default function AnnualReportPage() {
         {/* ===== 每月亮点 ===== */}
         <TabsContent value="months" className="space-y-3">
           {bestMoments.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">暂无每月亮点数据</p>
+            <p className="text-center text-muted-foreground py-8">{t("insights.report.noMonthlyHighlights")}</p>
           ) : (
             <div className="relative py-4">
               {/* 中央时间线 */}
@@ -344,7 +420,9 @@ export default function AnnualReportPage() {
                             
                             {/* 月份（节点右侧，距离较远） */}
                             <div className="w-[20px] flex justify-start pl-4">
-                              <span className={`text-base font-normal ${color.text} whitespace-nowrap`}>{s.month}月</span>
+                              <span className={`text-base font-normal ${color.text} whitespace-nowrap`}>
+                                {dateLocale === zhCN || dateLocale === ja ? `${s.month}月` : format(new Date(2024, Number(s.month) - 1, 1), "MMM", { locale: dateLocale })}
+                              </span>
                             </div>
                             
                             {/* 右侧占位 */}
@@ -360,7 +438,9 @@ export default function AnnualReportPage() {
                             
                             {/* 月份（节点左侧，距离较远） */}
                             <div className="w-[20px] flex justify-end pr-4">
-                              <span className={`text-base font-normal ${color.text} whitespace-nowrap`}>{s.month}月</span>
+                              <span className={`text-base font-normal ${color.text} whitespace-nowrap`}>
+                                {dateLocale === zhCN || dateLocale === ja ? `${s.month}月` : format(new Date(2024, Number(s.month) - 1, 1), "MMM", { locale: dateLocale })}
+                              </span>
                             </div>
                             
                             {/* 中央节点 */}
@@ -394,12 +474,14 @@ export default function AnnualReportPage() {
         {/* ===== 精选梦境 ===== */}
         <TabsContent value="dreams" className="space-y-4">
           {featuredDreams.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">暂无精选梦境</p>
+            <p className="text-center text-muted-foreground py-8">{t("insights.report.noFeaturedDreams")}</p>
           ) : (
             featuredDreams.map((d) => {
               // 格式化日期为更友好的格式
               const dreamDate = new Date(d.date);
-              const formattedDate = `${dreamDate.getMonth() + 1}月${dreamDate.getDate()}日`;
+              const formattedDate = dateLocale === zhCN || dateLocale === ja 
+                ? `${dreamDate.getMonth() + 1}月${dreamDate.getDate()}日`
+                : format(dreamDate, "MMM d", { locale: dateLocale });
               
               return (
                 <Link key={d.id} href={`/dreams/${d.id}`}>
@@ -414,7 +496,7 @@ export default function AnnualReportPage() {
                           {d.reason && (
                             <Badge 
                               variant="secondary" 
-                              className="text-xs px-2.5 py-0.5 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200/50 dark:from-amber-950/30 dark:to-orange-950/30 dark:text-amber-300 dark:border-amber-800/30 shrink-0 font-normal"
+                              className="text-xs px-2.5 py-0.5 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200/50 dark:from-amber-950/30 dark:to-orange-950/30 dark:text-amber-300 dark:border-amber-800/30 shrink-0 font-normal pointer-events-none"
                             >
                               {d.reason}
                             </Badge>
@@ -447,7 +529,7 @@ export default function AnnualReportPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 px-1">
                 <Flame className="h-4 w-4 text-orange-500" />
-                <h3 className="text-sm font-medium">成长里程碑</h3>
+                <h3 className="text-sm font-medium">{t("insights.report.growthMilestones")}</h3>
               </div>
               <div className="space-y-4">
                 {growthMilestones.map((m, i) => {
@@ -458,12 +540,20 @@ export default function AnnualReportPage() {
                   ];
                   const color = colors[i % colors.length];
                   
+                  // 格式化月份显示
+                  const monthNum = typeof m.month === 'string' ? parseInt(m.month, 10) : Number(m.month);
+                  const monthDisplay = dateLocale === zhCN || dateLocale === ja 
+                    ? `${monthNum}月`
+                    : (isNaN(monthNum) || monthNum < 1 || monthNum > 12)
+                      ? String(m.month)
+                      : format(new Date(2024, monthNum - 1, 1), "MMM", { locale: dateLocale });
+                  
                   return (
                     <Card key={i} className="hover:shadow-md transition-shadow border-border/40 dark:border-border/20">
                       <CardContent className="pt-4 pb-4">
                         <div className="flex items-start gap-3">
                           <Badge variant="outline" className={`shrink-0 text-xs font-normal ${color.badge}`}>
-                            {m.month}月
+                            {monthDisplay}
                           </Badge>
                           <div className="flex-1 space-y-1">
                             <p className="text-sm font-medium leading-relaxed">{m.milestone}</p>
@@ -485,7 +575,7 @@ export default function AnnualReportPage() {
                 <div className="flex items-start gap-3">
                   <Heart className="h-5 w-5 text-rose-500 mt-0.5 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium">情绪成长</p>
+                    <p className="text-sm font-medium">{t("insights.report.emotionalGrowth")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{String(ai.emotional_journey)}</p>
                   </div>
                 </div>
@@ -500,7 +590,7 @@ export default function AnnualReportPage() {
                 <div className="flex items-start gap-3">
                   <Moon className="h-5 w-5 text-indigo-500 mt-0.5 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium">睡眠改善</p>
+                    <p className="text-sm font-medium">{t("insights.report.sleepImprovement")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{String(ai.sleep_evolution)}</p>
                   </div>
                 </div>
@@ -515,7 +605,7 @@ export default function AnnualReportPage() {
                 <div className="flex items-start gap-3">
                   <BookOpen className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium">记录习惯</p>
+                    <p className="text-sm font-medium">{t("insights.report.recordingHabit")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{String(ai.habit_achievement)}</p>
                   </div>
                 </div>
@@ -530,7 +620,7 @@ export default function AnnualReportPage() {
                 <div className="flex items-start gap-3">
                   <Mountain className="h-5 w-5 text-slate-500 mt-0.5 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium">克服的挑战</p>
+                    <p className="text-sm font-medium">{t("insights.report.challengesOvercome")}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{String(ai.challenges_overcome)}</p>
                   </div>
                 </div>
@@ -545,7 +635,7 @@ export default function AnnualReportPage() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-primary">新年展望</p>
+                    <p className="text-sm font-semibold text-primary">{t("insights.report.nextYearVision")}</p>
                     <p className="text-sm text-foreground leading-relaxed font-medium">{String(ai.next_year_vision)}</p>
                   </div>
                 </div>
@@ -554,7 +644,7 @@ export default function AnnualReportPage() {
           )}
 
           {growthMilestones.length === 0 && !ai.emotional_journey && !ai.sleep_evolution && !ai.habit_achievement && (
-            <p className="text-center text-muted-foreground py-8">暂无成长轨迹数据</p>
+            <p className="text-center text-muted-foreground py-8">{t("insights.report.noGrowthData")}</p>
           )}
         </TabsContent>
       </Tabs>

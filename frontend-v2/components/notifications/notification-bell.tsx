@@ -30,11 +30,17 @@ export function NotificationBell() {
   // SSE 实时推送
   const { status } = useNotificationSSE({
     onNotification: (notification) => {
-      // 收到新通知，显示 toast
-      toast.success(notification.title, {
-        description: notification.content || undefined,
-        duration: 4000,
-      });
+      const isDmNotification =
+        notification.link?.startsWith("/community/messages") ||
+        notification.title.includes("私信");
+
+      // 收到新通知，显示 toast（私信类通知不弹提示，避免打扰）
+      if (!isDmNotification) {
+        toast.success(notification.title, {
+          description: notification.content || undefined,
+          duration: 4000,
+        });
+      }
 
       // 如果弹窗打开，更新通知列表
       if (open) {
@@ -115,10 +121,6 @@ export function NotificationBell() {
               {badgeText}
             </span>
           )}
-          {/* 连接状态指示器 */}
-          {status === "error" && (
-            <WifiOff className="absolute -bottom-0.5 -right-0.5 h-3 w-3 text-destructive" />
-          )}
         </button>
       </PopoverTrigger>
 
@@ -154,7 +156,7 @@ export function NotificationBell() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 gap-1 text-xs"
+                className="h-7 gap-1 text-xs text-foreground dark:text-slate-200 hover:text-foreground dark:hover:text-slate-100 transition-transform duration-200 hover:scale-105 hover:-translate-y-0.5 hover:bg-transparent"
                 onClick={handleMarkAllRead}
               >
                 <CheckCheck className="h-3.5 w-3.5" />

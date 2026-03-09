@@ -10,14 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User, RegistrationMethod
 from app.schemas.user import UpdateProfileRequest
-from app.services.oss_service import delete_oss_file_from_url
+from app.services.oss_service import get_oss_service
 from app.services.password_service import PasswordService
 from app.services.username_service import check_username_available, generate_username
 from app.core.redis import get_redis, get_arq_redis
 
 
 class UserService:
-    """用户服务类（兼容旧版 AuthService）"""
+    """用户服务类"""
 
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -46,6 +46,7 @@ class UserService:
         name: str | None = None,
         google_id: str | None = None,
         avatar: str | None = None,
+        registration_method: RegistrationMethod | None = None,
     ) -> User:
         """创建用户"""
         # 先生成 UUID
@@ -57,7 +58,8 @@ class UserService:
             username=name,
             google_id=google_id,
             avatar=avatar,
-            registration_method=RegistrationMethod.GOOGLE if google_id else RegistrationMethod.EMAIL,
+            registration_method=registration_method
+            or (RegistrationMethod.GOOGLE if google_id else RegistrationMethod.EMAIL),
         )
 
         if password:
@@ -169,9 +171,10 @@ async def update_avatar(
     """
     user = await get_user_by_id(user_id, db)
     
-    # 如果有旧头像且是OSS上的文件，尝试删除（头像在 public bucket）
+    # 如果有旧头像且是 OSS 上的文件，异步删除（头像在 public bucket）
     if user.avatar:
-        delete_oss_file_from_url(user.avatar, user_id, bucket_type="public")
+        oss_service = get_oss_service()
+        await oss_service.delete_object_by_url(user.avatar, bucket_type="public")
     
     user.avatar = avatar_url
     

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { EChartsWrapper } from "@/components/charts/echarts-wrapper";
 import { ThemeReportShell } from "@/components/insights/theme-report-shell";
 import { Badge } from "@/components/ui/badge";
@@ -8,43 +9,125 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Insight } from "@/lib/insight-api";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
 import { Brain, ChevronRight, HelpCircle, Link2, Moon, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
+
+// ===== 辅助函数 =====
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
 
 // ===== 类型 =====
-interface RecurringPattern { pattern: string; count: number; meaning: string; personal_meaning: string }
-interface CommonSymbol { symbol: string; frequency: number; interpretation: string; context: string; life_connection: string }
-interface DreamTheme { theme: string; percentage: number; description: string; evolution: string; growth_insight: string }
-interface Connection { connection: string; insight: string; suggestion: string }
-interface SelfReflection { question: string; why: string; guidance: string }
-interface RepresentativeDream { date: string; theme: string; why_important: string; dream_id?: string }
+interface RecurringPattern {
+  pattern: string;
+  count: number;
+  meaning: string;
+  personal_meaning: string;
+}
 
-export default function ThemePatternPage() {
+interface CommonSymbol {
+  symbol: string;
+  frequency: number;
+  interpretation: string;
+  context: string;
+  life_connection: string;
+}
+
+interface DreamTheme {
+  theme: string;
+  percentage: number;
+  description: string;
+  evolution: string;
+  growth_insight: string;
+}
+
+interface Connection {
+  connection: string;
+  insight: string;
+  suggestion: string;
+}
+
+interface SelfReflection {
+  question: string;
+  why: string;
+  guidance: string;
+}
+
+interface RepresentativeDream {
+  date: string;
+  theme: string;
+  why_important: string;
+  dream_id?: string;
+}
+
+type ThemeAi = {
+  theme_summary?: string;
+  recurring_patterns?: RecurringPattern[];
+  common_symbols?: CommonSymbol[];
+  dream_themes?: DreamTheme[];
+  connections?: Connection[];
+  self_reflection?: SelfReflection[];
+  representative_dreams?: RepresentativeDream[];
+  pattern_evolution?: string | null;
+};
+
+type ThemeStats = {
+  tag_frequency?: Array<[string, number]>;
+};
+
+type ThemeData = {
+  ai_analysis?: ThemeAi;
+  statistics?: ThemeStats;
+};
+
+function ThemePatternContent() {
+  const { t } = useTranslation();
   return (
     <ThemeReportShell
       reportType="THEME_PATTERN"
-      title="梦境主题模式"
-      description="发现重复梦境、高频符号与深层主题"
+      title={t("insights.theme.themeLabel")}
+      description={t("insights.theme.themeDesc")}
       icon={<Brain className="h-5 w-5 text-violet-500" />}
       renderReport={(insight) => <ThemeReport insight={insight} />}
     />
   );
 }
 
+export default function ThemePatternPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">加载中...</div>}>
+      <ThemePatternContent />
+    </Suspense>
+  );
+}
+
 function ThemeReport({ insight }: { insight: Insight }) {
   const router = useRouter();
-  const data = insight.data as Record<string, unknown>;
-  const ai = (data.ai_analysis || {}) as Record<string, unknown>;
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
+  
+  const data = insight.data as ThemeData;
+  const ai: ThemeAi = data.ai_analysis || {};
 
-  const recurringPatterns = (ai.recurring_patterns || []) as RecurringPattern[];
-  const commonSymbols = (ai.common_symbols || []) as CommonSymbol[];
-  const dreamThemes = (ai.dream_themes || []) as DreamTheme[];
-  const connections = (ai.connections || []) as Connection[];
-  const selfReflection = (ai.self_reflection || []) as SelfReflection[];
-  const representativeDreams = (ai.representative_dreams || []) as RepresentativeDream[];
-  const patternEvolution = ai.pattern_evolution as string | null | undefined;
+  const recurringPatterns = ai.recurring_patterns || [];
+  const commonSymbols = ai.common_symbols || [];
+  const dreamThemes = ai.dream_themes || [];
+  const connections = ai.connections || [];
+  const selfReflection = ai.self_reflection || [];
+  const representativeDreams = ai.representative_dreams || [];
+  const patternEvolution = ai.pattern_evolution ?? null;
 
   // 处理符号点击 - 跳转到梦境列表并筛选包含该符号的梦境
   const handleSymbolClick = (symbol: string) => {
@@ -60,7 +143,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Brain className="h-4 w-4 text-violet-500" />
-              主题模式总结
+              {t("insights.report.themePatternSummary")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">
@@ -69,7 +152,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
             {/* 行动指引 */}
             <div className="mt-6 pt-5 border-t border-border/30">
               <p className="text-xs text-muted-foreground mb-4">
-                💡 基于这些发现，你可以：
+                💡 {t("insights.report.actionGuidance")}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button 
@@ -78,7 +161,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                   className="h-9 px-4 text-xs text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                   onClick={() => router.push('/dreams/new')}
                 >
-                  记录新梦境
+                  {t("insights.report.recordNewDream")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -86,7 +169,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                   className="h-9 px-4 text-xs text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                   onClick={() => router.push('/dreams')}
                 >
-                  查看所有梦境
+                  {t("insights.report.viewAllDreams")}
                 </Button>
                 {representativeDreams.length > 0 && representativeDreams[0].dream_id && (
                   <Button 
@@ -95,7 +178,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                     className="h-9 px-4 text-xs text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
                     onClick={() => router.push(`/dreams/${representativeDreams[0].dream_id}`)}
                   >
-                    查看代表性梦境
+                    {t("insights.report.viewRepresentativeDream")}
                   </Button>
                 )}
               </div>
@@ -108,7 +191,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
       {dreamThemes.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">梦境主题分布</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.dreamThemeDistribution")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <EChartsWrapper
@@ -136,18 +219,18 @@ function ThemeReport({ insight }: { insight: Insight }) {
             {/* 分隔线 */}
             <div className="mt-8 mb-6 border-t border-border/30" />
             <div className="space-y-4">
-              {dreamThemes.map((t, i) => (
+              {dreamThemes.map((theme, i) => (
                 <div key={i} className="border-l-2 border-primary/30 pl-4 space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{t.theme}</span>
+                    <span className="text-sm font-medium">{theme.theme}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
-                  {t.evolution && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">变化：{t.evolution}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{theme.description}</p>
+                  {theme.evolution && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">{t("insights.report.change")}：{theme.evolution}</p>
                   )}
-                  {t.growth_insight && (
+                  {theme.growth_insight && (
                     <div className="pt-2 border-t border-primary/20">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium leading-relaxed">成长洞察：{t.growth_insight}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium leading-relaxed">{t("insights.report.growthInsight")}：{theme.growth_insight}</p>
                   </div>
                   )}
                 </div>
@@ -161,7 +244,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
       {recurringPatterns.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">重复出现的模式</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.recurringPatterns")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 px-6 pb-4">
             {recurringPatterns.map((p, i) => (
@@ -170,7 +253,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                   <p className="text-sm font-medium flex-1">{p.pattern}</p>
                   <div className="flex items-center gap-2 shrink-0">
                     {/* 视觉化频率指示器 */}
-                    <div className="flex gap-0.5" title={`出现 ${p.count} 次`}>
+                    <div className="flex gap-0.5" title={`${t("insights.report.times", { count: p.count })}`}>
                       {Array.from({ length: 5 }).map((_, idx) => (
                         <div
                           key={idx}
@@ -184,7 +267,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                       ))}
                     </div>
                     <Badge variant="outline" className="text-xs">
-                      {p.count}次
+                      {p.count}{t("insights.report.times")}
                     </Badge>
                   </div>
                 </div>
@@ -192,7 +275,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                 {p.personal_meaning && (
                   <div className="pt-1.5 border-t border-border/30">
                     <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                      <span className="font-medium">个人意义：</span>{p.personal_meaning}
+                      <span className="font-medium">{t("insights.report.personalMeaning")}：</span>{p.personal_meaning}
                     </p>
                   </div>
                 )}
@@ -206,7 +289,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
       {commonSymbols.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">高频符号与意象</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.highFrequencySymbols")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <div className="space-y-3">
@@ -216,18 +299,18 @@ function ThemeReport({ insight }: { insight: Insight }) {
                     onClick={() => handleSymbolClick(s.symbol)}
                     className="inline-block text-primary font-medium hover:text-primary/80 hover:underline decoration-2 underline-offset-4 transition-all cursor-pointer"
                     style={{ fontSize: `${Math.max(14, Math.min(18, 14 + (s.frequency || 0) * 0.5))}px` }}
-                    title="点击查看相关梦境"
+                    title={t("insights.report.clickToViewRelated")}
                   >
                     {s.symbol}
                   </button>
                   <p className="text-sm text-muted-foreground leading-relaxed">{s.interpretation}</p>
                   {s.context && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">场景：{s.context}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t("insights.report.scene")}：{s.context}</p>
                   )}
                   {s.life_connection && (
                     <div className="pt-1.5 border-t border-border/30">
                       <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                        <span className="font-medium">生活关联：</span>{s.life_connection}
+                        <span className="font-medium">{t("insights.report.lifeConnection")}：</span>{s.life_connection}
                       </p>
                     </div>
                   )}
@@ -244,7 +327,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Link2 className="h-4 w-4 text-blue-500" />
-              发现的关联
+              {t("insights.report.discoveredConnections")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -255,7 +338,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                 {c.suggestion && (
                   <div className="pt-1.5 border-t border-border/30">
                     <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-                      <span className="font-medium">建议：</span>{c.suggestion}
+                      <span className="font-medium">{t("insights.report.suggestion")}：</span>{c.suggestion}
                     </p>
                   </div>
                 )}
@@ -271,7 +354,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
               <HelpCircle className="h-4 w-4" />
-              值得思考的问题
+              {t("insights.report.questionsToReflect")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -282,7 +365,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                 {r.guidance && (
                   <div className="pt-1.5 border-t border-border/30">
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium">思考方向：</span>{r.guidance}
+                      <span className="font-medium">{t("insights.report.thinkingDirection")}：</span>{r.guidance}
                     </p>
                   </div>
                 )}
@@ -298,7 +381,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Moon className="h-4 w-4 text-primary" />
-              代表性梦境
+              {t("insights.report.representativeDreams")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -308,7 +391,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <Badge variant="outline" className="text-xs shrink-0">{d.theme}</Badge>
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(d.date), "M月d日", { locale: zhCN })}
+                      {format(new Date(d.date), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "MMM d", { locale: dateLocale })}
                     </span>
                   </div>
                   {d.dream_id && (
@@ -318,7 +401,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
                         size="sm" 
                         className="h-7 text-xs shrink-0 hover:bg-primary/10 hover:text-primary group"
                       >
-                        查看梦境
+                        {t("insights.report.viewDream")}
                         <ChevronRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                       </Button>
                     </Link>
@@ -332,34 +415,32 @@ function ThemeReport({ insight }: { insight: Insight }) {
       )}
 
       {/* 8. AI 关键词/标签频率 */}
-      {(data.statistics as Record<string, unknown>)?.tag_frequency && (
-        (() => {
-          const tagFreq = ((data.statistics as Record<string, unknown>).tag_frequency as Array<[string, number]>) || [];
-          if (!tagFreq.length) return null;
-          return (
-            <Card className="border-border/40 dark:border-border/20 shadow-sm">
-              <CardHeader className="px-6 pb-3">
-                <CardTitle className="text-sm flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                  高频标签
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pl-[46px] pr-6 pb-4">
-                <div className="flex flex-wrap gap-2">
-                  {tagFreq.slice(0, 20).map(([tag, count], i) => (
-                    <span 
-                      key={i} 
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs border border-border/40 dark:border-border/30 bg-background text-foreground hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md transition-all duration-200 cursor-default"
-                    >
-                      {tag} {count > 1 && <span className="ml-1 opacity-70">×{count}</span>}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()
-      )}
+      {data.statistics?.tag_frequency && (() => {
+        const tagFreq = data.statistics?.tag_frequency ?? [];
+        if (!tagFreq.length) return null;
+        return (
+          <Card className="border-border/40 dark:border-border/20 shadow-sm">
+            <CardHeader className="px-6 pb-3">
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-amber-500" />
+                {t("insights.report.highFrequencyTags")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pl-[46px] pr-6 pb-4">
+              <div className="flex flex-wrap gap-2">
+                {tagFreq.slice(0, 20).map(([tag, count], i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs border border-border/40 dark:border-border/30 bg-background text-foreground hover:border-primary hover:bg-primary/10 hover:text-primary hover:scale-105 hover:shadow-md transition-all duration-200 cursor-default"
+                  >
+                    {tag} {count > 1 && <span className="ml-1 opacity-70">×{count}</span>}
+                  </span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* 9. 模式演变 */}
       {patternEvolution && (
@@ -367,7 +448,7 @@ function ThemeReport({ insight }: { insight: Insight }) {
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
               <Sparkles className="h-4 w-4" />
-              模式演变
+              {t("insights.report.patternEvolution")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">

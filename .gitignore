@@ -47,84 +47,65 @@ wheels/
 # 
 手册
 
-# ===backend===
-# Python (backend specific)
-backend/**/__pycache__/
-backend/**/*.py[cod]
-backend/**/$py.class
-backend/**/*.so
-backend/**/.Python
-backend/**/env/
-backend/**/build/
-backend/**/develop-eggs/
-backend/**/dist/
-backend/**/downloads/
-backend/**/eggs/
-backend/**/.eggs/
-backend/**/lib/
-backend/**/lib64/
-backend/**/parts/
-backend/**/sdist/
-backend/**/var/
-backend/**/*.egg-info/
-backend/**/.installed.cfg
-backend/**/*.egg
+# === backend-v2 ===
+backend-v2/**/__pycache__/
+backend-v2/**/*.py[cod]
+backend-v2/**/$py.class
+backend-v2/**/*.so
+backend-v2/**/.Python
+backend-v2/**/env/
+backend-v2/**/build/
+backend-v2/**/develop-eggs/
+backend-v2/**/dist/
+backend-v2/**/downloads/
+backend-v2/**/eggs/
+backend-v2/**/.eggs/
+backend-v2/**/lib/
+backend-v2/**/lib64/
+backend-v2/**/parts/
+backend-v2/**/sdist/
+backend-v2/**/var/
+backend-v2/**/*.egg-info/
+backend-v2/**/.installed.cfg
+backend-v2/**/*.egg
+backend-v2/**/*.log
+backend-v2/**/local_settings.py
+backend-v2/**/db.sqlite3
+backend-v2/**/db.sqlite3-journal
+backend-v2/**/venv/
+backend-v2/**/.venv/
+backend-v2/**/py3.13_venv/
+backend-v2/**/ENV/
+backend-v2/**/.idea/
+backend-v2/**/.vscode/
+backend-v2/**/.env
+backend-v2/**/secrets.py
+backend-v2/credentials.py
+backend-v2/logs/
 
-# Django
-backend/**/*.log
-backend/**/local_settings.py
-backend/**/db.sqlite3
-backend/**/db.sqlite3-journal
-
-# 虚拟环境
-backend/**/venv/
-backend/**/.venv/
-backend/**/py3.13_venv/
-backend/**/ENV/
-
-# 编辑器和IDE
-backend/**/.idea/
-backend/**/.vscode/
-backend/**/*.swp
-backend/**/*.swo
-
-# 操作系统
-backend/**/.DS_Store
-backend/**/Thumbs.db
-
-# 环境变量和敏感信息（backend）
-backend/**/.env
-backend/**/secrets.py
-backend/credentials.py
-
-# 忽略日志文件
-backend/logs/
-
-# ===frontend===
-# Logs
-frontend/logs
-frontend/*.log
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/pnpm-debug.log*
-frontend/lerna-debug.log*
-
-frontend/node_modules
-frontend/dist
-frontend/dist-ssr
-frontend/*.local
-
-# Editor directories and files
-frontend/.vscode/*
-frontend/.vscode/extensions.json
-frontend/.idea
-frontend/.DS_Store
-frontend/*.suo
-frontend/*.ntvs*
-frontend/*.njsproj
-frontend/*.sln
-frontend/*.sw?
+# === frontend-v2 ===
+frontend-v2/logs
+frontend-v2/*.log
+frontend-v2/npm-debug.log*
+frontend-v2/yarn-debug.log*
+frontend-v2/yarn-error.log*
+frontend-v2/pnpm-debug.log*
+frontend-v2/lerna-debug.log*
+frontend-v2/node_modules
+frontend-v2/dist
+frontend-v2/dist-ssr
+frontend-v2/*.local
+frontend-v2/.vscode/*
+frontend-v2/.vscode/extensions.json
+frontend-v2/.idea
+frontend-v2/.DS_Store
+frontend-v2/*.suo
+frontend-v2/*.ntvs*
+frontend-v2/*.njsproj
+frontend-v2/*.sln
+frontend-v2/*.sw?
+frontend-v2/.next/
+frontend-v2/.turbo/
 
 # legacy
 frontend

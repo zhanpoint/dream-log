@@ -1,12 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import { EChartsWrapper } from "@/components/charts/echarts-wrapper";
 import { ComparisonBanner, ThemeReportShell } from "@/components/insights/theme-report-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Insight } from "@/lib/insight-api";
-import { EMOTION_COLORS, EMOTION_LABELS } from "@/lib/emotion-utils";
+import { EMOTION_COLORS, getEmotionLabel } from "@/lib/emotion-utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import type { Locale } from "date-fns";
 import {
   AlertCircle,
   CheckCircle2,
@@ -15,20 +17,89 @@ import {
   Moon,
   Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+// ===== 辅助函数 =====
+function getDateLocale(lang: string): Locale {
+  switch (lang) {
+    case "zh-CN":
+      return zhCN;
+    case "ja":
+      return ja;
+    case "en":
+    default:
+      return enUS;
+  }
+}
+
+function getEmotionIntensityText(score: number, t: (key: string) => string): string {
+  if (score >= 4.5) return t("insights.report.veryStrong");
+  if (score >= 3.5) return t("insights.report.strong");
+  if (score >= 2.5) return t("insights.report.moderate");
+  if (score >= 1.5) return t("insights.report.mild");
+  return t("insights.report.veryMild");
+}
 
 // ===== 类型 =====
-interface DominantFeeling { emotion: string; percentage: number; interpretation: string }
-interface StressSignal { signal: string; possible_source: string; dream_evidence: string; coping_suggestion: string }
-interface PositiveSign { sign: string; meaning: string; encouragement: string }
-interface EmotionTip { tip: string; when: string; benefit: string; example?: string }
-interface KeyDream { date: string; emotion_insight: string }
+interface DominantFeeling {
+  emotion: string;
+  percentage: number;
+  interpretation: string;
+}
 
-export default function EmotionHealthPage() {
+interface StressSignal {
+  signal: string;
+  possible_source: string;
+  dream_evidence: string;
+  coping_suggestion: string;
+}
+
+interface PositiveSign {
+  sign: string;
+  meaning: string;
+  encouragement: string;
+}
+
+interface EmotionTip {
+  tip: string;
+  when: string;
+  benefit: string;
+  example?: string;
+}
+
+interface KeyDream {
+  date: string;
+  emotion_insight: string;
+}
+
+type EmotionAi = {
+  emotion_state?: string;
+  dominant_feelings?: DominantFeeling[];
+  stress_signals?: StressSignal[];
+  positive_signs?: PositiveSign[];
+  emotion_tips?: EmotionTip[];
+  key_dreams?: KeyDream[];
+  comparison_insight?: string | null;
+  emotional_growth?: string | null;
+};
+
+type EmotionCharts = {
+  emotion_distribution?: Record<string, number>;
+  emotion_timeline?: Array<{ date: string; emotion: string; intensity: number }>;
+};
+
+type EmotionData = {
+  ai_analysis?: EmotionAi;
+  charts?: EmotionCharts;
+};
+
+function EmotionHealthContent() {
+  const { t } = useTranslation();
   return (
     <ThemeReportShell
       reportType="EMOTION_HEALTH"
-      title="情绪健康分析"
-      description="深度分析情绪波动、压力来源和调节建议"
+      title={t("insights.theme.emotionLabel")}
+      description={t("insights.theme.emotionDesc")}
       icon={<Heart className="h-5 w-5 text-rose-500" />}
       renderReport={(insight, showComparison) => (
         <EmotionReport insight={insight} showComparison={showComparison} />
@@ -37,21 +108,31 @@ export default function EmotionHealthPage() {
   );
 }
 
+export default function EmotionHealthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">加载中...</div>}>
+      <EmotionHealthContent />
+    </Suspense>
+  );
+}
+
 function EmotionReport({ insight, showComparison }: { insight: Insight; showComparison: boolean }) {
-  const data = insight.data as Record<string, unknown>;
-  const ai = (data.ai_analysis || {}) as Record<string, unknown>;
-  const charts = (data.charts || {}) as Record<string, unknown>;
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateLocale(i18n.language);
+  const data = insight.data as EmotionData;
+  const ai: EmotionAi = data.ai_analysis || {};
+  const charts: EmotionCharts = data.charts || {};
 
-  const dominantFeelings = (ai.dominant_feelings || []) as DominantFeeling[];
-  const stressSignals = (ai.stress_signals || []) as StressSignal[];
-  const positiveSigns = (ai.positive_signs || []) as PositiveSign[];
-  const emotionTips = (ai.emotion_tips || []) as EmotionTip[];
-  const keyDreams = (ai.key_dreams || []) as KeyDream[];
-  const comparisonInsight = ai.comparison_insight as string | null | undefined;
-  const emotionalGrowth = ai.emotional_growth as string | null | undefined;
+  const dominantFeelings = ai.dominant_feelings || [];
+  const stressSignals = ai.stress_signals || [];
+  const positiveSigns = ai.positive_signs || [];
+  const emotionTips = ai.emotion_tips || [];
+  const keyDreams = ai.key_dreams || [];
+  const comparisonInsight = ai.comparison_insight ?? null;
+  const emotionalGrowth = ai.emotional_growth ?? null;
 
-  const emotionDist = (charts.emotion_distribution || {}) as Record<string, number>;
-  const emotionTimeline = (charts.emotion_timeline || []) as Array<{ date: string; emotion: string; intensity: number }>;
+  const emotionDist = charts.emotion_distribution || {};
+  const emotionTimeline = charts.emotion_timeline || [];
 
   return (
     <div className="space-y-6">
@@ -61,7 +142,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Heart className="h-4 w-4 text-rose-500" />
-              情绪状态总结
+              {t("insights.report.emotionStateSummary")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">
@@ -81,7 +162,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-green-600 dark:text-green-400">
               <Sparkles className="h-4 w-4" />
-              积极信号
+              {t("insights.report.positiveSigns")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5 pl-[46px] pr-6 pb-4">
@@ -107,7 +188,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
               <Sparkles className="h-4 w-4" />
-              情绪成长观察
+              {t("insights.report.emotionalGrowthObservation")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-[46px] pr-6 pb-4">
@@ -120,7 +201,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
       {Object.keys(emotionDist).length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">高频情绪分布</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.highFrequencyEmotions")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <EChartsWrapper
@@ -132,13 +213,13 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                   data: Object.entries(emotionDist)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 8)
-                    .map(([k]) => (EMOTION_LABELS as Record<string, string>)[k] || k),
+                    .map(([k]) => getEmotionLabel(k, t)),
                   axisLabel: { fontSize: 11 },
                 },
                 yAxis: { 
                   type: "value", 
                   minInterval: 1, 
-                  name: "次数", 
+                  name: t("insights.report.frequency"), 
                   nameTextStyle: { fontSize: 10 },
                   axisLabel: {
                     formatter: (value: number) => Math.round(value).toString()
@@ -172,7 +253,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                   formatter: (params: any) => {
                     const p = params[0];
                     const val = Math.max(1, Math.round(p.value));
-                    return `${p.name}: ${val} 次`;
+                    return `${p.name}: ${val} ${t("insights.report.times")}`;
                   }
                 },
               }}
@@ -185,7 +266,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
       {emotionTimeline.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">情绪强度趋势</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.emotionIntensityTrend")}</CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <EChartsWrapper
@@ -194,18 +275,27 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                 grid: { top: 20, bottom: 40, left: 50, right: 20 },
                 xAxis: {
                   type: "category",
-                  data: emotionTimeline.map((d) => format(new Date(d.date), "M/d", { locale: zhCN })),
+                  data: emotionTimeline.map((d) => format(new Date(d.date), "M/d", { locale: dateLocale })),
                   axisLabel: { rotate: 30, fontSize: 10 },
                 },
                 yAxis: { 
                   type: "value", 
                   min: 0, 
                   max: 5, 
-                  name: "强度",
+                  name: t("insights.report.intensity"),
+                  nameTextStyle: { fontSize: 11 },
                   splitNumber: 5,
                   axisLabel: {
+                    fontSize: 10,
                     formatter: (value: number) => {
-                      const labels = ["0", "很低", "低", "中", "高", "很高"];
+                      const labels: Record<number, string> = {
+                        0: "0",
+                        1: t("insights.report.veryMild"),
+                        2: t("insights.report.mild"),
+                        3: t("insights.report.moderate"),
+                        4: t("insights.report.strong"),
+                        5: t("insights.report.veryStrong")
+                      };
                       return labels[value] || value.toString();
                     }
                   }
@@ -223,7 +313,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                     symbol: "none",
                     data: [{ 
                       type: "average", 
-                      name: "平均",
+                      name: t("insights.report.average"),
                       lineStyle: { 
                         type: "dashed",
                         color: "#e11d48",
@@ -242,9 +332,8 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                     const arr = params as Array<{ dataIndex: number; value: number }>;
                     if (!arr?.length) return "";
                     const item = emotionTimeline[arr[0].dataIndex];
-                    const intensityLabels = ["", "很低", "低", "中等", "高", "很高"];
-                    const intensityText = intensityLabels[Math.round(item?.intensity)] || item?.intensity;
-                    return `${item?.date}<br/>${(EMOTION_LABELS as Record<string, string>)[item?.emotion] || item?.emotion}<br/>强度: ${intensityText}`;
+                    const intensityText = getEmotionIntensityText(item?.intensity, t);
+                    return `${item?.date}<br/>${getEmotionLabel(item?.emotion, t)}<br/>${t("insights.report.intensity")}: ${intensityText}`;
                   },
                 },
               }}
@@ -257,7 +346,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
       {dominantFeelings.length > 0 && (
         <Card className="border-border/40 dark:border-border/20 shadow-sm">
           <CardHeader className="px-6 pb-3">
-            <CardTitle className="text-sm">主导情绪解读</CardTitle>
+            <CardTitle className="text-sm">{t("insights.report.dominantEmotionInterpretation")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 px-6 pb-4">
             {dominantFeelings.slice(0, 3).map((f, i) => (
@@ -266,7 +355,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                   className="text-sm font-medium shrink-0"
                   style={{ color: (EMOTION_COLORS as Record<string, string>)[f.emotion] || undefined }}
                 >
-                  {(EMOTION_LABELS as Record<string, string>)[f.emotion] || f.emotion}
+                  {getEmotionLabel(f.emotion, t)}
                 </span>
                 <p className="text-xs text-muted-foreground leading-relaxed">{f.interpretation}</p>
               </div>
@@ -281,7 +370,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
               <AlertCircle className="h-4 w-4" />
-              压力信号
+              {t("insights.report.stressSignals")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -289,7 +378,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
               <div key={i} className="p-3 rounded-lg space-y-2 border border-orange-500/30">
                 <p className="text-sm font-medium">{s.signal}</p>
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  {s.possible_source && <span>可能来源：{s.possible_source}</span>}
+                  {s.possible_source && <span>{t("insights.report.possibleSource")}：{s.possible_source}</span>}
                   {s.dream_evidence && (
                     <span className="flex items-center gap-1">
                       <Moon className="h-3 w-3" />{s.dream_evidence}
@@ -299,7 +388,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                 {s.coping_suggestion && (
                   <div className="pt-1 border-t border-border/30">
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium">应对建议：</span>{s.coping_suggestion}
+                      <span className="font-medium">{t("insights.report.copingSuggestion")}：</span>{s.coping_suggestion}
                     </p>
                   </div>
                 )}
@@ -315,7 +404,7 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Lightbulb className="h-4 w-4 text-amber-500" />
-              情绪管理建议
+              {t("insights.report.emotionManagementTips")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
@@ -326,10 +415,10 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <p className="text-sm font-medium leading-relaxed">{tip.tip}</p>
-                  {tip.when && <p className="text-xs text-muted-foreground leading-relaxed">时机：{tip.when}</p>}
-                  {tip.benefit && <p className="text-xs text-muted-foreground leading-relaxed">预期效果：{tip.benefit}</p>}
+                  {tip.when && <p className="text-xs text-muted-foreground leading-relaxed">{t("insights.report.timing")}：{tip.when}</p>}
+                  {tip.benefit && <p className="text-xs text-muted-foreground leading-relaxed">{t("insights.report.expectedEffect")}：{tip.benefit}</p>}
                   {tip.example && (
-                    <p className="text-xs text-muted-foreground/70 italic leading-relaxed">例如：{tip.example}</p>
+                    <p className="text-xs text-muted-foreground/70 italic leading-relaxed">{t("insights.report.example")}：{tip.example}</p>
                   )}
                 </div>
               </div>
@@ -344,14 +433,16 @@ function EmotionReport({ insight, showComparison }: { insight: Insight; showComp
           <CardHeader className="px-6 pb-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
               <Moon className="h-4 w-4 text-primary" />
-              关键梦境解读
+              {t("insights.report.keyDreamInsights")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pl-[46px] pr-6 pb-4">
             {keyDreams.map((d, i) => (
               <div key={i} className="p-3 rounded-lg border border-border/30 dark:border-border/20 space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">{format(new Date(d.date), "M月d日", { locale: zhCN })}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(d.date), dateLocale === zhCN || dateLocale === ja ? "M月d日" : "MMM d", { locale: dateLocale })}
+                  </span>
                 </div>
                 <p className="text-sm leading-relaxed">{d.emotion_insight}</p>
               </div>
