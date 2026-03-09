@@ -1,0 +1,42 @@
+/* Testimonial cards dark mode fix */
+.testimonial-card {
+  background-color: rgb(255 255 255 / 0.8);
+}
+
+.dark .testimonial-card {
+  background-color: rgb(17 24 39 / 0.8) !important;
+}
+
+.testimonial-card:hover {
+  background-color: rgb(255 255 255 / 0.9);
+}
+
+.dark .testimonial-card:hover {
+  background-color: rgb(17 24 39 / 0.9) !important;
+}
+
+/* Fix text colors in dark mode */
+.dark .testimonial-card h4 {
+  color: rgb(255 255 255 / 0.95) !important;
+}
+
+.dark .testimonial-card blockquote {
+  color: rgb(255 255 255 / 0.9) !important;
+}
+
+.testimonials-fade-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 10%,
+    black 90%,
+    transparent 100%
+  );
+}

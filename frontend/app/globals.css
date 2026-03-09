@@ -1,0 +1,802 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* 本地系统字体栈，避免 next/font/google 在受限网络中下载失败警告 */
+:root {
+  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Tailwind CSS v4 theme configuration */
+@theme {
+  /* 浅色主题 - 柔和的梦境清晨色调 */
+  --color-background: oklch(98.5% 0.008 280);
+  --color-foreground: oklch(15% 0.025 280);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(15% 0.025 280);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(15% 0.025 280);
+  /* 梦幻紫色 - 更鲜艳、更饱和的紫色 */
+  --color-primary: oklch(58% 0.28 275);
+  --color-primary-foreground: oklch(98% 0 0);
+  --color-secondary: oklch(96% 0.01 280);
+  --color-secondary-foreground: oklch(15% 0.025 280);
+  --color-muted: oklch(95% 0.01 280);
+  --color-muted-foreground: oklch(45% 0.02 280);
+  --color-accent: oklch(92% 0.015 275);
+  --color-accent-foreground: oklch(15% 0.025 280);
+  --color-destructive: oklch(60% 0.18 25);
+  --color-destructive-foreground: oklch(98% 0 0);
+  --color-border: oklch(82% 0.012 280);
+  --color-input: oklch(82% 0.012 280);
+  --color-ring: oklch(58% 0.28 275);
+  --radius: 0.5rem;
+
+  /* Custom properties */
+  --navigation-height: 3.5rem;
+  --color-one: #a78bfa;
+  --color-two: #c084fc;
+}
+
+@layer base {
+  :root {
+    /* CSS 变量用于 next-themes */
+    --background: 98.5% 0.008 280;
+    --foreground: 15% 0.025 280;
+    --card: 100% 0 0;
+    --card-foreground: 15% 0.025 280;
+    --popover: 100% 0 0;
+    --popover-foreground: 15% 0.025 280;
+    /* 梦幻紫色 - 更鲜艳、更饱和的紫色 */
+    --primary: 58% 0.28 275;
+    --primary-foreground: 98% 0 0;
+    --secondary: 96% 0.01 280;
+    --secondary-foreground: 15% 0.025 280;
+    --muted: 95% 0.01 280;
+    --muted-foreground: 45% 0.02 280;
+    --accent: 92% 0.015 275;
+    --accent-foreground: 15% 0.025 280;
+    --destructive: 60% 0.18 25;
+    --destructive-foreground: 98% 0 0;
+    --border: 82% 0.012 280;
+    --input: 82% 0.012 280;
+    --ring: 58% 0.28 275;
+  }
+
+  /* 深色主题 - 神秘的梦境夜空色调 */
+  .dark {
+    --background: 12% 0.04 270;
+    --foreground: 98% 0.005 280;
+    --card: 14% 0.04 270;
+    --card-foreground: 98% 0.005 280;
+    --popover: 14% 0.04 270;
+    --popover-foreground: 98% 0.005 280;
+    /* 梦幻紫色 - 更明亮、更饱和的紫色，在深色背景下更突出 */
+    --primary: 65% 0.30 275;
+    --primary-foreground: 12% 0.04 270;
+    --secondary: 18% 0.05 270;
+    --secondary-foreground: 98% 0.005 280;
+    --muted: 18% 0.05 270;
+    --muted-foreground: 65% 0.03 280;
+    --accent: 20% 0.06 275;
+    --accent-foreground: 98% 0.005 280;
+    --destructive: 55% 0.18 25;
+    --destructive-foreground: 98% 0 0;
+    --border: 22% 0.05 270;
+    --input: 22% 0.05 270;
+    --ring: 65% 0.30 275;
+  }
+
+  * {
+    border-color: oklch(var(--border));
+  }
+
+  html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    background-color: oklch(var(--background)) !important;
+    color: oklch(var(--foreground)) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* 确保 Tailwind 的 bg-background 类正确工作 */
+  .bg-background {
+    background-color: oklch(var(--background)) !important;
+  }
+
+  .text-foreground {
+    color: oklch(var(--foreground)) !important;
+  }
+
+  .text-foreground\/90 {
+    color: oklch(var(--foreground) / 0.9) !important;
+  }
+
+  html.dark .text-foreground\/90 {
+    color: oklch(98% 0.005 280 / 0.8) !important;
+  }
+
+  .auth-secondary {
+    color: oklch(var(--foreground) / 0.88) !important;
+  }
+
+  .auth-tertiary {
+    color: oklch(var(--foreground) / 0.72) !important;
+  }
+
+  .text-accent-foreground {
+    color: oklch(var(--accent-foreground)) !important;
+  }
+
+  html.dark .text-accent-foreground {
+    color: oklch(98% 0.005 280) !important;
+  }
+
+  .text-muted-foreground {
+    color: oklch(var(--muted-foreground)) !important;
+  }
+
+  .auth-divider-text {
+    color: oklch(var(--muted-foreground)) !important;
+  }
+
+  .dark .auth-divider-text {
+    color: oklch(var(--foreground)) !important;
+  }
+
+  .bg-card {
+    background-color: oklch(var(--card)) !important;
+  }
+
+  .text-card-foreground {
+    color: oklch(var(--card-foreground)) !important;
+  }
+
+  .bg-popover {
+    background-color: oklch(var(--popover)) !important;
+  }
+
+  .text-popover-foreground {
+    color: oklch(var(--popover-foreground)) !important;
+  }
+
+  .border-border {
+    border-color: oklch(var(--border)) !important;
+  }
+
+  /* 暗色下排序等 Select 下拉：整体与选项都使用深色，避免偏亮（Portal 在 body 下，用 html.dark 确保命中） */
+  html.dark .select-dropdown-content,
+  html.dark .select-dropdown-content[data-radix-select-content] {
+    background-color: oklch(10% 0.04 270) !important;
+    border-color: oklch(20% 0.05 270) !important;
+    color: oklch(98% 0.005 280) !important;
+  }
+  html.dark .select-dropdown-content .select-dropdown-item,
+  html.dark .select-dropdown-content [role="option"] {
+    color: oklch(98% 0.005 280) !important;
+    background-color: transparent !important;
+  }
+  html.dark .select-dropdown-content .select-dropdown-item:hover,
+  html.dark .select-dropdown-content .select-dropdown-item:focus,
+  html.dark .select-dropdown-content .select-dropdown-item[data-state="checked"],
+  html.dark .select-dropdown-content .select-dropdown-item[data-highlighted],
+  html.dark .select-dropdown-content [role="option"]:hover,
+  html.dark .select-dropdown-content [role="option"]:focus,
+  html.dark .select-dropdown-content [role="option"][data-state="checked"],
+  html.dark .select-dropdown-content [role="option"][data-highlighted] {
+    background-color: oklch(18% 0.05 270) !important;
+    color: oklch(98% 0.005 280) !important;
+  }
+
+  /* 暗色下梦境类型/情绪筛选弹窗选项：悬停与选中都用深色背景，避免偏亮（Portal 用 html.dark 命中） */
+  html.dark .filter-popover-content .filter-popover-option {
+    color: oklch(98% 0.005 280) !important;
+  }
+  html.dark .filter-popover-content .filter-popover-option:hover {
+    background-color: oklch(18% 0.05 270) !important;
+    color: oklch(98% 0.005 280) !important;
+  }
+  html.dark .filter-popover-content .filter-popover-option-selected {
+    background-color: oklch(20% 0.05 270) !important;
+    color: oklch(65% 0.30 275) !important;
+  }
+
+  /* 暗色下下拉菜单项 hover 背景：使用更暗的颜色 */
+  html.dark [data-radix-dropdown-menu-content] button:hover,
+  html.dark [data-radix-dropdown-menu-content] [role="menuitem"]:hover,
+  html.dark [data-radix-dropdown-menu-content] [data-menuitem]:hover {
+    background-color: oklch(15% 0.04 270) !important;
+  }
+
+  .auth-card {
+    background-color: oklch(var(--card));
+    border-color: oklch(var(--border));
+  }
+
+  .dark .auth-card {
+    border-color: oklch(30% 0.05 270);
+  }
+
+  /* 认证页面卡片悬浮背景 - 暗色主题下使用更暗的背景 */
+  .auth-card-hover {
+    background-color: oklch(var(--accent));
+  }
+
+  .dark .auth-card-hover {
+    background-color: oklch(18% 0.05 270);
+  }
+
+  /* 热门关键词标签悬浮样式 */
+  .hot-keyword-btn {
+    color: oklch(var(--muted-foreground));
+  }
+  .hot-keyword-btn:hover {
+    background-color: oklch(58% 0.28 275 / 0.15) !important;
+    color: oklch(58% 0.28 275) !important;
+    border-color: oklch(58% 0.28 275 / 0.5) !important;
+  }
+  html.dark .hot-keyword-btn:hover {
+    background-color: oklch(65% 0.30 275 / 0.2) !important;
+    color: oklch(65% 0.30 275) !important;
+    border-color: oklch(65% 0.30 275 / 0.5) !important;
+  }
+
+  /* 清空按钮悬浮样式 */
+  .clear-btn {
+    color: oklch(var(--muted-foreground));
+  }
+  .clear-btn:hover {
+    color: oklch(58% 0.28 275) !important;
+  }
+  html.dark .clear-btn:hover {
+    color: oklch(65% 0.30 275) !important;
+  }
+
+  /* 排序按钮悬浮样式 */
+  .sort-btn {
+    border-color: oklch(85% 0.02 280 / 0.8);
+  }
+  html.dark .sort-btn {
+    border-color: oklch(40% 0.05 270 / 0.8);
+  }
+  .sort-btn:not([data-active="true"]):hover {
+    border-color: oklch(58% 0.28 275 / 0.6) !important;
+    color: oklch(58% 0.28 275) !important;
+  }
+  html.dark .sort-btn:not([data-active="true"]):hover {
+    border-color: oklch(65% 0.30 275 / 0.6) !important;
+    color: oklch(65% 0.30 275) !important;
+  }
+  .sort-btn[data-active="true"]:hover {
+    color: oklch(98% 0 0) !important;
+  }
+
+  /* 返回按钮悬浮样式 */
+  .back-btn {
+    color: oklch(var(--muted-foreground)) !important;
+  }
+  .back-btn:hover,
+  .back-btn:focus,
+  .back-btn:focus-visible {
+    background-color: transparent !important;
+    color: oklch(var(--foreground)) !important;
+  }
+  html.dark .back-btn {
+    color: oklch(65% 0.03 280) !important;
+  }
+  html.dark .back-btn:hover,
+  html.dark .back-btn:focus,
+  html.dark .back-btn:focus-visible {
+    background-color: transparent !important;
+    color: oklch(98% 0.005 280) !important;
+  }
+
+  .bg-accent {
+    background-color: oklch(var(--accent)) !important;
+  }
+
+  .bg-muted {
+    background-color: oklch(var(--muted)) !important;
+  }
+
+  .bg-primary {
+    background-color: oklch(var(--primary)) !important;
+  }
+
+  .text-primary {
+    color: oklch(var(--primary)) !important;
+  }
+
+  .ai-analysis-card-amber {
+    background-color: rgb(255 251 235 / 0.5) !important;
+  }
+
+  .dark .ai-analysis-card-amber {
+    background: linear-gradient(
+      135deg,
+      rgb(245 158 11 / 0.12) 0%,
+      rgb(245 158 11 / 0.06) 45%,
+      transparent 100%
+    ) !important;
+  }
+
+  .ai-analysis-card-violet {
+    background-color: rgb(245 243 255 / 0.5) !important;
+  }
+
+  .dark .ai-analysis-card-violet {
+    background: linear-gradient(
+      135deg,
+      rgb(139 92 246 / 0.12) 0%,
+      rgb(139 92 246 / 0.06) 45%,
+      transparent 100%
+    ) !important;
+  }
+
+  .dark .ai-deep-analysis-body {
+    color: oklch(var(--muted-foreground)) !important;
+  }
+
+  /* Hero Section 标题样式 - 确保在明暗主题下都清晰可见 */
+  .hero-title {
+    background-image: linear-gradient(
+      to right bottom,
+      oklch(15% 0.025 280) 30%,
+      oklch(15% 0.025 280) 50%,
+      oklch(15% 0.025 280 / 0.85) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .dark .hero-title {
+    background-image: linear-gradient(
+      to right bottom,
+      oklch(98% 0.005 280) 30%,
+      oklch(98% 0.005 280) 50%,
+      oklch(98% 0.005 280 / 0.95) 100%
+    );
+  }
+
+  /* Hero Section 标签按钮样式 - 确保文字清晰可见 */
+  .hero-tag {
+    backdrop-filter: blur(12px);
+    /* 浅色主题：浅色背景 */
+    background-color: oklch(92% 0.015 275 / 0.9) !important;
+  }
+
+  /* 深色主题：深色背景，只有文字是白色 */
+  .dark .hero-tag {
+    background-color: oklch(20% 0.06 275 / 0.6) !important;
+  }
+
+  .dark .hero-tag:hover {
+    background-color: oklch(20% 0.06 275 / 0.8) !important;
+  }
+
+  /* 覆盖 TextShimmer 的默认颜色 - 使用更具体的选择器 */
+  .hero-tag p.text-neutral-600,
+  .hero-tag p.dark\:text-neutral-400,
+  .hero-tag p {
+    color: oklch(15% 0.025 280) !important;
+    background-image: none !important;
+    -webkit-text-fill-color: oklch(15% 0.025 280) !important;
+  }
+
+  .dark .hero-tag p.text-neutral-600,
+  .dark .hero-tag p.dark\:text-neutral-400,
+  .dark .hero-tag p {
+    color: oklch(98% 0.005 280) !important;
+    -webkit-text-fill-color: oklch(98% 0.005 280) !important;
+  }
+
+  .hero-tag .hero-tag-text,
+  .hero-tag .hero-tag-icon,
+  .hero-tag span,
+  .hero-tag svg,
+  .hero-tag p span,
+  .hero-tag p svg {
+    color: oklch(15% 0.025 280) !important;
+    -webkit-text-fill-color: oklch(15% 0.025 280) !important;
+  }
+
+  .dark .hero-tag .hero-tag-text,
+  .dark .hero-tag .hero-tag-icon,
+  .dark .hero-tag span,
+  .dark .hero-tag svg,
+  .dark .hero-tag p span,
+  .dark .hero-tag p svg {
+    color: oklch(98% 0.005 280) !important;
+    -webkit-text-fill-color: oklch(98% 0.005 280) !important;
+  }
+
+  /* Hero Section 副标题样式 - 确保文字清晰可见 */
+  .hero-subtitle {
+    color: oklch(15% 0.025 280 / 0.9) !important;
+  }
+
+  .dark .hero-subtitle {
+    color: oklch(98% 0.005 280 / 0.95) !important;
+  }
+
+  /* Hero Section 图片主题切换 */
+  .hero-image-light {
+    display: block;
+  }
+
+  .hero-image-dark {
+    display: none;
+  }
+
+  .dark .hero-image-light {
+    display: none;
+  }
+
+  .dark .hero-image-dark {
+    display: block;
+  }
+
+  /* Shiny Button 动画 */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes image-glow {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.74, 0.25, 0.76, 1);
+  }
+  10% {
+    opacity: 0.7;
+    animation-timing-function: cubic-bezier(0.12, 0.01, 0.08, 0.99);
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shimmer-width)) 0;
+  }
+  30%, 60% {
+    background-position: calc(100% + var(--shimmer-width)) 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes meteor {
+  0% {
+    transform: rotate(var(--angle)) translateX(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateX(-2000px);
+    opacity: 0;
+  }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 40s) linear infinite;
+}
+
+.animate-meteor {
+  animation: meteor 5s linear infinite;
+}
+
+.animate-border-beam {
+  animation: border-beam calc(var(--duration) * 1s) infinite linear;
+}
+
+.animate-image-glow {
+  animation: image-glow 4100ms 600ms ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 1000ms var(--animation-delay, 0ms) ease forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 1000ms var(--animation-delay, 0ms) ease forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s infinite;
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 40s) linear infinite;
+}
+
+/* 页面过渡动画优化 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fade-in 200ms ease-out;
+}
+
+/* 优化页面切换性能 */
+main {
+  will-change: contents;
+  contain: layout style paint;
+}
+
+/* ===== 情绪色彩系统 ===== */
+:root {
+  --emotion-joy: oklch(75% 0.15 120);
+  --emotion-fear: oklch(45% 0.12 270);
+  --emotion-sadness: oklch(55% 0.10 240);
+  --emotion-anger: oklch(60% 0.18 25);
+  --emotion-surprise: oklch(70% 0.14 60);
+  --emotion-peace: oklch(65% 0.08 180);
+  --emotion-trust: oklch(60% 0.10 200);
+  --emotion-anticipation: oklch(68% 0.12 80);
+}
+
+/* ===== 卡片悬浮微交互 ===== */
+.dream-card-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-left-width 0.2s ease;
+}
+
+.dream-card-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== 呼吸光晕动画 (录音按钮等) ===== */
+@keyframes breathing-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px 0 oklch(var(--primary) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px oklch(var(--primary) / 0.5);
+  }
+}
+
+.animate-breathing-glow {
+  animation: breathing-glow 2s ease-in-out infinite;
+}
+
+/* ===== AI 微光徽章 ===== */
+@keyframes shimmer-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ai-shimmer-badge {
+  background: linear-gradient(
+    90deg,
+    oklch(var(--primary) / 0.05) 0%,
+    oklch(var(--primary) / 0.15) 50%,
+    oklch(var(--primary) / 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 3s linear infinite;
+}
+
+/* ===== 情绪进度条动画 ===== */
+.emotion-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== 录音波形动画 ===== */
+@keyframes voice-wave {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+.voice-wave-bar {
+  animation: voice-wave 0.8s ease-in-out infinite;
+}
+
+.voice-wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.voice-wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.voice-wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.voice-wave-bar:nth-child(5) { animation-delay: 0.15s; }
+
+/* ===== 移动端响应式优化 ===== */
+@media (max-width: 640px) {
+  .dream-form-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* ===== 滚动驱动淡入 ===== */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up-fade 0.5s ease-out forwards;
+}
+
+/* ===== 焦点环优化 ===== */
+.focus-ring-dream:focus-visible {
+  outline: 2px solid oklch(var(--primary));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ===== 隐藏滚动条但保持滚动功能 ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+@theme inline {
+  --animate-gradient: gradient 8s linear infinite;
+  @keyframes gradient {
+  to {
+    background-position: var(--bg-size, 300%) 0;
+    }
+  }
+}
+
+/* ===== 页面路由过渡进度条 ===== */
+#nprogress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, oklch(58% 0.28 275), oklch(65% 0.3 280));
+  z-index: 9999;
+  border-radius: 0 2px 2px 0;
+  transition: width 0.2s ease, opacity 0.4s ease;
+  box-shadow: 
+    0 0 10px oklch(58% 0.28 275 / 0.8),
+    0 0 20px oklch(58% 0.28 275 / 0.5),
+    0 0 30px oklch(58% 0.28 275 / 0.3);
+}
+
+/* 暗色模式下进度条更亮 */
+.dark #nprogress-bar {
+  background: linear-gradient(90deg, oklch(72% 0.28 275), oklch(78% 0.3 280));
+}
+
+/* ===== 全局点击响应优化（消除 300ms 移动端延迟） ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ===== 页面内容出现动画（减少视觉跳动感） ===== */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main > * {
+  animation: page-enter 0.15s ease-out;
+}
+
+/* ===== 骨架屏闪光动画 ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(var(--muted) / 0.8) 25%,
+    oklch(var(--muted) / 0.4) 50%,
+    oklch(var(--muted) / 0.8) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ===== 按钮点击态优化（即时视觉反馈） ===== */
+button:active:not(:disabled),
+[role="button"]:active:not([aria-disabled="true"]) {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
+/* ===== Link 过渡优化（消除闪烁） ===== */
+a {
+  transition: color 0.15s ease, opacity 0.15s ease;
+}

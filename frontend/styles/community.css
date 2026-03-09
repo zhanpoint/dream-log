@@ -1,0 +1,602 @@
+/* Community Page Styles */
+
+/* Hide scrollbar for channel tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* firefox scrollbar hidden fallback removed for compatibility */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Channel tab animations */
+@keyframes channel-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.5);
+  }
+}
+
+/* Trending tag rank badges */
+@keyframes rank-shine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.rank-gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+  background-size: 200% auto;
+  animation: rank-shine 3s linear infinite;
+}
+
+.rank-silver {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
+  background-size: 200% auto;
+  animation: rank-shine 3s linear infinite;
+}
+
+.rank-bronze {
+  background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 50%, #cd7f32 100%);
+  background-size: 200% auto;
+  animation: rank-shine 3s linear infinite;
+}
+
+/* 梦境卡片底部操作栏：悬浮时仅图标轮廓线（stroke）与文字有颜色，不填充内部 */
+[data-dream-action="resonance"]:hover,
+[data-dream-action="resonance"]:hover * { color: #f43f5e !important; }
+.dark [data-dream-action="resonance"]:hover,
+.dark [data-dream-action="resonance"]:hover * { color: #fb7185 !important; }
+
+[data-dream-action="comment"]:hover,
+[data-dream-action="comment"]:hover * { color: #3b82f6 !important; }
+.dark [data-dream-action="comment"]:hover,
+.dark [data-dream-action="comment"]:hover * { color: #60a5fa !important; }
+
+[data-dream-action="interpret"]:hover,
+[data-dream-action="interpret"]:hover * { color: #8b5cf6 !important; }
+.dark [data-dream-action="interpret"]:hover,
+.dark [data-dream-action="interpret"]:hover * { color: #a78bfa !important; }
+
+[data-dream-action="bookmark"]:hover,
+[data-dream-action="bookmark"]:hover * { color: #f59e0b !important; }
+.dark [data-dream-action="bookmark"]:hover,
+.dark [data-dream-action="bookmark"]:hover * { color: #fbbf24 !important; }
+
+[data-dream-action="share"]:hover,
+[data-dream-action="share"]:hover * { color: #10b981 !important; }
+.dark [data-dream-action="share"]:hover,
+.dark [data-dream-action="share"]:hover * { color: #34d399 !important; }
+
+[data-dream-action="views"]:hover,
+[data-dream-action="views"]:hover * { color: #0ea5e9 !important; }
+.dark [data-dream-action="views"]:hover,
+.dark [data-dream-action="views"]:hover * { color: #38bdf8 !important; }
+
+[data-dream-action]:hover svg {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* 评论区操作按钮：亮色/暗色分别保证可读性 */
+.comment-actions [data-comment-action],
+.comment-actions [data-comment-action] *,
+.comment-actions [data-comment-action] svg {
+  color: rgba(71, 85, 105, 0.95) !important;
+  stroke: currentColor !important;
+}
+
+.comment-actions [data-comment-action]:hover,
+.comment-actions [data-comment-action]:hover *,
+.comment-actions [data-comment-action]:hover svg {
+  color: rgba(30, 41, 59, 0.98) !important;
+  stroke: currentColor !important;
+}
+
+.dark .comment-actions [data-comment-action],
+.dark .comment-actions [data-comment-action] *,
+.dark .comment-actions [data-comment-action] svg {
+  color: rgba(129, 131, 132, 0.96) !important;
+}
+
+.dark .comment-actions [data-comment-action]:hover,
+.dark .comment-actions [data-comment-action]:hover *,
+.dark .comment-actions [data-comment-action]:hover svg {
+  color: rgba(215, 218, 220, 0.96) !important;
+}
+
+.comment-actions .comment-action-upvote-active,
+.comment-actions .comment-action-upvote-active *,
+.comment-actions .comment-action-upvote-active svg,
+.comment-actions .comment-action-downvote-active,
+.comment-actions .comment-action-downvote-active *,
+.comment-actions .comment-action-downvote-active svg {
+  color: rgba(30, 41, 59, 0.98) !important;
+  stroke: currentColor !important;
+}
+
+.dark .comment-actions .comment-action-upvote-active,
+.dark .comment-actions .comment-action-upvote-active *,
+.dark .comment-actions .comment-action-upvote-active svg,
+.dark .comment-actions .comment-action-downvote-active,
+.dark .comment-actions .comment-action-downvote-active *,
+.dark .comment-actions .comment-action-downvote-active svg {
+  color: rgba(215, 218, 220, 0.98) !important;
+}
+
+.comment-actions [data-comment-action] svg {
+  fill: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Reddit-style Comment Tree Structure
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Base comment node */
+.comment-tree-node {
+  position: relative;
+}
+
+.comment-body {
+  position: relative;
+}
+
+/* Main row layout: avatar + content */
+.comment-main-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+}
+
+/* Collapse/expand button (small circular Reddit-like) */
+.comment-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 116, 139, 0.75);
+  color: rgba(51, 65, 85, 0.95);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-collapse-btn:hover {
+  transform: scale(1.3);
+  border-color: rgb(124 58 237 / 0.8);
+  color: rgb(124 58 237);
+  background: rgb(124 58 237 / 0.1);
+}
+
+.comment-collapse-btn:hover svg {
+  transform: translateY(1px) scale(1.1);
+}
+
+.dark .comment-collapse-btn {
+  border-color: rgba(215, 218, 220, 0.78);
+  color: rgba(215, 218, 220, 0.96);
+}
+
+.dark .comment-collapse-btn:hover {
+  border-color: rgb(147 51 234 / 0.9);
+  color: rgb(147 51 234);
+  background: rgb(147 51 234 / 0.15);
+}
+
+.dark .comment-collapse-btn:hover svg {
+  transform: translateY(1px) scale(1.1);
+}
+
+/* Avatar + content */
+.comment-avatar-wrap {
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.comment-avatar-wrap img,
+.comment-avatar-wrap [data-avatar],
+.comment-avatar-wrap > div,
+.comment-avatar-wrap > a > div {
+  width: 32px;
+  height: 32px;
+}
+
+.comment-body-content {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Collapsed state */
+.comment-tree-node--collapsed .comment-content,
+.comment-tree-node--collapsed .comment-replies {
+  display: none;
+}
+
+/* Collapsed stub */
+.comment-collapsed-stub {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  font-size: 12px;
+  color: rgba(71, 85, 105, 0.95);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.comment-collapsed-stub:hover {
+  color: rgba(30, 41, 59, 0.98);
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.dark .comment-collapsed-stub {
+  color: rgba(129, 131, 132, 0.95);
+}
+
+.dark .comment-collapsed-stub:hover {
+  color: rgba(215, 218, 220, 0.95);
+  background: transparent;
+}
+
+.comment-tree-node--collapsed .comment-collapsed-stub {
+  display: inline-flex;
+}
+
+/* Reddit-like metadata and body tone */
+.comment-body-content .font-medium.text-sm.text-foreground {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: rgba(30, 41, 59, 0.96);
+}
+
+.dark .comment-body-content .font-medium.text-sm.text-foreground {
+  color: rgba(215, 218, 220, 0.96);
+}
+
+.comment-body-content .text-xs.text-muted-foreground {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(71, 85, 105, 0.9) !important;
+}
+
+.dark .comment-body-content .text-xs.text-muted-foreground {
+  color: rgba(129, 131, 132, 0.96) !important;
+}
+
+.comment-body-content p {
+  margin-bottom: 8px;
+  font-size: 15px !important;
+  line-height: 1.45;
+  color: rgba(15, 23, 42, 0.96) !important;
+}
+
+.dark .comment-body-content p {
+  color: rgba(215, 218, 220, 0.96) !important;
+}
+
+/* Actions bar: compact, monochrome like Reddit */
+.comment-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(129, 131, 132, 0.96);
+}
+
+.comment-vote-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.comment-vote-cluster .comment-collapse-btn {
+  margin-right: 10px;
+}
+
+.comment-actions-wrap [data-comment-action] {
+  min-height: 24px;
+  border-radius: 999px !important;
+}
+
+.comment-actions-wrap .comment-action-btn {
+  color: rgba(71, 85, 105, 0.95) !important;
+}
+
+.dark .comment-actions-wrap .comment-action-btn {
+  color: rgba(129, 131, 132, 0.96) !important;
+}
+
+.comment-actions-wrap .comment-action-btn:hover {
+  background: rgba(148, 163, 184, 0.2) !important;
+  color: rgba(30, 41, 59, 0.96) !important;
+}
+
+.dark .comment-actions-wrap .comment-action-btn:hover {
+  background: rgba(39, 39, 41, 0.72) !important;
+  color: rgba(215, 218, 220, 0.96) !important;
+}
+
+/* Replies: strict Reddit-style tree geometry */
+.comment-replies {
+  position: relative;
+  margin-left: 38px;
+  padding-top: 2px;
+}
+
+/* 取消整段主干线，改为“仅在非最后一条回复”绘制续接线，彻底避免末尾多余竖线 */
+.comment-tree-node--has-replies > .comment-replies::before {
+  content: none;
+}
+
+.comment-tree-node--reply:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 14px;
+  bottom: -6px;
+  width: 1px;
+  background: rgba(100, 116, 139, 0.5);
+  transition: background-color 0.16s ease;
+}
+
+.dark .comment-tree-node--reply:not(:last-child)::after {
+  background: rgba(129, 131, 132, 0.36);
+}
+
+.comment-tree-node--reply:not(:last-child):hover::after {
+  background: rgba(51, 65, 85, 0.82);
+}
+
+.dark .comment-tree-node--reply:not(:last-child):hover::after {
+  background: rgba(215, 218, 220, 0.82);
+}
+
+.comment-tree-node--reply {
+  position: relative;
+  margin-top: 6px;
+  padding-left: 21px;
+}
+
+/* 圆角分叉：L 型连接，贴近 Reddit */
+.comment-tree-node--reply > .comment-body {
+  position: relative;
+}
+
+.comment-tree-node--reply > .comment-body::before {
+  content: "";
+  position: absolute;
+  left: -15px;
+  top: -6px;
+  width: 15px;
+  height: 20px;
+  border-left: 1px solid rgba(100, 116, 139, 0.62);
+  border-bottom: 1px solid rgba(100, 116, 139, 0.62);
+  border-bottom-left-radius: 10px;
+  transition: border-color 0.16s ease;
+}
+
+.dark .comment-tree-node--reply > .comment-body::before {
+  border-left-color: rgba(215, 218, 220, 0.5);
+  border-bottom-color: rgba(215, 218, 220, 0.5);
+}
+
+.comment-tree-node--reply:hover > .comment-body::before {
+  border-left-color: rgba(51, 65, 85, 0.9);
+  border-bottom-color: rgba(51, 65, 85, 0.9);
+}
+
+.dark .comment-tree-node--reply:hover > .comment-body::before {
+  border-left-color: rgba(215, 218, 220, 0.94);
+  border-bottom-color: rgba(215, 218, 220, 0.94);
+}
+
+/* 最后一条回复后，不再显示多余竖线尾巴（不使用背景遮罩，避免主干轴出现底色块） */
+.comment-replies > .comment-tree-node--reply:last-child > .comment-body::after {
+  content: none;
+}
+
+/* Stop excessive nesting squeeze */
+.comment-tree-node[data-depth="5"] .comment-replies,
+.comment-tree-node[data-depth="6"] .comment-replies,
+.comment-tree-node[data-depth="7"] .comment-replies {
+  margin-left: 30px;
+}
+
+.comment-tree-node[data-depth="5"] > .comment-body::before,
+.comment-tree-node[data-depth="6"] > .comment-body::before,
+.comment-tree-node[data-depth="7"] > .comment-body::before {
+  left: -14px;
+  width: 14px;
+}
+
+.comment-tree-node[data-depth="5"] > .comment-replies::before,
+.comment-tree-node[data-depth="6"] > .comment-replies::before,
+.comment-tree-node[data-depth="7"] > .comment-replies::before {
+  left: 0;
+}
+
+/* Dream card hover effects */
+@keyframes card-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.dream-card-hover:hover {
+  animation: card-float 2s ease-in-out infinite;
+}
+
+/* Flame icon animation */
+@keyframes flame-flicker {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(0.95) rotate(5deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.05) rotate(-3deg);
+    opacity: 0.95;
+  }
+}
+
+/* Crown icon animation */
+@keyframes crown-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(5deg);
+  }
+}
+
+/* Sparkle animation for stats */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Tag hover animation */
+@keyframes tag-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Empty state decoration animation */
+@keyframes float-decoration {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+/* Gradient border animation */
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Loading skeleton shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Pulse glow effect */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--primary-rgb), 0);
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+.community-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.community-interactive:hover {
+  transform: translateY(-2px);
+}
+
+/* Badge animations */
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* Tooltip animations */
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Avatar ring animation */
+@keyframes avatar-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(var(--primary-rgb), 0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .community-card {
+    padding: 0.75rem;
+  }
+  
+  .community-sidebar {
+    display: none;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .dream-card-hover:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+}

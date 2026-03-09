@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "dream-log-486312",
+  "private_key_id": "eeeeeabfb63c8634e775f7584557d0a49bb4c0d2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCbzuNA4O5GfmFp\nEk2n2eD7CHy4NdiiqBuhwKjtkz/GaBZmuHtsjORDXZvttH7Unlp6TPvuaP/4LY/H\n5SHgNPyaCV++gnHrwTatuJDTMqA2Nj0YstIyn9GCKCXkhBX52uSYAUBjixdGKkgI\nphzKC73O7yA0zOzt/GjoAs2CajfFLwlTopb1msk0DYp7af7yrp/2iSpDpRWcnMdo\nO0fu32qLqE8kMSNB4Q+rv5uz61JZIJwn4rlYJTswzAOXc+92oehqsLZBWIc9syPP\nAcMCLtZ8uKxXY8gpaBxYUqm10f3XTBgm1Rs3iDsiqnYtIdwmf1zHg90NvnOWt6Eo\nssL8q1nVAgMBAAECggEAG4UJx6JTA7l7zBqzA6QspDpGCSVdm7E0nDfSvo+lEo68\n8izAhBZIlQt6KJyaUESd938UenIqT/QAMs7qUlcZjL1+H0CcDYeFeF6imeMVwC2J\nUgz3qoBm+WXM95VK6mQ6vwxtiod9N2PtcDWi3R8AygWbeyf86zYLc3tXQCMxsY6M\nLyfvbjsaz8VfsVvDtNfGBy9l0ffwSpyRiMjb5GxcHTi3VYvlqSFlLKQjg8hbeLWp\n1T9FWOGBMGhwiA6k1pV5MRUHCdu2K6sRb3tw0aUo+3jW/G6C3jaT+EVIU3G2s+9j\nLqjKrhnWQAFvXbmz+OVuIAM3QeJZT4u6VAeXyq6ZuwKBgQDO8AaXMWLXg5Gr0LCx\n0MopgJkQt7z2wCJbix/YI4mPHpv6CWGCDFeu1Da85DmyYR8Vi01BdYv2FVqQYqZQ\n4/zpsN12qaeP8iAoyMsF9jaXekSyd21GVZIMhAPgkYu6SIS9KVnpHFQbpTihF76e\nCSLaBOfzJ/28+AeYkGMTC1aTswKBgQDAv5X4fJtxC5XVmvp5ic2qEYugzxail5dK\nRfLqt9AOdMJdhmYRKHcMeEaH66l1ZQWuwOro/g8ATqkEWfyg7FESLOY1vhbw1DuQ\n6YKqfWPyV7lU7h30crSQR8/2E2Nl5mvQ6O+0ZF95GFxiC5mWaMn+dFWJHffukFVt\nrhX9zlA4VwKBgQCglz7WGFpXW2Ax0Ps+kwRAHu8qPRyk9Mf0+MuWpUV8TsnGyX7l\nOITXRRLRld98ochIpNkoYntiVoH4qMXe4n8EL+A91T0XBVSVsfV0Q/VrqlQjl3Cy\n83cqxUxo+ypPPzXbwnpm4DgZWCfRRCcGZ5qnTMVgOvm7q1PhvrNUNSlT5wKBgQCs\nI+6qR48DfNdKN+ju1rWI57aN3aVXfI8vVB1IpvT3lCtqH3fUZxE7X8eN6Fglch2L\nHtwtTYjUO2wTaNKIXcVhuBu5b5VJbCHun72EyguTCemJAkhaYn8ERD5khJhHD2zG\n3OIHd4UUvz7yiW2XuOp9iCREGzGsK9c/5zPYwoM+bQKBgQCXZMz6lKvCrLa+8A13\nt2xuQP9GVYY34IdcRugblbUhlRwH9HndwGBKGvyZw0bRrv4g+jyTXddhS7Rgr31l\nDFqXN1bqxhhwpG/osd7ZPadnqVJn5RKW2ZPSm/coKFUsnFV55Oy+uv78KmvRl7+X\nrMHowyahzVLYMlsY4cim6Uepfg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "cloud-speech-388@dream-log-486312.iam.gserviceaccount.com",
+  "client_id": "106569933907327660177",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cloud-speech-388%40dream-log-486312.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
