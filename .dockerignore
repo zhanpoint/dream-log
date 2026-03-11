@@ -4,6 +4,10 @@
 !*.env.example
 !**/*.env.example
 
+# Frontend Next.js build output
+frontend/.next
+frontend/.next/**
+
 # Node artifacts
 frontend/node_modules
 frontend/dist
