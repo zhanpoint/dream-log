@@ -251,6 +251,7 @@ export default function GreenhousePage() {
         sort_order: 998,
         created_at: new Date(0).toISOString(),
         is_member: false,
+        is_public: true,
       });
     }
 
@@ -269,6 +270,7 @@ export default function GreenhousePage() {
         sort_order: 999,
         created_at: new Date(0).toISOString(),
         is_member: false,
+        is_public: true,
       });
     }
 
