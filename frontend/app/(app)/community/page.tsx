@@ -44,6 +44,17 @@ import "@/styles/community.css";
 type SearchTab  = "all" | "dreams" | "users" | "tags";
 type SearchSort = "relevant" | "latest" | "hot";
 
+const HOT_KEYWORDS_FALLBACK = [
+  "lucid dreams",
+  "nightmares",
+  "sleep paralysis",
+  "dream signs",
+  "recurring dreams",
+  "dream journal",
+  "lucid training",
+  "dream symbolism",
+];
+
 // ── Skeletons ────────────────────────────────────────────────────────────────
 
 function FeedSkeleton() {
