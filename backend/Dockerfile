@@ -11,7 +11,7 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir --upgrade pip uv
 
-COPY pyproject.toml /app/pyproject.toml
+COPY pyproject.toml README.md /app/
 
 RUN uv pip install --system -e .
 
