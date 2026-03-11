@@ -125,8 +125,9 @@ export default function NotificationsPage() {
 
   const getTitle = (n: Notification) => {
     if (n.type === "MONTHLY_REPORT") {
-      const year = (n.metadata as any)?.year ?? new Date(n.created_at).getFullYear();
-      const month = (n.metadata as any)?.month ?? new Date(n.created_at).getMonth() + 1;
+      const metadata = n.metadata_ ?? {};
+      const year = (metadata as { year?: number }).year ?? new Date(n.created_at).getFullYear();
+      const month = (metadata as { month?: number }).month ?? new Date(n.created_at).getMonth() + 1;
       return t("notifications.monthlyReportGenerated", { year, month });
     }
 
@@ -135,7 +136,8 @@ export default function NotificationsPage() {
     }
 
     if (n.type === "ANNUAL_REPORT") {
-      const yearFromMeta = (n.metadata as any)?.year;
+      const metadata = n.metadata_ ?? {};
+      const yearFromMeta = (metadata as { year?: number }).year;
       const yearFromTitle = n.title.match(/(\d{4})/);
       const year = yearFromMeta ?? (yearFromTitle ? Number(yearFromTitle[1]) : new Date(n.created_at).getFullYear());
       return t("notifications.annualReportGenerated", { year });
