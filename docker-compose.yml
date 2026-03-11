@@ -59,6 +59,10 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE_URI:?FRONTEND_IMAGE_URI is not set or empty}
     container_name: dream_log_frontend
+    build:
+      context: frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     env_file: ./.env
     environment:
       - NODE_ENV=production
