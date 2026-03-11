@@ -146,6 +146,18 @@ async def update_profile(
     
     if profile_data.birthday is not None:
         user.birthday = profile_data.birthday
+
+    if profile_data.bookmarks_visibility is not None:
+        user.bookmarks_visibility = profile_data.bookmarks_visibility
+
+    if profile_data.created_communities_visibility is not None:
+        user.created_communities_visibility = profile_data.created_communities_visibility
+
+    if profile_data.joined_communities_visibility is not None:
+        user.joined_communities_visibility = profile_data.joined_communities_visibility
+
+    if profile_data.preferred_locale is not None:
+        user.preferred_locale = profile_data.preferred_locale
     
     await db.commit()
     await db.refresh(user)

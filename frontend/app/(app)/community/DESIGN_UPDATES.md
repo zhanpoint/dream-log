@@ -94,9 +94,9 @@
 
 ## 📂 修改的文件
 
-1. `frontend-v2/app/(app)/community/page.tsx` - 主页面组件
-2. `frontend-v2/components/community/dream-card-social.tsx` - 梦境卡片组件
-3. `frontend-v2/styles/community.css` - 社区页面样式（新增）
+1. `frontend/app/(app)/community/page.tsx` - 主页面组件
+2. `frontend/components/community/dream-card-social.tsx` - 梦境卡片组件
+3. `frontend/styles/community.css` - 社区页面样式（新增）
 
 ## 🎯 下一步计划（阶段二）
 

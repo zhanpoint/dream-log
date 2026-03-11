@@ -1,92 +1,89 @@
 <svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- 浅色背景 -->
   <rect width="1200" height="800" fill="#ffffff"/>
-  
-  <!-- 渐变背景 -->
+
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.15" />
-      <stop offset="50%" style="stop-color:#c084fc;stop-opacity:0.2" />
-      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.15" />
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ede9fe" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#dbeafe" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#faf5ff" stop-opacity="0.8"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.2" />
-      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0" />
+    <radialGradient id="glow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="cardGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.35"/>
+    </linearGradient>
   </defs>
-  
-  <!-- 光晕效果 -->
-  <circle cx="600" cy="400" r="400" fill="url(#glow)"/>
-  
-  <!-- 主容器 - 模拟应用界面 -->
-  <rect x="100" y="100" width="1000" height="600" rx="20" fill="#fafafa" stroke="#e5e5e5" stroke-width="2"/>
-  
-  <!-- 顶部导航栏 -->
-  <rect x="100" y="100" width="1000" height="60" rx="20" fill="#f4f4f5"/>
-  <rect x="100" y="160" width="1000" height="1" fill="#d4d4d8"/>
-  
-  <!-- Logo 区域 -->
-  <circle cx="140" cy="130" r="15" fill="#a78bfa"/>
-  <rect x="170" y="120" width="120" height="20" rx="4" fill="#d4d4d8"/>
-  
-  <!-- 导航项 -->
-  <rect x="350" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
-  <rect x="430" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
-  <rect x="510" y="120" width="60" height="20" rx="4" fill="#e4e4e7"/>
-  
-  <!-- 右侧按钮 -->
-  <rect x="950" y="115" width="130" height="30" rx="8" fill="#a78bfa"/>
-  
-  <!-- 主内容区域 -->
-  <g transform="translate(150, 200)">
-    <!-- 标题区域 -->
-    <rect x="0" y="0" width="400" height="30" rx="6" fill="url(#grad1)"/>
-    <rect x="0" y="45" width="300" height="20" rx="4" fill="#d4d4d8"/>
-    <rect x="0" y="75" width="350" height="20" rx="4" fill="#d4d4d8"/>
-    
-    <!-- 卡片列表 -->
-    <rect x="0" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
-    <rect x="300" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
-    <rect x="600" y="130" width="280" height="180" rx="12" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
-    
-    <!-- 卡片内容装饰 -->
-    <circle cx="40" cy="170" r="12" fill="#a78bfa" opacity="0.6"/>
-    <rect x="70" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
-    <rect x="20" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="20" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="20" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
-    
-    <circle cx="340" cy="170" r="12" fill="#c084fc" opacity="0.6"/>
-    <rect x="370" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
-    <rect x="320" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="320" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="320" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
-    
-    <circle cx="640" cy="170" r="12" fill="#a78bfa" opacity="0.6"/>
-    <rect x="670" y="165" width="180" height="10" rx="5" fill="#e4e4e7"/>
-    <rect x="620" y="200" width="240" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="620" y="220" width="200" height="8" rx="4" fill="#f4f4f5"/>
-    <rect x="620" y="240" width="220" height="8" rx="4" fill="#f4f4f5"/>
+
+  <rect x="80" y="80" width="1040" height="640" rx="24" fill="url(#bgGradient)"/>
+  <circle cx="600" cy="380" r="420" fill="url(#glow)"/>
+  <rect x="90" y="90" width="1020" height="620" rx="22" fill="#fdfdfd" stroke="#e5e7eb" stroke-width="2"/>
+
+  <rect x="90" y="90" width="1020" height="68" rx="22" fill="#f5f3ff"/>
+  <rect x="90" y="158" width="1020" height="1" fill="#e4e4e7"/>
+
+  <circle cx="135" cy="124" r="14" fill="#a78bfa"/>
+  <rect x="160" y="115" width="110" height="18" rx="4" fill="#ddd6fe"/>
+  <rect x="330" y="115" width="70" height="18" rx="4" fill="#e5e7eb"/>
+  <rect x="420" y="115" width="70" height="18" rx="4" fill="#e5e7eb"/>
+  <rect x="510" y="115" width="70" height="18" rx="4" fill="#e5e7eb"/>
+  <rect x="905" y="110" width="170" height="28" rx="9" fill="#a78bfa"/>
+
+  <g transform="translate(140, 190)">
+    <text x="0" y="0" font-family="'Segoe UI', Arial, sans-serif" font-size="28" fill="#1f2937" font-weight="600">今晨的梦境已整理完毕</text>
+    <text x="0" y="34" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#6b7280">记录灵感 · AI 解读 · 专属洞察 · 发现共鸣</text>
+
+    <rect x="0" y="60" width="420" height="10" rx="5" fill="url(#cardGlow)"/>
+    <rect x="0" y="82" width="360" height="8" rx="4" fill="#e5e7eb"/>
+
+    <rect x="0" y="120" width="420" height="150" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+    <text x="24" y="150" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#111827" font-weight="600">梦境记录</text>
+    <text x="24" y="176" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#6b7280">关键词：海面 · 灯塔 · 星光</text>
+    <rect x="24" y="192" width="260" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="24" y="208" width="300" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="24" y="224" width="220" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="24" y="238" width="110" height="26" rx="8" fill="#a78bfa"/>
+    <text x="36" y="256" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#ffffff">生成解析</text>
+
+    <rect x="450" y="120" width="420" height="150" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+    <text x="474" y="150" font-family="'Segoe UI', Arial, sans-serif" font-size="16" fill="#111827" font-weight="600">AI 洞察报告</text>
+    <rect x="474" y="170" width="120" height="8" rx="4" fill="#93c5fd"/>
+    <rect x="474" y="186" width="300" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="474" y="202" width="270" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="474" y="218" width="230" height="8" rx="4" fill="#f3f4f6"/>
+    <rect x="474" y="234" width="170" height="8" rx="4" fill="#f3f4f6"/>
+
+    <rect x="0" y="290" width="270" height="120" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+    <text x="24" y="320" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="#111827" font-weight="600">情绪趋势</text>
+    <rect x="24" y="340" width="80" height="8" rx="4" fill="#a78bfa"/>
+    <rect x="24" y="358" width="210" height="8" rx="4" fill="#f3f4f6"/>
+
+    <rect x="300" y="290" width="270" height="120" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+    <text x="324" y="320" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="#111827" font-weight="600">梦境词典</text>
+    <rect x="324" y="340" width="120" height="8" rx="4" fill="#93c5fd"/>
+    <rect x="324" y="358" width="200" height="8" rx="4" fill="#f3f4f6"/>
+
+    <rect x="600" y="290" width="270" height="120" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+    <text x="624" y="320" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="#111827" font-weight="600">梦境社区</text>
+    <rect x="624" y="340" width="170" height="8" rx="4" fill="#a78bfa"/>
+    <rect x="624" y="358" width="190" height="8" rx="4" fill="#f3f4f6"/>
   </g>
-  
-  <!-- 装饰性太阳图标 -->
-  <circle cx="950" cy="250" r="40" fill="#fbbf24" opacity="0.3"/>
-  <circle cx="950" cy="250" r="30" fill="#fbbf24" opacity="0.5"/>
-  
-  <!-- 光线装饰 -->
-  <line x1="950" y1="190" x2="950" y2="210" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
-  <line x1="950" y1="290" x2="950" y2="310" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
-  <line x1="890" y1="250" x2="910" y2="250" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
-  <line x1="990" y1="250" x2="1010" y2="250" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
-  
-  <!-- 星星装饰 -->
-  <circle cx="200" cy="250" r="2" fill="#a78bfa" opacity="0.4"/>
-  <circle cx="350" cy="200" r="2" fill="#c084fc" opacity="0.4"/>
-  <circle cx="850" cy="350" r="2" fill="#a78bfa" opacity="0.4"/>
-  <circle cx="1050" cy="280" r="2" fill="#c084fc" opacity="0.4"/>
-  <circle cx="180" cy="650" r="2" fill="#a78bfa" opacity="0.4"/>
-  <circle cx="1020" cy="620" r="2" fill="#c084fc" opacity="0.4"/>
-  
-  <!-- Dream Log 水印 -->
-  <text x="600" y="750" font-family="Arial, sans-serif" font-size="24" fill="#a1a1aa" text-anchor="middle">Dream Log - 探索你的梦境世界</text>
+
+  <circle cx="950" cy="245" r="40" fill="#fbbf24" opacity="0.2"/>
+  <circle cx="950" cy="245" r="28" fill="#fbbf24" opacity="0.35"/>
+  <line x1="950" y1="200" x2="950" y2="215" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="950" y1="275" x2="950" y2="290" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="910" y1="245" x2="925" y2="245" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+  <line x1="975" y1="245" x2="990" y2="245" stroke="#fbbf24" stroke-width="3" opacity="0.4"/>
+
+  <circle cx="210" cy="240" r="2" fill="#a78bfa" opacity="0.5"/>
+  <circle cx="360" cy="205" r="2" fill="#c084fc" opacity="0.5"/>
+  <circle cx="870" cy="360" r="2" fill="#93c5fd" opacity="0.5"/>
+  <circle cx="1040" cy="300" r="2" fill="#a78bfa" opacity="0.5"/>
+  <circle cx="170" cy="660" r="2" fill="#c4b5fd" opacity="0.5"/>
+  <circle cx="1010" cy="620" r="2" fill="#93c5fd" opacity="0.5"/>
+
+  <text x="600" y="740" font-family="'Segoe UI', Arial, sans-serif" font-size="20" fill="#9ca3af" text-anchor="middle">Dream Log · 记录梦境，发现内在世界</text>
 </svg>

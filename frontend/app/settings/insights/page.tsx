@@ -20,7 +20,7 @@ import {
 import { Award, BarChart3, Bell, Calendar, CalendarDays, GitCompare, Loader2, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_SETTINGS: InsightSettings = {
   monthly_report_enabled: true,

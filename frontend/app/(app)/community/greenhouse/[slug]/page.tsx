@@ -4,18 +4,57 @@ import { DreamCardSocialComponent } from "@/components/community/dream-card-soci
 import { communityAPI, type CommunityResponse, type DreamCardSocial, type FeedSort } from "@/lib/community-api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Users, BookOpen, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { GreenhouseShell } from "@/components/community/greenhouse-shell";
+import { GreenhouseOverviewPanel } from "@/components/community/greenhouse-overview-panel";
+import {
+  Loader2,
+  ChevronDown,
+  MoonStar,
+  Skull,
+  BrainCircuit,
+  Sparkles,
+  HeartHandshake,
+  Orbit,
+  Stars,
+  Compass,
+  Film,
+} from "lucide-react";
 import Link from "next/link";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-const SORTS: { value: FeedSort; label: string }[] = [
-  { value: "latest", label: "最新" },
-  { value: "resonating", label: "共鸣最多" },
-];
+const SORT_VALUES: FeedSort[] = ["latest", "resonating"];
+
+const getSortLabelKey = (value: FeedSort): string => {
+  if (value === "latest") return "community.home.sort.latest";
+  if (value === "resonating") return "community.home.sort.resonating";
+  if (value === "following") return "community.feed.sortFollowing";
+  if (value === "foryou") return "community.feed.sortForYou";
+  return "community.home.sort.latest";
+};
+
+const getCommunityIcon = (slug: string): ReactNode => {
+  const iconClass = "w-8 h-8 text-emerald-600 dark:text-emerald-300";
+  const iconBySlug: Record<string, ReactNode> = {
+    lucid_dreaming: <MoonStar className={iconClass} />,
+    nightmare_support: <Skull className={iconClass} />,
+    "nightmare-support": <Skull className={iconClass} />,
+    symbolism_lab: <BrainCircuit className={iconClass} />,
+    beginner_corner: <Sparkles className={iconClass} />,
+    emotional_healing: <HeartHandshake className={iconClass} />,
+    exploration_club: <Compass className={iconClass} />,
+    "serial-dreams": <Film className={iconClass} />,
+    "fun-dreams-share": <Stars className={iconClass} />,
+    "parallel-world-dreams": <Orbit className={iconClass} />,
+  };
+
+  return iconBySlug[slug] ?? <MoonStar className={iconClass} />;
+};
 
 export default function CommunityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const { t } = useTranslation();
   const [community, setCommunity] = useState<CommunityResponse | null>(null);
   const [dreams, setDreams] = useState<DreamCardSocial[]>([]);
   const [sort, setSort] = useState<FeedSort>("latest");
@@ -25,6 +64,8 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
   const [feedLoading, setFeedLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
   const PAGE_SIZE = 10;
 
   // Load community info
@@ -64,6 +105,17 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [loadFeed]);
 
+  useEffect(() => {
+    if (!sortOpen) return;
+    const handleOutside = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [sortOpen]);
+
   const handleJoin = async () => {
     setJoining(true);
     try {
@@ -79,19 +131,10 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
 
   const hasMore = dreams.length < total;
 
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <Link href="/community/greenhouse" className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <span className="text-sm text-muted-foreground">梦境社群</span>
-      </div>
-
-      {/* Community info card */}
+  const header = (
+    <div>
       {loading ? (
-        <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-pulse space-y-3">
+        <div className="bg-card border border-border rounded-2xl p-5 mb-5 animate-pulse space-y-3">
           <div className="flex items-center gap-3">
             <Skeleton className="w-16 h-16 rounded-xl" />
             <div className="space-y-2 flex-1">
@@ -102,49 +145,13 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
           <Skeleton className="h-3 w-full" />
         </div>
       ) : community ? (
-        <div className="bg-card border border-border rounded-xl p-5 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 flex-shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/20 flex items-center justify-center text-3xl">
-              {community.icon || "🌿"}
+        <div className="mb-5">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 flex-shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/20 flex items-center justify-center">
+              {getCommunityIcon(community.slug)}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h1 className="text-xl font-bold">{community.name}</h1>
-                  {community.is_official && (
-                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
-                      <CheckCircle2 className="w-3 h-3" />
-                      官方社群
-                    </span>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  variant={community.is_member ? "outline" : "default"}
-                  className={`flex-shrink-0 ${
-                    community.is_member
-                      ? "border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                      : "bg-emerald-500 hover:bg-emerald-600 text-white"
-                  }`}
-                  onClick={handleJoin}
-                  disabled={joining}
-                >
-                  {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : community.is_member ? "已加入" : "加入社群"}
-                </Button>
-              </div>
-              {community.description && (
-                <p className="text-sm text-muted-foreground mt-2">{community.description}</p>
-              )}
-              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" />
-                  {community.member_count.toLocaleString()} 成员
-                </span>
-                <span className="flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  {community.post_count.toLocaleString()} 梦境
-                </span>
-              </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold truncate">{community.name}</h1>
             </div>
           </div>
         </div>
@@ -152,32 +159,46 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
         <div className="text-center py-8 text-muted-foreground mb-6">社群不存在</div>
       )}
 
-      {/* Sort tabs */}
-      <div className="flex items-center gap-2 mb-5 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-        {SORTS.map((s) => (
-          <button
-            key={s.value}
-            onClick={() => setSort(s.value)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              sort === s.value
-                ? "bg-primary text-primary-foreground shadow-md scale-105"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary"
-          onClick={() => loadFeed(1, true)}
+      <div className="relative flex items-center gap-2 mb-5" ref={sortRef}>
+        <button
+          type="button"
+          onClick={() => setSortOpen((prev) => !prev)}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/60 dark:hover:bg-muted/20"
         >
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+          <span>{t(getSortLabelKey(sort))}</span>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+        </button>
+        {sortOpen && (
+          <div className="absolute z-20 mt-10 rounded-xl border border-border bg-popover p-2 shadow-lg">
+            {SORT_VALUES.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => {
+                  setSort(value);
+                  setSortOpen(false);
+                }}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                  sort === value
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/20"
+                }`}
+              >
+                <span>{t(getSortLabelKey(value))}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+    </div>
+  );
 
-      {/* Feed */}
+  return (
+    <GreenhouseShell
+      activeSlug={community?.slug}
+      header={header}
+      rightPanel={community ? <GreenhouseOverviewPanel slug={community.slug} /> : null}
+    >
       {feedLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -227,6 +248,6 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
           )}
         </div>
       )}
-    </div>
+    </GreenhouseShell>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Mail, KeyRound, AlertCircle } from "lucide-react";
 import type { AuthMode, AuthMethod } from "@/hooks/auth";

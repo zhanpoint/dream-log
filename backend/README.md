@@ -16,7 +16,7 @@
 ## 项目结构
 
 ```
-backend-v2/
+backend/
 ├── app/              # 主应用目录
 │   ├── api/         # API路由
 │   ├── core/        # 核心配置（数据库、认证等）
@@ -44,7 +44,7 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ### 2. 创建虚拟环境并安装依赖
 
 ```bash
-cd backend-v2
+cd backend
 uv venv
 uv pip install -e .
 ```

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import {
   Form,
@@ -67,7 +67,7 @@ export function PasswordStep({
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({ field }: { field: ControllerRenderProps<PasswordFormData, "password"> & FieldValues }) => (
               <FormItem>
                 <FormControl>
                   <div className="relative">

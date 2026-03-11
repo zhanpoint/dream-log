@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { Loader2, Plus, Tag as TagIcon, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 interface DreamTagManagerProps {
   dreamId: string;

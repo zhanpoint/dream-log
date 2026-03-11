@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "next-themes";
 import { SUPPORTED_LANGUAGES } from "@/i18n";

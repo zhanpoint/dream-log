@@ -44,6 +44,7 @@ import {
   COMPLETENESS_LEVELS,
 } from "@/lib/constants";
 import { DreamApi, type CreateDreamPayload, type DreamDetail } from "@/lib/dream-api";
+import { communityAPI, type CommunityResponse } from "@/lib/community-api";
 import { getEmotionLabel } from "@/lib/emotion-utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -77,7 +78,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 type DreamEditorProps = {
   mode?: "create" | "edit";
@@ -182,6 +183,9 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   const [titleGeneratedByAI, setTitleGeneratedByAI] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSeekingInterpretation, setIsSeekingInterpretation] = useState(false);
+  const [joinedCommunities, setJoinedCommunities] = useState<CommunityResponse[]>([]);
+  const [selectedCommunityId, setSelectedCommunityId] = useState("");
+  const [shareToCommunityEnabled, setShareToCommunityEnabled] = useState(false);
 
   // 从 URL 预填（仅创建模式）：?seek=1&privacy=PUBLIC
   useEffect(() => {
@@ -189,6 +193,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
     const seek = searchParams.get("seek");
     const privacy = searchParams.get("privacy");
+    const communityId = searchParams.get("communityId");
+    const share = searchParams.get("share");
 
     if (seek === "1" || seek === "true") {
       setIsSeekingInterpretation(true);
@@ -197,6 +203,31 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
     if (privacy === "PUBLIC") {
       setPrivacyLevel("PUBLIC");
     }
+
+    if (communityId) {
+      setSelectedCommunityId(communityId);
+      setShareToCommunityEnabled(share === "1" || share === "true" || privacy === "PUBLIC");
+      setPrivacyLevel("PUBLIC");
+    }
+  }, [mode, searchParams]);
+
+  useEffect(() => {
+    communityAPI
+      .getCommunities()
+      .then((res) => {
+        const memberCommunities = res.items.filter((c) => c.is_member);
+        setJoinedCommunities(memberCommunities);
+
+        if (mode === "create") {
+          const communityId = searchParams.get("communityId");
+          if (communityId && memberCommunities.some((c) => c.id === communityId)) {
+            setSelectedCommunityId(communityId);
+          }
+        }
+      })
+      .catch(() => {
+        // 非阻塞能力：加载失败不影响记录梦境
+      });
   }, [mode, searchParams]);
 
   // 附件
@@ -373,11 +404,18 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
     setTitleGeneratedByAI(initialDream.title_generated_by_ai ?? false);
     setIsAnonymous((initialDream as any).is_anonymous ?? false);
     setIsSeekingInterpretation((initialDream as any).is_seeking_interpretation ?? false);
+    setSelectedCommunityId((initialDream as any).community_id ?? "");
+    setShareToCommunityEnabled(!!(initialDream as any).community_id);
   }, [mode, initialDream]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
       toast.error("请描述你的梦境内容");
+      return;
+    }
+
+    if (privacyLevel === "PUBLIC" && shareToCommunityEnabled && !selectedCommunityId) {
+      toast.error("请先选择要分享到的社群");
       return;
     }
 
@@ -442,6 +480,10 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         title_generated_by_ai: titleGeneratedByAI,
         is_anonymous: isAnonymous || undefined,
         is_seeking_interpretation: isSeekingInterpretation || undefined,
+        community_id:
+          shareToCommunityEnabled && selectedCommunityId
+            ? selectedCommunityId
+            : undefined,
       };
 
       const dream =
@@ -484,6 +526,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
       }
 
       toast.success(mode === "edit" ? "梦境已更新" : "梦境记录成功！");
+
+      // 强依赖后端返回的 dream.id，若缺失则直接提示错误
+      if (!dream?.id) {
+        toast.error("保存成功但未获取到梦境 ID，请稍后重试");
+        return;
+      }
+
       router.push(`/dreams/${dream.id}`);
     } catch (err: any) {
       const rawDetail = err?.response?.data?.detail;
@@ -1574,7 +1623,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   onCheckedChange={setIsAnonymous}
                 />
                 <Label htmlFor="is-anonymous" className="text-sm cursor-pointer">
-                  匿名发布
+                  {t("dreams.new.anonymousPost")}
                 </Label>
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
@@ -1582,7 +1631,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      <p className="text-xs">匿名发布后，其他用户将无法看到你的用户名，显示为「匿名梦友」</p>
+                      <p className="text-xs">{t("dreams.new.anonymousPostTooltip")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -1595,7 +1644,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   onCheckedChange={setIsSeekingInterpretation}
                 />
                 <Label htmlFor="is-seeking-interpretation" className="text-sm cursor-pointer">
-                  寻求解梦
+                  {t("dreams.new.seekingInterpretation")}
                 </Label>
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
@@ -1603,11 +1652,59 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      <p className="text-xs">开启后，你的梦境将出现在「解梦求助」频道，吸引更多人为你解读</p>
+                      <p className="text-xs">{t("dreams.new.seekingInterpretationTooltip")}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+              <>
+                <div className="h-5 w-px bg-border/60 hidden sm:block" />
+                <div className="flex items-center gap-2.5">
+                  <Switch
+                    id="share-to-community"
+                    checked={shareToCommunityEnabled}
+                    onCheckedChange={(value) => {
+                      setShareToCommunityEnabled(value);
+                      if (!value) {
+                        setSelectedCommunityId("");
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="share-to-community"
+                    className="text-sm cursor-pointer whitespace-nowrap"
+                  >
+                    {t("dreams.new.shareToCommunity")}
+                  </Label>
+                  {shareToCommunityEnabled && (
+                    <select
+                      id="community-share"
+                      title={
+                        joinedCommunities.length > 0
+                          ? t("dreams.new.shareToCommunitySelectTitle")
+                          : t("dreams.new.shareToCommunityNoOptions")
+                      }
+                      value={selectedCommunityId}
+                      onChange={(e) => setSelectedCommunityId(e.target.value)}
+                      disabled={joinedCommunities.length === 0}
+                      className="h-8 rounded-md border border-emerald-500/70 bg-background px-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {joinedCommunities.length > 0 ? (
+                        <>
+                          <option value="">{t("dreams.new.shareToCommunityPlaceholder")}</option>
+                          {joinedCommunities.map((community) => (
+                            <option key={community.id} value={community.id}>
+                              {community.name}
+                            </option>
+                          ))}
+                        </>
+                      ) : (
+                        <option value="">{t("dreams.new.shareToCommunityNoOptions")}</option>
+                      )}
+                    </select>
+                  )}
+                </div>
+              </>
             </div>
           )}
 

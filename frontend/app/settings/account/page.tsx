@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { PasswordStrengthIndicator, validatePasswordStrength } from "@/component
 import { userAPI } from "@/lib/user-api";
 import { authAPI } from "@/lib/auth-api";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { AuthUser } from "@/lib/auth-api";
 
@@ -207,7 +207,7 @@ export default function AccountPage() {
               <FormField
                 control={form.control}
                 name="oldPassword"
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<FormValues, "oldPassword"> & FieldValues }) => (
                   <FormItem className="space-y-4">
                     <FormLabel className="block text-base font-medium mb-4">{t("settings.account.currentPassword")}</FormLabel>
                     <FormControl>
@@ -226,7 +226,7 @@ export default function AccountPage() {
               <FormField
                 control={form.control}
                 name="verificationCode"
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<FormValues, "verificationCode"> & FieldValues }) => (
                   <FormItem className="space-y-4">
                     <FormLabel className="block text-base font-medium mb-4">{t("settings.email.verificationCode")}</FormLabel>
                     <div className="flex gap-2 w-[calc(50%-12px)]">
@@ -261,7 +261,7 @@ export default function AccountPage() {
             <FormField
               control={form.control}
               name="newPassword"
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "newPassword"> & FieldValues }) => (
                 <FormItem className="space-y-4">
                   <FormLabel className="block text-base font-medium mb-4">{t("settings.account.newPassword")}</FormLabel>
                   <FormControl>
@@ -287,7 +287,7 @@ export default function AccountPage() {
             <FormField
               control={form.control}
               name="confirmPassword"
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "confirmPassword"> & FieldValues }) => (
                 <FormItem className="space-y-4">
                   <FormLabel className="block text-base font-medium mb-4">{t("settings.account.confirmPassword")}</FormLabel>
                   <FormControl>
@@ -387,7 +387,7 @@ function EmailChangeForm() {
           <FormField
             control={emailForm.control}
             name="newEmail"
-            render={({ field }) => (
+            render={({ field }: { field: ControllerRenderProps<EmailFormValues, "newEmail"> & FieldValues }) => (
               <FormItem className="flex-1 space-y-4">
                 <FormLabel className="block text-base font-medium mb-4">{t("settings.email.newEmail")}</FormLabel>
                 <FormControl>
@@ -401,7 +401,7 @@ function EmailChangeForm() {
           <FormField
             control={emailForm.control}
             name="verificationCode"
-            render={({ field }) => (
+            render={({ field }: { field: ControllerRenderProps<EmailFormValues, "verificationCode"> & FieldValues }) => (
               <FormItem className="flex-1 space-y-4">
                 <FormLabel className="block text-base font-medium mb-4">{t("settings.email.verificationCode")}</FormLabel>
                 <div className="flex gap-2">

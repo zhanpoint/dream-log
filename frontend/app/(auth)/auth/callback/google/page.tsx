@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { authAPI, AuthHelpers } from "@/lib/auth";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 /** 防止 Strict Mode 下重复请求：OAuth code 仅能使用一次 */
 let _callbackProcessed = false;

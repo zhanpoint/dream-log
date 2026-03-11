@@ -6,6 +6,7 @@ import { communityAPI } from "@/lib/community-api";
 import { Brain, MessageCircle, Send } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const COMMENT_TEXTAREA_MIN_H = 64;
 const COMMENT_TEXTAREA_MAX_H = 320;
@@ -38,6 +39,7 @@ export function CommentInput({
   const [loading, setLoading] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(COMMENT_TEXTAREA_DEFAULT_H);
   const isInterpretation = isInterpretationFromParent ?? isInterpretationLocal;
+  const { t } = useTranslation();
 
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,7 +64,7 @@ export function CommentInput({
   const handleSubmit = async () => {
     const trimmed = content.trim();
     if (!trimmed) {
-      toast.error("请输入内容");
+      toast.error(t("community.comments.validation.empty"));
       return;
     }
     setLoading(true);
@@ -75,7 +77,7 @@ export function CommentInput({
       setContent("");
       onSuccess?.();
     } catch {
-      toast.error("发布失败，请稍后重试");
+      toast.error(t("community.comments.submitFailed"));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,9 @@ export function CommentInput({
           onChange={(e) => setContent(e.target.value)}
           placeholder={
             placeholder ??
-            (isInterpretation ? "分享你对这个梦境的解读..." : "写下你的想法...")
+            (isInterpretation
+              ? t("community.comments.placeholder.interpretation")
+              : t("community.comments.placeholder.comment"))
           }
           rows={2}
           className="resize-none text-sm focus-visible:ring-1 focus-visible:ring-offset-1"
@@ -114,7 +118,9 @@ export function CommentInput({
               onChange={(e) => setContent(e.target.value)}
               placeholder={
                 placeholder ??
-                (isInterpretation ? "分享你对这个梦境的解读..." : "写下你的想法...")
+                (isInterpretation
+                  ? t("community.comments.placeholder.interpretation")
+                  : t("community.comments.placeholder.comment"))
               }
               className="resize-none text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none p-3 pr-8 w-full min-h-full rounded-t-lg"
             onKeyDown={(e) => {
@@ -132,7 +138,7 @@ export function CommentInput({
                 "linear-gradient(135deg, transparent 50%, rgba(139, 92, 246, 0.45) 50%)",
               borderRadius: "0 0 6px 0",
             }}
-            title="拖曳调整高度"
+            title={t("community.comments.resizeHint")}
           />
         </div>
       )}
@@ -148,7 +154,7 @@ export function CommentInput({
               }`}
             >
               <MessageCircle className="h-3 w-3" />
-              评论
+              {t("community.comments.tabs.comments")}
             </button>
             <button
               onClick={() => setIsInterpretationLocal(true)}
@@ -159,7 +165,7 @@ export function CommentInput({
               }`}
             >
               <Brain className="h-3 w-3" />
-              解读
+              {t("community.comments.tabs.interpretations")}
             </button>
           </div>
         )}
@@ -172,7 +178,7 @@ export function CommentInput({
               disabled={loading}
               className="text-foreground dark:text-zinc-100 border border-zinc-300/90 dark:border-zinc-500/90 bg-background dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-foreground dark:hover:text-zinc-100 transition-all duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-sm dark:hover:shadow-zinc-900/40"
             >
-              取消
+              {t("common.cancel")}
             </Button>
           )}
           <Button
@@ -186,7 +192,7 @@ export function CommentInput({
             }
           >
             <Send className="h-3.5 w-3.5 mr-1.5" />
-            {loading ? "发布中..." : "发布"}
+            {loading ? t("community.comments.submitting") : t("community.comments.submit")}
           </Button>
         </div>
       </div>

@@ -8,6 +8,7 @@ import base64
 import logging
 import os
 from pathlib import Path
+from typing import Awaitable, Callable
 from uuid import UUID
 
 import httpx
@@ -172,6 +173,8 @@ class AIService:
         dream_title: str | None = None,
         user_id: str | UUID | None = None,
         dream_id: str | UUID | None = None,
+        *,
+        cancelled: Callable[[], Awaitable[bool]] | None = None,
     ) -> str:
         """使用配置的图像生成模型，根据梦境内容生成一张梦境图像。"""
         if not OPENROUTER_API_KEY:
@@ -189,12 +192,17 @@ class AIService:
 
         # 重试应对模型偶发只返回文本不返回图像的问题
         for attempt in range(1, 4):
+            if cancelled and await cancelled():
+                raise RuntimeError("图像生成已取消")
             prompt = (
                 f"{base_prompt}\n\n"
                 "IMPORTANT: Return an image output in this response. "
                 "Do not return text-only answer."
             )
-            image_bytes, mime_type, last_response = await self._generate_image_once(prompt)
+            image_bytes, mime_type, last_response = await self._generate_image_once(
+                prompt,
+                cancelled=cancelled,
+            )
             if image_bytes is not None:
                 break
 
@@ -226,21 +234,60 @@ class AIService:
         b64 = base64.b64encode(image_bytes).decode()
         return f"data:{mime_type};base64,{b64}"
 
-    async def _generate_image_once(self, prompt: str) -> tuple[bytes | None, str, dict | None]:
+    async def _generate_image_once(
+        self,
+        prompt: str,
+        *,
+        cancelled: Callable[[], Awaitable[bool]] | None = None,
+    ) -> tuple[bytes | None, str, dict | None]:
         async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                f"{OPENROUTER_BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": MODELS["image_generation"],
-                    "messages": [{"role": "user", "content": prompt}],
-                    "modalities": ["image", "text"],
-                    "image_config": {"aspect_ratio": "16:9"},
-                },
+            req_task = asyncio.create_task(
+                client.post(
+                    f"{OPENROUTER_BASE_URL}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": MODELS["image_generation"],
+                        "messages": [{"role": "user", "content": prompt}],
+                        "modalities": ["image", "text"],
+                        "image_config": {"aspect_ratio": "16:9"},
+                    },
+                )
             )
+
+            cancel_task: asyncio.Task[None] | None = None
+            if cancelled:
+                async def _wait_cancel() -> None:
+                    # 轻量轮询：取消按钮点击后应尽快响应
+                    while True:
+                        if await cancelled():
+                            return
+                        await asyncio.sleep(0.35)
+                cancel_task = asyncio.create_task(_wait_cancel())
+
+            done, _pending = await asyncio.wait(
+                {req_task, cancel_task} if cancel_task else {req_task},
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            if cancel_task and cancel_task in done and cancelled and await cancelled():
+                req_task.cancel()
+                try:
+                    await req_task
+                except BaseException:
+                    pass
+                raise RuntimeError("图像生成已取消")
+
+            if cancel_task:
+                cancel_task.cancel()
+                try:
+                    await cancel_task
+                except BaseException:
+                    pass
+
+            response = await req_task
 
         if response.status_code != 200:
             logger.error(f"图像生成 API 错误: {response.status_code} - {response.text}")

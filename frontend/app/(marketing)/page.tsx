@@ -23,9 +23,9 @@ export default function Page() {
       <TestimonialsSection />
       <Particles
         className="absolute inset-0 -z-10"
-        quantity={120}
+        quantity={220}
         ease={70}
-        size={0.12}
+        size={0.32}
         staticity={40}
         color={particleColor}
         refresh={theme === "dark"}

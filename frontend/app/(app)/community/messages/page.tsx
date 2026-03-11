@@ -11,9 +11,11 @@ import { dmAPI, type DmConversationOut, type SendKnockRequest } from "@/lib/dm-a
 import { AuthUser } from "@/lib/auth-api";
 import { ArrowLeft, MessageSquare, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import type { Locale } from "date-fns";
+import { enUS, ja, zhCN } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -45,10 +47,19 @@ function getConversationPeerId(conv: DmConversationOut, currentUserId: string): 
   return conv.initiator_id === currentUserId ? conv.recipient_id : conv.initiator_id;
 }
 
+const relativeTimeLocales: Record<string, Locale> = {
+  en: enUS,
+  "en-US": enUS,
+  ja,
+  "zh-CN": zhCN,
+};
+
 function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const knockRecipientId = searchParams.get("knock");
+  const { t, i18n } = useTranslation();
+  const relativeLocale = relativeTimeLocales[i18n.language] ?? zhCN;
 
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<ReturnType<typeof AuthUser.get>>(null);
@@ -66,11 +77,11 @@ function MessagesContent() {
       const data = await dmAPI.getConversations();
       setConversations(data);
     } catch {
-      toast.error("加载消息列表失败");
+      toast.error(t("dm.errors.loadConversationsFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setMounted(true);
@@ -114,7 +125,7 @@ function MessagesContent() {
       router.push(`/community/messages/${conv.id}`);
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(detail ?? "发送失败，请稍后重试");
+      toast.error(detail ?? t("dm.errors.sendFailed"));
     } finally {
       setKnockSending(false);
     }
@@ -132,9 +143,11 @@ function MessagesContent() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <p className="text-4xl mb-4">🔐</p>
-        <p className="text-muted-foreground mb-4">请先登录才能查看私信</p>
+        <p className="text-muted-foreground mb-4">
+          {t("dm.loginRequired.description")}
+        </p>
         <Link href="/auth">
-          <Button>去登录</Button>
+          <Button>{t("dm.loginRequired.loginButton")}</Button>
         </Link>
       </div>
     );
@@ -144,19 +157,22 @@ function MessagesContent() {
     <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/community" aria-label="返回社区广场">
+        <Link
+          href="/community"
+          aria-label={t("dm.header.backToCommunity")}
+        >
           <Button
             variant="ghost"
             size="sm"
             className="gap-1.5 text-foreground/90 hover:text-foreground dark:text-slate-200 dark:hover:text-white hover:bg-accent/70 dark:hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
-            返回社区
+            {t("dm.header.backToCommunity")}
           </Button>
         </Link>
         <h1 className="text-lg font-bold flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
-          私信
+          {t("dm.header.title")}
         </h1>
       </div>
 
@@ -166,7 +182,7 @@ function MessagesContent() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              发起私信
+              {t("dm.knockDialog.title")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
@@ -175,7 +191,7 @@ function MessagesContent() {
                 ref={knockRef}
                 value={knockContent}
                 onChange={(e) => setKnockContent(e.target.value)}
-                placeholder="写一条真诚的消息，对方回复后即可正常聊天"
+                placeholder={t("dm.knockDialog.placeholder")}
                 maxLength={500}
                 rows={4}
                 className={cn(
@@ -196,7 +212,7 @@ function MessagesContent() {
                   onClick={() => setKnockOpen(false)}
                   className="text-foreground hover:text-foreground dark:text-slate-200 dark:hover:text-white hover:bg-accent/70 dark:hover:bg-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02]"
                 >
-                  取消
+                  {t("dm.knockDialog.cancel")}
                 </Button>
                 <Button
                   size="sm"
@@ -205,7 +221,9 @@ function MessagesContent() {
                   className="gap-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02]"
                 >
                   <Send className="h-3.5 w-3.5" />
-                  {knockSending ? "发送中..." : "发送"}
+                  {knockSending
+                    ? t("dm.knockDialog.sending")
+                    : t("dm.knockDialog.send")}
                 </Button>
               </div>
             </div>
@@ -219,16 +237,18 @@ function MessagesContent() {
       ) : conversations.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-5xl mb-4">💬</p>
-          <h3 className="text-base font-semibold mb-1">暂无私信</h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            浏览梦境广场，从别人的梦境贴发起私信，开始新的连接
-          </p>
+        <h3 className="text-base font-semibold mb-1">
+          {t("dm.empty.title")}
+        </h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          {t("dm.empty.description")}
+        </p>
           <Link href="/community">
             <Button
               variant="outline"
               className="text-foreground hover:text-foreground dark:text-slate-200 dark:hover:text-white hover:bg-accent/70 dark:hover:bg-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02]"
             >
-              去梦境广场
+              {t("dm.empty.button")}
             </Button>
           </Link>
         </div>
@@ -237,14 +257,15 @@ function MessagesContent() {
           {conversations.map((conv, idx) => {
             const other = conv.other_user;
             const otherId = other?.id ?? conv.other_user_id ?? conv.recipient_id;
-            const otherUsername = other?.username ?? conv.other_username ?? "未知用户";
+            const otherUsername =
+              other?.username ?? conv.other_username ?? t("dm.list.unknownUser");
             const otherAvatar = other?.avatar ?? conv.other_avatar ?? null;
             const otherLevel = other?.dreamer_level;
             const isInitiator = conv.initiator_id === currentUser.id;
             const timeAgo = conv.last_message_at
               ? formatDistanceToNow(new Date(conv.last_message_at), {
                   addSuffix: true,
-                  locale: zhCN,
+                  locale: relativeLocale,
                 }).replace(/^大约\s*/, "")
               : "";
 
@@ -277,13 +298,16 @@ function MessagesContent() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
-                    {conv.last_message?.content ?? (
-                      isInitiator ? "你发出了敲门消息" : "收到了一条敲门消息"
-                    )}
+                    {conv.last_message?.content ??
+                      (isInitiator
+                        ? t("dm.list.youKnocked")
+                        : t("dm.list.receivedKnock"))}
                   </p>
                   {conv.source_dream && (
                     <p className="text-[10px] text-primary/70 mt-0.5 flex items-center gap-1">
-                      🌙 因梦结缘 · {conv.source_dream.title ?? conv.source_dream.content_preview.slice(0, 20)}
+                      🌙 {t("dm.list.sourceDreamPrefix")}
+                      {conv.source_dream.title ??
+                        conv.source_dream.content_preview.slice(0, 20)}
                     </p>
                   )}
                 </div>

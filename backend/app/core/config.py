@@ -81,7 +81,8 @@ class Settings(BaseSettings):
     ai_model_text_analysis: str = Field(default="openai/gpt-4o", alias="AI_MODEL_TEXT_ANALYSIS")
     ai_model_title_generation: str = Field(default="google/gemini-flash-1.5", alias="AI_MODEL_TITLE_GENERATION")
     ai_model_insight_generation: str = Field(default="openai/gpt-4o", alias="AI_MODEL_INSIGHT_GENERATION")
-    ai_model_image_generation: str = Field(default="google/gemini-2.5-flash-image", alias="AI_MODEL_IMAGE_GENERATION")
+    # 图像生成模型必须由环境变量提供，避免代码内“默认值”掩盖部署配置。
+    ai_model_image_generation: str = Field(..., alias="AI_MODEL_IMAGE_GENERATION")
     ai_model_embedding: str = Field(default="openai/text-embedding-3-large", alias="AI_MODEL_EMBEDDING")
     # AI 模型参数
     ai_embedding_dimensions: int = Field(default=1024, alias="AI_EMBEDDING_DIMENSIONS")

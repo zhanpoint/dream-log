@@ -9,7 +9,7 @@ import { communityAPI } from "@/lib/community-api";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
 import {
   CheckCircle2,
   ChevronDown,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +80,7 @@ export function CommentItem({
   const [reportOpen, setReportOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { t, i18n } = useTranslation();
 
   const isOwner = currentUserId === comment.author?.id;
   const isOriginalPoster = Boolean(dreamAuthorId && comment.author?.id === dreamAuthorId);
@@ -115,7 +117,7 @@ export function CommentItem({
       setUpCount(res.up_count);
       setDownCount(res.down_count);
     } catch {
-      toast.error("操作失败");
+      toast.error(t("common.operationFailed"));
     } finally {
       setLoading(false);
     }
@@ -128,19 +130,19 @@ export function CommentItem({
       onDeleted?.(comment.id);
       setDeleteDialogOpen(false);
     } catch {
-      toast.error("删除失败");
+      toast.error(t("community.comments.deleteFailed"));
     }
   };
 
   const handleAdopt = async () => {
-    if (!confirm("采纳此解读？采纳后无法撤销。")) return;
+    if (!confirm(t("community.comments.confirmAdopt"))) return;
     try {
       await communityAPI.adoptInterpretation(comment.id);
       setAdopted(true);
       onAdopted?.(comment.id);
-      toast.success("已采纳解读 ✨");
+      toast.success(t("community.comments.adoptSuccess"));
     } catch {
-      toast.error("操作失败");
+      toast.error(t("common.operationFailed"));
     }
   };
 
@@ -148,9 +150,15 @@ export function CommentItem({
     setIsCollapsed(!isCollapsed);
   };
 
+  const currentLocale = i18n.language.startsWith("en")
+    ? enUS
+    : i18n.language.startsWith("ja")
+    ? ja
+    : zhCN;
+
   const timeAgo = formatDistanceToNow(new Date(comment.created_at), {
     addSuffix: true,
-    locale: zhCN,
+    locale: currentLocale,
   });
 
   if (deleted) {
@@ -162,13 +170,15 @@ export function CommentItem({
               <UserAvatar
                 userId={comment.author?.id ?? "deleted"}
                 avatar={comment.author?.avatar}
-                username={"已删除用户"}
+                username={t("community.comments.deletedUser")}
                 size="sm"
               />
             </div>
             <div className="comment-body-content">
               <div className="flex items-center gap-1 flex-wrap mb-1">
-                <span className="font-medium text-sm text-muted-foreground">用户已删除评论</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  {t("community.comments.deletedComment")}
+                </span>
                 <span className="text-muted-foreground text-xs">•</span>
                 <span className="text-xs text-muted-foreground">{timeAgo}</span>
               </div>
@@ -180,8 +190,8 @@ export function CommentItem({
   }
 
   const authorName = comment.is_anonymous
-    ? "匿名"
-    : comment.author?.username ?? "未知用户";
+    ? t("community.home.anonymous")
+    : comment.author?.username ?? t("common.unknownUser");
 
   const authorLine = (
     <div className="flex items-center gap-1 flex-wrap mb-1">
@@ -197,7 +207,7 @@ export function CommentItem({
       )}
       {isOriginalPoster && !comment.is_anonymous && (
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400">
-          原始发帖人
+          {t("community.comments.originalPoster")}
         </span>
       )}
       <span className="text-muted-foreground text-xs">•</span>
@@ -205,13 +215,13 @@ export function CommentItem({
       {comment.is_interpretation && (
         <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400">
           <Sparkles className="h-3 w-3" />
-          解读
+          {t("community.comments.badges.interpretation")}
         </span>
       )}
       {adopted && (
         <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="h-3 w-3" />
-          已采纳
+          {t("community.comments.badges.adopted")}
         </span>
       )}
     </div>
@@ -223,7 +233,11 @@ export function CommentItem({
       <ChevronRight className="h-3 w-3" />
       <span>{authorName}</span>
       <span className="text-muted-foreground">•</span>
-      <span>{isCollapsed ? `${comment.reply_count ?? 0} 条回复` : ""}</span>
+      <span>
+        {isCollapsed && (comment.reply_count ?? 0) > 0
+          ? t("community.comments.replyCount", { count: comment.reply_count ?? 0 })
+          : ""}
+      </span>
     </div>
   );
 
@@ -268,7 +282,11 @@ export function CommentItem({
                   type="button"
                   onClick={toggleCollapse}
                   className="comment-collapse-btn"
-                  aria-label={isCollapsed ? "展开" : "折叠"}
+                  aria-label={
+                    isCollapsed
+                      ? t("community.comments.a11y.expandThread")
+                      : t("community.comments.a11y.collapseThread")
+                  }
                 >
                   {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </button>
@@ -281,7 +299,7 @@ export function CommentItem({
                   "comment-action-btn p-1 rounded transition-all duration-200 ease-out hover:scale-110 focus:outline-none",
                   upvoted && "comment-action-upvote-active"
                 )}
-                aria-label="赞同"
+                aria-label={t("community.comments.a11y.upvote")}
               >
                 <ThumbsUp
                   className={cn(
@@ -301,7 +319,7 @@ export function CommentItem({
                   "comment-action-btn p-1 rounded transition-all duration-200 ease-out hover:scale-110 focus:outline-none",
                   downvoted && "comment-action-downvote-active"
                 )}
-                aria-label="反对"
+                aria-label={t("community.comments.a11y.downvote")}
               >
                 <ThumbsDown
                   className={cn(
@@ -318,7 +336,7 @@ export function CommentItem({
               className="comment-action-btn h-7 px-2.5 text-xs gap-1.5 rounded-md inline-flex items-center justify-center font-medium transition-all duration-200 ease-out hover:scale-105 hover:bg-transparent"
             >
               <MessageCircle className="h-3.5 w-3.5 transition-transform duration-200" />
-              回复
+              {t("community.comments.reply")}
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -326,7 +344,7 @@ export function CommentItem({
                   type="button"
                   data-comment-action="more"
                   className="comment-action-btn h-7 w-7 p-0 rounded-md inline-flex items-center justify-center transition-all duration-200 ease-out hover:scale-110 hover:bg-transparent"
-                  aria-label="更多操作"
+                  aria-label={t("community.comments.a11y.moreActions")}
                 >
                   <MoreHorizontal className="h-4 w-4 transition-transform duration-200" />
                 </button>
@@ -338,14 +356,14 @@ export function CommentItem({
                     onClick={() => setDeleteDialogOpen(true)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    删除
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 )}
                 {!isOwner && (
                   <>
                     <DropdownMenuItem onClick={() => setReportOpen(true)}>
                       <Flag className="h-4 w-4 mr-2" />
-                      举报
+                      {t("community.report.trigger")}
                     </DropdownMenuItem>
                     <ReportDialog
                       targetType="comment"
@@ -358,7 +376,7 @@ export function CommentItem({
                 {isDreamOwner && comment.is_interpretation && !adopted && (
                   <DropdownMenuItem onClick={handleAdopt} className="text-emerald-600">
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    采纳解读
+                    {t("community.comments.adoptAction")}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -428,21 +446,23 @@ export function CommentItem({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="max-w-[360px] rounded-xl border border-border/70 bg-background p-0 overflow-hidden shadow-xl">
           <div className="p-5">
-            <AlertDialogHeader className="space-y-1.5 text-left pr-8">
-              <AlertDialogTitle className="text-xl leading-tight font-semibold text-foreground">删除评论？</AlertDialogTitle>
-              <AlertDialogDescription className="text-sm leading-6 text-muted-foreground font-normal">
-                确定要删除你的评论吗？此操作不可撤销。
-              </AlertDialogDescription>
+              <AlertDialogHeader className="space-y-1.5 text-left pr-8">
+                <AlertDialogTitle className="text-xl leading-tight font-semibold text-foreground">
+                  {t("community.comments.deleteDialog.title")}
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm leading-6 text-muted-foreground font-normal">
+                  {t("community.comments.deleteDialog.description")}
+                </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-5 flex-row justify-end gap-2">
               <AlertDialogCancel className="m-0 h-9 px-4 rounded-lg border border-border bg-muted/50 text-foreground hover:bg-muted text-sm font-medium">
-                取消
+                {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="h-9 px-4 rounded-lg border-0 bg-rose-600 text-white hover:bg-rose-700 text-sm font-medium"
               >
-                删除
+                {t("common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </div>

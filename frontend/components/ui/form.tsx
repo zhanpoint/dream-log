@@ -4,7 +4,7 @@ import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
 import { AlertCircle } from "lucide-react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import {
   Controller,
   ControllerProps,
@@ -12,7 +12,7 @@ import {
   FieldValues,
   FormProvider,
   useFormContext,
-} from "react-hook-form";
+} from "@/lib/react-hook-form";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";

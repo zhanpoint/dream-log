@@ -3,8 +3,8 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslation } from "@/node_modules/react-i18next";
-import { User, Shield, Sparkles, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { User, Shield, Sparkles, Eye, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthHelpers } from "@/lib/auth-api";
 import { toast } from "sonner";
@@ -39,6 +39,12 @@ const menuItems = [
     icon: Sparkles,
     labelKey: "settings.sidebar.insights",
   },
+  {
+    id: "privacy",
+    href: "/settings/privacy",
+    icon: Eye,
+    labelKey: "settings.sidebar.privacy",
+  },
 ];
 
 export function SettingsSidebar() {
@@ -49,7 +55,7 @@ export function SettingsSidebar() {
     try {
       await AuthHelpers.handleLogout("/auth");
     } catch {
-      toast.error("退出登录失败，请稍后重试");
+      toast.error(t("settings.logout.error"));
     }
   };
 
@@ -86,24 +92,22 @@ export function SettingsSidebar() {
               className="w-auto min-w-[120px] justify-start gap-2.5 text-destructive border-destructive/30 bg-transparent hover:bg-transparent hover:text-destructive hover:border-destructive/50 hover:scale-[1.03] hover:shadow-md transition-all duration-200"
             >
               <LogOut className="h-4 w-4" />
-              退出登录
+              {t("settings.logout.button")}
             </Button>
           </AlertDialogTrigger>
 
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>确定要退出登录吗？</AlertDialogTitle>
-              <AlertDialogDescription>
-                退出后你需要重新登录才能继续使用完整功能。
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t("settings.logout.title")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("settings.logout.description")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLogout}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                确认退出
+                {t("settings.logout.confirm")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -16,7 +16,7 @@ import { getCroppedImg } from "@/lib/utils";
 import { userAPI } from "@/lib/user-api";
 import { AuthUser } from "@/lib/auth-api";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 
 interface AvatarUploadModalProps {

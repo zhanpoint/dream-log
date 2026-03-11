@@ -1,9 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Marquee from "@/components/magicui/marquee";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import "@/styles/testimonials.css";
 
 /**
@@ -63,14 +62,14 @@ const TestimonialCard = ({
   const { t } = useTranslation();
 
   return (
-    <motion.figure
-      whileHover={{ y: -4, scale: 1.02 }}
+    <figure
       className={cn(
         "testimonial-card",
-        "relative w-80 min-h-[180px] cursor-pointer overflow-hidden rounded-2xl border p-6 shadow-lg transition-all duration-300 backdrop-blur-sm",
+        "relative w-80 min-h-[180px] cursor-pointer overflow-hidden rounded-2xl border p-6 shadow-lg backdrop-blur-sm transition-transform duration-300",
         "border-border/50",
         "hover:border-primary/30",
-        "hover:shadow-2xl hover:shadow-primary/10"
+        "hover:shadow-2xl hover:shadow-primary/10",
+        "hover:-translate-y-1 hover:scale-[1.02]"
       )}
     >
       {/* 用户信息头部 */}
@@ -92,7 +91,7 @@ const TestimonialCard = ({
       <blockquote className="text-foreground/90 leading-relaxed text-base font-medium">
         "{t(`marketing.testimonials.reviews.${testimonial.id}`)}"
       </blockquote>
-    </motion.figure>
+    </figure>
   );
 };
 
@@ -109,17 +108,11 @@ export default function TestimonialsSection() {
     <section className="relative py-24 px-6 overflow-x-hidden bg-background">
       <div className="max-w-7xl mx-auto overflow-x-hidden">
         {/* 标题区域 */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true, amount: 0.3 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             {t("marketing.testimonials.heading")}
           </h2>
-        </motion.div>
+        </div>
 
         {/* 无限滚动评价区域 */}
         <div className="relative flex w-full flex-col items-center justify-center overflow-x-hidden testimonials-fade-mask">
@@ -139,16 +132,10 @@ export default function TestimonialsSection() {
         </div>
 
         {/* 底部统计信息 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true, amount: 0.3 }}
-          className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center"
-        >
+        <div className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center">
           <div className="flex flex-col">
             <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              1000+
+              50+
             </span>
             <span className="text-sm text-muted-foreground font-medium mt-2">
               {t("marketing.testimonials.stats.users")}
@@ -156,7 +143,7 @@ export default function TestimonialsSection() {
           </div>
           <div className="flex flex-col">
             <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              50000+
+              800+
             </span>
             <span className="text-sm text-muted-foreground font-medium mt-2">
               {t("marketing.testimonials.stats.dreams")}
@@ -164,13 +151,13 @@ export default function TestimonialsSection() {
           </div>
           <div className="flex flex-col">
             <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              97%
+              95%
             </span>
             <span className="text-sm text-muted-foreground font-medium mt-2">
               {t("marketing.testimonials.stats.satisfaction")}
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

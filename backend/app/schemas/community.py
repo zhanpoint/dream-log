@@ -39,6 +39,9 @@ class UserPublicProfile(BaseModel):
     follower_count: int = 0
     following_count: int = 0
     is_following: bool = False  # 当前用户是否已关注
+    bookmarks_visibility: str = "private"
+    created_communities_visibility: str = "private"
+    joined_communities_visibility: str = "private"
 
 
 # ──────────────────────────── Feed 梦境卡片 ────────────────────────────
@@ -242,6 +245,78 @@ class CommunityJoinResponse(BaseModel):
     community_id: UUID
     joined: bool
     member_count: int
+
+
+class CommunitySidebarResponse(BaseModel):
+    """社群侧边栏数据"""
+    joined: list[CommunityResponse] = []
+    recent: list[CommunityResponse] = []
+
+
+class CommunityWeeklyMetrics(BaseModel):
+    """社群周维度指标"""
+    weekly_new_dreams: int = 0
+    weekly_active_users: int = 0
+    weekly_resonances: int = 0
+    weekly_interpretations: int = 0
+
+
+class CommunityOverviewResponse(BaseModel):
+    """社群概览信息（右栏）"""
+    community: CommunityResponse
+    metrics: CommunityWeeklyMetrics = CommunityWeeklyMetrics()
+    rules: list[str] = []
+    value_points: list[str] = []
+
+
+class CommunityCreationApplicationCreate(BaseModel):
+    """申请创建社群（轻表单）"""
+    name: str = Field(..., min_length=2, max_length=100)
+    description: str = Field(..., min_length=10, max_length=300)
+    motivation: str = Field(..., min_length=10, max_length=500)
+
+
+class CommunityCreationApplicationResponse(BaseModel):
+    """申请创建社群响应"""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    applicant_id: UUID
+    name: str
+    slug: str
+    description: str | None
+    motivation: str
+    status: str
+    review_note: str | None
+    reviewer_id: UUID | None
+    reviewed_at: datetime | None
+    created_community_id: UUID | None
+    created_at: datetime
+
+
+class UserAssetsMetaResponse(BaseModel):
+    """用户资产元信息（可见性 + 数量）"""
+    can_view_bookmarks: bool
+    can_view_created_communities: bool
+    can_view_joined_communities: bool
+    public_dream_count: int = 0
+    bookmarked_dream_count: int = 0
+    created_community_count: int = 0
+    joined_community_count: int = 0
+
+
+class UserAssetsResponse(BaseModel):
+    """用户资产层数据"""
+    created_communities: list[CommunityResponse] = []
+    joined_communities: list[CommunityResponse] = []
+    bookmarked_dreams: FeedResponse
+    public_dreams: FeedResponse
+    can_view_bookmarks: bool = False
+    can_view_created_communities: bool = False
+    can_view_joined_communities: bool = False
+    can_view_bookmarks: bool = False
+    can_view_created_communities: bool = False
+    can_view_joined_communities: bool = False
 
 
 # ──────────────────────────── 相似做梦者 ────────────────────────────

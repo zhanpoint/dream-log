@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const nextConfig: NextConfig = {
   // 开发阶段关闭严格模式，避免 effect 双重执行导致 SSE 重复连接和性能下降
   reactStrictMode: false,
 
   // 图片优化：优先使用 WebP/AVIF，减少带宽，加快加载
   images: {
+    // 开发环境下 Google 头像偶发超时：跳过 Next 图片代理，直接由浏览器请求远程图片
+    unoptimized: isDev,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
@@ -23,21 +27,24 @@ const nextConfig: NextConfig = {
   },
 
   // 实验性功能
-  experimental: {
-    // 优化大型包的 tree-shaking，显著减少编译时间和包体积
-    optimizePackageImports: [
-      "lucide-react",
-      "@radix-ui/react-icons",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-popover",
-      "@radix-ui/react-select",
-      "@radix-ui/react-tabs",
-      "framer-motion",
-      "date-fns",
-      "echarts",
-      "echarts-for-react",
-    ],
-  },
+  // Turbopack 在开发阶段对部分实验项仍有不稳定情况，生产构建再开启
+  experimental: isDev
+    ? {}
+    : {
+        // 优化大型包的 tree-shaking，显著减少编译时间和包体积
+        optimizePackageImports: [
+          "lucide-react",
+          "@radix-ui/react-icons",
+          "@radix-ui/react-dialog",
+          "@radix-ui/react-popover",
+          "@radix-ui/react-select",
+          "@radix-ui/react-tabs",
+          "framer-motion",
+          "date-fns",
+          "echarts",
+          "echarts-for-react",
+        ],
+      },
 
   // 编译器优化：移除 console.log（生产环境）
   compiler: {

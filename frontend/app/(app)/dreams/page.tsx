@@ -41,6 +41,7 @@ import { cn, getHighlightSegments } from "@/lib/utils";
 import { getEmotionLabel } from "@/lib/emotion-utils";
 import { format } from "date-fns";
 import { zhCN, ja, enUS } from "date-fns/locale";
+import type { DayPickerLocale } from "react-day-picker";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar,
@@ -66,7 +67,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 export default function MyDreamsPage() {
   const { t, i18n } = useTranslation();
@@ -399,7 +400,13 @@ export default function MyDreamsPage() {
                       setPage(1);
                     }
                   }}
-                  locale={i18n.language === "ja" ? ja : i18n.language === "en" ? enUS : zhCN}
+                  locale={
+                    i18n.language === "ja"
+                      ? (ja as unknown as Partial<DayPickerLocale>)
+                      : i18n.language === "en"
+                        ? (enUS as unknown as Partial<DayPickerLocale>)
+                        : (zhCN as unknown as Partial<DayPickerLocale>)
+                  }
                   numberOfMonths={1}
                 />
                 {(dateFrom || dateTo) && (

@@ -20,6 +20,8 @@ from app.schemas.community import (
     CommentResponse,
     CommentVoteRequest,
     CommentVoteResponse,
+    CommunityCreationApplicationCreate,
+    CommunityCreationApplicationResponse,
     CommunityJoinResponse,
     CommunityListResponse,
     CommunityResponse,
@@ -32,9 +34,13 @@ from app.schemas.community import (
     ResonanceResponse,
     SearchResponse,
     TrendingResponse,
+    UserAssetsMetaResponse,
+    UserAssetsResponse,
     UserPublicProfile,
     TrendingTag,
     ActiveInterpreter,
+    CommunitySidebarResponse,
+    CommunityOverviewResponse,
 )
 from app.services.community_service import CommunityService
 from app.services.notification_service import NotificationService
@@ -364,58 +370,16 @@ async def get_user_dreams(
     user_id: uuid.UUID,
     page: int = Query(1, ge=1),
     page_size: int = Query(12, ge=1, le=50),
+    current_user: User | None = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    from sqlalchemy import select, desc
-    from app.models.dream import Dream
-    from app.models.enums import PrivacyLevel
-    from app.schemas.community import DreamCardSocial, UserPublicBrief
-    from app.models.user import User as UserModel
-
-    base = (
-        select(Dream)
-        .where(Dream.user_id == user_id, Dream.privacy_level == PrivacyLevel.PUBLIC, Dream.deleted_at.is_(None))
-        .order_by(desc(Dream.created_at))
+    svc = CommunityService(db)
+    return await svc.get_user_public_dreams(
+        user_id,
+        current_user_id=current_user.id if current_user else None,
+        page=page,
+        page_size=page_size,
     )
-    from sqlalchemy import func
-    total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
-    offset = (page - 1) * page_size
-    dreams = (await db.execute(base.offset(offset).limit(page_size))).scalars().all()
-
-    user = await db.get(UserModel, user_id)
-    author_brief = None
-    if user:
-        author_brief = UserPublicBrief(
-            id=user.id,
-            username=user.username,
-            avatar=user.avatar,
-            dreamer_title=getattr(user, "dreamer_title", "做梦者"),
-            dreamer_level=getattr(user, "dreamer_level", 1),
-        )
-
-    items = [
-        DreamCardSocial(
-            id=d.id,
-            title=d.title,
-            content_preview=d.content[:150],
-            dream_date=str(d.dream_date),
-            dream_types=[],
-            is_seeking_interpretation=d.is_seeking_interpretation,
-            is_anonymous=d.is_anonymous,
-            resonance_count=d.resonance_count,
-            comment_count=d.comment_count,
-            interpretation_count=d.interpretation_count,
-            view_count=d.view_count,
-            bookmark_count=d.bookmark_count,
-            share_count=getattr(d, "share_count", 0),
-            has_resonated=False,
-            has_bookmarked=False,
-            author=author_brief,
-            created_at=d.created_at,
-        )
-        for d in dreams
-    ]
-    return FeedResponse(total=total, page=page, page_size=page_size, items=items)
 
 
 # ── 收藏 ──────────────────────────────────────────────────────────────────────
@@ -439,7 +403,12 @@ async def get_bookmarks(
     db: AsyncSession = Depends(get_db),
 ):
     svc = CommunityService(db)
-    return await svc.get_bookmarks(current_user.id, page=page, page_size=page_size)
+    return await svc.get_bookmarks(
+        current_user.id,
+        current_user_id=current_user.id,
+        page=page,
+        page_size=page_size,
+    )
 
 
 # ── 举报 ──────────────────────────────────────────────────────────────────────
@@ -555,6 +524,150 @@ async def join_community(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.post(
+    "/communities/applications",
+    response_model=CommunityCreationApplicationResponse,
+    status_code=201,
+    summary="申请创建社群（轻表单）",
+)
+async def create_community_application(
+    data: CommunityCreationApplicationCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = CommunityService(db)
+    try:
+        application = await svc.create_community_application(
+            applicant_id=current_user.id,
+            name=data.name,
+            description=data.description,
+            motivation=data.motivation,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    await db.commit()
+    await db.refresh(application)
+    return application
+
+
+@router.post(
+    "/communities/applications/{application_id}/review",
+    response_model=CommunityCreationApplicationResponse,
+    summary="审核社群创建申请（管理员）",
+)
+async def review_community_application(
+    application_id: uuid.UUID,
+    approved: bool = Query(..., description="true=通过并上线，false=驳回"),
+    review_note: str | None = Query(None, max_length=500),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if not getattr(current_user, "is_superuser", False):
+        raise HTTPException(status_code=403, detail="仅管理员可操作")
+
+    svc = CommunityService(db)
+    try:
+        application = await svc.review_community_application(
+            application_id=application_id,
+            reviewer_id=current_user.id,
+            approved=approved,
+            review_note=review_note,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    await db.commit()
+    await db.refresh(application)
+    return application
+
+
+@router.get(
+    "/greenhouse/sidebar",
+    response_model=CommunitySidebarResponse,
+    summary="社群三栏壳层左栏数据",
+)
+async def get_greenhouse_sidebar(
+    current_user: User | None = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = CommunityService(db)
+    data = await svc.get_community_shell_sidebar(
+        current_user_id=current_user.id if current_user else None
+    )
+    return data
+
+
+@router.get(
+    "/greenhouse/{slug}/overview",
+    response_model=CommunityOverviewResponse,
+    summary="社群三栏壳层右栏概览",
+)
+async def get_greenhouse_overview(
+    slug: str,
+    current_user: User | None = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = CommunityService(db)
+    try:
+        return await svc.get_community_overview(
+            slug=slug,
+            current_user_id=current_user.id if current_user else None,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/users/{user_id}/assets/meta", response_model=UserAssetsMetaResponse, summary="用户社区资产元信息")
+async def get_user_assets_meta(
+    user_id: uuid.UUID,
+    current_user: User | None = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = CommunityService(db)
+    try:
+        return await svc.get_user_assets_meta(
+            user_id,
+            viewer_user_id=current_user.id if current_user else None,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/users/{user_id}/assets", response_model=UserAssetsResponse, summary="用户社区资产")
+async def get_user_assets(
+    user_id: uuid.UUID,
+    kind: str = Query("all", description="all | public | bookmarks | created | joined"),
+    current_user: User | None = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    svc = CommunityService(db)
+    try:
+        data = await svc.get_user_assets(
+            user_id,
+            viewer_user_id=current_user.id if current_user else None,
+        )
+        if kind == "public":
+            data["bookmarked_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["created_communities"] = []
+            data["joined_communities"] = []
+        elif kind == "bookmarks":
+            data["public_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["created_communities"] = []
+            data["joined_communities"] = []
+        elif kind == "created":
+            data["public_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["bookmarked_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["joined_communities"] = []
+        elif kind == "joined":
+            data["public_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["bookmarked_dreams"] = FeedResponse(total=0, page=1, page_size=20, items=[])
+            data["created_communities"] = []
+        return data
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # ── 精选梦境（管理员） ───────────────────────────────────────────────────────────
 
 @router.post("/dreams/{dream_id}/feature", summary="设置精选模式（管理员）")
@@ -630,7 +743,7 @@ async def search_community(
         async def _record():
             try:
                 async with async_session_maker() as _db:
-                    svc2 = TrendingService(_db, get_redis())
+                    svc2 = TrendingService(_db)
                     await svc2.record_search(_query, _result_count, _user_id)
                     await _db.commit()
             except Exception as _e:
@@ -648,13 +761,10 @@ async def search_suggestions(
     q: str = Query("", max_length=50, description="搜索关键词（空时返回热门词）"),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.core.redis import get_redis
     try:
-        redis = get_redis()
-        svc = TrendingService(db, redis)
+        svc = TrendingService(db)
         return await svc.get_search_suggestions(q, limit=6)
     except Exception:
-        # Redis 不可用时降级为旧逻辑
         svc = CommunityService(db)
         if q.strip():
             return await svc.get_search_suggestions(q, limit=6)
@@ -668,10 +778,8 @@ async def get_trending(
     current_user: User | None = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ):
-    from app.core.redis import get_redis
     try:
-        redis = get_redis()
-        svc = TrendingService(db, redis)
+        svc = TrendingService(db)
         return await svc.get_trending(
             current_user_id=current_user.id if current_user else None
         )

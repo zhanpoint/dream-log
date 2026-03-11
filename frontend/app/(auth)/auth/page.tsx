@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { useAuthFlow, useVerificationTimer, useFormError, type AuthMethod } from "@/hooks/auth";
 import { EmailStep } from "@/components/auth/steps/email-step";
 import { MethodSelectionStep } from "@/components/auth/steps/method-selection-step";

@@ -1,15 +1,12 @@
 """
 热门推荐服务：热门搜索词、热门梦境、热门标签、推荐用户
-- 所有结果通过 Redis 缓存，按 TTL 自动过期后首次请求重算（懒计算）
 """
 
-import json
 import logging
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from redis.asyncio import Redis
 from sqlalchemy import select, text as sa_text, desc, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,24 +27,10 @@ from app.schemas.community import (
 
 logger = logging.getLogger(__name__)
 
-# ── Redis 缓存 Key & TTL ──────────────────────────────────────────────────────
-_KEY_KEYWORDS = "trending:keywords"
-_KEY_DREAMS = "trending:dreams"
-_KEY_TAGS = "trending:tags:{user_id}"
-_KEY_USERS = "trending:users:{user_id}"
-_KEY_RISING_USERS = "trending:rising-users"
-
-_TTL_KEYWORDS = 3600       # 1 小时
-_TTL_DREAMS = 1800         # 30 分钟
-_TTL_TAGS = 7200           # 2 小时
-_TTL_USERS = 3600          # 1 小时
-_TTL_RISING_USERS = 3600   # 1 小时
-
 
 class TrendingService:
-    def __init__(self, db: AsyncSession, redis: Redis):
+    def __init__(self, db: AsyncSession):
         self.db = db
-        self.redis = redis
 
     # ── 公共入口 ──────────────────────────────────────────────────────────────
 
@@ -91,14 +74,7 @@ class TrendingService:
     # ── 热门搜索词 ────────────────────────────────────────────────────────────
 
     async def _get_keywords(self) -> list[TrendingKeyword]:
-        cached = await self.redis.get(_KEY_KEYWORDS)
-        if cached:
-            return [TrendingKeyword(**item) for item in json.loads(cached)]
-
-        result = await self._run_in_savepoint(self._compute_keywords(), [])
-        if result:
-            await self.redis.setex(_KEY_KEYWORDS, _TTL_KEYWORDS, json.dumps([k.model_dump() for k in result]))
-        return result
+        return await self._run_in_savepoint(self._compute_keywords(), [])
 
     async def _compute_keywords(self, limit: int = 6) -> list[TrendingKeyword]:
         """
@@ -134,28 +110,20 @@ class TrendingService:
     # ── 热门梦境 ──────────────────────────────────────────────────────────────
 
     async def _get_hot_dreams(self) -> list[DreamCardSocial]:
-        cached = await self.redis.get(_KEY_DREAMS)
-        if cached:
-            data = json.loads(cached)
-            return [DreamCardSocial(**item) for item in data]
-
-        result = await self._run_in_savepoint(self._compute_hot_dreams(), [])
-        if result:
-            payload = [d.model_dump(mode="json") for d in result]
-            await self.redis.setex(_KEY_DREAMS, _TTL_DREAMS, json.dumps(payload))
-        return result
+        return await self._run_in_savepoint(self._compute_hot_dreams(), [])
 
     async def _compute_hot_dreams(self, limit: int = 6) -> list[DreamCardSocial]:
         """
         灵感分 = 共鸣数×2 + 评论数×1.5 + 解读数×3
         综合分 = 灵感分 × 时间衰减 × 质量系数
-        仅取3天内公开、非匿名、非草稿梦境
+        仅取近30天内公开、非草稿梦境（包含匿名）
         """
         stmt = sa_text("""
             SELECT
                 id, title, content, dream_date, primary_emotion,
                 emotion_tags, is_seeking_interpretation, is_anonymous,
                 resonance_count, comment_count, interpretation_count, view_count,
+                bookmark_count, share_count,
                 is_featured, user_id, created_at,
                 (
                     (resonance_count * 2.0 + comment_count * 1.5 + interpretation_count * 3.0)
@@ -174,10 +142,9 @@ class TrendingService:
                 ) AS hot_score
             FROM dreams
             WHERE privacy_level = 'PUBLIC'
-              AND is_anonymous = FALSE
               AND is_draft = FALSE
               AND deleted_at IS NULL
-              AND created_at > NOW() - INTERVAL '3 days'
+              AND created_at > NOW() - INTERVAL '30 days'
             ORDER BY hot_score DESC
             LIMIT :limit
         """)
@@ -209,7 +176,7 @@ class TrendingService:
                 dream_date=str(r.dream_date),
                 dream_types=[],
                 is_seeking_interpretation=r.is_seeking_interpretation,
-                is_anonymous=False,
+                is_anonymous=r.is_anonymous,
                 resonance_count=r.resonance_count,
                 comment_count=r.comment_count,
                 interpretation_count=r.interpretation_count,
@@ -228,22 +195,16 @@ class TrendingService:
     # ── 热门标签 ──────────────────────────────────────────────────────────────
 
     async def _get_tags(self, current_user_id: uuid.UUID | None) -> list[TrendingTag]:
-        cache_key = _KEY_TAGS.format(user_id=str(current_user_id) if current_user_id else "anon")
-        cached = await self.redis.get(cache_key)
-        if cached:
-            return [TrendingTag(**item) for item in json.loads(cached)]
-
-        result = await self._run_in_savepoint(self._compute_tags(current_user_id=current_user_id), [])
-        if result:
-            await self.redis.setex(cache_key, _TTL_TAGS, json.dumps([t.model_dump() for t in result]))
-        return result
+        return await self._run_in_savepoint(
+            self._compute_tags(current_user_id=current_user_id), []
+        )
 
     async def _compute_tags(
         self,
         current_user_id: uuid.UUID | None,
         limit: int = 8,
     ) -> list[TrendingTag]:
-        """近24小时热门标签：全站热度 × 用户兴趣（登录用户个性化混排）"""
+        """近7天热门标签：全站热度 × 用户兴趣（登录用户个性化混排）"""
         stmt = sa_text("""
             SELECT t.name AS tag, COUNT(*) AS cnt
             FROM dream_tags dt
@@ -252,9 +213,8 @@ class TrendingService:
             WHERE d.privacy_level = 'PUBLIC'
               AND d.is_draft = FALSE
               AND d.deleted_at IS NULL
-              AND d.created_at > NOW() - INTERVAL '24 hours'
+              AND d.created_at > NOW() - INTERVAL '7 days'
             GROUP BY t.name
-            HAVING COUNT(*) >= 2
             ORDER BY cnt DESC
             LIMIT :limit
         """)
@@ -263,8 +223,6 @@ class TrendingService:
         raw_candidates: list[tuple[str, int]] = []
         for r in rows:
             normalized = self._normalize_tag(str(r.tag))
-            if not self._is_valid_tag(normalized):
-                continue
             raw_candidates.append((normalized, int(r.cnt)))
 
         if not raw_candidates:
@@ -305,27 +263,6 @@ class TrendingService:
         tag = re.sub(r"\s+", "", tag)
         return tag[:20]
 
-    def _is_valid_tag(self, tag: str) -> bool:
-        if not tag:
-            return False
-        if len(tag) < 2:
-            return False
-
-        low_quality_words = {
-            "测试", "test", "123", "111", "aaa", "哈哈", "呵呵", "广告", "推广", "引流", "加微信", "vx",
-            "unknown", "null", "none", "无", "默认", "other", "others",
-        }
-        if tag.lower() in low_quality_words:
-            return False
-
-        if re.fullmatch(r"[\W_]+", tag):
-            return False
-        if re.fullmatch(r"\d+", tag):
-            return False
-        if re.fullmatch(r"(.)\1{2,}", tag):
-            return False
-
-        return True
 
     async def _get_user_tag_interest(self, user_id: uuid.UUID) -> dict[str, int]:
         """近60天用户兴趣标签权重：自己公开梦境标签 + 自己解梦评论标签"""
@@ -367,15 +304,11 @@ class TrendingService:
         # 梦境标签权重 1.0
         for r in dream_rows:
             name = self._normalize_tag(str(r.tag))
-            if not self._is_valid_tag(name):
-                continue
             interest[name] = interest.get(name, 0) + int(r.cnt)
 
         # 解梦行为标签权重 1.5
         for r in comment_rows:
             name = self._normalize_tag(str(r.tag))
-            if not self._is_valid_tag(name):
-                continue
             interest[name] = interest.get(name, 0) + int(round(int(r.cnt) * 1.5))
 
         return interest
@@ -385,16 +318,9 @@ class TrendingService:
     async def _get_recommended_users(
         self, current_user_id: uuid.UUID | None
     ) -> list[RecommendedUser]:
-        cache_key = _KEY_USERS.format(user_id=str(current_user_id) if current_user_id else "anon")
-        cached = await self.redis.get(cache_key)
-        if cached:
-            return [RecommendedUser(**item) for item in json.loads(cached)]
-
-        result = await self._run_in_savepoint(self._compute_recommended_users(current_user_id), [])
-        if result:
-            payload = [u.model_dump(mode="json") for u in result]
-            await self.redis.setex(cache_key, _TTL_USERS, json.dumps(payload))
-        return result
+        return await self._run_in_savepoint(
+            self._compute_recommended_users(current_user_id), []
+        )
 
     async def _compute_recommended_users(
         self, current_user_id: uuid.UUID | None, limit: int = 5
@@ -438,7 +364,10 @@ class TrendingService:
         if not candidates:
             newcomer_stmt = (
                 select(User)
-                .where(User.username.is_not(None))
+                .where(
+                    User.username.is_not(None),
+                    User.interpretation_count >= 1,
+                )
                 .order_by(desc(User.created_at))
                 .limit(limit)
             )
@@ -520,26 +449,16 @@ class TrendingService:
         for r in rows:
             uid = r.user_id
             tag = self._normalize_tag(str(r.tag))
-            if not self._is_valid_tag(tag):
-                continue
             if uid not in profiles:
                 profiles[uid] = {}
             profiles[uid][tag] = profiles[uid].get(tag, 0) + int(r.cnt)
         return profiles
 
     async def _get_rising_users(self) -> list[RisingInterpreter]:
-        cached = await self.redis.get(_KEY_RISING_USERS)
-        if cached:
-            return [RisingInterpreter(**item) for item in json.loads(cached)]
-
-        result = await self._run_in_savepoint(self._compute_rising_users(), [])
-        if result:
-            payload = [u.model_dump(mode="json") for u in result]
-            await self.redis.setex(_KEY_RISING_USERS, _TTL_RISING_USERS, json.dumps(payload))
-        return result
+        return await self._run_in_savepoint(self._compute_rising_users(), [])
 
     async def _compute_rising_users(self, limit: int = 5) -> list[RisingInterpreter]:
-        """本周新星：近7天解梦数相对前7天增长最多，且本周解梦>=2"""
+        """新星解梦者：近7天解梦数相对前7天增长最多，且近7天解梦>=1"""
         stmt = sa_text("""
             WITH this_week AS (
                 SELECT user_id, COUNT(*)::int AS cnt
@@ -569,7 +488,7 @@ class TrendingService:
             FROM users u
             JOIN this_week t ON t.user_id = u.id
             LEFT JOIN last_week l ON l.user_id = u.id
-            WHERE COALESCE(t.cnt, 0) >= 2
+            WHERE COALESCE(t.cnt, 0) >= 1
             ORDER BY weekly_growth DESC, this_week_cnt DESC, interpretation_count DESC
             LIMIT :limit
         """)

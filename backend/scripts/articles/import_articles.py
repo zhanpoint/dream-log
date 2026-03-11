@@ -1,7 +1,7 @@
 """
 将 articles_input.json 中的文章批量导入 PostgreSQL exploration_articles 表
 
-使用方法（在 backend-v2 根目录）：
+使用方法（在 backend 根目录）：
     python scripts/articles/import_articles.py
 
 说明：
@@ -30,7 +30,7 @@ import json
 import sys
 from pathlib import Path
 
-# backend-v2 根目录加入 Python 路径（scripts/articles/xxx.py -> 上两级）
+# backend 根目录加入 Python 路径（scripts/articles/xxx.py -> 上两级）
 _BACKEND_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(_BACKEND_ROOT))
 
@@ -41,7 +41,9 @@ from app.core.config import settings
 from app.models.exploration import ExplorationArticle
 
 SCRIPT_DIR = Path(__file__).parent
-INPUT_FILE = Path(sys.argv[1]) if len(sys.argv) > 1 else SCRIPT_DIR / "articles_input.json"
+# 默认读取 src/explorer/articles/all_articles_optimized.json，仍然支持通过命令行参数覆盖
+DEFAULT_INPUT_FILE = _BACKEND_ROOT / "src" / "explorer" / "articles" / "all_articles_optimized.json"
+INPUT_FILE = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_INPUT_FILE
 
 VALID_MODULES = {"science", "nightmare", "improvement", "lucid", "psychology", "phenomena"}
 

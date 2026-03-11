@@ -63,3 +63,6 @@ alembic/versions/*.pyc
 
 # tiktoken 编码缓存（避免提交到仓库）
 .tiktoken_cache/
+
+# Google Cloud Speech-to-Text JSON 密钥
+src/Cloud Speech.json

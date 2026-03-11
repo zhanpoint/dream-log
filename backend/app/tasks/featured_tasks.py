@@ -58,7 +58,7 @@ async def featured_recalc_daily_loop() -> None:
     interval_seconds = 24 * 60 * 60
     while True:
         await recompute_recent_auto_featured(
-            days=FEATURED_RECALC_WINDOW_DAYS,
-            batch_size=FEATURED_RECALC_BATCH_SIZE,
+            days=FEATURED_CONFIG.recalc_window_days,
+            batch_size=FEATURED_CONFIG.recalc_batch_size,
         )
         await asyncio.sleep(interval_seconds)

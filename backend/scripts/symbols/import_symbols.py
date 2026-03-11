@@ -1,7 +1,7 @@
 """
 将 batch_generate.py 生成的 symbols_output.json 导入 PostgreSQL
 
-使用方法（在 backend-v2 根目录）：
+使用方法（在 backend 根目录）：
     python scripts/symbols/import_symbols.py
 
 说明：
@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-# backend-v2 根目录加入 Python 路径（scripts/symbols/xxx.py -> 上两级）
+# backend 根目录加入 Python 路径（scripts/symbols/xxx.py -> 上两级）
 _BACKEND_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(_BACKEND_ROOT))
 
@@ -26,7 +26,8 @@ from app.core.config import settings
 from app.models.exploration import ExplorationSymbol
 
 SCRIPT_DIR = Path(__file__).parent
-OUTPUT_FILE = SCRIPT_DIR / "symbols_output.json"
+# JSON 资源统一放在 backend/src/explorer（scripts 目录不再保留 JSON）
+OUTPUT_FILE = _BACKEND_ROOT / "src" / "explorer" / "symbols" / "symbols_output.json"
 
 
 def extract_search_text(content: dict) -> str:

@@ -30,6 +30,15 @@ from app.models.dream_trigger import DreamTrigger
 from app.models.dream_type import DreamType, DreamTypeMapping
 from app.models.enums import InsightType
 from app.models.notification import NotificationType
+
+REPORT_NOTIFICATION_META_TYPE: dict[InsightType, str] = {
+    InsightType.WEEKLY: "WEEKLY",
+    InsightType.MONTHLY: "MONTHLY",
+    InsightType.ANNUAL: "ANNUAL",
+    InsightType.EMOTION_HEALTH: "EMOTION_HEALTH",
+    InsightType.SLEEP_QUALITY: "SLEEP_QUALITY",
+    InsightType.THEME_PATTERN: "THEME_PATTERN",
+}
 from app.models.user import shanghai_now
 from app.models.user_insight import UserInsight, UserInsightSettings
 from app.prompts.insight_generation import (
@@ -152,7 +161,12 @@ class InsightService:
                 title=f"{title}已生成",
                 content="",
                 link=f"/insights/monthly/{insight.id}",
-                metadata={"insight_id": str(insight.id), "year": year, "month": month},
+                metadata={
+                    "insight_id": str(insight.id),
+                    "year": year,
+                    "month": month,
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.MONTHLY],
+                },
             )
 
         await self.db.commit()
@@ -247,7 +261,10 @@ class InsightService:
                 title=f"{title}已生成",
                 content="",
                 link=f"/insights/weekly/{insight.id}",
-                metadata={"insight_id": str(insight.id)},
+                metadata={
+                    "insight_id": str(insight.id),
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.WEEKLY],
+                },
             )
 
         await self.db.commit()
@@ -397,6 +414,24 @@ class InsightService:
             expires_at=expire_at,
         )
         self.db.add(insight)
+        await self.db.flush()
+
+        settings = await self._get_settings(user_id)
+        if settings and settings.notify_on_reports:
+            ns = NotificationService(self.db)
+            await ns.create(
+                user_id=user_id,
+                type_=NotificationType.ANNUAL_REPORT,
+                title=f"{title}已生成",
+                content="",
+                link=f"/insights/annual/{insight.id}",
+                metadata={
+                    "insight_id": str(insight.id),
+                    "year": year,
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.ANNUAL],
+                },
+            )
+
         await self.db.commit()
         
         # 删除同一周期的旧报告（在新报告保存成功后，排除刚创建的新报告）
@@ -413,6 +448,8 @@ class InsightService:
         start: date,
         end: date,
         with_comparison: bool = False,
+        *,
+        target_language: str = DEFAULT_TARGET_LANGUAGE,
     ) -> UserInsight | None:
         """生成情绪健康分析专题报告"""
         dreams = await self._fetch_dreams(user_id, start, end)
@@ -455,7 +492,7 @@ class InsightService:
                 "emotion_timeline": json.dumps(emotion_timeline[:30], ensure_ascii=False),
                 "total_dreams": stats["total_dreams"],
                 "dream_contents": dream_contents,
-                "target_language": DEFAULT_TARGET_LANGUAGE,
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 情绪健康分析失败: {user_id}, {e}")
@@ -486,6 +523,23 @@ class InsightService:
             expires_at=expire_at,
         )
         self.db.add(insight)
+        await self.db.flush()
+
+        settings = await self._get_settings(user_id)
+        if settings and settings.notify_on_reports:
+            ns = NotificationService(self.db)
+            await ns.create(
+                user_id=user_id,
+                type_=NotificationType.EMOTION_HEALTH_REPORT,
+                title=f"{title}已生成",
+                content="",
+                link=f"/insights/emotion?id={insight.id}",
+                metadata={
+                    "insight_id": str(insight.id),
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.EMOTION_HEALTH],
+                },
+            )
+
         await self.db.commit()
         
         # 删除同一周期的旧报告（在新报告保存成功后，排除刚创建的新报告）
@@ -501,6 +555,8 @@ class InsightService:
         start: date,
         end: date,
         with_comparison: bool = False,
+        *,
+        target_language: str = DEFAULT_TARGET_LANGUAGE,
     ) -> UserInsight | None:
         """生成睡眠质量分析专题报告"""
         dreams = await self._fetch_dreams(user_id, start, end)
@@ -556,7 +612,7 @@ class InsightService:
                 "weekday_quality": weekday_avg,
                 "weekend_quality": weekend_avg,
                 "dream_contents": dream_contents,
-                "target_language": DEFAULT_TARGET_LANGUAGE,
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 睡眠质量分析失败: {user_id}, {e}")
@@ -591,6 +647,23 @@ class InsightService:
             expires_at=expire_at,
         )
         self.db.add(insight)
+        await self.db.flush()
+
+        settings = await self._get_settings(user_id)
+        if settings and settings.notify_on_reports:
+            ns = NotificationService(self.db)
+            await ns.create(
+                user_id=user_id,
+                type_=NotificationType.SLEEP_QUALITY_REPORT,
+                title=f"{title}已生成",
+                content="",
+                link=f"/insights/sleep?id={insight.id}",
+                metadata={
+                    "insight_id": str(insight.id),
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.SLEEP_QUALITY],
+                },
+            )
+
         await self.db.commit()
         
         # 删除同一周期的旧报告（在新报告保存成功后，排除刚创建的新报告）
@@ -605,6 +678,8 @@ class InsightService:
         user_id: uuid.UUID,
         start: date,
         end: date,
+        *,
+        target_language: str = DEFAULT_TARGET_LANGUAGE,
     ) -> UserInsight | None:
         """生成梦境主题模式专题报告"""
         dreams = await self._fetch_dreams(user_id, start, end)
@@ -622,7 +697,7 @@ class InsightService:
                 "days": days,
                 "total_dreams": len(dreams),
                 "dream_contents": dream_contents,
-                "target_language": DEFAULT_TARGET_LANGUAGE,
+                "target_language": target_language,
             })
         except Exception as e:
             logger.error(f"AI 主题分析失败: {user_id}, {e}")
@@ -669,6 +744,23 @@ class InsightService:
             expires_at=expire_at,
         )
         self.db.add(insight)
+        await self.db.flush()
+
+        settings = await self._get_settings(user_id)
+        if settings and settings.notify_on_reports:
+            ns = NotificationService(self.db)
+            await ns.create(
+                user_id=user_id,
+                type_=NotificationType.THEME_PATTERN_REPORT,
+                title=f"{title}已生成",
+                content="",
+                link=f"/insights/theme?id={insight.id}",
+                metadata={
+                    "insight_id": str(insight.id),
+                    "report_type": REPORT_NOTIFICATION_META_TYPE[InsightType.THEME_PATTERN],
+                },
+            )
+
         await self.db.commit()
         
         # 删除同一周期的旧报告（在新报告保存成功后，排除刚创建的新报告）

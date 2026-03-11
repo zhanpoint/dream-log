@@ -37,6 +37,12 @@ async def startup(ctx: dict) -> None:
         encoding="utf-8",
         decode_responses=True,
     )
+    # 用于任务取消标记
+    ctx["redis"] = Redis.from_url(
+        str(settings.redis_url),
+        encoding="utf-8",
+        decode_responses=True,
+    )
 
 
 async def shutdown(ctx: dict) -> None:
@@ -44,6 +50,9 @@ async def shutdown(ctx: dict) -> None:
     redis_pub = ctx.get("redis_pub")
     if redis_pub:
         await redis_pub.close()
+    redis_client = ctx.get("redis")
+    if redis_client:
+        await redis_client.close()
     print("👋 Arq Worker 关闭")
 
 

@@ -10,7 +10,7 @@ import {
 import { FlagIcon } from "@/components/ui/flag-icon";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { Check } from "lucide-react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 const ORDER: SupportedLanguage[] = ["zh-CN", "en", "ja"];
 

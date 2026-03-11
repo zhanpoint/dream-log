@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { getErrorTranslationKey } from "@/lib/auth";

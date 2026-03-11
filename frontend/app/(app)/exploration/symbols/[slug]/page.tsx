@@ -3,6 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { explorationAPI, type Symbol } from "@/lib/exploration-api";
 import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 
@@ -57,6 +58,7 @@ export default function SymbolDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const { t } = useTranslation();
   const [symbol, setSymbol] = useState<Symbol | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -80,9 +82,9 @@ export default function SymbolDetailPage({
   if (notFound || !symbol) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground mb-4">找不到该符号</p>
+        <p className="text-muted-foreground mb-4">{t("exploration.symbolDetail.notFound")}</p>
         <Link href="/exploration/symbols" className="text-primary hover:underline text-sm">
-          返回符号词典
+          {t("exploration.symbolDetail.backToDictionary")}
         </Link>
       </div>
     );
@@ -99,7 +101,7 @@ export default function SymbolDetailPage({
           className="group inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
-          <span className="font-medium">符号词典</span>
+          <span className="font-medium">{t("exploration.symbolDetail.dictionaryTitle")}</span>
         </Link>
 
         {/* 标题 */}
@@ -116,7 +118,7 @@ export default function SymbolDetailPage({
         <div className="space-y-6">
           {/* 这可能与你有关 */}
           <div className="bg-primary/8 border border-primary/20 rounded-xl px-6 py-5">
-            <h2 className="text-sm font-semibold text-primary mb-3">这可能与你有关</h2>
+            <h2 className="text-sm font-semibold text-primary mb-3">{t("exploration.symbolDetail.relatedToYou")}</h2>
             <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
               {content.personal_connection}
             </p>
@@ -124,7 +126,7 @@ export default function SymbolDetailPage({
 
           {/* 常见梦境场景 */}
           <div className="rounded-xl border border-border/50 px-6 py-5">
-            <h2 className="text-sm font-semibold mb-5">常见梦境场景</h2>
+            <h2 className="text-sm font-semibold mb-5">{t("exploration.symbolDetail.commonScenarios")}</h2>
             <div className="space-y-4">
               {content.common_scenarios.map((s, i) => (
                 <div key={i} className="pb-4 border-b border-border/30 last:border-0 last:pb-0">
@@ -141,7 +143,7 @@ export default function SymbolDetailPage({
 
           {/* 你可以问问自己 */}
           <div className="rounded-xl border border-border/50 px-6 py-5">
-            <h2 className="text-sm font-semibold mb-5">你可以问问自己</h2>
+            <h2 className="text-sm font-semibold mb-5">{t("exploration.symbolDetail.askYourself")}</h2>
             <ul className="space-y-4">
               {content.self_reflection_questions.map((q, i) => (
                 <li key={i} className="flex gap-3 text-sm text-foreground leading-relaxed">
@@ -153,7 +155,7 @@ export default function SymbolDetailPage({
           </div>
 
           {/* 可展开：情绪关联 */}
-          <ExpandSection title="情绪关联">
+          <ExpandSection title={t("exploration.symbolDetail.emotionAssociations")}>
             <div className="flex flex-wrap gap-2.5">
               {content.emotion_associations.map((e, i) => (
                 <span
@@ -167,14 +169,14 @@ export default function SymbolDetailPage({
           </ExpandSection>
 
           {/* 可展开：为什么会梦到这个 */}
-          <ExpandSection title="为什么会梦到这个">
+          <ExpandSection title={t("exploration.symbolDetail.whyDreamThis")}>
             <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
               {content.why_you_dream_this}
             </p>
           </ExpandSection>
 
           {/* 可展开：相关符号 */}
-          <ExpandSection title="相关符号">
+          <ExpandSection title={t("exploration.symbolDetail.relatedSymbols")}>
             <div className="flex flex-wrap gap-2.5">
               {content.related_symbols.map((s, i) => (
                 <Link

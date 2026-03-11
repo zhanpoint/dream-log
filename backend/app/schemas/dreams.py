@@ -55,7 +55,9 @@ class CreateDreamRequest(BaseModel):
     title_generated_by_ai: bool = False
 
     # 社区字段
+    is_anonymous: bool = False
     is_seeking_interpretation: bool = False
+    community_id: UUID | None = None
     emotion_tags: list[str] = []
 
     @field_validator("primary_emotion")

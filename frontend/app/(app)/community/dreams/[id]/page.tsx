@@ -12,7 +12,8 @@ import { communityAPI, type DreamCardSocial } from "@/lib/community-api";
 import { AuthUser } from "@/lib/auth-api";
 import { formatCount } from "@/lib/utils";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import { zhCN, enUS, ja } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Brain,
@@ -64,6 +65,7 @@ export default function CommunityDreamDetailPage() {
   const [dream, setDream] = useState<DreamCardSocial | null>(null);
   const [loading, setLoading] = useState(true);
   const currentUser = AuthUser.get();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const fetchDream = async () => {
@@ -91,7 +93,7 @@ export default function CommunityDreamDetailPage() {
           }
         }
       } catch {
-        toast.error("加载梦境失败");
+        toast.error(t("dreams.detail.loadFailed"));
         setDream(null);
       } finally {
         setLoading(false);
@@ -103,12 +105,23 @@ export default function CommunityDreamDetailPage() {
   const isDreamOwner = currentUser?.id === dream?.author?.id;
 
   const authorName = dream?.is_anonymous
-    ? "匿名做梦者"
-    : dream?.author?.username ?? "未知用户";
+    ? t("community.home.anonymous")
+    : dream?.author?.username ?? t("common.unknownUser");
 
   // 计数直接使用后端分离口径：comment_count=评论，interpretation_count=解读
   const pureCommentCount = dream?.comment_count ?? 0;
   const interpretationCount = dream?.interpretation_count ?? 0;
+
+  const currentLocale = i18n.language.startsWith("en")
+    ? enUS
+    : i18n.language.startsWith("ja")
+    ? ja
+    : zhCN;
+
+  const dateFormat =
+    i18n.language.startsWith("en")
+      ? "MMM d, yyyy"
+      : "yyyy年MM月dd日";
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -131,10 +144,10 @@ export default function CommunityDreamDetailPage() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
             <div className="text-center py-10 text-muted-foreground">
               <p className="text-4xl mb-3">🌙</p>
-              <p className="text-sm">梦境加载中，或该梦境不存在</p>
+              <p className="text-sm">{t("community.dreamDetail.emptyState")}</p>
               <Link href="/community">
                 <Button className="mt-4" variant="outline" size="sm">
-                  返回社区广场
+                  {t("community.dreamDetail.backToCommunity")}
                 </Button>
               </Link>
             </div>
@@ -150,7 +163,7 @@ export default function CommunityDreamDetailPage() {
                     <span className="inline-flex items-center justify-center rounded-full p-0.5 transition-[transform,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:shadow-[0_0_10px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_0_8px_rgba(255,255,255,0.4),0_0_16px_rgba(255,255,255,0.15)]">
                       <ArrowLeft className="h-[18px] w-[18px]" />
                     </span>
-                    返回社区
+                    {t("community.dreamDetail.backToCommunity")}
                   </Button>
                 </Link>
               </div>
@@ -192,7 +205,7 @@ export default function CommunityDreamDetailPage() {
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                       <Calendar className="h-3 w-3" />
-                      {format(new Date(dream.dream_date), "yyyy年MM月dd日", { locale: zhCN })}
+                      {format(new Date(dream.dream_date), dateFormat, { locale: currentLocale })}
                     </div>
                   </div>
                 </div>
@@ -216,13 +229,15 @@ export default function CommunityDreamDetailPage() {
                     <DropdownMenuContent align="end">
                       {dream && (
                         <DropdownMenuItem asChild>
-                          <ReportDialog
+                              <ReportDialog
                             targetType="dream"
                             targetId={dream.id}
                             trigger={
                               <button type="button" className="flex items-center gap-2 w-full px-2 py-1.5 text-sm hover:bg-muted/60 dark:hover:bg-white/10 hover:text-foreground dark:hover:text-gray-100 transition-colors rounded-sm">
                                 <Flag className="h-4 w-4" />
-                                举报此梦境
+                                {t("community.report.title", {
+                                  target: t("community.report.target.dream"),
+                                })}
                               </button>
                             }
                           />
@@ -237,10 +252,12 @@ export default function CommunityDreamDetailPage() {
               {dream.is_featured && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/30">
                   <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">精选梦境</span>
+                  <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                    {t("community.featured.badge")}
+                  </span>
                   {dream.inspiration_score !== undefined && dream.inspiration_score > 0 && (
                     <span className="ml-auto text-xs text-amber-500 font-medium">
-                      ✦ 灵感分 {dream.inspiration_score.toFixed(1)}
+                      ✦ {t("community.featured.inspirationScore")} {dream.inspiration_score.toFixed(1)}
                     </span>
                   )}
                 </div>
@@ -251,7 +268,7 @@ export default function CommunityDreamDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   <Badge className="gap-1 bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800">
                     <Search className="h-3 w-3" />
-                    寻求解读
+                    {t("dreams.new.seekingInterpretation")}
                   </Badge>
                 </div>
               )}
@@ -276,7 +293,9 @@ export default function CommunityDreamDetailPage() {
                       initialResonated={dream.has_resonated}
                       className="hover:!bg-transparent dark:hover:!bg-transparent !px-0 min-w-0 shrink-0"
                     />
-                    <span className="text-xs text-muted-foreground hidden sm:inline">共鸣</span>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">
+                      {t("community.dreamDetail.actions.resonance")}
+                    </span>
                   </span>
                   <Link
                     href={`/community/dreams/${dream.id}?tab=comments`}
@@ -284,7 +303,9 @@ export default function CommunityDreamDetailPage() {
                   >
                     <MessageCircle className="h-4 w-4 shrink-0" />
                     <span>{formatCount(pureCommentCount)}</span>
-                    <span className="text-xs hidden sm:inline">评论</span>
+                    <span className="text-xs hidden sm:inline">
+                      {t("community.dreamDetail.actions.comments")}
+                    </span>
                   </Link>
                   <Link
                     href={`/community/dreams/${dream.id}?tab=interpretations`}
@@ -292,7 +313,9 @@ export default function CommunityDreamDetailPage() {
                   >
                     <Brain className="h-4 w-4 shrink-0" />
                     <span>{formatCount(interpretationCount)}</span>
-                    <span className="text-xs hidden sm:inline">解读</span>
+                    <span className="text-xs hidden sm:inline">
+                      {t("community.dreamDetail.actions.interpretations")}
+                    </span>
                   </Link>
                   <span className="inline-flex items-center gap-1.5 text-sm text-amber-500 dark:text-amber-400 px-2 py-1 transition-all duration-300 ease-out hover:scale-110 hover:-translate-y-0.5">
                     <BookmarkButton
@@ -301,25 +324,29 @@ export default function CommunityDreamDetailPage() {
                       className="hover:!bg-transparent dark:hover:!bg-transparent !px-0 min-w-0 shrink-0 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
                     />
                     <span>{formatCount(dream.bookmark_count ?? 0)}</span>
-                    <span className="text-xs hidden sm:inline">收藏</span>
+                    <span className="text-xs hidden sm:inline">
+                      {t("dreams.detail.favorite")}
+                    </span>
                   </span>
                   <button
                     type="button"
                     onClick={handleShare}
                     className="inline-flex items-center gap-1.5 text-sm text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-transparent dark:hover:bg-transparent transition-all duration-300 ease-out hover:scale-110 hover:-translate-y-0.5 rounded-md px-2 py-1"
-                    title="分享"
                   >
                     <Share2 className="h-4 w-4 shrink-0" />
                     <span>{formatCount(dream.share_count ?? 0)}</span>
-                    <span className="text-xs hidden sm:inline">分享</span>
+                    <span className="text-xs hidden sm:inline">
+                      {t("community.dreamDetail.actions.share")}
+                    </span>
                   </button>
                   <span
                     className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 cursor-default px-2 py-1"
-                    title="浏览"
                   >
                     <Eye className="h-4 w-4 shrink-0" />
                     <span>{formatCount(dream.view_count ?? 0)}</span>
-                    <span className="text-xs hidden sm:inline">浏览</span>
+                    <span className="text-xs hidden sm:inline">
+                      {t("dreams.detail.views")}
+                    </span>
                   </span>
                 </div>
               </div>

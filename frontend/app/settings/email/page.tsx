@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { userAPI } from "@/lib/user-api";
 import { authAPI, AuthUser, AuthHelpers } from "@/lib/auth-api";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
@@ -109,7 +109,7 @@ export default function EmailPage() {
                 <FormField
                   control={form.control}
                   name="newEmail"
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<FormValues, "newEmail"> & FieldValues }) => (
                     <FormItem>
                       <FormLabel>{t("settings.email.newEmail")}</FormLabel>
                       <FormControl>
@@ -124,7 +124,7 @@ export default function EmailPage() {
                 <FormField
                   control={form.control}
                   name="verificationCode"
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<FormValues, "verificationCode"> & FieldValues }) => (
                     <FormItem>
                       <FormLabel>
                         {t("settings.email.verificationCode")}

@@ -1,14 +1,13 @@
 "use client";
 
 import { SettingsSidebar } from "@/components/settings/settings-sidebar";
-import { SiteHeader } from "@/components/site-header";
 import { AuthToken } from "@/lib/auth-api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 export default function SettingsLayout({
   children,
@@ -31,16 +30,13 @@ export default function SettingsLayout({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">加载中...</div>
+        <div className="text-muted-foreground">{t("common.loading")}</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 保留导航栏 */}
-      <SiteHeader />
-
       <div className="container mx-auto px-4 py-8">
         {/* 返回首页按钮 */}
         <div className="mb-6">

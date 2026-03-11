@@ -3,7 +3,7 @@
 import Link from "next/link";
 import "@/styles/footer.css";
 import { SphereMask } from "@/components/magicui/sphere-mask";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 export function SiteFooter() {
   const { t } = useTranslation();
@@ -11,19 +11,11 @@ export function SiteFooter() {
   const footerNavs = [
     {
       label: t("footer.sections.product"),
-      items: [
-        { href: "#features", name: t("footer.items.features") },
-        { href: "#statistics", name: t("footer.items.statistics") },
-        { href: "#about", name: t("footer.items.about") },
-      ],
+      items: [{ href: "/about", name: t("footer.items.about") }],
     },
     {
       label: t("footer.sections.resources"),
-      items: [
-        { href: "/docs", name: t("footer.items.docs") },
-        { href: "/blog", name: t("footer.items.blog") },
-        { href: "/help", name: t("footer.items.help") },
-      ],
+      items: [{ href: "/contact", name: t("footer.items.contact") }],
     },
     {
       label: t("footer.sections.legal"),

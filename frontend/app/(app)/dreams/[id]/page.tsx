@@ -41,6 +41,7 @@ import {
   RefreshCw,
   Sparkles,
   Star,
+  Square,
   Sunrise,
   Sunset,
   Tag as TagIcon,
@@ -57,7 +58,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { getEmotionLabel } from "@/lib/emotion-utils";
 
 type SimilarDreamItem = {
@@ -112,7 +113,15 @@ export default function DreamDetailPage() {
   const [generatingImage, setGeneratingImage] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const analyzeCancelingRef = useRef(false);
+  const imageAbortRef = useRef<AbortController | null>(null);
+  const imageCancelingRef = useRef(false);
   const reflectionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const stopBtnClass =
+    "bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-rose-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background";
 
   // 根据当前语言获取 date-fns locale
   const getDateLocale = () => {
@@ -203,6 +212,10 @@ export default function DreamDetailPage() {
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
   }, [fetchDream]);
 
@@ -214,79 +227,155 @@ export default function DreamDetailPage() {
     }
   }, [answeringQuestion]);
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (mode: "auto" | "manual" = "manual") => {
     if (!dream) return;
-    setAnalyzing(true);
-    try {
-      await DreamApi.triggerAnalysis(dream.id);
-      // 移除成功提示，静默触发分析
+    if (mode === "manual") {
+      setAnalyzing(true);
+    }
 
-      const token = localStorage.getItem("access_token");
-      if (!token) {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      if (mode === "manual") {
         toast.error(t("dreams.detail.notLoggedIn"));
+      }
+      setAnalyzing(false);
+      return;
+    }
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+    const cleanupConnection = () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+    };
+
+    const scheduleReconnect = () => {
+      if (reconnectTimerRef.current || analyzeCancelingRef.current) return;
+      if (reconnectAttemptsRef.current >= 3) {
         setAnalyzing(false);
         return;
       }
+      const delay = 1500 * (reconnectAttemptsRef.current + 1);
+      reconnectTimerRef.current = setTimeout(async () => {
+        reconnectTimerRef.current = null;
+        reconnectAttemptsRef.current += 1;
+        const status = await DreamApi.getAnalysisStatus(dream.id).catch(() => null);
+        if (!status) {
+          scheduleReconnect();
+          return;
+        }
+        if (status.ai_processing_status === "COMPLETED") {
+          cleanupConnection();
+          setAnalyzing(false);
+          fetchDream();
+          return;
+        }
+        if (status.ai_processing_status === "FAILED") {
+          cleanupConnection();
+          setAnalyzing(false);
+          if (mode === "manual") {
+            toast.error(t("dreams.detail.analysisFailed"));
+          }
+          return;
+        }
+        connectSse();
+      }, delay);
+    };
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const handleStatusEvent = (data: any) => {
+      if (data.dream_id !== dream.id) return;
+      const status = data.status;
+      if (status === "COMPLETED") {
+        cleanupConnection();
+        reconnectAttemptsRef.current = 0;
+        setAnalyzing(false);
+        if (data.similar_dreams?.length) {
+          setSimilarDreams(data.similar_dreams);
+        }
+        fetchDream();
+      } else if (status === "FAILED") {
+        cleanupConnection();
+        reconnectAttemptsRef.current = 0;
+        setAnalyzing(false);
+        if (mode === "manual") {
+          if (!data?.cancelled) {
+            toast.error(data.message || t("dreams.detail.analysisFailed"));
+          }
+        }
+      }
+    };
+
+    const connectSse = () => {
+      cleanupConnection();
       const eventSource = new EventSource(
         `${apiUrl}/api/dreams/${dream.id}/analysis-stream?token=${encodeURIComponent(token)}`
       );
       eventSourceRef.current = eventSource;
-
       eventSource.addEventListener("connected", () => {
-        console.log("SSE 连接已建立");
+        reconnectAttemptsRef.current = 0;
       });
-
       eventSource.addEventListener("dream_analysis_status", (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.dream_id === dream.id) {
-            const status = data.status;
-            if (status === "COMPLETED") {
-              eventSource.close();
-              eventSourceRef.current = null;
-              setAnalyzing(false);
-              if (data.similar_dreams?.length) {
-                setSimilarDreams(data.similar_dreams);
-              }
-              fetchDream();
-            } else if (status === "FAILED") {
-              eventSource.close();
-              eventSourceRef.current = null;
-              setAnalyzing(false);
-              toast.error(data.message || t("dreams.detail.analysisFailed"));
-            }
-            // 移除 PROCESSING 状态的提示
-          }
+          handleStatusEvent(JSON.parse(event.data));
         } catch (e) {
           console.error("处理 SSE 事件失败:", e);
         }
       });
-
-      eventSource.onerror = (error) => {
-        console.error("SSE 连接错误:", error);
-        if (eventSource.readyState === EventSource.CLOSED) {
-          eventSource.close();
-          eventSourceRef.current = null;
-          setAnalyzing(false);
-          toast.error(t("dreams.detail.connectionInterrupted"));
-        }
+      eventSource.onerror = () => {
+        eventSource.close();
+        eventSourceRef.current = null;
+        scheduleReconnect();
       };
+    };
 
-      setTimeout(() => {
-        if (eventSource.readyState !== EventSource.CLOSED) {
-          eventSource.close();
-          eventSourceRef.current = null;
-          if (analyzing) {
-            setAnalyzing(false);
-            toast.info(t("dreams.detail.analysisMaybeInProgress"));
-          }
-        }
-      }, 120000);
+    connectSse();
+
+    try {
+      await DreamApi.triggerAnalysis(dream.id);
+      // 移除成功提示，静默触发分析
     } catch {
-      toast.error(t("dreams.detail.triggerAnalysisFailed"));
+      cleanupConnection();
+      if (mode === "manual") {
+        toast.error(t("dreams.detail.triggerAnalysisFailed"));
+      }
       setAnalyzing(false);
+      return;
+    }
+
+    setTimeout(() => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+        scheduleReconnect();
+      }
+    }, 120000);
+  };
+
+  const handleStopAnalyze = async () => {
+    if (!dream) return;
+    if (analyzeCancelingRef.current) return;
+    analyzeCancelingRef.current = true;
+    try {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      setAnalyzing(false);
+      await DreamApi.cancelAnalysis(dream.id);
+    } catch {
+      // ignore cancel errors
+    } finally {
+      analyzeCancelingRef.current = false;
     }
   };
 
@@ -317,12 +406,18 @@ export default function DreamDetailPage() {
     if (!dream) return;
     setGeneratingImage(true);
     try {
-      const res = await DreamApi.generateImage(dream.id);
+      const controller = new AbortController();
+      imageAbortRef.current = controller;
+      const res = await DreamApi.generateImage(dream.id, { signal: controller.signal });
       setGeneratedImage(res.image_url);
       setDream((prev) => (prev ? { ...prev, ai_image_url: res.image_url } : prev));
       toast.success(t("dreams.detail.imageGenerateSuccess"));
-    } catch {
+    } catch (err) {
       // 兜底：若请求超时/网络抖动，但后端已完成生成，主动拉取最新详情避免误报失败
+      const maybeAxios = err as any;
+      if (imageCancelingRef.current) return;
+      if (maybeAxios?.code === "ERR_CANCELED") return;
+      if (maybeAxios?.response?.status === 409) return;
       try {
         const latest = await DreamApi.get(dream.id);
         if (latest.ai_image_url) {
@@ -337,6 +432,23 @@ export default function DreamDetailPage() {
       toast.error(t("dreams.detail.imageGenerateFailed"));
     } finally {
       setGeneratingImage(false);
+      imageAbortRef.current = null;
+    }
+  };
+
+  const handleStopGenerateImage = async () => {
+    if (!dream) return;
+    if (imageCancelingRef.current) return;
+    imageCancelingRef.current = true;
+    try {
+      imageAbortRef.current?.abort();
+      imageAbortRef.current = null;
+      setGeneratingImage(false);
+      await DreamApi.cancelGenerateImage(dream.id);
+    } catch {
+      // ignore cancel errors
+    } finally {
+      imageCancelingRef.current = false;
     }
   };
 
@@ -790,16 +902,27 @@ export default function DreamDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleGenerateImage}
-                      disabled={generatingImage}
-                      className="gap-1.5 border-muted-foreground/40 dark:border-muted-foreground/60 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white hover:border-indigo-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                      onClick={generatingImage ? handleStopGenerateImage : handleGenerateImage}
+                      disabled={imageCancelingRef.current}
+                      className={cn(
+                        "gap-1.5 border-muted-foreground/40 dark:border-muted-foreground/60 hover:scale-105 active:scale-95 transition-all duration-200",
+                        generatingImage
+                          ? stopBtnClass
+                          : "text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white hover:border-indigo-500"
+                      )}
                     >
                       {generatingImage ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          {t("common.cancel")}
+                          <Square className="w-3.5 h-3.5" />
+                        </>
                       ) : (
-                        <RefreshCw className="w-3.5 h-3.5" />
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          {t("dreams.detail.regenerateImage")}
+                        </>
                       )}
-                      {t("dreams.detail.regenerateImage")}
                     </Button>
                     <Button
                       variant="outline"
@@ -836,14 +959,22 @@ export default function DreamDetailPage() {
                     </p>
                   </div>
                   <Button
-                    onClick={handleGenerateImage}
-                    disabled={generatingImage}
-                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-md hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-105 transition-all duration-300 border-0 gap-2"
+                    onClick={generatingImage ? handleStopGenerateImage : handleGenerateImage}
+                    disabled={imageCancelingRef.current}
+                    className={cn(
+                      "text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 gap-2",
+                      generatingImage
+                        ? cn("from-rose-500 via-red-500 to-orange-500 hover:from-rose-600 hover:via-red-600 hover:to-orange-600", "bg-gradient-to-r")
+                        : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 hover:shadow-indigo-500/25"
+                    )}
                   >
                     {generatingImage ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         {t("dreams.detail.generatingPleaseWait")}
+                        <span className="mx-1 opacity-70">•</span>
+                        {t("common.cancel")}
+                        <Square className="w-4 h-4" />
                       </>
                     ) : (
                       <>
@@ -1244,25 +1375,30 @@ export default function DreamDetailPage() {
                 )}
 
                 <div className="flex justify-center">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8"
-                    onClick={handleAnalyze}
-                    disabled={analyzing}
-                  >
-                    {analyzing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        {t("dreams.detail.analyzing")}
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-                        {t("dreams.detail.regenerateAnalysis")}
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8"
+                      onClick={analyzing ? handleStopAnalyze : () => handleAnalyze("manual")}
+                      disabled={analyzeCancelingRef.current}
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          {t("dreams.detail.analyzing")}
+                          <span className="mx-2 opacity-70">•</span>
+                          {t("common.cancel")}
+                          <Square className="w-5 h-5 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+                          {t("dreams.detail.regenerateAnalysis")}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1283,24 +1419,34 @@ export default function DreamDetailPage() {
                     : t("dreams.detail.aiCallToActionDescription")}
                 </p>
                 {dream.ai_processing_status !== "PROCESSING" && (
+                  <div className="flex items-center justify-center gap-2">
                   <Button 
-                    onClick={handleAnalyze} 
-                    disabled={analyzing}
-                    size="lg"
-                    className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8"
-                  >
-                    {analyzing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        {t("dreams.detail.analyzing")}
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-                        {t("dreams.detail.startAnalysis")}
-                      </>
-                    )}
-                  </Button>
+                      onClick={analyzing ? handleStopAnalyze : () => handleAnalyze("manual")} 
+                      disabled={analyzeCancelingRef.current}
+                      size="lg"
+                      className={cn(
+                        "text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 px-8",
+                        analyzing
+                          ? "bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 hover:from-rose-600 hover:via-red-600 hover:to-orange-600"
+                          : "bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 hover:shadow-primary/25"
+                      )}
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          {t("dreams.detail.analyzing")}
+                          <span className="mx-2 opacity-70">•</span>
+                          {t("common.cancel")}
+                          <Square className="w-5 h-5 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+                          {t("dreams.detail.startAnalysis")}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>

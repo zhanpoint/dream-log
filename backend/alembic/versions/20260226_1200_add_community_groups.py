@@ -56,13 +56,13 @@ def upgrade() -> None:
         ),
     )
 
-    # ── 3. 预置 4 个官方子社区 ─────────────────────────────────────────────
+    # ── 3. 预置 4 个官方子社区（英文名称与描述） ───────────────────────────
     op.execute("""
         INSERT INTO communities (name, slug, description, icon, is_official, sort_order) VALUES
-        ('清醒梦实验室', 'lucid-dreaming', '探索清醒梦的奥秘，分享清醒梦技巧与体验', '🌟', true, 1),
-        ('噩梦互助组', 'nightmare-support', '一起面对噩梦，互相支持与理解', '🌙', true, 2),
-        ('连载梦剧场', 'serial-dreams', '分享有连续剧情的系列梦境故事', '📖', true, 3),
-        ('飞行梦研究所', 'flying-dreams', '所有关于飞翔与自由飞行的梦境', '🦅', true, 4)
+        ('Lucid Dream Lab', 'lucid-dreaming', 'Explore the secrets of lucid dreams and share techniques and experiences.', '🌟', true, 1),
+        ('Nightmare Support Group', 'nightmare-support', 'Face nightmares together with mutual support, understanding, and care.', '🌙', true, 2),
+        ('Serial Dream Theater', 'serial-dreams', 'Share serialized dream stories with continuing plots and characters.', '📖', true, 3),
+        ('Flying Dream Institute', 'flying-dreams', 'All dreams about flying and the feeling of freedom in the air.', '🦅', true, 4)
     """)
 
 

@@ -25,7 +25,7 @@ from app.models.enums import (
     SymbolCategory,
 )
 from app.models.community import Bookmark, Comment, CommentLike, Report, Resonance, UserFollow
-from app.models.community_group import Community, CommunityMember
+from app.models.community_group import Community, CommunityCreationApplication, CommunityMember
 from app.models.dm import DirectMessage, DmConversation
 from app.models.exploration import ExplorationArticle, ExplorationSymbol
 from app.models.notification import Notification, NotificationType
@@ -70,6 +70,7 @@ __all__ = [
     # 梦境社群
     "Community",
     "CommunityMember",
+    "CommunityCreationApplication",
     # 私信
     "DmConversation",
     "DirectMessage",

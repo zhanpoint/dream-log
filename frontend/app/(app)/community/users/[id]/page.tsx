@@ -5,17 +5,32 @@ import { FollowButton } from "@/components/community/follow-button";
 import { DreamerLevelBadge, InspirationPointsBadge } from "@/components/community/dreamer-level-badge";
 import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { communityAPI, type DreamCardSocial, type UserPublicProfile } from "@/lib/community-api";
+import { communityAPI, type CommunityResponse, type DreamCardSocial, type UserPublicProfile } from "@/lib/community-api";
 import { AuthToken, AuthUser } from "@/lib/auth-api";
-import { ArrowLeft, Brain, ChevronRight, Loader2, MessageSquare, Moon, Users } from "lucide-react";
+import { ArrowLeft, Brain, ChevronRight, Loader2, MessageSquare, Moon, Users, Bookmark } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const profileCache = new Map<string, UserPublicProfile>();
 const dreamsCache = new Map<string, { items: DreamCardSocial[]; total: number; page: number }>();
+const assetsMetaCache = new Map<string, {
+  can_view_bookmarks: boolean;
+  can_view_created_communities: boolean;
+  can_view_joined_communities: boolean;
+  public_dream_count: number;
+  bookmarked_dream_count: number;
+  created_community_count: number;
+  joined_community_count: number;
+}>();
+const assetsCache = new Map<string, {
+  bookmarks: DreamCardSocial[];
+  created: CommunityResponse[];
+  joined: CommunityResponse[];
+}>();
 
 function ProfileSkeleton() {
   return (
@@ -39,6 +54,7 @@ function ProfileSkeleton() {
 export default function UserPublicProfilePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const currentUser = AuthUser.get();
   const isSelf = currentUser?.id === id;
 
@@ -49,6 +65,13 @@ export default function UserPublicProfilePage() {
   const [dreams, setDreams] = useState<DreamCardSocial[]>(cachedDreams?.items ?? []);
   const [page, setPage] = useState(cachedDreams?.page ?? 1);
   const [total, setTotal] = useState(cachedDreams?.total ?? 0);
+
+  const [assetTab, setAssetTab] = useState<"public" | "bookmarks" | "created" | "joined">("public");
+  const [bookmarks, setBookmarks] = useState<DreamCardSocial[]>([]);
+  const [createdCommunities, setCreatedCommunities] = useState<CommunityResponse[]>([]);
+  const [joinedCommunities, setJoinedCommunities] = useState<CommunityResponse[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set(["public"]));
 
   const [loadingProfile, setLoadingProfile] = useState(!cachedProfile);
   const [loadingDreams, setLoadingDreams] = useState(!cachedDreams);
@@ -108,6 +131,92 @@ export default function UserPublicProfilePage() {
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [fetchDreams]);
+
+  const [canViewBookmarks, setCanViewBookmarks] = useState(false);
+  const [canViewCreatedCommunities, setCanViewCreatedCommunities] = useState(false);
+  const [canViewJoinedCommunities, setCanViewJoinedCommunities] = useState(false);
+  const [publicDreamCount, setPublicDreamCount] = useState(0);
+  const [bookmarkedDreamCount, setBookmarkedDreamCount] = useState(0);
+  const [createdCommunityCount, setCreatedCommunityCount] = useState(0);
+  const [joinedCommunityCount, setJoinedCommunityCount] = useState(0);
+
+  useEffect(() => {
+    const cachedMeta = assetsMetaCache.get(id);
+    if (cachedMeta) {
+      setCanViewBookmarks(cachedMeta.can_view_bookmarks);
+      setCanViewCreatedCommunities(cachedMeta.can_view_created_communities);
+      setCanViewJoinedCommunities(cachedMeta.can_view_joined_communities);
+      setPublicDreamCount(cachedMeta.public_dream_count);
+      setBookmarkedDreamCount(cachedMeta.bookmarked_dream_count);
+      setCreatedCommunityCount(cachedMeta.created_community_count);
+      setJoinedCommunityCount(cachedMeta.joined_community_count);
+      return;
+    }
+
+    communityAPI
+      .getUserAssetsMeta(id)
+      .then((meta) => {
+        assetsMetaCache.set(id, meta);
+        setCanViewBookmarks(meta.can_view_bookmarks);
+        setCanViewCreatedCommunities(meta.can_view_created_communities);
+        setCanViewJoinedCommunities(meta.can_view_joined_communities);
+        setPublicDreamCount(meta.public_dream_count);
+        setBookmarkedDreamCount(meta.bookmarked_dream_count);
+        setCreatedCommunityCount(meta.created_community_count);
+        setJoinedCommunityCount(meta.joined_community_count);
+      })
+      .catch(() => toast.error("加载用户资产元信息失败"));
+  }, [id]);
+
+  const loadAssetTab = useCallback(async (tab: "bookmarks" | "created" | "joined") => {
+    const cached = assetsCache.get(id);
+    if (cached && loadedTabs.has(tab)) return;
+
+    setLoadingAssets(true);
+    try {
+      const res = await communityAPI.getUserAssets(id, tab);
+      setCanViewBookmarks(res.can_view_bookmarks);
+      setCanViewCreatedCommunities(res.can_view_created_communities);
+      setCanViewJoinedCommunities(res.can_view_joined_communities);
+
+      if (tab === "bookmarks") {
+        setBookmarks(res.bookmarked_dreams.items);
+        assetsCache.set(id, { ...(cached ?? { bookmarks: [], created: [], joined: [] }), bookmarks: res.bookmarked_dreams.items });
+      }
+      if (tab === "created") {
+        setCreatedCommunities(res.created_communities);
+        assetsCache.set(id, { ...(assetsCache.get(id) ?? { bookmarks: [], created: [], joined: [] }), created: res.created_communities });
+      }
+      if (tab === "joined") {
+        setJoinedCommunities(res.joined_communities);
+        assetsCache.set(id, { ...(assetsCache.get(id) ?? { bookmarks: [], created: [], joined: [] }), joined: res.joined_communities });
+      }
+
+      setLoadedTabs((prev) => new Set(prev).add(tab));
+    } catch {
+      toast.error("加载标签页数据失败");
+    } finally {
+      setLoadingAssets(false);
+    }
+  }, [id, loadedTabs]);
+
+  useEffect(() => {
+    if (assetTab === "bookmarks" && !canViewBookmarks) setAssetTab("public");
+    if (assetTab === "created" && !canViewCreatedCommunities) setAssetTab("public");
+    if (assetTab === "joined" && !canViewJoinedCommunities) setAssetTab("public");
+  }, [assetTab, canViewBookmarks, canViewCreatedCommunities, canViewJoinedCommunities]);
+
+  useEffect(() => {
+    if (assetTab === "bookmarks" && canViewBookmarks && !loadedTabs.has("bookmarks")) {
+      void loadAssetTab("bookmarks");
+    }
+    if (assetTab === "created" && canViewCreatedCommunities && !loadedTabs.has("created")) {
+      void loadAssetTab("created");
+    }
+    if (assetTab === "joined" && canViewJoinedCommunities && !loadedTabs.has("joined")) {
+      void loadAssetTab("joined");
+    }
+  }, [assetTab, canViewBookmarks, canViewCreatedCommunities, canViewJoinedCommunities, loadedTabs, loadAssetTab]);
 
   const hasMore = dreams.length < total;
 
@@ -171,7 +280,7 @@ export default function UserPublicProfilePage() {
                     onClick={handleSendMessage}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    发私信
+                    {t("dm.header.title")}
                   </Button>
                   <FollowButton
                     userId={profile.id}
@@ -217,50 +326,144 @@ export default function UserPublicProfilePage() {
         )}
       </div>
 
-      {/* Dreams grid */}
+      {/* Assets tabs */}
       <div>
-        <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-          <Moon className="h-4 w-4 text-primary" />
-          公开梦境
-          {total > 0 && <span className="text-xs text-muted-foreground">({total})</span>}
-        </h2>
+        <div className="flex items-center gap-2 mb-4 border-b border-border">
+          {[
+            { key: "public", label: "公开梦境", count: publicDreamCount, visible: true },
+            { key: "bookmarks", label: "收藏梦境", count: bookmarkedDreamCount, visible: canViewBookmarks },
+            { key: "created", label: "创建社群", count: createdCommunityCount, visible: canViewCreatedCommunities },
+            { key: "joined", label: "加入社群", count: joinedCommunityCount, visible: canViewJoinedCommunities },
+          ]
+            .filter((tab) => tab.visible)
+            .map((tab) => (
+            <button
+              type="button"
+              key={tab.key}
+              onClick={() => setAssetTab(tab.key as typeof assetTab)}
+              className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors flex items-center gap-1.5 ${
+                assetTab === tab.key
+                  ? "border-primary text-primary font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className="text-xs text-muted-foreground">{tab.count}</span>
+            </button>
+          ))}
+        </div>
 
-        {loadingDreams ? (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-3">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-14 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : dreams.length === 0 ? (
-          <div className="text-center py-14 text-muted-foreground">
-            <p className="text-3xl mb-3">🌙</p>
-            <p className="text-sm">还没有公开的梦境</p>
-          </div>
-        ) : (
+        {assetTab === "public" && (
           <>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {dreams.map((dream) => (
-                <DreamCardSocialComponent key={dream.id} dream={dream} />
-              ))}
-            </div>
-            {hasMore && (
-              <div className="flex justify-center mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => fetchDreams(page + 1)}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 mr-2" />
-                  )}
-                  加载更多
-                </Button>
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+              <Moon className="h-4 w-4 text-primary" />
+              我公开的梦境
+              {total > 0 && <span className="text-xs text-muted-foreground">({total})</span>}
+            </h2>
+            {loadingDreams ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-3">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : dreams.length === 0 ? (
+              <div className="text-center py-14 text-muted-foreground">
+                <p className="text-3xl mb-3">🌙</p>
+                <p className="text-sm">还没有公开的梦境</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {dreams.map((dream) => (
+                    <DreamCardSocialComponent key={dream.id} dream={dream} />
+                  ))}
+                </div>
+                {hasMore && (
+                  <div className="flex justify-center mt-6">
+                    <Button variant="outline" onClick={() => fetchDreams(page + 1)} disabled={loadingMore}>
+                      {loadingMore ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ChevronRight className="h-4 w-4 mr-2" />}
+                      加载更多
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {assetTab === "bookmarks" && (
+          <>
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+              <Bookmark className="h-4 w-4 text-primary" />
+              我收藏的梦境
+            </h2>
+            {!canViewBookmarks ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+            ) : loadingAssets ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+              </div>
+            ) : bookmarks.length === 0 ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">还没有收藏梦境</div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {bookmarks.map((dream) => (
+                  <DreamCardSocialComponent key={dream.id} dream={dream} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {assetTab === "created" && (
+          <>
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              我创建的社群
+            </h2>
+            {!canViewCreatedCommunities ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+            ) : loadingAssets ? (
+              <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+            ) : createdCommunities.length === 0 ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">你还没有创建社群</div>
+            ) : (
+              <div className="space-y-2">
+                {createdCommunities.map((c) => (
+                  <Link key={c.id} href={`/community/greenhouse/${c.slug}`} className="block rounded-xl border border-border p-3 hover:border-primary/40 transition-colors">
+                    <p className="font-medium text-sm">{c.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{c.description || "暂无简介"}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {assetTab === "joined" && (
+          <>
+            <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              我加入的社群
+            </h2>
+            {!canViewJoinedCommunities ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+            ) : loadingAssets ? (
+              <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+            ) : joinedCommunities.length === 0 ? (
+              <div className="text-sm text-muted-foreground py-10 text-center">你还没有加入社群</div>
+            ) : (
+              <div className="space-y-2">
+                {joinedCommunities.map((c) => (
+                  <Link key={c.id} href={`/community/greenhouse/${c.slug}`} className="block rounded-xl border border-border p-3 hover:border-primary/40 transition-colors">
+                    <p className="font-medium text-sm">{c.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{c.description || "暂无简介"}</p>
+                  </Link>
+                ))}
               </div>
             )}
           </>

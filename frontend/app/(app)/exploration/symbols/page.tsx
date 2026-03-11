@@ -3,48 +3,38 @@
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { explorationAPI, type SymbolListItem } from "@/lib/exploration-api";
-import { 
-  ChevronLeft, 
-  Search, 
-  MapPin,      // 场景 - 地图标记
-  Sparkles,    // 动物 - 星星/魔法
-  Users,       // 人物 - 多人
-  Zap,         // 行为 - 闪电/动作
-  Package,     // 物体 - 包裹/盒子
-  Navigation,  // 地点 - 导航/指南针
-  Trees,       // 自然 - 树木
-  Heart,       // 情绪 - 心形
-  User         // 身体 - 单人
+import {
+  ChevronLeft,
+  Search,
+  MapPin,
+  Sparkles,
+  Users,
+  Zap,
+  Package,
+  Navigation,
+  Trees,
+  Heart,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  动物: "动物",
-  行为: "行为",
-  人物: "人物",
-  地点: "地点",
-  场景: "场景",
-  物体: "物体",
-  情绪: "情绪",
-  身体: "身体",
-  自然: "自然",
-  自然现象: "自然",
-};
-
-const CATEGORY_ICONS: Record<string, any> = {
-  场景: MapPin,      // 场景 - 地图标记
-  动物: Sparkles,    // 动物 - 星星（代表生命力）
-  人物: Users,       // 人物 - 多人图标
-  行为: Zap,         // 行为 - 闪电（代表动作）
-  物体: Package,     // 物体 - 包裹
-  地点: Navigation,  // 地点 - 导航指南针
-  自然: Trees,       // 自然 - 树木
-  情绪: Heart,       // 情绪 - 心形
-  身体: User,        // 身体 - 单人图标
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  场景: MapPin,
+  动物: Sparkles,
+  人物: Users,
+  行为: Zap,
+  物体: Package,
+  地点: Navigation,
+  自然: Trees,
+  自然现象: Trees,
+  情绪: Heart,
+  身体: User,
 };
 
 export default function SymbolsPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
@@ -127,40 +117,40 @@ export default function SymbolsPage() {
     return acc;
   }, {});
 
+  const getCategoryLabel = (category: string) =>
+    t(`exploration.symbolsPage.categories.${category}`, { defaultValue: category });
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        {/* 顶部：返回 + 标题 + 价值说明 */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="mb-6 sm:mb-8">
           <Link
             href="/exploration"
             className="group inline-flex items-center gap-2 text-base text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
-            <span className="font-medium">梦境探索</span>
+            <span className="font-medium">{t("exploration.symbolsPage.backLink")}</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            梦境符号词典
+            {t("exploration.symbolsPage.title")}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">
-            从梦中出现的符号入手，理解可能与你相关的含义，更懂自己的潜意识
+            {t("exploration.symbolsPage.subtitle")}
           </p>
         </div>
 
-        {/* 搜索：更突出、圆角、聚焦体验 */}
         <div className="relative mb-5">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
             className="pl-10 h-10 transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20"
-            placeholder="输入梦中出现的词，如 蛇、坠落、考试…"
+            placeholder={t("exploration.symbolsPage.searchPlaceholder")}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
 
-        {/* 分类：横向滚动、胶囊样式、选中更明显 */}
-        <div className="mb-8 overflow-x-auto pb-1 -mx-1">
-          <div className="flex gap-2 min-w-0">
+        <div className="mb-8 -mx-1">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setActiveCategory(null)}
@@ -170,7 +160,7 @@ export default function SymbolsPage() {
                   : "border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 hover:scale-105 font-medium"
               }`}
             >
-              全部
+              {t("exploration.symbolsPage.all")}
             </button>
             {categories.map((cat) => (
               <button
@@ -183,7 +173,7 @@ export default function SymbolsPage() {
                     : "border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/5 hover:scale-105 font-medium"
                 }`}
               >
-                {CATEGORY_LABELS[cat] ?? cat}
+                {getCategoryLabel(cat)}
               </button>
             ))}
           </div>
@@ -206,7 +196,9 @@ export default function SymbolsPage() {
         ) : items.length === 0 ? (
           <div className="text-center py-16 px-4 rounded-2xl border border-dashed border-border/60">
             <p className="text-muted-foreground">
-              {search ? `没有找到与「${search}」相关的符号，试试其他词或切换分类` : "暂无符号内容，请稍后再来"}
+              {search
+                ? t("exploration.symbolsPage.emptySearch", { query: search })
+                : t("exploration.symbolsPage.emptyDefault")}
             </p>
           </div>
         ) : (
@@ -220,7 +212,7 @@ export default function SymbolsPage() {
                       <IconComponent className="h-4 w-4 text-primary" />
                     )}
                     <h2 className="text-sm font-medium text-foreground">
-                      {CATEGORY_LABELS[category] ?? category}
+                      {getCategoryLabel(category)}
                     </h2>
                   </div>
                   <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2">
@@ -245,7 +237,7 @@ export default function SymbolsPage() {
         <div ref={loadMoreRef} className="h-12 mt-6" />
         {loading && items.length > 0 && (
           <div className="flex justify-center py-6">
-            <span className="text-sm text-muted-foreground">加载更多…</span>
+            <span className="text-sm text-muted-foreground">{t("exploration.symbolsPage.loadMore")}</span>
           </div>
         )}
       </div>

@@ -1,8 +1,17 @@
 "use client";
 
-import { Brain, Calendar, LineChart, Sparkles } from "lucide-react";
+import {
+  Brain,
+  Calendar,
+  LineChart,
+  Sparkles,
+  BookOpen,
+  Users,
+  MessageCircle,
+  MoonStar,
+} from "lucide-react";
 import { MagicCard } from "@/components/magicui/magic-card";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 export default function FeaturesSection() {
   const { t } = useTranslation();
@@ -40,13 +49,53 @@ export default function FeaturesSection() {
     },
     {
       icon: Sparkles,
-      title: t("marketing.features.items.tips.title"),
-      description: t("marketing.features.items.tips.description"),
-      gradientFrom: "#F59E0B",
-      gradientTo: "#EF4444",
-      gradientColor: "#F59E0B",
+      title: t("marketing.features.items.reports.title"),
+      description: t("marketing.features.items.reports.description"),
+      gradientFrom: "#14B8A6",
+      gradientTo: "#22C55E",
+      gradientColor: "#14B8A6",
+      iconColor: "text-emerald-400",
+      iconBgColor: "bg-emerald-950/50",
+    },
+    {
+      icon: BookOpen,
+      title: t("marketing.features.items.symbols.title"),
+      description: t("marketing.features.items.symbols.description"),
+      gradientFrom: "#F97316",
+      gradientTo: "#F43F5E",
+      gradientColor: "#F97316",
       iconColor: "text-orange-400",
       iconBgColor: "bg-orange-950/50",
+    },
+    {
+      icon: MoonStar,
+      title: t("marketing.features.items.images.title"),
+      description: t("marketing.features.items.images.description"),
+      gradientFrom: "#6366F1",
+      gradientTo: "#A855F7",
+      gradientColor: "#6366F1",
+      iconColor: "text-indigo-400",
+      iconBgColor: "bg-indigo-950/50",
+    },
+    {
+      icon: Users,
+      title: t("marketing.features.items.community.title"),
+      description: t("marketing.features.items.community.description"),
+      gradientFrom: "#FACC15",
+      gradientTo: "#FB7185",
+      gradientColor: "#FACC15",
+      iconColor: "text-amber-400",
+      iconBgColor: "bg-amber-950/50",
+    },
+    {
+      icon: MessageCircle,
+      title: t("marketing.features.items.chat.title"),
+      description: t("marketing.features.items.chat.description"),
+      gradientFrom: "#38BDF8",
+      gradientTo: "#818CF8",
+      gradientColor: "#38BDF8",
+      iconColor: "text-sky-400",
+      iconBgColor: "bg-sky-950/50",
     },
   ];
 
@@ -64,7 +113,7 @@ export default function FeaturesSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
         {features.map((feature, idx) => {
           const Icon = feature.icon;
           return (

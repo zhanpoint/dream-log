@@ -328,9 +328,34 @@ async def trigger_analysis(
 
     from app.models.enums import AIProcessingStatus
 
+    # 若已在队列/处理中，默认直接返回，避免重复 enqueue（多标签页/重试/连点）
+    # 但如果锁不存在，说明可能是异常中断导致状态卡住，允许重新触发
+    lock_key = f"ai:lock:dream-analysis:{dream_id}"
+    if dream.ai_processing_status in (AIProcessingStatus.PENDING, AIProcessingStatus.PROCESSING):
+        try:
+            lock_exists = bool(await arq.exists(lock_key))
+        except Exception:
+            lock_exists = True
+        if lock_exists:
+            return {"message": "AI 分析已在进行中", "status": dream.ai_processing_status.value}
+
+    # 去重锁：避免用户连点/多标签页导致重复 enqueue（TTL 覆盖一次分析周期）
+    try:
+        acquired = await arq.set(lock_key, "1", ex=180, nx=True)
+    except Exception:
+        acquired = True
+    if not acquired:
+        return {"message": "AI 分析已在进行中", "status": "PROCESSING"}
+
     dream.ai_processing_status = AIProcessingStatus.PENDING
     dream.ai_processed = False
     await db.commit()
+
+    # 清理旧的取消标记（避免上一次取消影响本次重新分析）
+    try:
+        await arq.delete(f"ai:cancel:dream-analysis:{dream_id}")
+    except Exception:
+        pass
 
     # 将前端当前语言一并传入任务，保证 AI 输出语言与界面一致
     await arq.enqueue_job("analyze_dream", str(dream.id), accept_language)
@@ -397,11 +422,32 @@ async def get_analysis_status(
     )
 
 
+@router.post("/{dream_id}/analysis-cancel")
+async def cancel_analysis(
+    dream_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    arq: ArqRedis = Depends(get_arq_redis),
+) -> dict[str, str]:
+    """取消 AI 分析（尽快停止任务流程）"""
+    from app.models.enums import AIProcessingStatus
+
+    service = DreamService(db)
+    dream = await service.get_dream(dream_id, current_user.id)
+
+    await arq.set(f"ai:cancel:dream-analysis:{dream_id}", "1", ex=600)
+
+    dream.ai_processing_status = AIProcessingStatus.FAILED
+    await db.commit()
+    return {"status": "CANCELLED"}
+
+
 @router.post("/{dream_id}/generate-image")
 async def generate_dream_image(
     dream_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    arq: ArqRedis = Depends(get_arq_redis),
 ) -> dict[str, str]:
     """使用 AI 根据梦境内容生成一张梦境图像，上传至 OSS，
     删除旧图像，将新 URL 持久化到数据库，并返回新 URL。
@@ -414,14 +460,30 @@ async def generate_dream_image(
     dream = await service.get_dream(dream_id, current_user.id)
 
     try:
+        cancel_key = f"ai:cancel:dream-image:{dream_id}"
+        try:
+            await arq.delete(cancel_key)
+        except Exception:
+            pass
+
+        async def _cancelled() -> bool:
+            try:
+                return bool(await arq.get(cancel_key))
+            except Exception:
+                return False
+
         new_image_url = await ai_service.generate_dream_image(
             dream_content=dream.content or "",
             dream_title=dream.title,
             user_id=current_user.id,
             dream_id=dream_id,
+            cancelled=_cancelled,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"图像生成失败: {e!s}")
+        msg = str(e)
+        if "已取消" in msg or "canceled" in msg.lower():
+            raise HTTPException(status_code=409, detail="图像生成已取消")
+        raise HTTPException(status_code=500, detail=f"图像生成失败: {msg}")
 
     # 删除旧 OSS 文件（AI 图像存储在 public bucket）
     old_url = dream.ai_image_url
@@ -436,6 +498,21 @@ async def generate_dream_image(
     await db.commit()
 
     return {"image_url": new_image_url}
+
+
+@router.post("/{dream_id}/generate-image-cancel")
+async def cancel_generate_image(
+    dream_id: UUID,
+    current_user: User = Depends(get_current_user),
+    arq: ArqRedis = Depends(get_arq_redis),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """取消 AI 图像生成（尽快停止任务流程）"""
+    service = DreamService(db)
+    await service.get_dream(dream_id, current_user.id)
+
+    await arq.set(f"ai:cancel:dream-image:{dream_id}", "1", ex=600)
+    return {"status": "CANCELLED"}
 
 
 @router.get("/{dream_id}/similar", response_model=list[DreamListItem])

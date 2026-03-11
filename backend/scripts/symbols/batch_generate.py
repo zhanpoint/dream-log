@@ -3,11 +3,11 @@ Dify 批处理脚本：批量调用 Dify 工作流生成梦境符号结构化内
 
 使用 asyncio + async/await 并发请求，轻量且高效（无多线程开销）。
 
-使用方法（在 backend-v2 根目录）：
+使用方法（在 backend 根目录）：
     python scripts/symbols/batch_generate.py
 
 配置说明：
-    DIFY_API_KEY、DIFY_API_URL 从 backend-v2/.env 加载（与 app.core.config 一致）。
+    DIFY_API_KEY、DIFY_API_URL 从 backend/.env 加载（与 app.core.config 一致）。
     其余参数在下方「用户配置区」修改。
     最后一批不足 BATCH_SIZE 时自动按余数处理（如 120 个、每批 11 个 → 10 批满 + 1 批 10 个）。
 """
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import httpx
 
-# 确保 backend-v2 根目录在 path 中，以便加载 .env（通过 app.core.config）
+# 确保 backend 根目录在 path 中，以便加载 .env（通过 app.core.config）
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from app.core.config import settings
@@ -38,9 +38,13 @@ REQUEST_TIMEOUT = 180.0  # 单次请求超时秒数
 # ===============================================
 
 SCRIPT_DIR = Path(__file__).parent
-INPUT_FILE = SCRIPT_DIR / "symbols_input.json"
-OUTPUT_FILE = SCRIPT_DIR / "symbols_output.json"
-FAILED_FILE = SCRIPT_DIR / "failed_batches.json"
+
+# JSON 资源统一放在 backend/src/explorer（scripts 目录不再保留 JSON）
+_BACKEND_ROOT = Path(__file__).parent.parent.parent
+_RESOURCE_DIR = _BACKEND_ROOT / "src" / "explorer" / "symbols"
+INPUT_FILE = _RESOURCE_DIR / "symbols_input.json"
+OUTPUT_FILE = _RESOURCE_DIR / "symbols_output.json"
+FAILED_FILE = _RESOURCE_DIR / "failed_batches.json"
 
 
 def load_symbols() -> list[dict]:
@@ -127,7 +131,7 @@ async def process_one_batch(
 
 async def run() -> None:
     if not DIFY_API_KEY or not DIFY_API_KEY.strip():
-        print("错误：未配置 DIFY_API_KEY，请在 backend-v2/.env 中设置 DIFY_API_KEY")
+        print("错误：未配置 DIFY_API_KEY，请在 backend/.env 中设置 DIFY_API_KEY")
         sys.exit(1)
 
     symbols = load_symbols()

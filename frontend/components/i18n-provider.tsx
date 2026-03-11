@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { I18nextProvider } from "@/node_modules/react-i18next";
+import { I18nextProvider } from "react-i18next";
 import i18n, {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LANGUAGES,
   type SupportedLanguage,
 } from "@/i18n";
+import { TOKEN_KEYS } from "@/lib/api";
+import { userAPI, type PreferredLocale } from "@/lib/user-api";
 
 function isSupportedLanguage(v: string): v is SupportedLanguage {
   return Object.prototype.hasOwnProperty.call(SUPPORTED_LANGUAGES, v);
@@ -17,22 +19,10 @@ function initLanguageSync() {
   if (typeof window === "undefined") return;
   try {
     const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    let targetLanguage = "zh-CN";
+    let targetLanguage: SupportedLanguage = "en";
 
     if (saved && isSupportedLanguage(saved)) {
       targetLanguage = saved;
-    } else {
-      const nav = navigator.language;
-      if (isSupportedLanguage(nav)) {
-        targetLanguage = nav;
-      } else {
-        const base = nav.split("-")[0];
-        if (base === "zh") {
-          targetLanguage = "zh-CN";
-        } else if (isSupportedLanguage(base)) {
-          targetLanguage = base;
-        }
-      }
     }
 
     if (targetLanguage !== i18n.language) {
@@ -53,6 +43,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.lang = lng;
       if (isSupportedLanguage(lng)) {
         window.localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
+        // 同步到后端：让“定时周报”也能按用户语言生成
+        // 仅在登录态（有 access_token）时同步；失败不影响前端切换体验
+        const token = window.localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+        if (token) {
+          void userAPI
+            .setPreferredLocale(lng as PreferredLocale)
+            .catch(() => undefined);
+        }
       }
     };
 

@@ -4,16 +4,36 @@ import { BorderBeam } from "@/components/magicui/border-beam";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 
 export default function HeroSection() {
   const { t } = useTranslation();
   const router = useRouter();
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "-100px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   
   return (
     <section

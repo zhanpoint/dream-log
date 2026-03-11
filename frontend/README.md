@@ -17,7 +17,7 @@
 ## 项目结构
 
 ```
-frontend-v2/
+frontend/
 ├── app/              # Next.js App Router
 │   ├── globals.css   # 全局样式
 │   ├── layout.tsx    # 根布局
@@ -39,7 +39,7 @@ frontend-v2/
 ### 1. 安装依赖
 
 ```bash
-cd frontend-v2
+cd frontend
 npm install
 ```
 

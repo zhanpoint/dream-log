@@ -13,9 +13,10 @@ import { Brain, Eye, MessageCircle, Search, Share2, Sparkles } from "lucide-reac
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
-/** 相对时间：几分钟前 / 几小时前 / 几天前 / 几月前 / 几年前 */
-function formatTimeAgo(date: Date): string {
+/** 相对时间：几分钟前 / 几小时前 / 几天前 / 几月前 / 几年前（支持多语言） */
+function formatTimeAgo(date: Date, t: (key: string, options?: Record<string, unknown>) => string): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
@@ -25,12 +26,12 @@ function formatTimeAgo(date: Date): string {
   const diffMonth = Math.floor(diffDay / 30);
   const diffYear = Math.floor(diffDay / 365);
 
-  if (diffSec < 60) return "刚刚";
-  if (diffMin < 60) return `${diffMin}分钟前`;
-  if (diffHour < 24) return `${diffHour}小时前`;
-  if (diffDay < 30) return `${diffDay}天前`;
-  if (diffMonth < 12) return `${diffMonth}个月前`;
-  return `${diffYear}年前`;
+  if (diffSec < 60) return t("community.feed.time.justNow");
+  if (diffMin < 60) return t("community.feed.time.minutesAgo", { count: diffMin });
+  if (diffHour < 24) return t("community.feed.time.hoursAgo", { count: diffHour });
+  if (diffDay < 30) return t("community.feed.time.daysAgo", { count: diffDay });
+  if (diffMonth < 12) return t("community.feed.time.monthsAgo", { count: diffMonth });
+  return t("community.feed.time.yearsAgo", { count: diffYear });
 }
 
 const DREAM_TYPE_LABELS: Record<string, string> = {
@@ -80,6 +81,7 @@ export function DreamCardSocialComponent({
   onBookmarkToggle,
   className,
 }: DreamCardSocialProps) {
+  const { t } = useTranslation();
   const [resonanceCount, setResonanceCount] = useState(dream.resonance_count ?? 0);
   const [hasResonated, setHasResonated] = useState(dream.has_resonated);
   const [hasBookmarked, setHasBookmarked] = useState(dream.has_bookmarked);
@@ -107,7 +109,7 @@ export function DreamCardSocialComponent({
     }
   };
 
-  const timeAgo = formatTimeAgo(new Date(dream.created_at));
+  const timeAgo = formatTimeAgo(new Date(dream.created_at), t);
 
   const authorName = dream.is_anonymous
     ? (dream.author?.username ?? "匿名做梦者")
@@ -257,7 +259,6 @@ export function DreamCardSocialComponent({
               size="sm"
               className={cn(FOOTER_BTN_BASE, "!px-0 min-w-0 shrink-0")}
               onClick={handleShare}
-              title="分享"
             >
               <Share2 className="h-4 w-4 shrink-0" />
             </Button>
@@ -266,7 +267,6 @@ export function DreamCardSocialComponent({
           <span
             data-dream-action="views"
             className={cn(FOOTER_ACTION_WRAP, "items-center gap-1.5 text-xs cursor-default")}
-            title="浏览"
           >
             <Eye className="h-4 w-4 shrink-0" />
             <span>{formatCount(dream.view_count ?? 0)}</span>

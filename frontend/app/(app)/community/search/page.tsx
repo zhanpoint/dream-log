@@ -9,35 +9,37 @@ import { DreamCardSocialComponent } from "@/components/community/dream-card-soci
 import { UserSearchCard } from "@/components/community/user-search-card";
 import { communityAPI, type FeedChannel, type SearchResponse } from "@/lib/community-api";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type SearchTab = "all" | "dreams" | "users" | "tags";
 type SearchSort = "relevant" | "latest" | "hot";
 
-const TABS: { value: SearchTab; label: string }[] = [
-  { value: "all", label: "全部" },
-  { value: "dreams", label: "梦境" },
-  { value: "users", label: "用户" },
-  { value: "tags", label: "标签" },
-];
-
-const SORTS: { value: SearchSort; label: string }[] = [
-  { value: "relevant", label: "相关性" },
-  { value: "latest", label: "最新" },
-  { value: "hot", label: "最热" },
-];
-
-const CHANNELS: { value: FeedChannel; label: string }[] = [
-  { value: "plaza", label: "梦境广场" },
-  { value: "roundtable", label: "解梦求助" },
-  { value: "greenhouse", label: "梦境社群" },
-  { value: "museum", label: "精选梦境" },
-];
-
 // ── Main page ───────────────────────────────────────────────────────────────
 function SearchPageContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useSearchParams();
+
+  const TABS: { value: SearchTab; label: string }[] = [
+    { value: "all", label: t("community.search.allTab") },
+    { value: "dreams", label: t("community.search.dreamsTab") },
+    { value: "users", label: t("community.search.usersTab") },
+    { value: "tags", label: t("community.search.tagsTab") },
+  ];
+
+  const SORTS: { value: SearchSort; label: string }[] = [
+    { value: "relevant", label: t("community.search.sortRelevant") },
+    { value: "latest", label: t("community.search.sortLatest") },
+    { value: "hot", label: t("community.search.sortHot") },
+  ];
+
+  const CHANNELS: { value: FeedChannel; label: string }[] = [
+    { value: "plaza", label: t("community.home.channels.plaza.title") },
+    { value: "roundtable", label: t("community.home.channels.roundtable.title") },
+    { value: "greenhouse", label: t("community.home.channels.greenhouse.title") },
+    { value: "museum", label: t("community.home.channels.museum.title") },
+  ];
 
   const initialQ = params.get("q") ?? "";
   const initialChannel = (params.get("channel") ?? "plaza") as FeedChannel;
@@ -149,7 +151,8 @@ function SearchPageContent() {
       ? (result?.users.length ?? 0) < (result?.total_users ?? 0)
       : false;
 
-  const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "梦境广场";
+  const channelLabel =
+    CHANNELS.find((c) => c.value === channel)?.label ?? t("community.home.channels.plaza.title");
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4">
@@ -168,12 +171,12 @@ function SearchPageContent() {
             value={searchInput}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="搜索梦境、用户..."
+            placeholder={t("community.search.placeholder")}
             className="w-full pl-9 pr-9 py-2.5 text-sm rounded-xl border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
           />
           {searchInput && (
             <button
-              aria-label="清除搜索"
+              aria-label={t("community.search.clear")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => { setSearchInput(""); setResult(null); inputRef.current?.focus(); }}
             >
@@ -188,7 +191,7 @@ function SearchPageContent() {
         {/* Channel dropdown */}
         <div className="relative">
           <select
-            aria-label="搜索范围"
+            aria-label={t("community.search.scope")}
             value={channel}
             onChange={(e) => setChannel(e.target.value as FeedChannel)}
             className="appearance-none text-xs pl-3 pr-7 py-1.5 rounded-lg border border-border bg-card cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium"

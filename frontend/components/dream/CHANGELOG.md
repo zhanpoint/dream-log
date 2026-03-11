@@ -112,8 +112,8 @@ Canvas 元素本身是透明的，需要通过以下方式设置背景：
 - ✅ 移动浏览器
 
 ### 相关文件
-- `frontend-v2/components/dream/drawing-board.tsx`
-- `frontend-v2/app/(app)/dreams/new/page.tsx`
+- `frontend/components/dream/drawing-board.tsx`
+- `frontend/app/(app)/dreams/new/page.tsx`
 
 ### 后续优化建议
 1. 考虑添加更多背景颜色选项（如米色、浅灰等）

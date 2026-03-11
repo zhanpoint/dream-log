@@ -17,7 +17,7 @@ import {
   Moon,
   Sparkles,
 } from "lucide-react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 // ===== 辅助函数 =====
 function getDateLocale(lang: string): Locale {

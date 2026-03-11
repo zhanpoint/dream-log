@@ -56,7 +56,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 // ========== 类型 ==========
 
@@ -312,6 +312,7 @@ export default function InsightsPage() {
                     key={config.type}
                     config={config}
                     hasUnread={hasUnread}
+                    onRefresh={fetchAll}
                   />
                 );
               })}
@@ -435,7 +436,7 @@ function PeriodicCard({
       } else if (config.type === "ANNUAL") {
         await insightAPI.generateAnnual(getYear(selectedPeriodRange.start));
       }
-      onRefresh();
+      await onRefresh();
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -462,7 +463,7 @@ function PeriodicCard({
       } else if (config.type === "ANNUAL") {
         await insightAPI.generateAnnual(getYear(selectedPeriodRange.start));
       }
-      onRefresh();
+      await onRefresh();
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -678,7 +679,7 @@ function PeriodicSectionList({
       } else if (config.type === "ANNUAL") {
         await insightAPI.generateAnnual(new Date().getFullYear() - 1);
       }
-      onRefresh();
+      await onRefresh();
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -857,7 +858,7 @@ function PeriodicSection({
       } else if (config.type === "ANNUAL") {
         await insightAPI.generateAnnual(now.getFullYear() - offset - 1);
       }
-      onRefresh();
+      await onRefresh();
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -974,10 +975,12 @@ function PeriodicSection({
 
 function ThemeReportCard({ 
   config, 
-  hasUnread 
+  hasUnread,
+  onRefresh,
 }: { 
   config: typeof THEME_REPORTS[0]; 
   hasUnread: boolean;
+  onRefresh: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const dateLocale = getDateLocale(i18n.language);
@@ -1046,7 +1049,7 @@ function ThemeReportCard({
         end_date: format(customEnd, "yyyy-MM-dd"),
         with_comparison: false,
       });
-      await fetchInsights();
+      await Promise.all([fetchInsights(), onRefresh()]);
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -1070,7 +1073,7 @@ function ThemeReportCard({
         end_date: format(customEnd, "yyyy-MM-dd"),
         with_comparison: false,
       });
-      await fetchInsights();
+      await Promise.all([fetchInsights(), onRefresh()]);
     } catch (e: unknown) {
       const err = e as { message?: string; originalError?: { response?: { data?: { detail?: string } } } };
       const backendMsg = err?.originalError?.response?.data?.detail;
@@ -1166,6 +1169,7 @@ function ThemeReportCard({
             {/* 查看全部报告按钮 */}
             {insights.length > 0 && (
               <button
+                type="button"
                 onClick={() => setShowAllReports(!showAllReports)}
                 className="group w-full py-2 text-xs transition-all cursor-pointer"
               >

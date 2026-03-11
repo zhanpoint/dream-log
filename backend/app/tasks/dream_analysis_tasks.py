@@ -31,14 +31,17 @@ async def _get_db_session():
         yield session
 
 
-def _format_dream_context(dream: Dream, insight: DreamInsight | None) -> str:
+def _format_dream_context(dream: Dream, insight: DreamInsight | None, *, target_language: str) -> str:
     """构建传给大模型的梦境上下文（字段全集，不含图片）
     
     将数字评分映射为有意义的文本描述，提高 AI 理解准确性
     映射文本与前端显示完全一致
     """
+    # target_language 来自 get_target_language_from_locale：
+    # - 中文 / English / 日语
+    lang = (target_language or "中文").strip()
 
-    def _as_text(value: object | None, default: str = "未提供") -> str:
+    def _as_text(value: object | None, default: str) -> str:
         if value is None:
             return default
         text = str(value).strip()
@@ -46,99 +49,113 @@ def _format_dream_context(dream: Dream, insight: DreamInsight | None) -> str:
 
     def _bool_text(value: bool | None) -> str:
         if value is None:
-            return "未提供"
+            return {"English": "Not provided", "日语": "未提供"}.get(lang, "未提供")
+        if lang == "English":
+            return "Yes" if value else "No"
+        if lang == "日语":
+            return "はい" if value else "いいえ"
         return "是" if value else "否"
 
     # ===== 映射字典（与前端 constants.ts 完全一致）=====
     
     # 睡眠质量映射 (1-5)
-    SLEEP_QUALITY_MAP = {
-        1: "频繁醒来",
-        2: "睡不稳",
-        3: "勉强接受",
-        4: "睡得好",
-        5: "精神饱满",
+    SLEEP_QUALITY_MAPS = {
+        "中文": {1: "频繁醒来", 2: "睡不稳", 3: "勉强接受", 4: "睡得好", 5: "精神饱满"},
+        "English": {1: "Woke up frequently", 2: "Restless sleep", 3: "Barely okay", 4: "Slept well", 5: "Fully refreshed"},
+        "日语": {1: "頻繁に目が覚めた", 2: "落ち着かない睡眠", 3: "まあまあ", 4: "よく眠れた", 5: "とてもすっきり"},
     }
     
     # 睡眠深度映射 (1-3)
-    SLEEP_DEPTH_MAP = {
-        1: "浅睡",
-        2: "中等",
-        3: "深睡",
+    SLEEP_DEPTH_MAPS = {
+        "中文": {1: "浅睡", 2: "中等", 3: "深睡"},
+        "English": {1: "Light", 2: "Medium", 3: "Deep"},
+        "日语": {1: "浅い", 2: "普通", 3: "深い"},
     }
     
     # 情绪强度映射 (1-5)
-    EMOTION_INTENSITY_MAP = {
-        1: "很弱",
-        2: "轻微",
-        3: "明显",
-        4: "强烈",
-        5: "非常强",
+    EMOTION_INTENSITY_MAPS = {
+        "中文": {1: "很弱", 2: "轻微", 3: "明显", 4: "强烈", 5: "非常强"},
+        "English": {1: "Very weak", 2: "Mild", 3: "Noticeable", 4: "Strong", 5: "Very strong"},
+        "日语": {1: "とても弱い", 2: "弱い", 3: "はっきり", 4: "強い", 5: "とても強い"},
     }
     
     # 清醒程度映射 (1-5)
-    LUCIDITY_MAP = {
-        1: "完全无意识",
-        2: "有朦胧意识",
-        3: "偶尔察觉",
-        4: "经常知道",
-        5: "完全清醒控制",
+    LUCIDITY_MAPS = {
+        "中文": {1: "完全无意识", 2: "有朦胧意识", 3: "偶尔察觉", 4: "经常知道", 5: "完全清醒控制"},
+        "English": {1: "No awareness", 2: "Vague awareness", 3: "Occasionally aware", 4: "Often aware", 5: "Fully lucid / in control"},
+        "日语": {1: "全く自覚なし", 2: "ぼんやり自覚", 3: "時々気づく", 4: "よく気づく", 5: "完全に自覚して制御"},
     }
     
     # 清晰度映射 (1-5)
-    VIVIDNESS_MAP = {
-        1: "模糊",
-        2: "一般",
-        3: "清晰",
-        4: "非常清晰",
-        5: "如同现实",
+    VIVIDNESS_MAPS = {
+        "中文": {1: "模糊", 2: "一般", 3: "清晰", 4: "非常清晰", 5: "如同现实"},
+        "English": {1: "Blurry", 2: "Average", 3: "Clear", 4: "Very clear", 5: "As vivid as reality"},
+        "日语": {1: "ぼんやり", 2: "普通", 3: "はっきり", 4: "とても鮮明", 5: "現実のよう"},
     }
     
     # 记忆完整度映射 (1-5，前端使用 1-5 的 value)
-    COMPLETENESS_MAP = {
-        1: "碎片",
-        2: "片段",
-        3: "部分完整",
-        4: "基本完整",
-        5: "完整叙事",
+    COMPLETENESS_MAPS = {
+        "中文": {1: "碎片", 2: "片段", 3: "部分完整", 4: "基本完整", 5: "完整叙事"},
+        "English": {1: "Fragments", 2: "Segments", 3: "Partially complete", 4: "Mostly complete", 5: "Full narrative"},
+        "日语": {1: "断片", 2: "部分", 3: "ある程度", 4: "ほぼ完全", 5: "完全な物語"},
     }
     
     def _completeness_text(score: int | None) -> str:
         if score is None:
-            return "未提供"
-        return COMPLETENESS_MAP.get(score, f"未知({score})")
+            return {"English": "Not provided", "日语": "未提供"}.get(lang, "未提供")
+        cmap = COMPLETENESS_MAPS.get(lang, COMPLETENESS_MAPS["中文"])
+        if score in cmap:
+            return cmap[score]
+        return f"Unknown({score})" if lang == "English" else f"未知({score})"
     
     # 现实关联度映射 (1-4)
-    REALITY_CORRELATION_MAP = {
-        1: "几乎无关",
-        2: "可能有关",
-        3: "明显相关",
-        4: "高度相关",
+    REALITY_CORRELATION_MAPS = {
+        "中文": {1: "几乎无关", 2: "可能有关", 3: "明显相关", 4: "高度相关"},
+        "English": {1: "Almost none", 2: "Possibly related", 3: "Clearly related", 4: "Highly related"},
+        "日语": {1: "ほぼ無関係", 2: "関係がありそう", 3: "明らかに関連", 4: "強く関連"},
     }
     
     # 醒来方式映射
-    AWAKENING_STATE_MAP = {
-        "NATURAL": "自然醒来",
-        "ALARM": "闹钟唤醒",
-        "STARTLED": "受惊醒来",
-        "GRADUAL": "逐渐清醒",
+    AWAKENING_STATE_MAPS = {
+        "中文": {"NATURAL": "自然醒来", "ALARM": "闹钟唤醒", "STARTLED": "受惊醒来", "GRADUAL": "逐渐清醒"},
+        "English": {"NATURAL": "Natural", "ALARM": "Alarm", "STARTLED": "Startled awake", "GRADUAL": "Gradual"},
+        "日语": {"NATURAL": "自然", "ALARM": "アラーム", "STARTLED": "驚いて起きた", "GRADUAL": "徐々に"},
     }
     
     # 梦境类型映射
-    DREAM_TYPE_MAP = {
-        "NORMAL": "普通梦",
-        "LUCID": "清醒梦",
-        "NIGHTMARE": "噩梦",
-        "RECURRING": "重复梦",
-        "SYMBOLIC": "象征性强",
-        "VIVID": "特别清晰",
+    DREAM_TYPE_MAPS = {
+        "中文": {
+            "NORMAL": "普通梦",
+            "LUCID": "清醒梦",
+            "NIGHTMARE": "噩梦",
+            "RECURRING": "重复梦",
+            "SYMBOLIC": "象征性强",
+            "VIVID": "特别清晰",
+        },
+        "English": {
+            "NORMAL": "Normal",
+            "LUCID": "Lucid",
+            "NIGHTMARE": "Nightmare",
+            "RECURRING": "Recurring",
+            "SYMBOLIC": "Highly symbolic",
+            "VIVID": "Very vivid",
+        },
+        "日语": {
+            "NORMAL": "普通",
+            "LUCID": "明晰夢",
+            "NIGHTMARE": "悪夢",
+            "RECURRING": "反復夢",
+            "SYMBOLIC": "象徴的",
+            "VIVID": "鮮明",
+        },
     }
 
     # ===== 提取和映射数据 =====
     
     # 梦境类型
+    dt_map = DREAM_TYPE_MAPS.get(lang, DREAM_TYPE_MAPS["中文"])
     dream_types = [
-        DREAM_TYPE_MAP.get(m.dream_type.type_name.value, m.dream_type.type_name.value)
+        dt_map.get(m.dream_type.type_name.value, m.dream_type.type_name.value)
         for m in (dream.type_mappings or [])
         if getattr(m, "dream_type", None)
     ]
@@ -151,14 +168,43 @@ def _format_dream_context(dream: Dream, insight: DreamInsight | None) -> str:
     ]
     
     # 映射数字为文本
-    sleep_quality_text = SLEEP_QUALITY_MAP.get(dream.sleep_quality) if dream.sleep_quality else "未提供"
-    sleep_depth_text = SLEEP_DEPTH_MAP.get(dream.sleep_depth) if dream.sleep_depth else "未提供"
-    emotion_intensity_text = EMOTION_INTENSITY_MAP.get(dream.emotion_intensity) if dream.emotion_intensity else "未提供"
-    lucidity_text = LUCIDITY_MAP.get(dream.lucidity_level) if dream.lucidity_level else "未提供"
-    vividness_text = VIVIDNESS_MAP.get(dream.vividness_level) if dream.vividness_level else "未提供"
+    not_provided = {"English": "Not provided", "日语": "未提供"}.get(lang, "未提供")
+    sleep_quality_text = (
+        SLEEP_QUALITY_MAPS.get(lang, SLEEP_QUALITY_MAPS["中文"]).get(dream.sleep_quality)
+        if dream.sleep_quality
+        else not_provided
+    )
+    sleep_depth_text = (
+        SLEEP_DEPTH_MAPS.get(lang, SLEEP_DEPTH_MAPS["中文"]).get(dream.sleep_depth)
+        if dream.sleep_depth
+        else not_provided
+    )
+    emotion_intensity_text = (
+        EMOTION_INTENSITY_MAPS.get(lang, EMOTION_INTENSITY_MAPS["中文"]).get(dream.emotion_intensity)
+        if dream.emotion_intensity
+        else not_provided
+    )
+    lucidity_text = (
+        LUCIDITY_MAPS.get(lang, LUCIDITY_MAPS["中文"]).get(dream.lucidity_level)
+        if dream.lucidity_level
+        else not_provided
+    )
+    vividness_text = (
+        VIVIDNESS_MAPS.get(lang, VIVIDNESS_MAPS["中文"]).get(dream.vividness_level)
+        if dream.vividness_level
+        else not_provided
+    )
     completeness_text = _completeness_text(dream.completeness_score)
-    reality_correlation_text = REALITY_CORRELATION_MAP.get(dream.reality_correlation) if dream.reality_correlation else "未提供"
-    awakening_state_text = AWAKENING_STATE_MAP.get(dream.awakening_state.value) if dream.awakening_state else "未提供"
+    reality_correlation_text = (
+        REALITY_CORRELATION_MAPS.get(lang, REALITY_CORRELATION_MAPS["中文"]).get(dream.reality_correlation)
+        if dream.reality_correlation
+        else not_provided
+    )
+    awakening_state_text = (
+        AWAKENING_STATE_MAPS.get(lang, AWAKENING_STATE_MAPS["中文"]).get(dream.awakening_state.value)
+        if dream.awakening_state
+        else not_provided
+    )
 
     reflection_block = ""
     if insight and insight.reflection_answers:
@@ -169,35 +215,93 @@ def _format_dream_context(dream: Dream, insight: DreamInsight | None) -> str:
                 if isinstance(item, dict)
             ]
             if pairs:
-                reflection_block = "\n自我反思记录:\n" + "\n".join(pairs)
+                if lang == "English":
+                    reflection_block = "\nSelf-reflection:\n" + "\n".join(pairs)
+                elif lang == "日语":
+                    reflection_block = "\n自己内省:\n" + "\n".join(pairs)
+                else:
+                    reflection_block = "\n自我反思记录:\n" + "\n".join(pairs)
         except Exception:
             reflection_block = ""
 
-    base = (
-        f"标题: {_as_text(dream.title)}\n"
-        f"梦境日期: {_as_text(dream.dream_date)}\n"
-        f"梦境时间: {_as_text(dream.dream_time)}\n"
-        f"内容: {_as_text(dream.content)}\n"
-        f"是否午睡: {_bool_text(dream.is_nap)}\n"
-        f"入睡时间: {_as_text(dream.sleep_start_time)}\n"
-        f"醒来时间: {_as_text(dream.awakening_time)}\n"
-        f"睡眠时长(分钟): {_as_text(dream.sleep_duration_minutes)}\n"
-        f"醒来方式: {awakening_state_text}\n"
-        f"睡眠质量: {sleep_quality_text}\n"
-        f"睡眠深度: {sleep_depth_text}\n"
-        f"睡眠碎片化: {_bool_text(dream.sleep_fragmented)}\n"
-        f"主导情绪: {_as_text(dream.primary_emotion)}\n"
-        f"情绪强度: {emotion_intensity_text}\n"
-        f"醒后情绪残留: {_bool_text(dream.emotion_residual)}\n"
-        f"梦境类型: {', '.join(dream_types) if dream_types else '未提供'}\n"
-        f"清醒程度: {lucidity_text}\n"
-        f"清晰度: {vividness_text}\n"
-        f"记忆完整度: {completeness_text}\n"
-        f"前一天事件: {_as_text(insight.life_context if insight else None)}\n"
-        f"现实关联度: {reality_correlation_text}\n"
-        f"个人理解: {_as_text(insight.user_interpretation if insight else None)}\n"
-        f"标签: {', '.join(tags) if tags else '未提供'}"
-    )
+    if lang == "English":
+        base = (
+            f"Title: {_as_text(dream.title, not_provided)}\n"
+            f"Dream date: {_as_text(dream.dream_date, not_provided)}\n"
+            f"Dream time: {_as_text(dream.dream_time, not_provided)}\n"
+            f"Content: {_as_text(dream.content, not_provided)}\n"
+            f"Nap: {_bool_text(dream.is_nap)}\n"
+            f"Sleep start: {_as_text(dream.sleep_start_time, not_provided)}\n"
+            f"Wake time: {_as_text(dream.awakening_time, not_provided)}\n"
+            f"Sleep duration (min): {_as_text(dream.sleep_duration_minutes, not_provided)}\n"
+            f"Awakening: {awakening_state_text}\n"
+            f"Sleep quality: {sleep_quality_text}\n"
+            f"Sleep depth: {sleep_depth_text}\n"
+            f"Fragmented sleep: {_bool_text(dream.sleep_fragmented)}\n"
+            f"Primary emotion: {_as_text(dream.primary_emotion, not_provided)}\n"
+            f"Emotion intensity: {emotion_intensity_text}\n"
+            f"Emotional residue: {_bool_text(dream.emotion_residual)}\n"
+            f"Dream types: {', '.join(dream_types) if dream_types else not_provided}\n"
+            f"Lucidity: {lucidity_text}\n"
+            f"Vividness: {vividness_text}\n"
+            f"Memory completeness: {completeness_text}\n"
+            f"Previous day context: {_as_text(insight.life_context if insight else None, not_provided)}\n"
+            f"Reality correlation: {reality_correlation_text}\n"
+            f"Personal interpretation: {_as_text(insight.user_interpretation if insight else None, not_provided)}\n"
+            f"Tags: {', '.join(tags) if tags else not_provided}"
+        )
+    elif lang == "日语":
+        base = (
+            f"タイトル: {_as_text(dream.title, not_provided)}\n"
+            f"夢の日付: {_as_text(dream.dream_date, not_provided)}\n"
+            f"夢の時間: {_as_text(dream.dream_time, not_provided)}\n"
+            f"内容: {_as_text(dream.content, not_provided)}\n"
+            f"昼寝: {_bool_text(dream.is_nap)}\n"
+            f"就寝時刻: {_as_text(dream.sleep_start_time, not_provided)}\n"
+            f"起床時刻: {_as_text(dream.awakening_time, not_provided)}\n"
+            f"睡眠時間(分): {_as_text(dream.sleep_duration_minutes, not_provided)}\n"
+            f"起き方: {awakening_state_text}\n"
+            f"睡眠の質: {sleep_quality_text}\n"
+            f"睡眠の深さ: {sleep_depth_text}\n"
+            f"断続的な睡眠: {_bool_text(dream.sleep_fragmented)}\n"
+            f"主な感情: {_as_text(dream.primary_emotion, not_provided)}\n"
+            f"感情の強さ: {emotion_intensity_text}\n"
+            f"感情の残り: {_bool_text(dream.emotion_residual)}\n"
+            f"夢の種類: {', '.join(dream_types) if dream_types else not_provided}\n"
+            f"明晰度: {lucidity_text}\n"
+            f"鮮明さ: {vividness_text}\n"
+            f"記憶の完全性: {completeness_text}\n"
+            f"前日の出来事: {_as_text(insight.life_context if insight else None, not_provided)}\n"
+            f"現実との関連: {reality_correlation_text}\n"
+            f"個人の解釈: {_as_text(insight.user_interpretation if insight else None, not_provided)}\n"
+            f"タグ: {', '.join(tags) if tags else not_provided}"
+        )
+    else:
+        base = (
+            f"标题: {_as_text(dream.title, not_provided)}\n"
+            f"梦境日期: {_as_text(dream.dream_date, not_provided)}\n"
+            f"梦境时间: {_as_text(dream.dream_time, not_provided)}\n"
+            f"内容: {_as_text(dream.content, not_provided)}\n"
+            f"是否午睡: {_bool_text(dream.is_nap)}\n"
+            f"入睡时间: {_as_text(dream.sleep_start_time, not_provided)}\n"
+            f"醒来时间: {_as_text(dream.awakening_time, not_provided)}\n"
+            f"睡眠时长(分钟): {_as_text(dream.sleep_duration_minutes, not_provided)}\n"
+            f"醒来方式: {awakening_state_text}\n"
+            f"睡眠质量: {sleep_quality_text}\n"
+            f"睡眠深度: {sleep_depth_text}\n"
+            f"睡眠碎片化: {_bool_text(dream.sleep_fragmented)}\n"
+            f"主导情绪: {_as_text(dream.primary_emotion, not_provided)}\n"
+            f"情绪强度: {emotion_intensity_text}\n"
+            f"醒后情绪残留: {_bool_text(dream.emotion_residual)}\n"
+            f"梦境类型: {', '.join(dream_types) if dream_types else not_provided}\n"
+            f"清醒程度: {lucidity_text}\n"
+            f"清晰度: {vividness_text}\n"
+            f"记忆完整度: {completeness_text}\n"
+            f"前一天事件: {_as_text(insight.life_context if insight else None, not_provided)}\n"
+            f"现实关联度: {reality_correlation_text}\n"
+            f"个人理解: {_as_text(insight.user_interpretation if insight else None, not_provided)}\n"
+            f"标签: {', '.join(tags) if tags else not_provided}"
+        )
     if reflection_block:
         base += reflection_block
     return base
@@ -217,6 +321,26 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
 
     logger.info(f"开始分析梦境: {dream_id}")
     start_time = datetime.now()
+    cancel_key = f"ai:cancel:dream-analysis:{dream_id}"
+    lock_key = f"ai:lock:dream-analysis:{dream_id}"
+
+    async def _release_lock() -> None:
+        redis_client = ctx.get("redis")
+        if not redis_client:
+            return
+        try:
+            await redis_client.delete(lock_key)
+        except Exception:
+            return
+
+    async def _touch_lock() -> None:
+        redis_client = ctx.get("redis")
+        if not redis_client:
+            return
+        try:
+            await redis_client.expire(lock_key, 300)
+        except Exception:
+            return
 
     async with async_session_maker() as db:
         try:
@@ -239,6 +363,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
             # 更新状态为处理中
             dream.ai_processing_status = AIProcessingStatus.PROCESSING
             await db.commit()
+            await _touch_lock()
 
             target_language = get_target_language_from_locale(accept_language)
 
@@ -269,22 +394,56 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                 insight = DreamInsight(dream_id=dream.id)
                 db.add(insight)
                 await db.flush()
-            dream_context = _format_dream_context(dream, insight)
+            dream_context = _format_dream_context(dream, insight, target_language=target_language)
 
             # ===== 两阶段分析：阶段1 并行 → 阶段2 串行（依赖阶段1）=====
             async def _noop():
                 return None
 
+            async def _cancelled() -> bool:
+                redis_client = ctx.get("redis")
+                if not redis_client:
+                    return False
+                return bool(await redis_client.get(cancel_key))
+
+            async def _finish_cancelled() -> dict:
+                dream.ai_processing_status = AIProcessingStatus.FAILED
+                await db.commit()
+                try:
+                    from app.core.sse_manager import publish_sse_event
+
+                    redis_pub = ctx.get("redis_pub")
+                    if redis_pub:
+                        await publish_sse_event(
+                            redis_pub,
+                            dream.user_id,
+                            "dream_analysis_status",
+                            {
+                                "dream_id": str(dream.id),
+                                "status": "FAILED",
+                                "message": "AI 分析已取消",
+                                "cancelled": True,
+                            },
+                        )
+                except Exception as e:
+                    logger.warning(f"发送 SSE 取消事件失败: {e}")
+                await _release_lock()
+                return {"status": "cancelled", "dream_id": dream_id}
+
             is_first_analysis = not dream.ai_processed
             need_title = is_first_analysis and not dream.title
 
             # 阶段1（并行）：标题 + 基础分析（合并 structure + emotion + trigger + sleep）
+            await _touch_lock()
             phase1_results = await asyncio.gather(
                 ai_service.generate_title(content, target_language=target_language) if need_title else _noop(),
                 ai_service.analyze_basic(dream_context, target_language=target_language),
                 return_exceptions=True,
             )
             title_result, basic_result = phase1_results
+
+            if await _cancelled():
+                return await _finish_cancelled()
 
             # 标题
             if need_title and not isinstance(title_result, BaseException) and title_result:
@@ -329,7 +488,11 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                 insight.ai_analysis = merged_ai
                 logger.info("阶段1基础分析完成（概括/情绪/触发/睡眠）")
 
+            if await _cancelled():
+                return await _finish_cancelled()
+
             # 阶段2（串行）：深度洞察（依赖阶段1结果）
+            await _touch_lock()
             try:
                 insight_analysis_result = await ai_service.generate_insight(
                     dream_context,
@@ -347,6 +510,9 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                 insight.ai_analysis = merged_ai
                 logger.info("阶段2深度洞察完成")
 
+            if await _cancelled():
+                return await _finish_cancelled()
+
             # ===== 先写入新数据，再删除旧数据（在同一个事务中，确保原子性）=====
             try:
                 # 1. 处理触发因素（阶段1 有结果即用其 triggers 替换旧数据）
@@ -362,6 +528,9 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                         logger.info("未识别到触发因素，已清空旧的触发因素")
             except Exception as e:
                 logger.warning(f"数据更新失败: {e}")
+
+            if await _cancelled():
+                return await _finish_cancelled()
 
             # ===== Step 5: 相似梦境发现 =====
             # 注意：embedding 已在创建梦境时生成，这里直接使用已有的 embedding
@@ -393,6 +562,9 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                     logger.info("未发现相似梦境")
             except Exception as e:
                 logger.warning(f"相似梦境发现失败: {e}")
+
+            if await _cancelled():
+                return await _finish_cancelled()
 
             # ===== Step 6: 更新状态 =====
             dream.ai_processed = True
@@ -435,6 +607,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
             except Exception as e:
                 logger.warning(f"发送 SSE 事件失败: {e}")
 
+            await _release_lock()
             return {"status": "completed", "dream_id": dream_id, "elapsed_seconds": elapsed}
 
         except Exception as e:
@@ -466,6 +639,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
             except Exception:
                 await db.rollback()
 
+            await _release_lock()
             return {"status": "failed", "dream_id": dream_id, "error": str(e)}
 
 

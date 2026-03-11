@@ -1,8 +1,8 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import {
   Form,
@@ -73,7 +73,7 @@ export function EmailStep({
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({ field }: { field: ControllerRenderProps<EmailFormData, "email"> & FieldValues }) => (
               <FormItem>
                 <FormControl>
                   <Input

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 // 处理文本中的重点内容，用「」标记的内容会被突出显示
 function formatTextWithHighlights(text: string) {
@@ -105,47 +106,48 @@ function ExpandableSection({ article, icon: Icon, color }: { article: Article; i
 
 const MODULE_CONFIG: Record<
   ExplorationModule,
-  { title: string; description: string; icon: LucideIcon; color: string }
+  { titleKey: string; descriptionKey: string; icon: LucideIcon; color: string }
 > = {
   science: {
-    title: "梦境科学基础",
-    description: "了解梦为何产生、与情绪的关系，以及睡眠科学的基本原理",
+    titleKey: "exploration.main.modules.scienceTitle",
+    descriptionKey: "exploration.main.modules.scienceDesc",
     icon: Brain,
     color: "bg-blue-500",
   },
   nightmare: {
-    title: "噩梦应对指南",
-    description: "理解噩梦背后的原因，学习减少噩梦、让睡眠更平静的方法",
+    titleKey: "exploration.main.modules.nightmareTitle",
+    descriptionKey: "exploration.main.modules.nightmareDesc",
     icon: Moon,
     color: "bg-purple-500",
   },
   improvement: {
-    title: "梦境改善指南",
-    description: "改善梦境体验，学会记住梦境，让大脑在睡眠中更好地放松",
+    titleKey: "exploration.main.modules.improvementTitle",
+    descriptionKey: "exploration.main.modules.improvementDesc",
     icon: Sparkles,
     color: "bg-emerald-500",
   },
   lucid: {
-    title: "清醒梦指南",
-    description: "探索在梦中保持清醒的方法，了解如何进入和控制清醒梦",
+    titleKey: "exploration.main.modules.lucidTitle",
+    descriptionKey: "exploration.main.modules.lucidDesc",
     icon: Zap,
     color: "bg-indigo-500",
   },
   psychology: {
-    title: "梦境与心理",
-    description: "理解梦境与情绪、心理状态的深层关系，让梦成为认识自己的窗口",
+    titleKey: "exploration.main.modules.psychologyTitle",
+    descriptionKey: "exploration.main.modules.psychologyDesc",
     icon: Heart,
     color: "bg-rose-500",
   },
   phenomena: {
-    title: "梦境现象",
-    description: "解密重复梦、梦中梦、虚假醒来与睡眠瘫痪——那些奇怪但正常的梦境体验",
+    titleKey: "exploration.main.modules.phenomenaTitle",
+    descriptionKey: "exploration.main.modules.phenomenaDesc",
     icon: Layers,
     color: "bg-amber-500",
   },
 };
 
 export function ArticlePage({ module }: { module: ExplorationModule }) {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const config = MODULE_CONFIG[module];
@@ -166,12 +168,12 @@ export function ArticlePage({ module }: { module: ExplorationModule }) {
           className="group inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          梦境探索
+          {t("exploration.symbolsPage.backLink")}
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">{config.title}</h1>
-          <p className="text-muted-foreground text-sm">{config.description}</p>
+          <h1 className="text-2xl font-bold mb-2">{t(config.titleKey)}</h1>
+          <p className="text-muted-foreground text-sm">{t(config.descriptionKey)}</p>
         </div>
 
         {loading ? (
@@ -182,7 +184,7 @@ export function ArticlePage({ module }: { module: ExplorationModule }) {
           </div>
         ) : articles.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground text-sm">
-            内容正在准备中，敬请期待
+            {t("exploration.articlesEmpty")}
           </div>
         ) : (
           <div className="space-y-5">

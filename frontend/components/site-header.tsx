@@ -10,7 +10,7 @@ import { Compass, MessageSquare, Moon, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import "@/styles/navbar.css";
 
 export function SiteHeader() {
@@ -121,7 +121,7 @@ export function SiteHeader() {
                     <Link
                       href="/community/messages"
                       className="relative h-9 w-9 inline-flex items-center justify-center rounded-md hover:scale-110 transition-transform duration-200"
-                      title="私信"
+                      title={t("dm.header.title")}
                     >
                       <MessageSquare className="h-[1.1rem] w-[1.1rem] text-primary" />
                     </Link>

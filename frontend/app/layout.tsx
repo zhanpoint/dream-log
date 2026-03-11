@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn("min-h-screen bg-background font-sans antialiased")}
       >
@@ -29,11 +29,13 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="dream-log-theme"
           >
-            <Suspense fallback={null}>
-              <RouteProgress />
-            </Suspense>
-            {children}
-            <Toaster />
+            <div className="min-h-screen w-[117.647%] h-[117.647%] origin-top-left scale-[0.85]">
+              <Suspense fallback={null}>
+                <RouteProgress />
+              </Suspense>
+              {children}
+              <Toaster />
+            </div>
           </ThemeProvider>
         </I18nProvider>
       </body>

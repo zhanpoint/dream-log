@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { BirthdaySelect } from "@/components/ui/birthday-select";
 import { userAPI, type UserProfile } from "@/lib/user-api";
 import { AuthUser } from "@/lib/auth-api";
 import { toast } from "sonner";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 import { Loader2, Camera, CheckCircle2, XCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="username"
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<FormValues, "username"> & FieldValues }) => (
                     <FormItem className="flex-1 max-w-xs space-y-6">
                       <FormLabel className="block text-base font-medium mb-3">
                         {t("settings.profile.username")}
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                 <FormField
                   control={form.control}
                   name="birthday"
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<FormValues, "birthday"> & FieldValues }) => (
                     <FormItem className="flex-1 space-y-6">
                       <FormLabel className="block text-base font-medium mb-3">
                         {t("settings.profile.birthday")}
@@ -298,7 +298,7 @@ export default function ProfilePage() {
             <FormField
               control={form.control}
               name="bio"
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<FormValues, "bio"> & FieldValues }) => (
                 <FormItem className="space-y-6">
                   <FormLabel className="block text-base font-medium mb-3">
                     {t("settings.profile.bio")}

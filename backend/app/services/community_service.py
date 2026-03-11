@@ -8,12 +8,12 @@ import logging
 import math
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import case, func, select, update, delete, desc, and_, exists, or_
+from sqlalchemy import case, func, select, update, delete, desc, and_, exists, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.featured import FEATURED_CONFIG
 from app.models.community import Bookmark, Comment, CommentLike, Report, Resonance, UserFollow
-from app.models.community_group import Community, CommunityMember
+from app.models.community_group import Community, CommunityCreationApplication, CommunityMember
 from app.models.dream import Dream
 from app.services.heat_service import recalculate_dream_heat
 from app.models.dream_embedding import DreamEmbedding
@@ -134,7 +134,12 @@ class CommunityService:
         # 「为你推荐」调用独立方法
         if sort == "foryou":
             if current_user_id:
-                return await self.get_personalized_feed(current_user_id, page=page, page_size=page_size)
+                return await self.get_personalized_feed(
+                    current_user_id,
+                    channel=channel,
+                    page=page,
+                    page_size=page_size,
+                )
             else:
                 # 未登录时降级为最新
                 sort = "latest"
@@ -684,6 +689,9 @@ class CommunityService:
             follower_count=getattr(user, "follower_count", 0),
             following_count=getattr(user, "following_count", 0),
             is_following=is_following,
+            bookmarks_visibility=getattr(user, "bookmarks_visibility", "private"),
+            created_communities_visibility=getattr(user, "created_communities_visibility", "private"),
+            joined_communities_visibility=getattr(user, "joined_communities_visibility", "private"),
         )
 
     async def get_dream_detail(
@@ -789,20 +797,94 @@ class CommunityService:
         return new_count
 
     async def get_user_public_dreams(
-        self, user_id: uuid.UUID, page: int = 1, page_size: int = 12
+        self,
+        user_id: uuid.UUID,
+        *,
+        current_user_id: uuid.UUID | None = None,
+        page: int = 1,
+        page_size: int = 12,
     ) -> FeedResponse:
         """获取用户公开梦境列表"""
-        return await self.get_feed(
-            channel="plaza",
-            sort="latest",
-            page=page,
-            page_size=page_size,
+        base = (
+            select(Dream)
+            .where(
+                Dream.user_id == user_id,
+                Dream.privacy_level == PrivacyLevel.PUBLIC,
+                Dream.deleted_at.is_(None),
+            )
+            .order_by(desc(Dream.created_at))
         )
+
+        total = (await self.db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
+        offset = (page - 1) * page_size
+        dreams = (await self.db.execute(base.offset(offset).limit(page_size))).scalars().all()
+
+        author = await self.db.get(User, user_id)
+        author_brief = None
+        if author:
+            author_brief = UserPublicBrief(
+                id=author.id,
+                username=author.username,
+                avatar=author.avatar,
+                dreamer_title=getattr(author, "dreamer_title", "做梦者"),
+                dreamer_level=getattr(author, "dreamer_level", 1),
+            )
+
+        resonated_ids: set[uuid.UUID] = set()
+        bookmarked_ids: set[uuid.UUID] = set()
+        if current_user_id and dreams:
+            dream_ids = [d.id for d in dreams]
+            resonated_ids = set(
+                (await self.db.execute(
+                    select(Resonance.dream_id).where(
+                        Resonance.user_id == current_user_id,
+                        Resonance.dream_id.in_(dream_ids),
+                    )
+                )).scalars().all()
+            )
+            bookmarked_ids = set(
+                (await self.db.execute(
+                    select(Bookmark.dream_id).where(
+                        Bookmark.user_id == current_user_id,
+                        Bookmark.dream_id.in_(dream_ids),
+                    )
+                )).scalars().all()
+            )
+
+        counter_map = await self._get_dream_comment_counters_map([d.id for d in dreams])
+        items = [
+            DreamCardSocial(
+                id=d.id,
+                title=d.title,
+                content_preview=(d.content or "")[:150],
+                dream_date=str(d.dream_date),
+                dream_types=[],
+                is_seeking_interpretation=d.is_seeking_interpretation,
+                is_anonymous=d.is_anonymous,
+                resonance_count=d.resonance_count,
+                comment_count=counter_map.get(d.id, (0, 0))[0],
+                interpretation_count=counter_map.get(d.id, (0, 0))[1],
+                view_count=d.view_count,
+                bookmark_count=d.bookmark_count,
+                share_count=getattr(d, "share_count", 0),
+                has_resonated=d.id in resonated_ids,
+                has_bookmarked=d.id in bookmarked_ids,
+                author=author_brief,
+                created_at=d.created_at,
+            )
+            for d in dreams
+        ]
+        return FeedResponse(total=total, page=page, page_size=page_size, items=items)
 
     # ── 个性化推荐 ────────────────────────────────────────────────────────
 
     async def get_personalized_feed(
-        self, user_id: uuid.UUID, *, page: int = 1, page_size: int = 20
+        self,
+        user_id: uuid.UUID,
+        *,
+        channel: str = "plaza",
+        page: int = 1,
+        page_size: int = 20
     ) -> FeedResponse:
         """「为你推荐」：基于用户最近梦境 embedding 中心向量 + 关注作者加权"""
         from sqlalchemy import text as sa_text
@@ -820,7 +902,13 @@ class CommunityService:
 
         if not valid_embs:
             # 无任何有效 embedding 时才降级为按时间排序的 feed
-            return await self.get_feed(channel="plaza", sort="latest", current_user_id=user_id, page=page, page_size=page_size)
+            return await self.get_feed(
+                channel=channel,
+                sort="latest",
+                current_user_id=user_id,
+                page=page,
+                page_size=page_size,
+            )
 
         # 2. 计算中心向量（平均）
         dim = len(valid_embs[0])
@@ -837,7 +925,20 @@ class CommunityService:
         fetch_limit = page_size * 5
         offset = (page - 1) * page_size
 
-        sim_stmt = sa_text("""
+        channel_filter_sql = ""
+        if channel == "roundtable":
+            channel_filter_sql = "AND d.is_seeking_interpretation = true"
+        elif channel == "greenhouse":
+            channel_filter_sql = "AND d.community_id IS NOT NULL"
+        elif channel == "museum":
+            channel_filter_sql = """
+              AND (
+                d.feature_mode = 'FORCE_ON'
+                OR (d.feature_mode = 'AUTO' AND d.featured_score_snapshot >= :featured_threshold)
+              )
+            """
+
+        sim_stmt = sa_text(f"""
             SELECT d.id, d.title, d.content, d.dream_date, d.primary_emotion,
                    d.emotion_tags, d.is_seeking_interpretation, d.is_anonymous,
                    d.resonance_count, d.comment_count, d.interpretation_count,
@@ -851,6 +952,7 @@ class CommunityService:
               AND d.deleted_at IS NULL
               AND d.user_id != :user_id
               AND d.id NOT IN (SELECT dream_id FROM resonances WHERE user_id = :user_id)
+              {channel_filter_sql}
             ORDER BY de.content_embedding <=> CAST(:center AS vector)
             LIMIT :limit OFFSET :offset
         """)
@@ -860,6 +962,7 @@ class CommunityService:
                 "user_id": str(user_id),
                 "limit": fetch_limit,
                 "offset": offset,
+                "featured_threshold": FEATURED_CONFIG.auto_threshold,
             })
             rows = sim_result.all()
         except Exception:
@@ -1252,14 +1355,24 @@ class CommunityService:
         await self.db.flush()
         return True
 
-    async def get_bookmarks(self, user_id: uuid.UUID, page: int = 1, page_size: int = 20) -> FeedResponse:
+    async def get_bookmarks(
+        self,
+        user_id: uuid.UUID,
+        *,
+        current_user_id: uuid.UUID | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> FeedResponse:
         subq = select(Bookmark.dream_id).where(Bookmark.user_id == user_id)
-        base = select(Dream).where(Dream.id.in_(subq), Dream.deleted_at.is_(None)).order_by(desc(Dream.created_at))
+        base = (
+            select(Dream)
+            .where(Dream.id.in_(subq), Dream.deleted_at.is_(None), Dream.privacy_level == PrivacyLevel.PUBLIC)
+            .order_by(desc(Dream.created_at))
+        )
 
         total = (await self.db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
         offset = (page - 1) * page_size
-        result = await self.db.execute(base.offset(offset).limit(page_size))
-        dreams = result.scalars().all()
+        dreams = (await self.db.execute(base.offset(offset).limit(page_size))).scalars().all()
 
         author_ids = list({d.user_id for d in dreams})
         author_map: dict[uuid.UUID, User] = {}
@@ -1267,11 +1380,25 @@ class CommunityService:
             for u in (await self.db.execute(select(User).where(User.id.in_(author_ids)))).scalars():
                 author_map[u.id] = u
 
+        resonated_ids: set[uuid.UUID] = set()
+        if current_user_id and dreams:
+            dream_ids = [d.id for d in dreams]
+            resonated_ids = set(
+                (await self.db.execute(
+                    select(Resonance.dream_id).where(
+                        Resonance.user_id == current_user_id,
+                        Resonance.dream_id.in_(dream_ids),
+                    )
+                )).scalars().all()
+            )
+
+        counter_map = await self._get_dream_comment_counters_map([d.id for d in dreams])
+
         items = []
         for dream in dreams:
             author = author_map.get(dream.user_id)
             author_brief = None
-            if author:
+            if author and not dream.is_anonymous:
                 author_brief = UserPublicBrief(
                     id=author.id,
                     username=author.username,
@@ -1279,11 +1406,21 @@ class CommunityService:
                     dreamer_title=getattr(author, "dreamer_title", "做梦者"),
                     dreamer_level=getattr(author, "dreamer_level", 1),
                 )
+            elif dream.is_anonymous:
+                alias = dream.anonymous_alias or _random_alias(dream.id)
+                author_brief = UserPublicBrief(
+                    id=uuid.UUID(int=0),
+                    username=alias,
+                    avatar=None,
+                    dreamer_title="匿名做梦者",
+                    dreamer_level=0,
+                )
+
             comment_count, interpretation_count = counter_map.get(dream.id, (0, 0))
             items.append(DreamCardSocial(
                 id=dream.id,
                 title=dream.title,
-                content_preview=dream.content[:150],
+                content_preview=(dream.content or "")[:150],
                 dream_date=str(dream.dream_date),
                 dream_types=[],
                 is_seeking_interpretation=dream.is_seeking_interpretation,
@@ -1294,7 +1431,7 @@ class CommunityService:
                 view_count=dream.view_count,
                 bookmark_count=dream.bookmark_count,
                 share_count=getattr(dream, "share_count", 0),
-                has_resonated=False,
+                has_resonated=dream.id in resonated_ids,
                 has_bookmarked=True,
                 author=author_brief,
                 created_at=dream.created_at,
@@ -1318,14 +1455,20 @@ class CommunityService:
     # ── 发现 ────────────────────────────────────────────────────────────
 
     async def get_trending_tags(self, limit: int = 10) -> list[TrendingTag]:
-        """热门标签（基于最近7天公开梦境的情绪标签）"""
+        """热门标签（基于最近7天公开梦境的梦境标签）"""
         from sqlalchemy import text as sa_text
         stmt = sa_text("""
-            SELECT tag, count(*) as cnt
-            FROM dreams, jsonb_array_elements_text(emotion_tags) AS tag
-            WHERE privacy_level = 'PUBLIC' AND deleted_at IS NULL
-            AND created_at > NOW() - INTERVAL '7 days'
-            GROUP BY tag ORDER BY cnt DESC LIMIT :limit
+            SELECT t.name AS tag, COUNT(*) AS cnt
+            FROM dream_tags dt
+            JOIN tags t ON t.id = dt.tag_id
+            JOIN dreams d ON d.id = dt.dream_id
+            WHERE d.privacy_level = 'PUBLIC'
+              AND d.is_draft = FALSE
+              AND d.deleted_at IS NULL
+              AND d.created_at > NOW() - INTERVAL '7 days'
+            GROUP BY t.name
+            ORDER BY cnt DESC
+            LIMIT :limit
         """)
         result = await self.db.execute(stmt, {"limit": limit})
         return [TrendingTag(name=row.tag, count=row.cnt) for row in result.all()]
@@ -1467,13 +1610,446 @@ class CommunityService:
         if not community:
             raise ValueError("社群不存在")
 
-        return await self.get_feed(
-            channel="greenhouse",
-            sort=sort,
-            current_user_id=current_user_id,
-            page=page,
-            page_size=page_size,
+        base = (
+            select(Dream)
+            .where(
+                Dream.community_id == community.id,
+                Dream.privacy_level == PrivacyLevel.PUBLIC,
+                Dream.deleted_at.is_(None),
+            )
         )
+
+        if sort == "resonating":
+            base_expr = (
+                Dream.resonance_count * 3
+                + Dream.comment_count * 5
+                + Dream.interpretation_count * 10
+                + Dream.adopted_interpretation_count * 5
+                + Dream.bookmark_count * 4
+                + func.floor(Dream.view_count / 10)
+            )
+            base = base.order_by(desc(base_expr), desc(Dream.created_at))
+        else:
+            base = base.order_by(desc(Dream.created_at))
+
+        total = (await self.db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
+        offset = (page - 1) * page_size
+        dreams = (await self.db.execute(base.offset(offset).limit(page_size))).scalars().all()
+
+        author_ids = list({d.user_id for d in dreams})
+        author_map: dict[uuid.UUID, User] = {}
+        if author_ids:
+            for u in (await self.db.execute(select(User).where(User.id.in_(author_ids)))).scalars():
+                author_map[u.id] = u
+
+        resonated_ids: set[uuid.UUID] = set()
+        bookmarked_ids: set[uuid.UUID] = set()
+        if current_user_id and dreams:
+            dream_ids = [d.id for d in dreams]
+            resonated_ids = set(
+                (await self.db.execute(
+                    select(Resonance.dream_id).where(
+                        Resonance.user_id == current_user_id,
+                        Resonance.dream_id.in_(dream_ids),
+                    )
+                )).scalars().all()
+            )
+            bookmarked_ids = set(
+                (await self.db.execute(
+                    select(Bookmark.dream_id).where(
+                        Bookmark.user_id == current_user_id,
+                        Bookmark.dream_id.in_(dream_ids),
+                    )
+                )).scalars().all()
+            )
+
+        counter_map = await self._get_dream_comment_counters_map([d.id for d in dreams])
+        items: list[DreamCardSocial] = []
+        for dream in dreams:
+            author = author_map.get(dream.user_id)
+            author_brief = None
+            if author and not dream.is_anonymous:
+                author_brief = UserPublicBrief(
+                    id=author.id,
+                    username=author.username,
+                    avatar=author.avatar,
+                    dreamer_title=getattr(author, "dreamer_title", "做梦者"),
+                    dreamer_level=getattr(author, "dreamer_level", 1),
+                )
+            elif dream.is_anonymous:
+                alias = dream.anonymous_alias or _random_alias(dream.id)
+                author_brief = UserPublicBrief(
+                    id=uuid.UUID(int=0),
+                    username=alias,
+                    avatar=None,
+                    dreamer_title="匿名做梦者",
+                    dreamer_level=0,
+                )
+
+            comment_count, interpretation_count = counter_map.get(dream.id, (0, 0))
+            items.append(DreamCardSocial(
+                id=dream.id,
+                title=dream.title,
+                content_preview=(dream.content or "")[:150],
+                dream_date=str(dream.dream_date),
+                dream_types=[],
+                is_seeking_interpretation=dream.is_seeking_interpretation,
+                is_anonymous=dream.is_anonymous,
+                resonance_count=dream.resonance_count,
+                comment_count=comment_count,
+                interpretation_count=interpretation_count,
+                view_count=dream.view_count,
+                bookmark_count=dream.bookmark_count,
+                share_count=getattr(dream, "share_count", 0),
+                has_resonated=dream.id in resonated_ids,
+                has_bookmarked=dream.id in bookmarked_ids,
+                author=author_brief,
+                created_at=dream.created_at,
+            ))
+
+        return FeedResponse(total=total, page=page, page_size=page_size, items=items)
+
+    async def get_community_shell_sidebar(
+        self, *, current_user_id: uuid.UUID | None = None
+    ) -> dict:
+        """三栏壳层：左栏加入/最近访问"""
+        if not current_user_id:
+            return {"joined": [], "recent": []}
+
+        joined_stmt = (
+            select(Community)
+            .join(CommunityMember, CommunityMember.community_id == Community.id)
+            .where(CommunityMember.user_id == current_user_id)
+            .order_by(desc(CommunityMember.joined_at))
+            .limit(12)
+        )
+        joined = (await self.db.execute(joined_stmt)).scalars().all()
+
+        recent_stmt = (
+            select(Community)
+            .join(Dream, Dream.community_id == Community.id)
+            .where(Dream.user_id == current_user_id, Dream.community_id.isnot(None))
+            .group_by(Community.id)
+            .order_by(desc(func.max(Dream.created_at)))
+            .limit(8)
+        )
+        recent = (await self.db.execute(recent_stmt)).scalars().all()
+
+        def _to_response(items: list[Community]) -> list[CommunityResponse]:
+            return [
+                CommunityResponse(
+                    id=c.id,
+                    name=c.name,
+                    slug=c.slug,
+                    description=c.description,
+                    icon=c.icon,
+                    cover_image=c.cover_image,
+                    member_count=c.member_count,
+                    post_count=c.post_count,
+                    is_official=c.is_official,
+                    sort_order=c.sort_order,
+                    created_at=c.created_at,
+                    is_member=True,
+                )
+                for c in items
+            ]
+
+        return {"joined": _to_response(joined), "recent": _to_response(recent)}
+
+    async def get_community_overview(
+        self, *, slug: str, current_user_id: uuid.UUID | None = None
+    ) -> dict:
+        """右栏社群信息与周指标"""
+        community = await self.get_community_by_slug(slug, current_user_id)
+        if not community:
+            raise ValueError("社群不存在")
+
+        metrics_stmt = (
+            select(
+                func.count(Dream.id).label("weekly_new_dreams"),
+                func.count(func.distinct(Dream.user_id)).label("weekly_active_users"),
+                func.sum(Dream.resonance_count).label("weekly_resonances"),
+                func.sum(Dream.interpretation_count).label("weekly_interpretations"),
+            )
+            .where(
+                Dream.community_id == uuid.UUID(str(community.id)),
+                Dream.privacy_level == PrivacyLevel.PUBLIC,
+                Dream.deleted_at.is_(None),
+                Dream.created_at >= func.now() - text("interval '7 days'"),
+            )
+        )
+        metrics_row = (await self.db.execute(metrics_stmt)).mappings().one_or_none()
+
+        metrics = {
+            "weekly_new_dreams": int(metrics_row["weekly_new_dreams"] or 0) if metrics_row else 0,
+            "weekly_active_users": int(metrics_row["weekly_active_users"] or 0) if metrics_row else 0,
+            "weekly_resonances": int(metrics_row["weekly_resonances"] or 0) if metrics_row else 0,
+            "weekly_interpretations": int(metrics_row["weekly_interpretations"] or 0) if metrics_row else 0,
+        }
+
+        default_rules = [
+            "尊重他人隐私与感受", "禁止恶意攻击与歧视", "梦境内容请如实分享", "鼓励积极讨论与共鸣"
+        ]
+        default_values = [
+            "每周整理高频梦境主题", "获得同频梦友的共鸣与建议", "探索梦境背后的情绪线索"
+        ]
+
+        return {
+            "community": community,
+            "metrics": metrics,
+            "rules": default_rules,
+            "value_points": default_values,
+        }
+
+    async def get_my_created_communities(self, user_id: uuid.UUID) -> CommunityListResponse:
+        """我创建的社群"""
+        communities = (
+            await self.db.execute(
+                select(Community)
+                .where(Community.creator_id == user_id)
+                .order_by(desc(Community.created_at))
+            )
+        ).scalars().all()
+        return CommunityListResponse(
+            total=len(communities),
+            items=[
+                CommunityResponse(
+                    id=c.id,
+                    name=c.name,
+                    slug=c.slug,
+                    description=c.description,
+                    icon=c.icon,
+                    cover_image=c.cover_image,
+                    member_count=c.member_count,
+                    post_count=c.post_count,
+                    is_official=c.is_official,
+                    sort_order=c.sort_order,
+                    created_at=c.created_at,
+                    is_member=True,
+                )
+                for c in communities
+            ],
+        )
+
+    async def get_my_joined_communities(self, user_id: uuid.UUID) -> CommunityListResponse:
+        """我加入的社群"""
+        stmt = (
+            select(Community)
+            .join(CommunityMember, CommunityMember.community_id == Community.id)
+            .where(CommunityMember.user_id == user_id)
+            .order_by(desc(CommunityMember.joined_at))
+        )
+        communities = (await self.db.execute(stmt)).scalars().all()
+        return CommunityListResponse(
+            total=len(communities),
+            items=[
+                CommunityResponse(
+                    id=c.id,
+                    name=c.name,
+                    slug=c.slug,
+                    description=c.description,
+                    icon=c.icon,
+                    cover_image=c.cover_image,
+                    member_count=c.member_count,
+                    post_count=c.post_count,
+                    is_official=c.is_official,
+                    sort_order=c.sort_order,
+                    created_at=c.created_at,
+                    is_member=True,
+                )
+                for c in communities
+            ],
+        )
+
+    async def create_community_application(
+        self,
+        *,
+        applicant_id: uuid.UUID,
+        name: str,
+        description: str,
+        motivation: str,
+    ) -> CommunityCreationApplication:
+        """提交创建社群申请（轻表单）"""
+        base_slug = (
+            name.strip().lower().replace(" ", "-")
+            .replace("_", "-")
+        )
+        slug = "".join(ch for ch in base_slug if ch.isalnum() or ch == "-").strip("-") or f"community-{uuid.uuid4().hex[:8]}"
+
+        # slug 不能与现有社群或申请冲突，自动追加后缀
+        exists_community = bool((await self.db.execute(select(exists().where(Community.slug == slug)))).scalar())
+        exists_application = bool((await self.db.execute(
+            select(exists().where(
+                CommunityCreationApplication.slug == slug,
+                CommunityCreationApplication.status.in_(["pending", "approved"]),
+            ))
+        )).scalar())
+        if exists_community or exists_application:
+            slug = f"{slug}-{uuid.uuid4().hex[:4]}"
+
+        application = CommunityCreationApplication(
+            applicant_id=applicant_id,
+            name=name.strip(),
+            slug=slug,
+            description=description.strip(),
+            motivation=motivation.strip(),
+            status="pending",
+        )
+        self.db.add(application)
+        await self.db.flush()
+        return application
+
+    async def review_community_application(
+        self,
+        *,
+        application_id: uuid.UUID,
+        reviewer_id: uuid.UUID,
+        approved: bool,
+        review_note: str | None = None,
+    ) -> CommunityCreationApplication:
+        """审核社群申请：通过后自动上线社群"""
+        application = await self.db.get(CommunityCreationApplication, application_id)
+        if not application:
+            raise ValueError("申请不存在")
+        if application.status != "pending":
+            raise ValueError("该申请已审核")
+
+        now = datetime.now(timezone.utc)
+        if not approved:
+            application.status = "rejected"
+            application.review_note = (review_note or "").strip() or None
+            application.reviewer_id = reviewer_id
+            application.reviewed_at = now
+            await self.db.flush()
+            return application
+
+        # 审核通过：创建社群并自动加入创建者
+        if bool((await self.db.execute(select(exists().where(Community.slug == application.slug)))).scalar()):
+            raise ValueError("该社群标识已存在")
+
+        community = Community(
+            name=application.name,
+            slug=application.slug,
+            description=application.description,
+            icon="🌿",
+            creator_id=application.applicant_id,
+            is_official=False,
+            sort_order=9999,
+            member_count=1,
+            post_count=0,
+        )
+        self.db.add(community)
+        await self.db.flush()
+
+        self.db.add(CommunityMember(user_id=application.applicant_id, community_id=community.id))
+
+        application.status = "approved"
+        application.review_note = (review_note or "").strip() or None
+        application.reviewer_id = reviewer_id
+        application.reviewed_at = now
+        application.created_community_id = community.id
+        await self.db.flush()
+        return application
+
+    async def _resolve_assets_visibility(self, user_id: uuid.UUID, viewer_user_id: uuid.UUID | None = None) -> dict:
+        owner = await self.db.get(User, user_id)
+        if not owner:
+            raise ValueError("用户不存在")
+
+        is_self = viewer_user_id == user_id
+        is_friend = False
+        if viewer_user_id and viewer_user_id != user_id:
+            follows_a = bool(
+                (await self.db.execute(
+                    select(
+                        exists().where(
+                            UserFollow.follower_id == viewer_user_id,
+                            UserFollow.following_id == user_id,
+                        )
+                    )
+                )).scalar()
+            )
+            follows_b = bool(
+                (await self.db.execute(
+                    select(
+                        exists().where(
+                            UserFollow.follower_id == user_id,
+                            UserFollow.following_id == viewer_user_id,
+                        )
+                    )
+                )).scalar()
+            )
+            is_friend = follows_a and follows_b
+
+        def _can_view(mode: str) -> bool:
+            if is_self:
+                return True
+            if mode == "public":
+                return True
+            if mode == "friends":
+                return is_friend
+            return False
+
+        can_view_bookmarks = _can_view(getattr(owner, "bookmarks_visibility", "private"))
+        can_view_created = _can_view(getattr(owner, "created_communities_visibility", "private"))
+        can_view_joined = _can_view(getattr(owner, "joined_communities_visibility", "private"))
+
+        public_dream_count = int(getattr(owner, "public_dream_count", 0) or 0)
+        bookmarked_dream_count = 0
+        created_community_count = 0
+        joined_community_count = 0
+
+        if can_view_bookmarks:
+            subq = select(Bookmark.dream_id).where(Bookmark.user_id == user_id)
+            bookmarked_dream_count = (await self.db.execute(
+                select(func.count()).select_from(
+                    select(Dream.id)
+                    .where(Dream.id.in_(subq), Dream.deleted_at.is_(None), Dream.privacy_level == PrivacyLevel.PUBLIC)
+                    .subquery()
+                )
+            )).scalar() or 0
+
+        if can_view_created:
+            created_community_count = (await self.db.execute(
+                select(func.count()).select_from(Community).where(Community.creator_id == user_id)
+            )).scalar() or 0
+
+        if can_view_joined:
+            joined_community_count = (await self.db.execute(
+                select(func.count()).select_from(CommunityMember).where(CommunityMember.user_id == user_id)
+            )).scalar() or 0
+
+        return {
+            "can_view_bookmarks": can_view_bookmarks,
+            "can_view_created_communities": can_view_created,
+            "can_view_joined_communities": can_view_joined,
+            "public_dream_count": public_dream_count,
+            "bookmarked_dream_count": bookmarked_dream_count,
+            "created_community_count": created_community_count,
+            "joined_community_count": joined_community_count,
+        }
+
+    async def get_user_assets_meta(self, user_id: uuid.UUID, viewer_user_id: uuid.UUID | None = None) -> dict:
+        return await self._resolve_assets_visibility(user_id, viewer_user_id)
+
+    async def get_user_assets(self, user_id: uuid.UUID, viewer_user_id: uuid.UUID | None = None) -> dict:
+        """用户资产层：我创建/加入的社群、收藏梦境、公开梦境（含可见性）"""
+        visibility = await self._resolve_assets_visibility(user_id, viewer_user_id)
+
+        created = await self.get_my_created_communities(user_id) if visibility["can_view_created_communities"] else CommunityListResponse(total=0, items=[])
+        joined = await self.get_my_joined_communities(user_id) if visibility["can_view_joined_communities"] else CommunityListResponse(total=0, items=[])
+        bookmarks = await self.get_bookmarks(user_id, current_user_id=viewer_user_id, page=1, page_size=20) if visibility["can_view_bookmarks"] else FeedResponse(total=0, page=1, page_size=20, items=[])
+        public_dreams = await self.get_user_public_dreams(user_id, current_user_id=viewer_user_id, page=1, page_size=20)
+
+        return {
+            "created_communities": created.items,
+            "joined_communities": joined.items,
+            "bookmarked_dreams": bookmarks,
+            "public_dreams": public_dreams,
+            "can_view_bookmarks": visibility["can_view_bookmarks"],
+            "can_view_created_communities": visibility["can_view_created_communities"],
+            "can_view_joined_communities": visibility["can_view_joined_communities"],
+        }
 
     async def get_similar_dreamers(
         self, user_id: uuid.UUID, limit: int = 5
@@ -1646,7 +2222,7 @@ class CommunityService:
                     Dream.feature_mode == FEATURE_MODE_FORCE_ON,
                     and_(
                         Dream.feature_mode == FEATURE_MODE_AUTO,
-                        Dream.featured_score_snapshot >= AUTO_FEATURED_THRESHOLD,
+                        Dream.featured_score_snapshot >= FEATURED_CONFIG.auto_threshold,
                     ),
                 )
             )

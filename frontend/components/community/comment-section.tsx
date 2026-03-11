@@ -6,6 +6,7 @@ import { CommentItem } from "@/components/community/comment-item";
 import { communityAPI, type CommentResponse } from "@/lib/community-api";
 import { Brain, MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface CommentSectionProps {
   dreamId: string;
@@ -39,6 +40,7 @@ export function CommentSection({
   const interpretationOnlyCount = initialInterpretationCount;
   const [totalComments, setTotalComments] = useState(commentOnlyCount ?? 0);
   const [totalInterps, setTotalInterps] = useState(interpretationOnlyCount ?? 0);
+  const { t } = useTranslation();
 
   const fetchComments = useCallback(async () => {
     setLoadingComments(true);
@@ -103,7 +105,7 @@ export function CommentSection({
             }`}
           >
             <Brain className="h-3.5 w-3.5 shrink-0" />
-            <span>解读</span>
+            <span>{t("community.comments.tabs.interpretations")}</span>
             <span className="tabular-nums opacity-80">({totalInterps})</span>
           </button>
           <button
@@ -115,7 +117,7 @@ export function CommentSection({
             }`}
           >
             <MessageCircle className="h-3.5 w-3.5 shrink-0" />
-            <span>评论</span>
+            <span>{t("community.comments.tabs.comments")}</span>
             <span className="tabular-nums opacity-80">({totalComments})</span>
           </button>
         </div>
@@ -152,8 +154,8 @@ export function CommentSection({
           <div className="text-center py-10 text-muted-foreground">
             <p className="text-sm">
               {tab === "interpretations"
-                ? "暂无解读，欢迎写下你对这个梦境的理解或联想"
-                : "暂无评论，留下你的想法或回复"}
+                ? t("community.comments.emptyInterpretations")
+                : t("community.comments.emptyComments")}
             </p>
           </div>
         ) : (

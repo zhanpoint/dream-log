@@ -14,7 +14,7 @@ import type { Locale } from "date-fns";
 import { Brain, ChevronRight, HelpCircle, Link2, Moon, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "@/node_modules/react-i18next";
+import { useTranslation } from "react-i18next";
 
 // ===== 辅助函数 =====
 function getDateLocale(lang: string): Locale {

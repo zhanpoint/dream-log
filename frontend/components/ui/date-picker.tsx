@@ -4,8 +4,9 @@ import * as React from "react"
 import { format } from "date-fns"
 import { zhCN, enUS, ja } from "date-fns/locale"
 import type { Locale } from "date-fns"
+import type { DayPickerLocale } from "react-day-picker"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { useTranslation } from "@/node_modules/react-i18next"
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -40,6 +41,7 @@ export function DatePicker({
 }: DatePickerProps) {
   const { t, i18n } = useTranslation()
   const dateLocale = getDateLocale(i18n.language)
+  const locale = dateLocale as unknown as Partial<DayPickerLocale>
   const [open, setOpen] = React.useState(false)
   
   // 根据语言设置日期格式
@@ -87,7 +89,7 @@ export function DatePicker({
             }
           }}
           initialFocus
-          locale={dateLocale}
+          locale={locale}
         />
       </PopoverContent>
     </Popover>

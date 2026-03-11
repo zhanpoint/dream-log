@@ -11,7 +11,8 @@ import { UserAvatar } from "@/components/user-avatar";
 import { dmAPI, type DmConversationOut, type DmMessageOut } from "@/lib/dm-api";
 import { AuthUser } from "@/lib/auth-api";
 import { ArrowLeft, Copy, Download, Image as ImageIcon, MoreHorizontal, Send, X } from "lucide-react";
-import { differenceInMinutes, format, isToday, isYesterday } from "date-fns";
+import { differenceInMinutes, format, isToday } from "date-fns";
+import type { Locale } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -20,6 +21,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
+import { enUS, ja, zhCN } from "date-fns/locale";
+
+const messageTimeLocales: Record<string, Locale> = {
+  en: enUS,
+  "en-US": enUS,
+  ja,
+  "ja-JP": ja,
+  "zh-CN": zhCN,
+};
 
 function MessageBubble({
   msg,
@@ -50,12 +61,13 @@ function MessageBubble({
   onImageCopy?: (msg: DmMessageOut) => void;
   onImageDownload?: (msg: DmMessageOut) => void;
 }) {
+  const { i18n } = useTranslation();
+  const dateLocale = messageTimeLocales[i18n.language] ?? zhCN;
+
   const createdAt = new Date(msg.created_at);
   const time = isToday(createdAt)
-    ? format(createdAt, "HH:mm")
-    : isYesterday(createdAt)
-      ? `昨天 ${format(createdAt, "HH:mm")}`
-      : format(createdAt, "M月d日 HH:mm");
+    ? format(createdAt, "HH:mm", { locale: dateLocale })
+    : format(createdAt, "PP HH:mm", { locale: dateLocale });
 
   return (
     <div className={cn("space-y-1", showTime ? "pt-1" : "pt-0")}>
@@ -149,6 +161,7 @@ function MessageBubble({
 function DmDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<ReturnType<typeof AuthUser.get>>(null);
@@ -499,13 +512,13 @@ function DmDetailContent() {
   };
 
   const handleBlock = async () => {
-    if (!confirm("确认屏蔽此用户？屏蔽后对方将无法再向你发送消息。")) return;
+    if (!confirm(t("community.dm.blockConfirm"))) return;
     try {
       await dmAPI.blockConversation(id);
-      toast.success("已屏蔽");
+      toast.success(t("community.dm.blocked"));
       router.push("/community/messages");
     } catch {
-      toast.error("操作失败");
+      toast.error(t("insights.operationFailed"));
     }
   };
 
@@ -538,7 +551,7 @@ function DmDetailContent() {
 
   const other = conv?.other_user;
   const otherId = other?.id ?? conv?.other_user_id ?? conv?.recipient_id;
-  const otherUsername = other?.username ?? conv?.other_username ?? "未知用户";
+  const otherUsername = other?.username ?? conv?.other_username ?? t("common.unknownUser");
   const otherAvatar = other?.avatar ?? conv?.other_avatar ?? null;
   const canSend = conv?.status !== "blocked";
 
@@ -582,7 +595,7 @@ function DmDetailContent() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleBlock}>
-                  屏蔽此用户
+                  {t("community.dm.block")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -603,7 +616,7 @@ function DmDetailContent() {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <span className="text-4xl mb-3">💌</span>
-            <p className="text-sm">暂无消息</p>
+            <p className="text-sm">{t("community.dm.emptyMessages")}</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -669,8 +682,14 @@ function DmDetailContent() {
         <div className="px-4 pt-2 flex-shrink-0">
           <div className="flex flex-wrap gap-2">
             {pendingImages.map((item) => (
-              <div key={item.id} className="relative inline-block rounded-xl ring-1 ring-black/10 bg-black/5 p-1">
-                <img src={item.previewUrl} alt="待发送图片" className="max-w-[130px] max-h-[130px] h-auto w-auto rounded-lg object-contain" />
+              <div key={item.id} className="relative inline-block">
+                <div className="rounded-lg overflow-hidden ring-1 ring-primary/35 dark:ring-primary/75 bg-primary/5 dark:bg-primary/10 shadow-sm">
+                  <img
+                    src={item.previewUrl}
+                    alt="待发送图片"
+                    className="max-w-[130px] max-h-[130px] h-auto w-auto object-contain"
+                  />
+                </div>
                 <button
                   type="button"
                   className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/90 hover:scale-105 active:scale-95 z-10"
@@ -687,7 +706,7 @@ function DmDetailContent() {
 
       {conv?.status === "blocked" ? (
         <div className="px-4 py-3 border-t border-border bg-card flex-shrink-0 text-center">
-          <p className="text-xs text-muted-foreground">此会话已被屏蔽</p>
+          <p className="text-xs text-muted-foreground">{t("community.dm.blocked")}</p>
         </div>
       ) : (
         <div className="flex items-end gap-2 px-4 py-2 mb-8 pb-2 flex-shrink-0">
@@ -698,6 +717,8 @@ function DmDetailContent() {
             multiple
             className="hidden"
             onChange={handleSelectImage}
+            aria-label={t("community.dm.sendImage") ?? "Send image"}
+            title={t("community.dm.sendImage") ?? "Send image"}
           />
           <textarea
             ref={inputRef}
@@ -705,7 +726,8 @@ function DmDetailContent() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="输入消息..."
+            placeholder={t("community.dm.inputPlaceholder")}
+            aria-label={t("community.dm.inputPlaceholder")}
             disabled={!canSend || sending || uploadingImage}
             maxLength={2000}
             rows={1}

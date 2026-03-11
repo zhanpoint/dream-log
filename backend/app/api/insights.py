@@ -4,7 +4,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
@@ -166,13 +166,18 @@ async def delete_insight(
 @router.post("/monthly/generate", response_model=InsightResponse)
 async def generate_monthly_report(
     request: GenerateMonthlyReportRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> InsightResponse:
     """手动生成月报"""
+    from app.services.ai_service import get_target_language_from_locale
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
     service = InsightService(db)
     insight = await service.generate_monthly_report(
-        current_user.id, request.year, request.month
+        current_user.id, request.year, request.month, target_language=target_language
     )
     if not insight:
         raise HTTPException(
@@ -185,12 +190,19 @@ async def generate_monthly_report(
 @router.post("/weekly/generate", response_model=InsightResponse)
 async def generate_weekly_report(
     request: GenerateWeeklyReportRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> InsightResponse:
     """手动生成周报（week_start 为周一日期）"""
+    from app.services.ai_service import get_target_language_from_locale
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
     service = InsightService(db)
-    insight = await service.generate_weekly_report(current_user.id, request.week_start)
+    insight = await service.generate_weekly_report(
+        current_user.id, request.week_start, target_language=target_language
+    )
     if not insight:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -202,12 +214,19 @@ async def generate_weekly_report(
 @router.post("/annual/generate", response_model=InsightResponse)
 async def generate_annual_report(
     request: GenerateAnnualReportRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> InsightResponse:
     """手动生成年度回顾"""
+    from app.services.ai_service import get_target_language_from_locale
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
     service = InsightService(db)
-    insight = await service.generate_annual_report(current_user.id, request.year)
+    insight = await service.generate_annual_report(
+        current_user.id, request.year, target_language=target_language
+    )
     if not insight:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -219,6 +238,7 @@ async def generate_annual_report(
 @router.post("/theme/generate", response_model=InsightResponse)
 async def generate_theme_report(
     request: GenerateThemeReportRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> InsightResponse:
@@ -235,18 +255,30 @@ async def generate_theme_report(
         )
 
     service = InsightService(db)
+    from app.services.ai_service import get_target_language_from_locale
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
 
     if request.report_type == InsightType.EMOTION_HEALTH.value:
         insight = await service.generate_emotion_health_report(
-            current_user.id, request.start_date, request.end_date, request.with_comparison
+            current_user.id,
+            request.start_date,
+            request.end_date,
+            request.with_comparison,
+            target_language=target_language,
         )
     elif request.report_type == InsightType.SLEEP_QUALITY.value:
         insight = await service.generate_sleep_quality_report(
-            current_user.id, request.start_date, request.end_date, request.with_comparison
+            current_user.id,
+            request.start_date,
+            request.end_date,
+            request.with_comparison,
+            target_language=target_language,
         )
     elif request.report_type == InsightType.THEME_PATTERN.value:
         insight = await service.generate_theme_pattern_report(
-            current_user.id, request.start_date, request.end_date
+            current_user.id, request.start_date, request.end_date, target_language=target_language
         )
     else:
         raise HTTPException(

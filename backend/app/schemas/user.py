@@ -22,6 +22,15 @@ class UpdateProfileRequest(BaseModel):
     )
     bio: str | None = Field(None, max_length=200)
     birthday: date | None = None
+    bookmarks_visibility: str | None = Field(None, pattern="^(private|friends|public)$")
+    created_communities_visibility: str | None = Field(None, pattern="^(private|friends|public)$")
+    joined_communities_visibility: str | None = Field(None, pattern="^(private|friends|public)$")
+    preferred_locale: str | None = Field(
+        None,
+        max_length=16,
+        pattern="^(zh-CN|en|ja)$",
+        description="UI 语言偏好（zh-CN|en|ja）",
+    )
 
     @field_validator("username")
     @classmethod
@@ -95,6 +104,10 @@ class UserProfileResponse(BaseModel):
     bio: str | None = None
     birthday: date | None = None
     registration_method: str
+    bookmarks_visibility: str = "private"
+    created_communities_visibility: str = "private"
+    joined_communities_visibility: str = "private"
+    preferred_locale: str | None = None
     created_at: datetime
 
 

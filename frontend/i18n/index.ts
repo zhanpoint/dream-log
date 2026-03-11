@@ -1,5 +1,5 @@
 import i18n from "i18next";
-import { initReactI18next } from "@/node_modules/react-i18next";
+import { initReactI18next } from "react-i18next";
 
 export const LANGUAGE_STORAGE_KEY = "dreamlog-language";
 
@@ -90,6 +90,61 @@ const resources = {
         exploration: "梦境探索",
         community: "梦境社区",
         recordDream: "记录梦境",
+      },
+      notifications: {
+        title: "通知",
+        tooltip: "通知",
+        tooltipConnected: "通知（实时推送已连接）",
+        statusLive: "实时",
+        statusOffline: "离线",
+        viewAll: "查看全部通知",
+        markAllRead: "全部已读",
+        emptyTitle: "暂无新通知",
+        emptyDescription: "开启洞察报告，获取梦境分析通知",
+        loadFailed: "加载通知失败",
+        deleteSuccess: "已删除",
+        deleteFailed: "删除失败",
+        markAllReadSuccess: "已全部标记为已读",
+        markAllReadFailed: "操作失败",
+        monthlyReportGenerated: "{{year}}年{{month}}月梦境月报已生成",
+        weeklyReportGenerated: "本周梦境周报已生成",
+        annualReportGenerated: "{{year}}年梦境年报已生成",
+        sleepQualityAnalysisGenerated: "睡眠质量分析已生成",
+        emotionHealthAnalysisGenerated: "情绪健康分析已生成",
+        themePatternAnalysisGenerated: "主题模式分析已生成",
+        sentYouDm: "{{name}} 给你发了私信",
+      },
+      dm: {
+        loginRequired: {
+          description: "请先登录才能查看私信",
+          loginButton: "去登录",
+        },
+        header: {
+          backToCommunity: "返回社区",
+          title: "私信",
+        },
+        knockDialog: {
+          title: "发起私信",
+          placeholder: "写一条真诚的消息，对方回复后即可正常聊天",
+          cancel: "取消",
+          send: "发送",
+          sending: "发送中...",
+        },
+        empty: {
+          title: "暂无私信",
+          description: "浏览梦境广场，从别人的梦境贴发起私信，开始新的连接",
+          button: "去梦境广场",
+        },
+        list: {
+          unknownUser: "未知用户",
+          youKnocked: "你发出了敲门消息",
+          receivedKnock: "收到了一条敲门消息",
+          sourceDreamPrefix: "因梦结缘 · ",
+        },
+        errors: {
+          loadConversationsFailed: "加载消息列表失败",
+          sendFailed: "发送失败，请稍后重试",
+        },
       },
       auth: {
         // 通用
@@ -200,6 +255,31 @@ const resources = {
           profile: "个人资料",
           account: "账户安全",
           insights: "洞察报告",
+          privacy: "隐私设置",
+        },
+        logout: {
+          button: "退出登录",
+          title: "确定要退出登录吗？",
+          description: "退出后你需要重新登录才能继续使用完整功能。",
+          confirm: "确认退出",
+          error: "退出登录失败，请稍后重试",
+        },
+        privacy: {
+          title: "隐私设置",
+          subtitle: "控制他人查看你社区资产的可见范围。",
+          loadError: "加载隐私设置失败",
+          saveSuccess: "隐私设置已保存",
+          saveError: "保存失败，请稍后重试",
+          items: {
+            bookmarks: "我收藏的梦境",
+            createdCommunities: "我创建的社群",
+            joinedCommunities: "我加入的社群",
+          },
+          visibility: {
+            private: "仅自己可见",
+            friends: "仅好友可见",
+            public: "公开可见",
+          },
         },
         // 个人资料
         profile: {
@@ -343,20 +423,41 @@ const resources = {
             ai: {
               title: "AI 梦境分析",
               description:
-                "利用先进的 AI 技术，深入分析梦境内容，发现隐藏的含义和模式",
+                "从内容、情绪与象征元素多维解析梦境，生成可读性强的结构化解读",
             },
             calendar: {
               title: "梦境日历",
               description:
-                "在时间轴上记录和追踪你的梦境，发现梦境与生活事件的关联",
+                "按时间轴回看每一条记录，捕捉与现实事件、情绪变化的关联",
             },
             stats: {
               title: "数据统计",
-              description: "可视化展示梦境统计数据，了解你的睡眠和梦境模式",
+              description: "量化梦境频率、类型与情绪分布，识别睡眠与梦境趋势",
             },
-            tips: {
-              title: "智能提示",
-              description: "基于你的梦境历史，提供个性化的洞察和建议",
+            reports: {
+              title: "洞察报告",
+              description:
+                "生成周报、月报与年度回顾，洞察长期变化并给出行动建议",
+            },
+            symbols: {
+              title: "梦境符号词典",
+              description:
+                "查看高频梦境符号的心理学释义，快速理解象征与潜意识线索",
+            },
+            images: {
+              title: "AI 梦境图像",
+              description:
+                "将文字梦境转化为超现实画面，帮助你更直观地回忆与分享",
+            },
+            community: {
+              title: "梦境社区",
+              description:
+                "进入梦境广场与社群频道，分享梦境、获取共鸣与灵感反馈",
+            },
+            chat: {
+              title: "私信与聊天室",
+              description:
+                "通过私信与梦境聊天室建立连接，与同频梦友持续交流",
             },
           },
         },
@@ -368,34 +469,136 @@ const resources = {
             satisfaction: "满意度",
           },
           reviews: {
-            1: "Dream Log 帮助我更好地理解自己的梦境，AI 分析非常准确！",
-            2: "界面设计很美观，记录梦境变得很有趣，推荐给所有对梦境感兴趣的朋友！",
-            3: "从来没想过梦境可以这样被分析，每天都期待看到新的解析结果。",
-            4: "作为一个经常做奇怪梦的人，这个应用让我找到了很多有趣的解释！",
-            5: "AI 助手的建议很有帮助，让我对自己的心理状态有了更深的认识。",
-            6: "数据统计功能很棒，可以看到自己梦境的变化趋势，很有科学感！",
-            7: "终于有一个专业的梦境记录工具了，比纸质日记方便太多！",
-            8: "梦境解析的准确度让我惊讶，感觉像有一个专业的心理学家在身边。",
+            1: "AI 解读条理清晰，帮我把梦里的情绪和线索整理得更明白。",
+            2: "记录流程很顺畅，回看梦境像翻一份私人档案，越用越有感觉。",
+            3: "最喜欢周报功能，可以看到自己情绪与睡眠的变化趋势。",
+            4: "梦境符号词典很实用，很多反复出现的元素终于能理解了。",
+            5: "社区里的互动很温和，能听到不同角度的解读与共鸣。",
+            6: "AI 梦境图像功能挺惊喜，文字一下子就有画面感了。",
+            7: "统计面板做得很细，帮我发现了重复主题和触发场景。",
+            8: "整体体验很高级，记录、分析、回看形成了完整闭环。",
           },
         },
       },
       footer: {
         tagline: "记录和探索你的梦境世界",
         sections: {
-          product: "产品",
+          product: "Dream Log",
           resources: "资源",
           legal: "法律",
         },
         items: {
-          features: "功能特性",
-          statistics: "数据统计",
-          about: "关于我们",
-          docs: "使用文档",
-          blog: "博客",
-          help: "帮助中心",
+          about: "关于 Dream Log",
+          contact: "联系我们",
           terms: "服务条款",
           privacy: "隐私政策",
         },
+      },
+      marketingPages: {
+        about: {
+          title: "关于 Dream Log",
+          description: "了解 Dream Log 的产品定位、核心能力与团队价值观。",
+          intro: "Dream Log 是一个 AI 梦境记录与解析产品。我们希望把“记录梦境”这件事做得更轻松、更可持续：既能快速写下梦境，也能在长期使用中看到自己的情绪与主题变化。",
+          originTitle: "我们的出发点",
+          originBody: "很多人偶尔会记梦，但难以形成稳定习惯，也很难从零散内容里获得有价值的观察。我们想做的是一个长期可用的梦境工作台：帮助你保留细节、建立上下文，并更容易回看。",
+          capabilityTitle: "Dream Log 的核心能力",
+          capabilities: {
+            quick: "快速记录：以低门槛方式保存梦境内容、情绪与关键线索。",
+            ai: "AI 辅助解读：提供结构化解析，帮助你从不同角度理解梦境。",
+            tracking: "持续追踪：基于时间与主题回看，发现重复模式与变化趋势。",
+            community: "社区交流：在合适的场景下分享体验，获得更多视角与反馈。"
+          },
+          principleTitle: "我们的产品原则",
+          principles: {
+            boundary: "清晰边界：解析内容用于参考与自我反思，不替代专业医疗意见。",
+            user: "用户优先：优先保证记录流程顺畅、信息表达清晰、使用成本可控。",
+            iterate: "持续迭代：根据真实使用反馈不断优化体验与分析质量。"
+          }
+        },
+        contact: {
+          title: "联系我们",
+          description: "Dream Log 联系方式、反馈渠道与处理说明。",
+          intro: "欢迎通过邮件与 Dream Log 团队沟通。无论是产品建议、功能异常、内容投诉，还是账号与数据相关请求，我们都会认真处理。",
+          officialEmail: "官方联系邮箱",
+          emailHint: "建议使用你注册 Dream Log 的邮箱发送，以便我们更快定位问题。",
+          supportTitle: "我们支持的事项",
+          supportItems: {
+            bug: "功能问题与错误反馈",
+            suggestion: "产品建议与体验改进",
+            complaint: "社区内容投诉与申诉",
+            data: "账号、隐私与数据相关请求"
+          },
+          includeTitle: "建议邮件包含",
+          includeItems: {
+            type: "问题类型与简要标题",
+            detail: "发生时间、页面路径、复现步骤",
+            context: "账号邮箱、截图或录屏（如有）",
+            expected: "你的期望处理结果"
+          },
+          processTitle: "处理说明",
+          processBody: "我们通常会在 2-5 个工作日内回复。涉及安全、侵权、违法违规内容的请求会优先处理。如需进一步身份核验，我们会在回复中说明所需信息。"
+        },
+        terms: {
+          title: "服务条款",
+          description: "Dream Log 服务条款与使用协议。",
+          updatedAt: "最近更新：2026-03-09",
+          s1Title: "1. 条款适用与服务说明",
+          s1Body: "欢迎使用 Dream Log。本平台提供梦境记录、内容整理、AI 辅助解析及相关社区互动能力，主要用于个人记录、娱乐体验与自我反思。你访问或使用本服务，即表示已阅读并同意遵守本条款。",
+          s2Title: "2. 账号与使用责任",
+          s2Items: {
+            a: "你应保证注册信息真实、准确，并妥善保管账号及登录凭证。",
+            b: "你对账号下发生的操作与内容发布行为承担相应责任。",
+            c: "若发现账号异常、疑似被盗用或安全风险，请及时联系我们。"
+          },
+          s3Title: "3. 用户内容与行为规范",
+          s3Items: {
+            a: "你发布或上传的内容不得违反法律法规，不得侵犯他人合法权益。",
+            b: "不得发布骚扰、仇恨、暴力、色情、违法交易或其他不当信息。",
+            c: "不得通过技术手段干扰、攻击、滥用或绕过平台安全与风控机制。"
+          },
+          s4Title: "4. AI 解析与免责声明",
+          s4Body: "AI 解析结果基于算法自动生成，仅供参考，不构成医疗建议、心理诊断、心理治疗或其他专业意见。Dream Log 不对解析结果的准确性、完整性、时效性或适用性作出保证。你应结合自身情况独立判断，并在必要时寻求专业人士帮助。",
+          s5Title: "5. 知识产权与使用许可",
+          s5Body: "你对依法享有权利的原创内容保留相应权利。为实现服务功能与安全运营，你授予我们在服务范围内对相关内容进行存储、处理、展示与必要审核的非独占许可。平台界面、程序代码与相关标识受知识产权法律保护。",
+          s6Title: "6. 服务变更、中断与终止",
+          s6Body: "我们可能基于产品升级、合规要求或安全维护对服务进行调整、限制或中断。对于违反本条款或相关规则的行为，我们有权采取内容处理、功能限制、暂停或终止服务等措施。",
+          s7Title: "7. 责任限制",
+          s7Body: "在适用法律允许范围内，Dream Log 对因使用或无法使用服务产生的间接损失、附带损失、数据丢失或预期收益损失，不承担责任。",
+          s8Title: "8. 条款更新与联系",
+          s8Body: "我们可能根据法律法规、业务发展与安全需要更新本条款，并通过站内页面公示。若你对本条款有疑问，可联系："
+        },
+        privacy: {
+          title: "隐私政策",
+          description: "Dream Log 个人信息处理规则与隐私说明。",
+          updatedAt: "最近更新：2026-03-09",
+          s1Title: "1. 我们处理哪些信息",
+          s1Intro: "为提供服务与保障安全，我们可能处理以下信息：",
+          s1Items: {
+            account: "账号信息：邮箱、账户标识、登录凭证相关信息。",
+            content: "内容信息：你主动输入的梦境文本、互动内容与反馈信息。",
+            logs: "设备与日志信息：访问时间、页面路径、设备与浏览器信息、IP、操作日志。"
+          },
+          s2Title: "2. 我们为何使用这些信息",
+          s2Items: {
+            core: "实现账号登录、梦境记录、AI 解析、社区互动等核心功能。",
+            security: "进行安全风控、故障排查、性能优化与服务改进。",
+            compliance: "处理投诉、争议和符合法律法规要求的合规事项。"
+          },
+          s3Title: "3. 梦境内容与敏感信息提醒",
+          s3Body: "梦境内容可能涉及情绪、健康暗示或其他敏感信息。请你谨慎输入与服务无关的个人身份信息。我们不会将你的梦境内容对外出售，也不会在无合法依据的情况下向无关第三方披露。",
+          s4Title: "4. 信息共享与披露",
+          s4Body: "我们仅在以下场景共享必要信息：为实现服务所必需的技术支持、法律法规要求或应有权机关依法请求。在共享前后，我们会尽量采取最小必要与安全保护措施。",
+          s5Title: "5. 信息存储与保留期限",
+          s5Body: "我们仅在实现本政策目的所需期限内保留个人信息。超过必要期限后，将按法律要求删除或匿名化处理。",
+          s6Title: "6. Cookie 与本地存储",
+          s6Body: "为维持登录状态、保障基本功能并提升服务稳定性，我们可能使用 Cookie、本地存储与日志技术。相关信息将用于身份识别、安全审计与体验优化。",
+          s7Title: "7. 你的权利",
+          s7Body: "在适用法律规定范围内，你可申请访问、更正、删除个人信息或注销账户。如需行使上述权利，请通过联系邮箱提交请求，我们将在合理期限内处理并回复。",
+          s8Title: "8. 未成年人说明",
+          s8Body: "若你是未成年人，请在监护人指导下使用本服务。监护人可与我们联系，了解相关信息处理情况。",
+          s9Title: "9. 政策更新与联系",
+          s9Body: "我们可能根据法律法规与业务变化更新本政策，并通过站内页面公示。若你对本政策有疑问，可联系："
+        }
       },
       dreams: {
         new: {
@@ -526,6 +729,10 @@ const resources = {
           seekingInterpretation: "寻求解梦",
           seekingInterpretationTooltip: "开启后，你的梦境将出现在「解梦求助」频道，吸引更多人为你解读",
           publicOptionsTitle: "公开发布选项",
+          shareToCommunity: "分享到社群",
+          shareToCommunitySelectTitle: "选择要分享到的社群",
+          shareToCommunityNoOptions: "暂无可分享的社群",
+          shareToCommunityPlaceholder: "请选择社群",
         },
         list: {
           title: "我的梦境",
@@ -920,6 +1127,39 @@ const resources = {
             phenomenaDesc: "解密重复梦、梦中梦、虚假醒来与睡眠瘫痪等奇特梦境体验",
           },
         },
+        symbolsPage: {
+          backLink: "梦境探索",
+          title: "梦境符号词典",
+          subtitle: "从梦中出现的符号入手，理解可能与你相关的含义，更懂自己的潜意识",
+          searchPlaceholder: "输入梦中出现的词，如 蛇、坠落、考试…",
+          all: "全部",
+          categories: {
+            "场景": "场景",
+            "动物": "动物",
+            "人物": "人物",
+            "身体": "身体",
+            "物体": "物体",
+            "行为": "行为",
+            "自然": "自然",
+            "自然现象": "自然",
+            "地点": "地点",
+            "情绪": "情绪",
+          },
+          emptySearch: "没有找到与「{{query}}」相关的符号，试试其他词或切换分类",
+          emptyDefault: "暂无符号内容，请稍后再来",
+          loadMore: "加载更多…",
+        },
+        symbolDetail: {
+          notFound: "找不到该符号",
+          backToDictionary: "返回符号词典",
+          dictionaryTitle: "符号词典",
+          relatedToYou: "这可能与你有关",
+          commonScenarios: "常见梦境场景",
+          askYourself: "你可以问问自己",
+          emotionAssociations: "情绪关联",
+          whyDreamThis: "为什么会梦到这个",
+          relatedSymbols: "相关符号",
+        },
       },
       community: {
         feed: {
@@ -929,6 +1169,130 @@ const resources = {
           sortForYou: "为你推荐",
           forYouDesc: "根据你的梦境偏好，为你智能推荐",
           loginRequired: "登录后查看",
+          time: {
+            justNow: "刚刚",
+            minutesAgo: "{{count}}分钟前",
+            hoursAgo: "{{count}}小时前",
+            daysAgo: "{{count}}天前",
+            monthsAgo: "{{count}}个月前",
+            yearsAgo: "{{count}}年前",
+          },
+        },
+        dreamDetail: {
+          backToCommunity: "コミュニティに戻る",
+          emptyState: "夢を読み込み中、またはこの夢は存在しません。",
+          actions: {
+            resonance: "共鳴",
+            comments: "コメント",
+            interpretations: "解釈",
+            share: "シェア",
+          },
+        },
+        report: {
+          title: "{{target}}を報告",
+          target: {
+            dream: "夢",
+            comment: "コメント",
+          },
+          trigger: "報告",
+          reasonLabel: "報告理由",
+          reasons: {
+            spam: "スパム・宣伝",
+            harassment: "嫌がらせ・いじめ",
+            hateSpeech: "ヘイトスピーチ",
+            misinformation: "虚偽情報",
+            inappropriate: "不適切な内容",
+            other: "その他の理由",
+          },
+          descriptionLabel: "補足説明（任意）",
+          descriptionPlaceholder: "具体的な問題点を説明してください...",
+          selectReasonError: "報告理由を選択してください",
+          submit: "報告を送信",
+          submitSuccess: "報告を送信しました。できるだけ早く確認します。",
+          submitFailed: "報告の送信に失敗しました。しばらくしてからお試しください。",
+        },
+        comments: {
+          tabs: {
+            interpretations: "解釈",
+            comments: "コメント",
+          },
+          emptyInterpretations: "まだ誰もこの夢を解釈していません。あなたのインスピレーションを共有してみましょう。",
+          emptyComments: "まだコメントはありません。感想や返信を書いてみましょう。",
+        },
+        dreamDetail: {
+          backToCommunity: "返回社区",
+          emptyState: "梦境加载中，或该梦境不存在",
+          actions: {
+            resonance: "共鸣",
+            comments: "评论",
+            interpretations: "解读",
+            share: "分享",
+          },
+        },
+        report: {
+          title: "举报{{target}}",
+          target: {
+            dream: "梦境",
+            comment: "评论",
+          },
+          trigger: "举报",
+          reasonLabel: "举报原因",
+          reasons: {
+            spam: "垃圾内容",
+            harassment: "骚扰或欺凌",
+            hateSpeech: "仇恨言论",
+            misinformation: "虚假信息",
+            inappropriate: "不适当内容",
+            other: "其他原因",
+          },
+          descriptionLabel: "补充说明（可选）",
+          descriptionPlaceholder: "请描述具体问题...",
+          selectReasonError: "请选择举报原因",
+          submit: "提交举报",
+          submitSuccess: "举报已提交，我们会尽快处理",
+          submitFailed: "举报提交失败，请稍后重试",
+        },
+        comments: {
+          tabs: {
+            interpretations: "解读",
+            comments: "评论",
+          },
+          emptyInterpretations: "还没有人解读这个梦境，期待你的灵感与联想",
+          emptyComments: "还没有评论，欢迎说说你的想法或回复",
+          placeholder: {
+            interpretation: "分享你对这个梦境的解读...",
+            comment: "写下你的想法...",
+          },
+          resizeHint: "拖曳调整高度",
+          validation: {
+            empty: "请输入内容",
+          },
+          submit: "发布",
+          submitting: "发布中...",
+          submitFailed: "发布失败，请稍后重试",
+          reply: "回复",
+          replyCount: "{{count}} 条回复",
+          originalPoster: "原始发帖人",
+          deletedUser: "已删除用户",
+          deletedComment: "用户已删除评论",
+          deleteFailed: "删除失败",
+          adoptAction: "采纳解读",
+          adoptSuccess: "已采纳解读 ✨",
+          badges: {
+            interpretation: "解读",
+            adopted: "已采纳",
+          },
+          deleteDialog: {
+            title: "删除评论？",
+            description: "确定要删除你的评论吗？此操作不可撤销。",
+          },
+          a11y: {
+            expandThread: "展开回复线程",
+            collapseThread: "折叠回复线程",
+            upvote: "赞同",
+            downvote: "反对",
+            moreActions: "更多操作",
+          },
         },
         featured: {
           badge: "精选梦境",
@@ -980,6 +1344,82 @@ const resources = {
           sendBtn: "发送",
           emptyMessages: "还没有消息，来打个招呼吧！",
         },
+        home: {
+          channels: {
+            plaza: {
+              title: "梦境广场",
+              desc: "探索所有公开的梦境",
+            },
+            roundtable: {
+              title: "解梦求助",
+              desc: "寻求专业的梦境解读",
+            },
+            greenhouse: {
+              title: "梦境社群",
+              desc: "与梦友交流互动",
+            },
+            museum: {
+              title: "精选梦境",
+              desc: "阅读精选的优质梦境",
+            },
+          },
+          sort: {
+            latest: "最新",
+            resonating: "最热",
+            foryou: "为你推荐",
+          },
+          trending: {
+            title: "社区动态",
+            todayDreams: "今日新增梦境",
+            todayInterpretations: "今日解梦回复",
+            activeUsers: "24h 活跃用户",
+          },
+          hotTags: {
+            title: "热门标签",
+            subtitle: "",
+            empty: "暂无热门标签",
+            cta: "去发布第一个梦境",
+            searchTitle: "搜索 #{{tag}}",
+          },
+          topInterpreters: {
+            title: "活跃解梦者",
+            empty: "暂无活跃解梦者",
+            cta: "去发布第一个梦境",
+            rookie: "新手引导人",
+            recommended: "推荐",
+          },
+          risingInterpreters: {
+            title: "新星解梦者",
+            subtitle: "",
+            empty: "暂无新星解梦者",
+            cta: "去圆桌频道参与解梦",
+          },
+          avatars: {
+            user: "用户头像",
+          },
+          anonymous: "匿名",
+          level: "Lv{{level}}",
+          loginDialog: {
+            title: "登录后使用此功能",
+            description: "该功能需要登录才能使用，去登录后即可查看关注的人和个性化推荐。",
+            action: "去登录",
+          },
+          empty: {
+            title: "这里还很安静",
+            plaza: "还没有人分享梦境，成为第一个记录者吧！",
+            roundtable: "暂时没有人寻求解梦，去广场看看其他梦境？",
+            greenhouse: "社群还在沉睡中，快来唤醒它！",
+            museum: "精选内容正在筹备中，敬请期待...",
+            seekHelp: "✨ 寻求解梦",
+            recordDream: "✨ 记录我的梦境",
+          },
+          loading: "加载中...",
+          loadMoreDreams: "加载更多梦境",
+          loadMore: "加载更多",
+          errors: {
+            feedLoadFailed: "加载失败，请稍后重试",
+          },
+        },
         search: {
           placeholder: "搜索梦境、用户...",
           scope: "搜索范围",
@@ -994,6 +1434,17 @@ const resources = {
           sortRelevant: "相关性",
           sortLatest: "最新",
           sortHot: "最热",
+          tabs: {
+            all: "全部",
+            dreams: "梦境",
+            users: "用户",
+            tags: "标签",
+          },
+          sort: {
+            relevant: "相关性",
+            latest: "最新",
+            hot: "最热",
+          },
           filterEmotion: "情绪筛选",
           noResults: "没有找到相关内容",
           noResultsDesc: "试试其他关键词，或浏览热门标签",
@@ -1005,6 +1456,92 @@ const resources = {
           usersResult: "用户结果",
           viewMore: "查看更多",
           followers: "粉丝",
+          suggestions: "建议",
+          clear: "清除",
+          recent: "最近",
+          clearAll: "清空",
+          noRecent: "暂无最近搜索",
+          removeRecent: "删除最近搜索",
+          hotKeywords: {
+            title: "热门搜索",
+            lucid: "清醒梦",
+            nightmare: "噩梦",
+            flying: "飞行",
+            chasing: "追逐",
+            lost: "迷失",
+            universe: "宇宙",
+          },
+          searchFor: "搜索「{{keyword}}」",
+          errors: {
+            failed: "搜索失败，请稍后重试",
+          },
+          empty: {
+            dreams: "没有找到「{{keyword}}」的相关梦境",
+            users: "没有找到「{{keyword}}」的相关用户",
+            tags: "没有找到「{{keyword}}」的相关标签",
+            all: "没有找到「{{keyword}}」的相关内容",
+            hint: "换个关键词试试",
+          },
+        },
+        greenhouse: {
+          shell: {
+            backToCommunity: "返回社区",
+            title: "梦境社群",
+            subtitle: "在同频社群中讨论梦境、获得共鸣",
+            navTitle: "社群导航",
+            expandSidebar: "展开导航",
+            collapseSidebar: "折叠导航",
+            searchPlaceholder: "搜索社群...",
+            createCommunity: "创建社群",
+            joinedSection: "我加入的",
+            emptyJoined: "暂无加入社群",
+            recentSection: "最近访问",
+            emptyRecent: "暂无最近访问",
+          },
+          overview: {
+            empty: "暂无社群信息",
+            officialBadge: "官方",
+            members: "成员",
+            posts: "梦境数",
+            joined: "已加入",
+            join: "加入",
+            createPost: "创建帖子",
+            createdAt: "创建于 {{date}}",
+            public: "公开",
+          },
+          common: {
+            joined: "已加入",
+            join: "加入",
+            members: "成员",
+            dreams: "梦境",
+          },
+          list: {
+            title: "社群列表",
+            subtitle: "选择加入一个你感兴趣的主题社群",
+            officialBadge: "官方社群",
+          },
+          official: {
+            "lucid-dreaming": {
+              name: "清醒梦实验室",
+              description: "探索清醒梦的奥秘，分享清醒梦技巧与体验",
+            },
+            "nightmare-support": {
+              name: "噩梦互助组",
+              description: "一起面对噩梦，互相支持与理解",
+            },
+            "serial-dreams": {
+              name: "连载梦剧场",
+              description: "分享有连续剧情的系列梦境故事",
+            },
+            "fun-dreams-share": {
+              name: "有趣梦境分享会",
+              description: "分享那些离谱、搞笑、不可思议的梦，轻松聊梦境名场面",
+            },
+            "parallel-world-dreams": {
+              name: "平行世界梦境",
+              description: "有没有梦到另一个世界或另一个人生？一起记录与讨论平行宇宙感梦境",
+            },
+          },
         },
       },
     },
@@ -1087,6 +1624,61 @@ const resources = {
         exploration: "Exploration",
         community: "Community",
         recordDream: "Record Dream",
+      },
+      notifications: {
+        title: "Notifications",
+        tooltip: "Notifications",
+        tooltipConnected: "Notifications (live)",
+        statusLive: "Live",
+        statusOffline: "Offline",
+        viewAll: "View all",
+        markAllRead: "Mark all read",
+        emptyTitle: "No notifications",
+        emptyDescription: "Enable Insights to get dream analysis notifications.",
+        loadFailed: "Failed to load notifications",
+        deleteSuccess: "Deleted",
+        deleteFailed: "Delete failed",
+        markAllReadSuccess: "All marked as read",
+        markAllReadFailed: "Action failed",
+        monthlyReportGenerated: "{{month}}/{{year}} monthly report is ready",
+        weeklyReportGenerated: "Weekly report is ready",
+        annualReportGenerated: "{{year}} annual report is ready",
+        sleepQualityAnalysisGenerated: "Sleep quality analysis is ready",
+        emotionHealthAnalysisGenerated: "Emotional health analysis is ready",
+        themePatternAnalysisGenerated: "Theme pattern analysis is ready",
+        sentYouDm: "{{name}} sent you a private message",
+      },
+      dm: {
+        loginRequired: {
+          description: "Please sign in to view private messages.",
+          loginButton: "Sign in",
+        },
+        header: {
+          backToCommunity: "Back to Community",
+          title: "Messages",
+        },
+        knockDialog: {
+          title: "Send a message",
+          placeholder: "Write a message; chat unlocks after they reply.",
+          cancel: "Cancel",
+          send: "Send",
+          sending: "Sending...",
+        },
+        empty: {
+          title: "No messages yet",
+          description: "Start a conversation from a dream post on the community feed.",
+          button: "Go to Community",
+        },
+        list: {
+          unknownUser: "Unknown",
+          youKnocked: "You sent a knock message",
+          receivedKnock: "Received a knock message",
+          sourceDreamPrefix: "From dream · ",
+        },
+        errors: {
+          loadConversationsFailed: "Failed to load conversations",
+          sendFailed: "Send failed, please try again.",
+        },
       },
       auth: {
         // General
@@ -1196,6 +1788,64 @@ const resources = {
           profile: "Profile",
           account: "Account Security",
           insights: "Insights",
+          privacy: "Privacy",
+        },
+        logout: {
+          button: "Log out",
+          title: "Log out of your account?",
+          description: "You’ll need to sign in again to access all features.",
+          confirm: "Confirm logout",
+          error: "Logout failed. Please try again later.",
+        },
+        privacy: {
+          title: "Privacy",
+          subtitle: "Control who can view your community-related assets.",
+          loadError: "Failed to load privacy settings",
+          saveSuccess: "Privacy settings saved",
+          saveError: "Save failed. Please try again later.",
+          items: {
+            bookmarks: "My bookmarked dreams",
+            createdCommunities: "Communities I created",
+            joinedCommunities: "Communities I joined",
+          },
+          visibility: {
+            private: "Only me",
+            friends: "Friends only",
+            public: "Public",
+          },
+          common: {
+            joined: "Joined",
+            join: "Join",
+            members: "Members",
+            dreams: "Dreams",
+          },
+          list: {
+            title: "Communities",
+            subtitle: "Choose a themed community to join",
+            officialBadge: "Official community",
+          },
+          official: {
+            "lucid-dreaming": {
+              name: "Lucid Dream Lab",
+              description: "Explore the secrets of lucid dreams and share techniques and experiences.",
+            },
+            "nightmare-support": {
+              name: "Nightmare Support Group",
+              description: "Face nightmares together with mutual support, understanding, and care.",
+            },
+            "serial-dreams": {
+              name: "Serial Dream Theater",
+              description: "Share serialized dream stories with continuing plots and characters.",
+            },
+            "fun-dreams-share": {
+              name: "Fun Dream Gathering",
+              description: "Share absurd, funny, and unbelievable dreams and enjoy lighthearted dream moments.",
+            },
+            "parallel-world-dreams": {
+              name: "Parallel World Dreams",
+              description: "Dreamed of another world or another life? Record and discuss parallel‑universe dreams together.",
+            },
+          },
         },
         profile: {
           title: "Profile",
@@ -1335,21 +1985,42 @@ const resources = {
             ai: {
               title: "AI Dream Analysis",
               description:
-                "Use advanced AI to analyze dream content and uncover hidden patterns",
+                "Analyze dream content, emotions, and symbols with structured AI interpretations",
             },
             calendar: {
               title: "Dream Calendar",
               description:
-                "Track your dreams on a timeline and connect them with life events",
+                "Review every entry on a timeline to connect dreams with real-life moments",
             },
             stats: {
               title: "Insights & Stats",
-              description: "Visualize dream data to understand your sleep patterns",
-            },
-            tips: {
-              title: "Smart Suggestions",
               description:
-                "Get personalized insights and recommendations based on your history",
+                "Quantify dream frequency, themes, and emotions to reveal sleep trends",
+            },
+            reports: {
+              title: "Insight Reports",
+              description:
+                "Generate weekly, monthly, and annual reports with long-term trend guidance",
+            },
+            symbols: {
+              title: "Symbol Dictionary",
+              description:
+                "Understand recurring dream symbols and their psychological interpretations",
+            },
+            images: {
+              title: "AI Dream Imagery",
+              description:
+                "Transform dream text into surreal visuals for clearer recall and sharing",
+            },
+            community: {
+              title: "Dream Community",
+              description:
+                "Join public feeds and theme groups to share dreams and gather resonance",
+            },
+            chat: {
+              title: "DMs & Chat",
+              description:
+                "Connect through private messages and real-time dream chatrooms",
             },
           },
         },
@@ -1361,34 +2032,136 @@ const resources = {
             satisfaction: "Satisfaction",
           },
           reviews: {
-            1: "Dream Log helps me understand my dreams better. The AI analysis is spot on!",
-            2: "Beautiful UI. Dream journaling is fun now — highly recommended!",
-            3: "I never thought dreams could be analyzed like this. I look forward to it every day.",
-            4: "As someone who has weird dreams, this app gives me lots of interesting explanations!",
-            5: "The AI assistant's suggestions are helpful. I learned more about my mental state.",
-            6: "Great stats feature — I can see trends in my dreams. Feels very scientific!",
-            7: "Finally a professional dream journal. Much more convenient than paper notes.",
-            8: "The accuracy surprised me. It feels like having a psychologist by my side.",
+            1: "The AI interpretation is structured and helps me see dream emotions more clearly.",
+            2: "The journaling flow is smooth. Reviewing dreams feels like reading a private archive.",
+            3: "Weekly reports are my favorite — I can track sleep and mood trends over time.",
+            4: "The symbol dictionary is practical. It helped me decode recurring dream elements.",
+            5: "Community feedback feels thoughtful and supportive without being overwhelming.",
+            6: "AI dream imagery adds a vivid visual layer to my text entries.",
+            7: "The analytics panel surfaces recurring themes and triggers I hadn't noticed.",
+            8: "The overall experience feels polished — capture, analyze, and review flow together.",
           },
         },
       },
       footer: {
         tagline: "Record and explore your dream world",
         sections: {
-          product: "Product",
+          product: "Dream Log",
           resources: "Resources",
           legal: "Legal",
         },
         items: {
-          features: "Features",
-          statistics: "Statistics",
-          about: "About",
-          docs: "Docs",
-          blog: "Blog",
-          help: "Help Center",
+          about: "About Dream Log",
+          contact: "Contact Us",
           terms: "Terms",
           privacy: "Privacy",
         },
+      },
+      marketingPages: {
+        about: {
+          title: "About Dream Log",
+          description: "Learn about Dream Log's positioning, core capabilities and product principles.",
+          intro: "Dream Log is an AI-powered dream journaling and interpretation product. We make dream recording easier and more sustainable, so you can capture dreams quickly and observe long-term emotional and thematic patterns.",
+          originTitle: "Why we built Dream Log",
+          originBody: "Many people occasionally record dreams but struggle to keep the habit or extract useful insights from scattered notes. We aim to provide a long-term dream workspace that helps preserve details, build context, and support meaningful review.",
+          capabilityTitle: "Core capabilities",
+          capabilities: {
+            quick: "Quick capture: save dream content, emotions, and key signals with low friction.",
+            ai: "AI-assisted interpretation: structured insights from multiple perspectives.",
+            tracking: "Long-term tracking: review by time and theme to discover recurring patterns.",
+            community: "Community sharing: exchange perspectives and feedback in appropriate contexts."
+          },
+          principleTitle: "Product principles",
+          principles: {
+            boundary: "Clear boundaries: interpretations are for reference and reflection, not medical advice.",
+            user: "User first: prioritize smooth capture flow, clear information, and low usage cost.",
+            iterate: "Continuous improvement: improve experience and analysis quality with real feedback."
+          }
+        },
+        contact: {
+          title: "Contact Us",
+          description: "Contact channels and support process for Dream Log.",
+          intro: "You're welcome to reach out to the Dream Log team by email. We carefully handle product feedback, bug reports, content complaints, and account or data-related requests.",
+          officialEmail: "Official contact email",
+          emailHint: "Please use your registered Dream Log email when possible for faster support.",
+          supportTitle: "What we can help with",
+          supportItems: {
+            bug: "Feature issues and bug reports",
+            suggestion: "Product suggestions and UX improvements",
+            complaint: "Community content complaints and appeals",
+            data: "Account, privacy, and data-related requests"
+          },
+          includeTitle: "Include in your email",
+          includeItems: {
+            type: "Issue type and short title",
+            detail: "Time, page path, and reproduction steps",
+            context: "Account email, screenshots, or recordings (if any)",
+            expected: "Your expected resolution"
+          },
+          processTitle: "Response process",
+          processBody: "We usually respond within 2-5 business days. Security, infringement, and illegal-content requests are prioritized. If identity verification is needed, we'll explain the required information in our reply."
+        },
+        terms: {
+          title: "Terms",
+          description: "Dream Log service terms and usage agreement.",
+          updatedAt: "Last updated: 2026-03-09",
+          s1Title: "1. Scope and service description",
+          s1Body: "By accessing or using Dream Log, you agree to these terms. Dream Log provides dream journaling, content organization, AI-assisted interpretation, and related community features for personal recording, entertainment, and self-reflection.",
+          s2Title: "2. Account and responsibilities",
+          s2Items: {
+            a: "You must provide accurate registration information and keep your credentials secure.",
+            b: "You are responsible for activities and content posted under your account.",
+            c: "If you detect account abuse or security risks, contact us promptly."
+          },
+          s3Title: "3. User content and conduct",
+          s3Items: {
+            a: "Your content must comply with laws and must not infringe others' rights.",
+            b: "Do not post harassment, hate, violence, pornography, illegal trading, or other inappropriate content.",
+            c: "Do not attack, abuse, interfere with, or bypass platform security mechanisms."
+          },
+          s4Title: "4. AI interpretation disclaimer",
+          s4Body: "AI-generated interpretations are for reference only and do not constitute medical or professional advice. Dream Log does not guarantee accuracy, completeness, timeliness, or fitness for a particular purpose.",
+          s5Title: "5. Intellectual property and license",
+          s5Body: "You retain rights to content you legally own. To provide and secure the service, you grant us a non-exclusive license to store, process, display, and review relevant content within service scope.",
+          s6Title: "6. Service changes and termination",
+          s6Body: "We may adjust, limit, interrupt, or terminate parts of the service for product updates, compliance, or security reasons. Violations may result in content handling, feature restrictions, suspension, or termination.",
+          s7Title: "7. Limitation of liability",
+          s7Body: "To the extent permitted by law, Dream Log is not liable for indirect, incidental, or consequential losses, including data loss or expected profit loss.",
+          s8Title: "8. Updates and contact",
+          s8Body: "We may update these terms and publish updates on-site. For questions, contact:"
+        },
+        privacy: {
+          title: "Privacy",
+          description: "How Dream Log processes personal information.",
+          updatedAt: "Last updated: 2026-03-09",
+          s1Title: "1. Information we process",
+          s1Intro: "To provide and secure the service, we may process:",
+          s1Items: {
+            account: "Account data: email, account identifiers, and login-related data.",
+            content: "Content data: dream text, interactions, and feedback you submit.",
+            logs: "Device and log data: timestamps, page paths, browser/device info, IP, and operation logs."
+          },
+          s2Title: "2. Why we use this information",
+          s2Items: {
+            core: "To provide core features such as login, dream recording, AI interpretation, and community features.",
+            security: "For security, risk control, troubleshooting, performance optimization, and service improvement.",
+            compliance: "To handle complaints, disputes, and legal compliance obligations."
+          },
+          s3Title: "3. Dream content and sensitive data notice",
+          s3Body: "Dream content may include emotional or other sensitive clues. Please avoid submitting unnecessary personal identity data. We do not sell your dream content to third parties.",
+          s4Title: "4. Sharing and disclosure",
+          s4Body: "We only share necessary data for essential technical support, legal requirements, or lawful requests from competent authorities, with minimum-necessary and security safeguards.",
+          s5Title: "5. Storage and retention",
+          s5Body: "We retain personal data only as needed for the purposes in this policy, then delete or anonymize it as required by law.",
+          s6Title: "6. Cookies and local storage",
+          s6Body: "We may use cookies, local storage, and logs to keep sessions, ensure basic functionality, and improve service stability.",
+          s7Title: "7. Your rights",
+          s7Body: "Subject to applicable law, you may request access, correction, deletion, or account cancellation by contacting us.",
+          s8Title: "8. Minors",
+          s8Body: "If you are a minor, please use the service under guardian guidance. Guardians may contact us regarding data processing.",
+          s9Title: "9. Policy updates and contact",
+          s9Body: "We may update this policy and publish updates on-site. For questions, contact:"
+        }
       },
       dreams: {
         new: {
@@ -1519,6 +2292,10 @@ const resources = {
           seekingInterpretation: "Seek Interpretation",
           seekingInterpretationTooltip: "Your dream will appear in the 'Interpretation Help' channel for others to analyze",
           publicOptionsTitle: "Public Post Options",
+          shareToCommunity: "Share to community",
+          shareToCommunitySelectTitle: "Select a community to share",
+          shareToCommunityNoOptions: "No communities available",
+          shareToCommunityPlaceholder: "Choose a community",
         },
         list: {
           title: "My Dreams",
@@ -1921,6 +2698,40 @@ const resources = {
               "Decode recurring dreams, dreams within dreams, false awakenings, and sleep paralysis",
           },
         },
+        symbolsPage: {
+          backLink: "Dream Exploration",
+          title: "Dream Symbol Dictionary",
+          subtitle:
+            "Start with symbols that appear in dreams, understand meanings that may relate to you, and know your subconscious better",
+          searchPlaceholder: "Enter words from your dreams, e.g. snake, falling, exam…",
+          all: "All",
+          categories: {
+            "场景": "Scenes",
+            "动物": "Animals",
+            "人物": "Characters",
+            "身体": "Body",
+            "物体": "Objects",
+            "行为": "Actions",
+            "自然": "Nature",
+            "自然现象": "Nature",
+            "地点": "Places",
+            "情绪": "Emotions",
+          },
+          emptySearch: "No symbols found for \"{{query}}\". Try other words or switch category",
+          emptyDefault: "No symbol content yet. Please check back later.",
+          loadMore: "Load more…",
+        },
+        symbolDetail: {
+          notFound: "Symbol not found",
+          backToDictionary: "Back to symbol dictionary",
+          dictionaryTitle: "Symbol Dictionary",
+          relatedToYou: "This may relate to you",
+          commonScenarios: "Common dream scenarios",
+          askYourself: "Questions to ask yourself",
+          emotionAssociations: "Emotion associations",
+          whyDreamThis: "Why you might dream this",
+          relatedSymbols: "Related symbols",
+        },
       },
       community: {
         feed: {
@@ -1930,6 +2741,89 @@ const resources = {
           sortForYou: "For You",
           forYouDesc: "Personalized recommendations based on your dream taste",
           loginRequired: "Sign in to view",
+          time: {
+            justNow: "Just now",
+            minutesAgo: "{{count}} minutes ago",
+            hoursAgo: "{{count}} hours ago",
+            daysAgo: "{{count}} days ago",
+            monthsAgo: "{{count}} months ago",
+            yearsAgo: "{{count}} years ago",
+          },
+        },
+        dreamDetail: {
+          backToCommunity: "Back to community",
+          emptyState: "The dream is loading or does not exist.",
+          actions: {
+            resonance: "Resonance",
+            comments: "Comments",
+            interpretations: "Interpretations",
+            share: "Share",
+          },
+        },
+        report: {
+          title: "Report {{target}}",
+          target: {
+            dream: "dream",
+            comment: "comment",
+          },
+          trigger: "Report",
+          reasonLabel: "Reason",
+          reasons: {
+            spam: "Spam or advertising",
+            harassment: "Harassment or bullying",
+            hateSpeech: "Hate speech",
+            misinformation: "Misinformation",
+            inappropriate: "Inappropriate content",
+            other: "Other reasons",
+          },
+          descriptionLabel: "Additional details (optional)",
+          descriptionPlaceholder: "Please describe the specific issue...",
+          selectReasonError: "Please select a report reason",
+          submit: "Submit report",
+          submitSuccess: "Report submitted, we'll review it as soon as possible.",
+          submitFailed: "Failed to submit report, please try again later.",
+        },
+        comments: {
+          tabs: {
+            interpretations: "Interpretations",
+            comments: "Comments",
+          },
+          emptyInterpretations: "No one has interpreted this dream yet. Be the first to share your insights.",
+          emptyComments: "No comments yet. Share your thoughts or reply to others.",
+          placeholder: {
+            interpretation: "Share your interpretation of this dream...",
+            comment: "Write down your thoughts...",
+          },
+          resizeHint: "Drag to adjust height",
+          validation: {
+            empty: "Please enter some content",
+          },
+          submit: "Post",
+          submitting: "Posting...",
+          submitFailed: "Failed to post, please try again later.",
+          reply: "Reply",
+          replyCount: "{{count}} replies",
+          originalPoster: "Original poster",
+          deletedUser: "Deleted user",
+          deletedComment: "This comment was deleted by the user",
+          deleteFailed: "Failed to delete comment",
+          adoptAction: "Adopt interpretation",
+          adoptSuccess: "Interpretation adopted ✨",
+          badges: {
+            interpretation: "Interpretation",
+            adopted: "Adopted",
+          },
+          deleteDialog: {
+            title: "Delete comment?",
+            description: "Are you sure you want to delete your comment? This action cannot be undone.",
+          },
+          a11y: {
+            expandThread: "Expand reply thread",
+            collapseThread: "Collapse reply thread",
+            upvote: "Upvote",
+            downvote: "Downvote",
+            moreActions: "More actions",
+          },
         },
         featured: {
           badge: "Featured Dream",
@@ -1981,6 +2875,83 @@ const resources = {
           sendBtn: "Send",
           emptyMessages: "No messages yet. Say hello!",
         },
+        home: {
+          channels: {
+            plaza: {
+              title: "Dream Plaza",
+              desc: "Explore all public dreams",
+            },
+            roundtable: {
+              title: "Interpretation Help",
+              desc: "Seek professional dream interpretations",
+            },
+            greenhouse: {
+              title: "Dream Communities",
+              desc: "Connect and interact with dream friends",
+            },
+            museum: {
+              title: "Featured Dreams",
+              desc: "Read curated high-quality dreams",
+            },
+          },
+          sort: {
+            latest: "Latest",
+            resonating: "Hot",
+            foryou: "For You",
+          },
+          trending: {
+            title: "Community Activity",
+            todayDreams: "New dreams today",
+            todayInterpretations: "Interpretation replies today",
+            activeUsers: "Active users (24h)",
+          },
+          hotTags: {
+            title: "Trending Tags",
+            subtitle: "",
+            empty: "No trending tags yet",
+            cta: "Post the first dream",
+            searchTitle: "Search #{{tag}}",
+          },
+          topInterpreters: {
+            title: "Top Interpreters",
+            empty: "No active interpreters yet",
+            cta: "Post the first dream",
+            rookie: "Onboarding guide",
+            recommended: "Recommended",
+          },
+          risingInterpreters: {
+            title: "Rising Interpreters",
+            subtitle: "",
+            empty: "No rising interpreters yet",
+            cta: "Join the roundtable channel to interpret dreams",
+          },
+          avatars: {
+            user: "User avatar",
+          },
+          anonymous: "Anonymous",
+          level: "Lv{{level}}",
+          loginDialog: {
+            title: "Sign in to use this feature",
+            description:
+              "You need to sign in to use this feature and see followed users and personalized recommendations.",
+            action: "Sign in",
+          },
+          empty: {
+            title: "It’s quiet here",
+            plaza: "No one has shared a dream yet. Be the first dream recorder!",
+            roundtable: "No one is asking for interpretations yet. Want to browse other dreams in the plaza?",
+            greenhouse: "Communities are still asleep. Come wake them up!",
+            museum: "Featured content is being prepared. Stay tuned...",
+            seekHelp: "✨ Ask for an interpretation",
+            recordDream: "✨ Record my dream",
+          },
+          loading: "Loading...",
+          loadMoreDreams: "Load more dreams",
+          loadMore: "Load more",
+          errors: {
+            feedLoadFailed: "Failed to load, please try again later",
+          },
+        },
         search: {
           placeholder: "Search dreams, users...",
           scope: "Search scope",
@@ -1995,6 +2966,17 @@ const resources = {
           sortRelevant: "Relevant",
           sortLatest: "Latest",
           sortHot: "Hot",
+          tabs: {
+            all: "All",
+            dreams: "Dreams",
+            users: "Users",
+            tags: "Tags",
+          },
+          sort: {
+            relevant: "Relevant",
+            latest: "Latest",
+            hot: "Hot",
+          },
           filterEmotion: "Emotion filter",
           noResults: "No results found",
           noResultsDesc: "Try different keywords or browse trending tags",
@@ -2006,6 +2988,70 @@ const resources = {
           usersResult: "Users",
           viewMore: "View more",
           followers: "followers",
+          suggestions: "Suggestions",
+          clear: "Clear",
+          recent: "Recent",
+          clearAll: "Clear all",
+          noRecent: "No recent searches",
+          removeRecent: "Remove from recent",
+          hotKeywords: {
+            title: "Popular searches",
+            lucid: "Lucid dreams",
+            nightmare: "Nightmares",
+            flying: "Flying",
+            chasing: "Chasing",
+            lost: "Lost",
+            universe: "Universe",
+          },
+          searchFor: "Search \"{{keyword}}\"",
+          errors: {
+            failed: "Search failed. Please try again later.",
+          },
+          empty: {
+            dreams: "No dreams found for \"{{keyword}}\"",
+            users: "No users found for \"{{keyword}}\"",
+            tags: "No tags found for \"{{keyword}}\"",
+            all: "No results found for \"{{keyword}}\"",
+            hint: "Try a different keyword",
+          },
+        },
+        greenhouse: {
+          shell: {
+            backToCommunity: "Back to community",
+            title: "Dream Communities",
+            subtitle: "Discuss dreams and find resonance in like-minded groups",
+            navTitle: "Community navigation",
+            expandSidebar: "Expand sidebar",
+            collapseSidebar: "Collapse sidebar",
+            searchPlaceholder: "Search communities...",
+            createCommunity: "Create community",
+            joinedSection: "Joined",
+            emptyJoined: "You haven’t joined any communities yet",
+            recentSection: "Recently visited",
+            emptyRecent: "No recent communities",
+          },
+          overview: {
+            empty: "No community information available",
+            officialBadge: "Official",
+            members: "Members",
+            posts: "Dream posts",
+            joined: "Joined",
+            join: "Join",
+            createPost: "Create post",
+            createdAt: "Created on {{date}}",
+            public: "Public",
+          },
+          common: {
+            joined: "Joined",
+            join: "Join",
+            members: "Members",
+            dreams: "Dreams",
+          },
+          list: {
+            title: "Communities",
+            subtitle: "Choose a themed community to join",
+            officialBadge: "Official community",
+          },
         },
       },
     },
@@ -2088,6 +3134,61 @@ const resources = {
         exploration: "探索",
         community: "夢のコミュニティ",
         recordDream: "夢を記録",
+      },
+      notifications: {
+        title: "通知",
+        tooltip: "通知",
+        tooltipConnected: "通知（リアルタイム）",
+        statusLive: "リアルタイム",
+        statusOffline: "オフライン",
+        viewAll: "すべて見る",
+        markAllRead: "すべて既読",
+        emptyTitle: "通知はありません",
+        emptyDescription: "インサイトを有効にすると夢の分析通知を受け取れます。",
+        loadFailed: "通知の読み込みに失敗しました",
+        deleteSuccess: "削除しました",
+        deleteFailed: "削除に失敗しました",
+        markAllReadSuccess: "すべて既読にしました",
+        markAllReadFailed: "操作に失敗しました",
+        monthlyReportGenerated: "{{year}}年{{month}}月のレポートが生成されました",
+        weeklyReportGenerated: "今週のレポートが生成されました",
+        annualReportGenerated: "{{year}}年の年次レポートが生成されました",
+        sleepQualityAnalysisGenerated: "睡眠品質分析が生成されました",
+        emotionHealthAnalysisGenerated: "感情ヘルス分析が生成されました",
+        themePatternAnalysisGenerated: "テーマパターン分析が生成されました",
+        sentYouDm: "{{name}} がダイレクトメッセージを送りました",
+      },
+      dm: {
+        loginRequired: {
+          description: "ダイレクトメッセージを見るにはログインしてください。",
+          loginButton: "ログイン",
+        },
+        header: {
+          backToCommunity: "コミュニティに戻る",
+          title: "メッセージ",
+        },
+        knockDialog: {
+          title: "メッセージを送る",
+          placeholder: "メッセージを書くと、返信後に会話できます。",
+          cancel: "キャンセル",
+          send: "送信",
+          sending: "送信中...",
+        },
+        empty: {
+          title: "メッセージはまだありません",
+          description: "コミュニティの夢の投稿から会話を始めましょう。",
+          button: "コミュニティへ",
+        },
+        list: {
+          unknownUser: "不明",
+          youKnocked: "ノックメッセージを送りました",
+          receivedKnock: "ノックメッセージを受信しました",
+          sourceDreamPrefix: "夢から · ",
+        },
+        errors: {
+          loadConversationsFailed: "会話の読み込みに失敗しました",
+          sendFailed: "送信に失敗しました。もう一度お試しください。",
+        },
       },
       auth: {
         // 一般
@@ -2197,6 +3298,42 @@ const resources = {
           profile: "プロフィール",
           account: "アカウントセキュリティ",
           insights: "インサイト",
+          privacy: "プライバシー設定",
+        },
+        logout: {
+          button: "ログアウト",
+          title: "ログアウトしますか？",
+          description: "ログアウト後は再度ログインが必要です。",
+          confirm: "ログアウトする",
+          error: "ログアウトに失敗しました。しばらくしてから再試行してください。",
+        },
+        privacy: {
+          title: "プライバシー設定",
+          subtitle: "コミュニティ関連の資産が他者に見える範囲を設定します。",
+          loadError: "プライバシー設定の読み込みに失敗しました",
+          saveSuccess: "プライバシー設定を保存しました",
+          saveError: "保存に失敗しました。しばらくしてから再試行してください。",
+          items: {
+            bookmarks: "お気に入りの夢",
+            createdCommunities: "作成したコミュニティ",
+            joinedCommunities: "参加中のコミュニティ",
+          },
+          visibility: {
+            private: "自分のみ",
+            friends: "友達のみ",
+            public: "公開",
+          },
+          common: {
+            joined: "参加中",
+            join: "参加する",
+            members: "メンバー",
+            dreams: "夢",
+          },
+          list: {
+            title: "コミュニティ一覧",
+            subtitle: "興味のあるテーマコミュニティに参加しましょう",
+            officialBadge: "公式コミュニティ",
+          },
         },
         profile: {
           title: "プロフィール",
@@ -2336,21 +3473,42 @@ const resources = {
             ai: {
               title: "AI夢解析",
               description:
-                "先進的なAIで夢の内容を分析し、隠れた意味とパターンを発見します",
+                "夢の内容・感情・象徴を多角的に分析し、構造化した解釈を提示します",
             },
             calendar: {
               title: "夢カレンダー",
               description:
-                "タイムラインで夢を追跡し、出来事との関連を見つけます",
+                "タイムラインで記録を振り返り、現実の出来事との関連を見つけます",
             },
             stats: {
               title: "データ分析",
-              description: "夢の統計を可視化し、睡眠パターンを理解します",
-            },
-            tips: {
-              title: "スマートヒント",
               description:
-                "履歴に基づいてパーソナライズされた洞察と提案を提供します",
+                "夢の頻度や感情分布を可視化し、睡眠と夢の傾向を把握します",
+            },
+            reports: {
+              title: "洞察レポート",
+              description:
+                "週報・月報・年次レビューで長期的な変化と示唆をまとめます",
+            },
+            symbols: {
+              title: "夢シンボル辞典",
+              description:
+                "頻出シンボルの心理的な意味を読み解き、潜在意識の手がかりを得ます",
+            },
+            images: {
+              title: "AI夢イメージ",
+              description:
+                "夢のテキストを超現実的なビジュアルに変換し、記憶と共有を支援します",
+            },
+            community: {
+              title: "夢コミュニティ",
+              description:
+                "広場やテーマ別グループで夢を共有し、共感と反応を得られます",
+            },
+            chat: {
+              title: "DM・チャット",
+              description:
+                "プライベートメッセージやチャットルームで夢友と交流できます",
             },
           },
         },
@@ -2362,34 +3520,136 @@ const resources = {
             satisfaction: "満足度",
           },
           reviews: {
-            1: "Dream Logのおかげで夢をより深く理解できました。AI解析が的確です！",
-            2: "UIが美しく、夢の記録が楽しくなりました。おすすめです！",
-            3: "夢をここまで分析できるとは思いませんでした。毎日結果を見るのが楽しみです。",
-            4: "変な夢をよく見る私にとって、とても面白い解釈が得られます！",
-            5: "AIアシスタントの提案が役立ち、自分の心理状態をより理解できました。",
-            6: "統計機能が素晴らしく、夢の傾向が見えて科学的です！",
-            7: "やっと本格的な夢の記録ツールが出ました。紙の日記より便利です。",
-            8: "解析の精度に驚きました。心理学者がそばにいるようです。",
+            1: "AIの解釈が整理されていて、夢の感情が掴みやすくなりました。",
+            2: "記録の流れがスムーズで、夢を読み返すのが楽しいです。",
+            3: "週次レポートで睡眠や気分の変化が見えるのが嬉しいです。",
+            4: "シンボル辞典が便利で、繰り返し登場する要素を理解できました。",
+            5: "コミュニティの反応が丁寧で、気軽に共感を得られます。",
+            6: "AI画像で夢がビジュアル化され、記憶がより鮮明になります。",
+            7: "分析パネルで繰り返しのテーマやきっかけに気づけました。",
+            8: "記録から分析、振り返りまで一貫した体験が心地良いです。",
           },
         },
       },
       footer: {
         tagline: "夢の世界を記録し、探索する",
         sections: {
-          product: "製品",
+          product: "Dream Log",
           resources: "リソース",
           legal: "法的",
         },
         items: {
-          features: "機能",
-          statistics: "統計",
-          about: "私たちについて",
-          docs: "ドキュメント",
-          blog: "ブログ",
-          help: "ヘルプ",
+          about: "Dream Log について",
+          contact: "お問い合わせ",
           terms: "利用規約",
-          privacy: "プライバシー",
+          privacy: "プライバシーポリシー",
         },
+      },
+      marketingPages: {
+        about: {
+          title: "Dream Log について",
+          description: "Dream Log のプロダクト方針、主要機能、価値観を紹介します。",
+          intro: "Dream Log は AI を活用した夢の記録・解釈プロダクトです。夢をより手軽に、継続しやすく記録できるようにし、長期的な感情やテーマの変化を振り返れる体験を目指しています。",
+          originTitle: "私たちが作る理由",
+          originBody: "夢を時々記録する人は多い一方で、習慣化や振り返りは簡単ではありません。Dream Log は、断片的な記録を長期的な気づきに変えるためのワークスペースとして設計されています。",
+          capabilityTitle: "主な機能",
+          capabilities: {
+            quick: "クイック記録：夢の内容・感情・手がかりを手間なく保存。",
+            ai: "AI 補助解釈：複数の観点から構造化された解釈を提供。",
+            tracking: "継続トラッキング：時間軸とテーマで振り返り、反復パターンを発見。",
+            community: "コミュニティ交流：適切な場で体験を共有し、視点を広げる。"
+          },
+          principleTitle: "プロダクト原則",
+          principles: {
+            boundary: "明確な境界：解釈は参考・内省目的であり、医療的助言の代替ではありません。",
+            user: "ユーザー優先：記録のしやすさ、情報のわかりやすさ、負担の小ささを重視。",
+            iterate: "継続改善：実際の利用フィードバックをもとに体験を改善。"
+          }
+        },
+        contact: {
+          title: "お問い合わせ",
+          description: "Dream Log へのお問い合わせ窓口と対応案内。",
+          intro: "Dream Log チームへのご連絡はメールで受け付けています。製品へのご意見、バグ報告、コンテンツ申告、アカウント・データ関連のご依頼に対応します。",
+          officialEmail: "公式連絡先メール",
+          emailHint: "可能であれば、Dream Log に登録したメールアドレスでご連絡ください。",
+          supportTitle: "対応可能な内容",
+          supportItems: {
+            bug: "機能不具合・バグ報告",
+            suggestion: "製品提案・体験改善のご意見",
+            complaint: "コミュニティ投稿の申告・異議申立て",
+            data: "アカウント・プライバシー・データ関連のご依頼"
+          },
+          includeTitle: "メールに含めていただきたい内容",
+          includeItems: {
+            type: "問い合わせ種別と要約タイトル",
+            detail: "発生時刻、ページ経路、再現手順",
+            context: "アカウントメール、スクリーンショット/録画（任意）",
+            expected: "希望する対応内容"
+          },
+          processTitle: "対応目安",
+          processBody: "通常 2〜5 営業日以内に返信します。セキュリティ・権利侵害・違法性に関する案件は優先的に対応します。必要に応じて本人確認情報をご案内します。"
+        },
+        terms: {
+          title: "利用規約",
+          description: "Dream Log の利用規約とサービス利用条件。",
+          updatedAt: "最終更新：2026-03-09",
+          s1Title: "1. 適用範囲とサービス内容",
+          s1Body: "Dream Log を利用することで、本規約に同意したものとみなされます。Dream Log は、夢の記録、内容整理、AI 補助解釈、および関連コミュニティ機能を提供します。",
+          s2Title: "2. アカウントと利用責任",
+          s2Items: {
+            a: "登録情報の正確性を保ち、認証情報を適切に管理してください。",
+            b: "アカウント上で行われた操作や投稿内容について責任を負います。",
+            c: "不正利用やセキュリティ上の懸念を発見した場合は速やかにご連絡ください。"
+          },
+          s3Title: "3. コンテンツと行為規範",
+          s3Items: {
+            a: "投稿内容は法令を遵守し、第三者の権利を侵害してはなりません。",
+            b: "嫌がらせ、憎悪、暴力、性的、違法取引その他不適切な内容の投稿は禁止します。",
+            c: "セキュリティ機構への攻撃・妨害・回避行為を禁止します。"
+          },
+          s4Title: "4. AI 解釈に関する免責",
+          s4Body: "AI の解釈結果は参考情報であり、医療・心理・法律等の専門的助言を構成しません。Dream Log は結果の正確性、完全性、適合性を保証しません。",
+          s5Title: "5. 知的財産権と利用許諾",
+          s5Body: "ユーザーが適法に権利を有するコンテンツの権利はユーザーに帰属します。サービス提供と安全運営のため、当社は必要範囲で保存・処理・表示・審査する非独占的許諾を受けます。",
+          s6Title: "6. サービス変更・中断・終了",
+          s6Body: "当社は、アップデート、法令対応、セキュリティ対応のため、サービスの一部を変更・制限・中断・終了する場合があります。規約違反時には必要な措置を講じます。",
+          s7Title: "7. 責任の制限",
+          s7Body: "法令で許容される範囲で、Dream Log は間接損害、付随的損害、データ消失、逸失利益等について責任を負いません。",
+          s8Title: "8. 規約の改定と連絡先",
+          s8Body: "本規約は必要に応じて改定し、サイト上で公表します。ご不明点は次の連絡先へお問い合わせください："
+        },
+        privacy: {
+          title: "プライバシーポリシー",
+          description: "Dream Log における個人情報の取扱い方針。",
+          updatedAt: "最終更新：2026-03-09",
+          s1Title: "1. 取得・処理する情報",
+          s1Intro: "サービス提供と安全確保のため、次の情報を処理する場合があります：",
+          s1Items: {
+            account: "アカウント情報：メールアドレス、識別子、認証関連情報。",
+            content: "コンテンツ情報：入力された夢の内容、交流内容、フィードバック。",
+            logs: "端末・ログ情報：アクセス時刻、ページ経路、端末/ブラウザ情報、IP、操作ログ。"
+          },
+          s2Title: "2. 利用目的",
+          s2Items: {
+            core: "ログイン、夢記録、AI 解釈、コミュニティ機能など中核機能の提供。",
+            security: "セキュリティ対策、障害調査、性能改善、品質向上。",
+            compliance: "苦情対応、紛争対応、法令上の義務履行。"
+          },
+          s3Title: "3. 夢コンテンツと機微情報について",
+          s3Body: "夢の記録には感情や機微情報が含まれる場合があります。不要な個人識別情報の入力はお控えください。ユーザーの夢コンテンツを第三者へ販売することはありません。",
+          s4Title: "4. 共有・開示",
+          s4Body: "必要な技術支援、法令要請、または正当な公的機関の請求に限り、必要最小限の範囲で情報を共有する場合があります。",
+          s5Title: "5. 保存期間",
+          s5Body: "個人情報は本ポリシーの目的達成に必要な期間のみ保持し、期間経過後は削除または匿名化します。",
+          s6Title: "6. Cookie・ローカル保存",
+          s6Body: "ログイン状態維持、基本機能提供、安定性向上のため、Cookie やローカル保存、ログ技術を使用する場合があります。",
+          s7Title: "7. ユーザーの権利",
+          s7Body: "適用法令に基づき、情報へのアクセス、訂正、削除、アカウント削除を請求できます。",
+          s8Title: "8. 未成年者について",
+          s8Body: "未成年の方は保護者の指導のもとでご利用ください。保護者からのお問い合わせにも対応します。",
+          s9Title: "9. 改定と連絡先",
+          s9Body: "本ポリシーは必要に応じて改定し、サイト上で公表します。ご不明点は次の連絡先へお問い合わせください："
+        }
       },
       dreams: {
         new: {
@@ -2520,6 +3780,10 @@ const resources = {
           seekingInterpretation: "解夢を求める",
           seekingInterpretationTooltip: "オンにすると、あなたの夢が「解夢求助」チャンネルに表示され、より多くの人に解読してもらえます",
           publicOptionsTitle: "公開投稿オプション",
+          shareToCommunity: "コミュニティに共有",
+          shareToCommunitySelectTitle: "共有するコミュニティを選択",
+          shareToCommunityNoOptions: "共有できるコミュニティがありません",
+          shareToCommunityPlaceholder: "コミュニティを選択",
         },
         list: {
           title: "マイドリーム",
@@ -2921,6 +4185,39 @@ const resources = {
               "反復夢・夢中夢・偽の目覚め・金縛りなど、不思議だけれどよくある夢の現象を解説します",
           },
         },
+        symbolsPage: {
+          backLink: "夢の探索",
+          title: "夢のシンボル辞典",
+          subtitle: "夢に現れるシンボルから、自分に関わる意味を理解し、無意識をもっと知る",
+          searchPlaceholder: "夢に出た言葉を入力（例：蛇、落下、試験…）",
+          all: "すべて",
+          categories: {
+            "场景": "シーン",
+            "动物": "動物",
+            "人物": "人物",
+            "身体": "身体",
+            "物体": "物体",
+            "行为": "行動",
+            "自然": "自然",
+            "自然现象": "自然",
+            "地点": "場所",
+            "情绪": "感情",
+          },
+          emptySearch: "「{{query}}」に一致するシンボルはありません。別の言葉やカテゴリをお試しください",
+          emptyDefault: "シンボルはまだありません。しばらくしてからご確認ください",
+          loadMore: "もっと見る…",
+        },
+        symbolDetail: {
+          notFound: "シンボルが見つかりません",
+          backToDictionary: "シンボル辞典に戻る",
+          dictionaryTitle: "シンボル辞典",
+          relatedToYou: "あなたに関係があるかもしれません",
+          commonScenarios: "よくある夢のシーン",
+          askYourself: "自分に問いかけてみよう",
+          emotionAssociations: "感情との関連",
+          whyDreamThis: "なぜこの夢を見るのか",
+          relatedSymbols: "関連シンボル",
+        },
       },
       community: {
         feed: {
@@ -2930,6 +4227,14 @@ const resources = {
           sortForYou: "あなたへ",
           forYouDesc: "あなたの夢の好みに基づくパーソナライズされたおすすめ",
           loginRequired: "ログインして表示",
+          time: {
+            justNow: "たった今",
+            minutesAgo: "{{count}}分前",
+            hoursAgo: "{{count}}時間前",
+            daysAgo: "{{count}}日前",
+            monthsAgo: "{{count}}か月前",
+            yearsAgo: "{{count}}年前",
+          },
         },
         featured: {
           badge: "注目の夢",
@@ -2981,6 +4286,83 @@ const resources = {
           sendBtn: "送信",
           emptyMessages: "まだメッセージなし。こんにちは！",
         },
+        home: {
+          channels: {
+            plaza: {
+              title: "夢のプラザ",
+              desc: "公開されているすべての夢を探索する",
+            },
+            roundtable: {
+              title: "夢解きヘルプ",
+              desc: "専門的な夢の解釈を相談する",
+            },
+            greenhouse: {
+              title: "夢のコミュニティ",
+              desc: "夢仲間と交流し語り合う",
+            },
+            museum: {
+              title: "厳選された夢",
+              desc: "選りすぐりの高品質な夢を読む",
+            },
+          },
+          sort: {
+            latest: "最新",
+            resonating: "人気",
+            foryou: "あなたへのおすすめ",
+          },
+          trending: {
+            title: "コミュニティの動き",
+            todayDreams: "今日の新しい夢の数",
+            todayInterpretations: "今日の解釈返信数",
+            activeUsers: "24時間のアクティブユーザー",
+          },
+          hotTags: {
+            title: "人気タグ",
+            subtitle: "",
+            empty: "人気タグはまだありません",
+            cta: "最初の夢を投稿する",
+            searchTitle: "#{{tag}} を検索",
+          },
+          topInterpreters: {
+            title: "アクティブな夢解きメンバー",
+            empty: "アクティブな夢解きメンバーはいません",
+            cta: "最初の夢を投稿する",
+            rookie: "ビギナーガイド",
+            recommended: "おすすめ",
+          },
+          risingInterpreters: {
+            title: "新星の夢解きメンバー",
+            subtitle: "",
+            empty: "まだ注目のメンバーがいません",
+            cta: "ラウンドテーブルチャンネルで夢解きをしてみよう",
+          },
+          avatars: {
+            user: "ユーザーアイコン",
+          },
+          anonymous: "匿名",
+          level: "Lv{{level}}",
+          loginDialog: {
+            title: "この機能を使うにはログインが必要です",
+            description:
+              "この機能を利用するにはログインが必要です。ログインするとフォロー中のユーザーやパーソナライズされたおすすめが表示されます。",
+            action: "ログインする",
+          },
+          empty: {
+            title: "ここはまだ静かな場所です",
+            plaza: "まだ誰も夢をシェアしていません。最初の記録者になりませんか？",
+            roundtable: "いまは夢解きを求めている人がいません。プラザで他の夢を見てみますか？",
+            greenhouse: "コミュニティはまだ眠っています。あなたの参加で目覚めさせましょう！",
+            museum: "厳選コンテンツを準備中です。お楽しみに...",
+            seekHelp: "✨ 夢解きをお願いする",
+            recordDream: "✨ 自分の夢を記録する",
+          },
+          loading: "読み込み中...",
+          loadMoreDreams: "さらに夢を読み込む",
+          loadMore: "もっと見る",
+          errors: {
+            feedLoadFailed: "読み込みに失敗しました。しばらくしてから再試行してください",
+          },
+        },
         search: {
           placeholder: "夢・ユーザーを検索...",
           scope: "検索範囲",
@@ -2995,6 +4377,17 @@ const resources = {
           sortRelevant: "関連性",
           sortLatest: "最新",
           sortHot: "人気",
+          tabs: {
+            all: "すべて",
+            dreams: "夢",
+            users: "ユーザー",
+            tags: "タグ",
+          },
+          sort: {
+            relevant: "関連性",
+            latest: "最新",
+            hot: "人気",
+          },
           filterEmotion: "感情フィルター",
           noResults: "結果が見つかりません",
           noResultsDesc: "別のキーワードを試すか、トレンドタグを参照してください",
@@ -3006,6 +4399,32 @@ const resources = {
           usersResult: "ユーザー結果",
           viewMore: "もっと見る",
           followers: "フォロワー",
+          suggestions: "サジェスト",
+          clear: "クリア",
+          recent: "最近",
+          clearAll: "すべて削除",
+          noRecent: "最近の検索はありません",
+          removeRecent: "最近の検索から削除",
+          hotKeywords: {
+            title: "人気の検索",
+            lucid: "明晰夢",
+            nightmare: "悪夢",
+            flying: "空を飛ぶ夢",
+            chasing: "追いかけられる夢",
+            lost: "迷子になる夢",
+            universe: "宇宙",
+          },
+          searchFor: "「{{keyword}}」を検索",
+          errors: {
+            failed: "検索に失敗しました。しばらくしてからもう一度お試しください。",
+          },
+          empty: {
+            dreams: "「{{keyword}}」に該当する夢は見つかりませんでした",
+            users: "「{{keyword}}」に該当するユーザーは見つかりませんでした",
+            tags: "「{{keyword}}」に該当するタグは見つかりませんでした",
+            all: "「{{keyword}}」に該当する結果は見つかりませんでした",
+            hint: "別のキーワードを試してみてください",
+          },
         },
       },
     },
@@ -3014,8 +4433,8 @@ const resources = {
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: "zh-CN",
-  fallbackLng: "zh-CN",
+  lng: "en",
+  fallbackLng: "en",
   supportedLngs: Object.keys(SUPPORTED_LANGUAGES),
   interpolation: { escapeValue: false },
 });
