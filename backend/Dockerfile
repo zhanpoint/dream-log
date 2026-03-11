@@ -11,11 +11,11 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir --upgrade pip uv
 
-COPY backend/pyproject.toml /app/pyproject.toml
+COPY pyproject.toml /app/pyproject.toml
 
 RUN uv pip install --system -e .
 
-COPY backend /app
+COPY . /app
 
 RUN chmod +x /app/scripts/start.sh
 
