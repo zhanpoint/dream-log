@@ -155,7 +155,8 @@ async def run() -> None:
     success_count = 0
     skip_count = 0
 
-    async with httpx.AsyncClient() as client:
+    # 不读取 HTTP(S)_PROXY 等环境变量，避免误走代理导致连接异常
+    async with httpx.AsyncClient(trust_env=False) as client:
         i = 0
         while i < loops:
             wave: list[tuple[int, list[dict]]] = []

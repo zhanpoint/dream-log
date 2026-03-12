@@ -240,7 +240,8 @@ class AIService:
         *,
         cancelled: Callable[[], Awaitable[bool]] | None = None,
     ) -> tuple[bytes | None, str, dict | None]:
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        # 不读取 HTTP(S)_PROXY 等环境变量，避免容器误走代理导致连接异常
+        async with httpx.AsyncClient(timeout=120.0, trust_env=False) as client:
             req_task = asyncio.create_task(
                 client.post(
                     f"{OPENROUTER_BASE_URL}/chat/completions",

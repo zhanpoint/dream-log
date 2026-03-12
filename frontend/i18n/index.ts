@@ -1134,6 +1134,7 @@ const resources = {
             phenomenaDesc: "解密重复梦、梦中梦、虚假醒来与睡眠瘫痪等奇特梦境体验",
           },
         },
+        articlesEmpty: "暂无内容，请稍后再来",
         symbolsPage: {
           backLink: "梦境探索",
           title: "梦境符号词典",
@@ -2443,6 +2444,7 @@ const resources = {
               "Decode recurring dreams, dreams within dreams, false awakenings, and sleep paralysis",
           },
         },
+        articlesEmpty: "No content yet. Please check back later.",
         symbolsPage: {
           backLink: "Dream Exploration",
           title: "Dream Symbol Dictionary",
@@ -3937,6 +3939,7 @@ const resources = {
               "反復夢・夢中夢・偽の目覚め・金縛りなど、不思議だけれどよくある夢の現象を解説します",
           },
         },
+        articlesEmpty: "まだコンテンツがありません。しばらくしてからご確認ください。",
         symbolsPage: {
           backLink: "夢の探索",
           title: "夢のシンボル辞典",
