@@ -39,6 +39,7 @@ on:
         type: boolean
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ${{ secrets.ACR_REGISTRY || 'crpi-nwtbgdcxek2l5bfv.cn-hangzhou.personal.cr.aliyuncs.com' }}
   NAMESPACE: ${{ secrets.ACR_NAMESPACE || 'dream-log-repo' }}
 
@@ -58,7 +59,7 @@ jobs:
           fetch-depth: 0
 
       - name: Detect changed paths
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v3.0.2
         id: changes
         with:
           base: ${{ github.event.before }}
