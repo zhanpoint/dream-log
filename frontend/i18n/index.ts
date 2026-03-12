@@ -161,6 +161,7 @@ const resources = {
         // OAuth
         continueWithGoogle: "使用 Google 继续",
         orContinueWith: "或继续使用",
+        googleLoginProcessing: "正在完成 Google 登录...",
         
         // 方法选择
         chooseMethod: "选择登录方式",
@@ -215,6 +216,10 @@ const resources = {
         tooManyAttempts: "尝试次数过多，请稍后再试",
         networkError: "网络连接失败，请检查网络",
         unknownError: "发生未知错误，请稍后重试",
+        oauthFailed: "授权失败，请重试",
+        oauthCancelled: "用户取消了授权",
+        oauthMissingCode: "未获取到授权码",
+        oauthMissingCodeHint: "请返回并重新选择 Google 登录",
         
         // 成功提示
         loginSuccess: "登录成功",
@@ -243,6 +248,8 @@ const resources = {
         
         // 其他
         backToHome: "返回首页",
+        loginFailed: "登录失败",
+        retryLogin: "重新登录",
         termsAgree: "继续即表示你同意我们的",
         terms: "服务条款",
         and: "和",
@@ -1426,6 +1433,7 @@ const resources = {
         // OAuth
         continueWithGoogle: "Continue with Google",
         orContinueWith: "Or continue with",
+        googleLoginProcessing: "Finishing Google sign in...",
         
         // Method selection
         chooseMethod: "Choose login method",
@@ -1480,6 +1488,10 @@ const resources = {
         tooManyAttempts: "Too many attempts, please try again later",
         networkError: "Network connection failed, please check your connection",
         unknownError: "An unknown error occurred, please try again later",
+        oauthFailed: "Authorization failed. Please try again.",
+        oauthCancelled: "You canceled the authorization.",
+        oauthMissingCode: "No authorization code received.",
+        oauthMissingCodeHint: "Please go back and choose Google sign in again.",
         
         // Success messages
         loginSuccess: "Login successful",
@@ -1508,6 +1520,8 @@ const resources = {
         
         // Others
         backToHome: "Back to home",
+        loginFailed: "Login failed",
+        retryLogin: "Try again",
         termsAgree: "By continuing, you agree to our",
         terms: "Terms of Service",
         and: "and",
@@ -2936,6 +2950,7 @@ const resources = {
         // OAuth
         continueWithGoogle: "Google で続ける",
         orContinueWith: "または次の方法で続ける",
+        googleLoginProcessing: "Google ログインを完了しています...",
         
         // 方法選択
         chooseMethod: "ログイン方法を選択",
@@ -2990,6 +3005,10 @@ const resources = {
         tooManyAttempts: "試行回数が多すぎます。後でもう一度お試しください",
         networkError: "ネットワーク接続に失敗しました。接続を確認してください",
         unknownError: "不明なエラーが発生しました。後でもう一度お試しください",
+        oauthFailed: "認可に失敗しました。もう一度お試しください。",
+        oauthCancelled: "認可がキャンセルされました。",
+        oauthMissingCode: "認可コードを取得できませんでした。",
+        oauthMissingCodeHint: "戻って Google ログインを選択してください。",
         
         // 成功メッセージ
         loginSuccess: "ログインに成功しました",
@@ -3018,6 +3037,8 @@ const resources = {
         
         // その他
         backToHome: "ホームに戻る",
+        loginFailed: "ログインに失敗しました",
+        retryLogin: "再ログイン",
         termsAgree: "続行することで、当社の",
         terms: "利用規約",
         and: "と",

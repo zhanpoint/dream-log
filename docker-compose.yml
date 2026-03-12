@@ -40,9 +40,9 @@ services:
       - logs_volume:/app/logs
     env_file: ./.env
     environment:
-      - HTTP_PROXY=${HTTP_PROXY}
-      - HTTPS_PROXY=${HTTPS_PROXY}
-      - NO_PROXY=${NO_PROXY}
+      - HTTP_PROXY=http://host.docker.internal:7897
+      - HTTPS_PROXY=http://host.docker.internal:7897
+      - NO_PROXY=localhost,127.0.0.1,::1,backend,postgres,cache,frontend,nginx,host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -66,9 +66,9 @@ services:
     env_file: ./.env
     environment:
       - NODE_ENV=production
-      - HTTP_PROXY=${HTTP_PROXY}
-      - HTTPS_PROXY=${HTTPS_PROXY}
-      - NO_PROXY=${NO_PROXY}
+      - HTTP_PROXY=http://host.docker.internal:7897
+      - HTTPS_PROXY=http://host.docker.internal:7897
+      - NO_PROXY=localhost,127.0.0.1,::1,backend,postgres,cache,frontend,nginx,host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

@@ -30,8 +30,8 @@ function GoogleCallbackContent() {
         _callbackProcessed = false;
         setError(
           errorParam === "access_denied"
-            ? "用户取消了授权"
-            : "授权失败,请重试"
+            ? "auth.oauthCancelled"
+            : "auth.oauthFailed"
         );
         return;
       }
@@ -39,7 +39,7 @@ function GoogleCallbackContent() {
       // 检查是否有授权码
       if (!code) {
         _callbackProcessed = false;
-        setError("未获取到授权码");
+        setError("auth.oauthMissingCode");
         return;
       }
 
@@ -68,7 +68,7 @@ function GoogleCallbackContent() {
           {t("common.loading")}
         </p>
         <p className="text-sm text-muted-foreground">
-          正在完成 Google 登录...
+          {t("auth.googleLoginProcessing")}
         </p>
       </div>
     );
@@ -82,10 +82,15 @@ function GoogleCallbackContent() {
       </div>
 
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">登录失败</h1>
+        <h1 className="text-2xl font-bold">{t("auth.loginFailed")}</h1>
         <p className="text-muted-foreground">
           {t(error.startsWith("auth.") ? error : "auth.unknownError")}
         </p>
+        {error === "auth.oauthMissingCode" && (
+          <p className="text-sm text-muted-foreground">
+            {t("auth.oauthMissingCodeHint")}
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -93,7 +98,7 @@ function GoogleCallbackContent() {
           {t("auth.backToHome")}
         </Button>
         <Button onClick={() => router.push("/auth")}>
-          重新登录
+          {t("auth.retryLogin")}
         </Button>
       </div>
     </div>
