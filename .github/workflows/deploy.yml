@@ -186,38 +186,52 @@ jobs:
           command: |
             set -euo pipefail
 
-            HOST='${{ secrets.SERVER_HOST }}'
-            USERNAME='${{ secrets.SERVER_USER }}'
-            PROJECT_PATH='${{ secrets.PROJECT_PATH || '/root/dream-log' }}'
+            HOST="${{ secrets.SERVER_HOST }}"
+            USERNAME="${{ secrets.SERVER_USER }}"
+            PROJECT_PATH="${{ secrets.PROJECT_PATH || '/root/dream-log' }}"
+            SSH_PRIVATE_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
+            SSH_PASSPHRASE="${{ secrets.SSH_PASSPHRASE }}"
 
-            KEY_FILE="$(mktemp)"
-            ASKPASS_FILE="$(mktemp)"
-            chmod 700 "$(dirname "$KEY_FILE")"
+            # 使用私有临时目录（700）存放敏感文件：避免 /tmp 可列出导致的侧信道
+            TMP_SSH_DIR="$(mktemp -d)"
+            chmod 700 "$TMP_SSH_DIR"
+            KEY_FILE="$TMP_SSH_DIR/id_ed25519"
+            ASKPASS_FILE="$TMP_SSH_DIR/askpass.sh"
 
-            printf '%s\n' '${{ secrets.SSH_PRIVATE_KEY }}' > "$KEY_FILE"
+            printf '%s\n' "$SSH_PRIVATE_KEY" > "$KEY_FILE"
             chmod 600 "$KEY_FILE"
 
             # 如果私钥带 passphrase，则通过 SSH_ASKPASS 注入（兼容无交互环境）
-            if [ -n '${{ secrets.SSH_PASSPHRASE }}' ]; then
+            if [ -n "${SSH_PASSPHRASE}" ]; then
               cat > "$ASKPASS_FILE" <<'EOF'
             #!/usr/bin/env bash
-            printf '%s\n' '${{ secrets.SSH_PASSPHRASE }}'
+            printf '%s\n' "$SSH_PASSPHRASE"
             EOF
               chmod 700 "$ASKPASS_FILE"
               eval "$(ssh-agent -s)"
               export SSH_ASKPASS="$ASKPASS_FILE"
               export SSH_ASKPASS_REQUIRE=force
               export DISPLAY=:0
-              setsid -w ssh-add "$KEY_FILE" </dev/null
+              export SSH_PASSPHRASE
+              # 显式传递 SSH agent 环境变量，避免 setsid 争议导致无法连接 agent
+              setsid -w env \
+                SSH_AUTH_SOCK="$SSH_AUTH_SOCK" \
+                SSH_AGENT_PID="$SSH_AGENT_PID" \
+                SSH_ASKPASS="$SSH_ASKPASS" \
+                SSH_ASKPASS_REQUIRE="$SSH_ASKPASS_REQUIRE" \
+                DISPLAY="$DISPLAY" \
+                SSH_PASSPHRASE="$SSH_PASSPHRASE" \
+                ssh-add "$KEY_FILE" </dev/null
             fi
 
+            PROJECT_PATH_SAFE="$(printf '%q' "$PROJECT_PATH")"
             ssh -i "$KEY_FILE" \
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
               -o ServerAliveInterval=30 \
               -o ServerAliveCountMax=4 \
               "${USERNAME}@${HOST}" \
-              "PROJECT_PATH='${PROJECT_PATH}' bash -s" <<'REMOTE_SCRIPT'
+              "PROJECT_PATH=${PROJECT_PATH_SAFE} bash -s" <<'REMOTE_SCRIPT'
             set -euo pipefail
             cd "$PROJECT_PATH"
 
@@ -264,5 +278,5 @@ jobs:
             echo "部署完成！"
             REMOTE_SCRIPT
 
-            rm -f "$KEY_FILE" "$ASKPASS_FILE" || true
+            rm -rf "$TMP_SSH_DIR" || true
             if command -v ssh-agent >/dev/null 2>&1; then ssh-agent -k >/dev/null 2>&1 || true; fi
