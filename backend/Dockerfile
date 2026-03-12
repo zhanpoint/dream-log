@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir --upgrade pip uv
 
 COPY pyproject.toml README.md /app/
 
-RUN uv pip install --system -e .
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -e .
 
 COPY . /app
 

@@ -34,6 +34,8 @@ services:
 
   backend:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
+    build:
+      context: backend
     container_name: dream_log_backend
     command: /app/scripts/start.sh
     volumes:
