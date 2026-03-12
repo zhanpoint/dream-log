@@ -184,49 +184,85 @@ jobs:
           timeout_minutes: 25
           retry_wait_seconds: 20
           command: |
-            appleboy/ssh-action@v1.2.0 \
-              host='${{ secrets.SERVER_HOST }}' \
-              username='${{ secrets.SERVER_USER }}' \
-              key='${{ secrets.SSH_PRIVATE_KEY }}' \
-              passphrase='${{ secrets.SSH_PASSPHRASE }}' \
-              command_timeout=20m \
-              script='set -e
-              cd ${{ secrets.PROJECT_PATH || '/root/dream-log' }}
+            set -euo pipefail
 
-              echo "登录容器注册表..."
-              echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+            HOST='${{ secrets.SERVER_HOST }}'
+            USERNAME='${{ secrets.SERVER_USER }}'
+            PROJECT_PATH='${{ secrets.PROJECT_PATH || '/root/dream-log' }}'
 
-              SERVICES_TO_RESTART=""
+            KEY_FILE="$(mktemp)"
+            ASKPASS_FILE="$(mktemp)"
+            chmod 700 "$(dirname "$KEY_FILE")"
 
-              if [ "${{ needs.build-backend.result }}" = "success" ]; then
-                IMAGE_TAG="${{ needs.build-backend.outputs.image-tag }}"
-                BACKEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${IMAGE_TAG}"
+            printf '%s\n' '${{ secrets.SSH_PRIVATE_KEY }}' > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
 
-                grep -q '^BACKEND_IMAGE_URI=' .env.deployment && sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" >> .env.deployment
+            # 如果私钥带 passphrase，则通过 SSH_ASKPASS 注入（兼容无交互环境）
+            if [ -n '${{ secrets.SSH_PASSPHRASE }}' ]; then
+              cat > "$ASKPASS_FILE" <<'EOF'
+            #!/usr/bin/env bash
+            printf '%s\n' '${{ secrets.SSH_PASSPHRASE }}'
+            EOF
+              chmod 700 "$ASKPASS_FILE"
+              eval "$(ssh-agent -s)"
+              export SSH_ASKPASS="$ASKPASS_FILE"
+              export SSH_ASKPASS_REQUIRE=force
+              export DISPLAY=:0
+              setsid -w ssh-add "$KEY_FILE" </dev/null
+            fi
 
-                sudo docker pull "$BACKEND_IMAGE_URI"
-                SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend"
-              fi
+            ssh -i "$KEY_FILE" \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=4 \
+              "${USERNAME}@${HOST}" \
+              "PROJECT_PATH='${PROJECT_PATH}' bash -s" <<'REMOTE_SCRIPT'
+            set -euo pipefail
+            cd "$PROJECT_PATH"
 
-              if [ "${{ needs.build-frontend.result }}" = "success" ]; then
-                IMAGE_TAG="${{ needs.build-frontend.outputs.image-tag }}"
-                FRONTEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${IMAGE_TAG}"
+            echo "登录容器注册表..."
+            echo "${{ secrets.ACR_PASSWORD }}" | sudo docker login ${{ env.REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-                grep -q '^FRONTEND_IMAGE_URI=' .env.deployment && sed -i "s|^FRONTEND_IMAGE_URI=.*|FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}|" .env.deployment || echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}" >> .env.deployment
+            SERVICES_TO_RESTART=""
 
-                sudo docker pull "$FRONTEND_IMAGE_URI"
-                SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend"
-              fi
+            if [ "${{ needs.build-backend.result }}" = "success" ]; then
+              IMAGE_TAG="${{ needs.build-backend.outputs.image-tag }}"
+              BACKEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-backend:${IMAGE_TAG}"
 
-              if [ -n "$SERVICES_TO_RESTART" ]; then
-                echo "重启服务: $SERVICES_TO_RESTART"
-                sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate $SERVICES_TO_RESTART
-              elif [ "${{ needs.detect-changes.outputs.docker }}" = "true" ] || [ "${{ needs.detect-changes.outputs.nginx }}" = "true" ]; then
-                echo "重新加载所有服务..."
-                sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
-              else
-                echo "无需部署更新"
-              fi
+              grep -q '^BACKEND_IMAGE_URI=' .env.deployment && \
+                sudo sed -i "s|^BACKEND_IMAGE_URI=.*|BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}|" .env.deployment || \
+                echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" | sudo tee -a .env.deployment >/dev/null
 
-              sudo docker image prune -f
-              echo "部署完成！"'
+              sudo docker pull "$BACKEND_IMAGE_URI"
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend"
+            fi
+
+            if [ "${{ needs.build-frontend.result }}" = "success" ]; then
+              IMAGE_TAG="${{ needs.build-frontend.outputs.image-tag }}"
+              FRONTEND_IMAGE_URI="${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${IMAGE_TAG}"
+
+              grep -q '^FRONTEND_IMAGE_URI=' .env.deployment && \
+                sudo sed -i "s|^FRONTEND_IMAGE_URI=.*|FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}|" .env.deployment || \
+                echo "FRONTEND_IMAGE_URI=${FRONTEND_IMAGE_URI}" | sudo tee -a .env.deployment >/dev/null
+
+              sudo docker pull "$FRONTEND_IMAGE_URI"
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART frontend"
+            fi
+
+            if [ -n "$SERVICES_TO_RESTART" ]; then
+              echo "重启服务: $SERVICES_TO_RESTART"
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate $SERVICES_TO_RESTART
+            elif [ "${{ needs.detect-changes.outputs.docker }}" = "true" ] || [ "${{ needs.detect-changes.outputs.nginx }}" = "true" ]; then
+              echo "重新加载所有服务..."
+              sudo docker compose --env-file .env --env-file .env.deployment up -d --no-build --force-recreate
+            else
+              echo "无需部署更新"
+            fi
+
+            sudo docker image prune -f
+            echo "部署完成！"
+            REMOTE_SCRIPT
+
+            rm -f "$KEY_FILE" "$ASKPASS_FILE" || true
+            if command -v ssh-agent >/dev/null 2>&1; then ssh-agent -k >/dev/null 2>&1 || true; fi
