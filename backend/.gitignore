@@ -66,3 +66,6 @@ alembic/versions/*.pyc
 
 # Google Cloud Speech-to-Text JSON 密钥
 src/Cloud Speech.json
+
+# VPN 配置
+src/vpn.yaml

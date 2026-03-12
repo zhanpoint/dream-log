@@ -52,6 +52,22 @@ services:
     networks:
       - dream-log-net
 
+  worker:
+    image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
+    build:
+      context: backend
+    container_name: dream_log_worker
+    command: python scripts/start_worker.py
+    env_file: ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - dream-log-net
+
   frontend:
     image: ${FRONTEND_IMAGE_URI:?FRONTEND_IMAGE_URI is not set or empty}
     container_name: dream_log_frontend
