@@ -1,4 +1,4 @@
-import { api, TOKEN_KEYS } from "./api";
+import { API_ORIGIN, api, TOKEN_KEYS } from "./api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ const getDmWsUrl = (conversationId: string): string | null => {
   const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
   if (!token) return null;
 
-  const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
+  const apiBase = API_ORIGIN.replace(/\/$/, "");
   const wsBase = apiBase.startsWith("https://")
     ? apiBase.replace("https://", "wss://")
     : apiBase.replace("http://", "ws://");

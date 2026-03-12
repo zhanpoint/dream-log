@@ -8,7 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_user, get_db
+from app.core.config import settings
+from app.core.deps import get_current_user_optional_token, get_db
 from app.core.sse_manager import sse_event_generator, sse_manager
 from app.models.user import User
 from app.schemas.notifications import (
@@ -104,13 +105,27 @@ async def delete_notification(
 @router.get("/stream")
 async def notification_stream(
     request: Request,
-    current_user: User = Depends(get_current_user),
+    # SSE 客户端（尤其是 EventSource）不方便设置自定义 Authorization header。
+    # 这里同时支持：
+    # - Authorization: Bearer <token>
+    # - /stream?token=<token>
+    current_user: User = Depends(get_current_user_optional_token),
 ) -> StreamingResponse:
     """
     SSE 通知推送流
 
     客户端通过此端点建立 SSE 连接，实时接收通知推送
     """
+    # 开发环境下的防护：避免线上站点/其它来源误连到本机 localhost:8000
+    # 由于 CORS 在网络层之后才生效，误连依然会打到后端并刷日志；这里直接按 Origin 拒绝。
+    if settings.is_development:
+        origin = request.headers.get("origin")
+        if origin and not origin.startswith(("http://localhost", "http://127.0.0.1")):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden origin for SSE in development",
+            )
+
     queue = await sse_manager.connect(current_user.id)
 
     return StreamingResponse(

@@ -11,10 +11,14 @@ import { FlagIcon } from "@/components/ui/flag-icon";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 
 const ORDER: SupportedLanguage[] = ["zh-CN", "en", "ja"];
 
 export function LanguageSelector({ className = "" }: { className?: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const { i18n } = useTranslation();
   const current = (i18n.resolvedLanguage || i18n.language) as string;
 
@@ -24,6 +28,9 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     if (base in SUPPORTED_LANGUAGES) return base as SupportedLanguage;
     return "zh-CN";
   })();
+
+  // 避免 SSR/CSR 初始语言不一致导致 hydration mismatch
+  if (!mounted) return null;
 
   return (
     <DropdownMenu>

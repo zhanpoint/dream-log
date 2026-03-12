@@ -298,6 +298,79 @@
     color: oklch(98% 0.005 280) !important;
   }
 
+  /* OAuth 回调错误页按钮交互样式 */
+  .oauth-error-btn {
+    position: relative;
+    overflow: hidden;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .oauth-error-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.25) 40%,
+      transparent 80%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
+    transition:
+      transform 0.5s ease,
+      opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .oauth-error-btn:hover::before {
+    transform: translateX(120%);
+    opacity: 1;
+  }
+
+  .oauth-error-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px oklch(var(--primary) / 0.22);
+  }
+
+  .oauth-error-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px oklch(var(--primary) / 0.18);
+  }
+
+  .oauth-error-btn-outline {
+    border-color: oklch(var(--muted-foreground) / 0.4);
+    background-color: transparent;
+  }
+
+  .oauth-error-btn-outline:hover {
+    background-color: oklch(var(--muted) / 0.6);
+    border-color: oklch(var(--primary) / 0.6);
+  }
+
+  .oauth-error-btn-primary {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--primary)) 0%,
+      oklch(var(--primary) / 0.9) 100%
+    );
+    color: oklch(var(--primary-foreground));
+    border-color: oklch(var(--primary));
+  }
+
+  .oauth-error-btn-primary:hover {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--primary) / 0.95) 0%,
+      oklch(var(--primary)) 100%
+    );
+  }
+
   .bg-accent {
     background-color: oklch(var(--accent)) !important;
   }
@@ -799,4 +872,30 @@ button:active:not(:disabled),
 /* ===== Link 过渡优化（消除闪烁） ===== */
 a {
   transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+/* ===== 全局滚动条样式（简洁现代） ===== */
+/* WebKit 浏览器（Chrome / Edge / Safari） */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: oklch(var(--muted-foreground) / 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--muted-foreground) / 0.7);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--muted-foreground) / 0.6) transparent;
 }

@@ -29,7 +29,7 @@ export default function RootLayout({
             enableSystem={false}
             storageKey="dream-log-theme"
           >
-            <div className="min-h-screen w-[117.647%] h-[117.647%] origin-top-left scale-[0.85]">
+            <div className="min-h-screen w-full">
               <Suspense fallback={null}>
                 <RouteProgress />
               </Suspense>

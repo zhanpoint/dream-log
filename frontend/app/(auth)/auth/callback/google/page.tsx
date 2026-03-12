@@ -94,10 +94,17 @@ function GoogleCallbackContent() {
       </div>
 
       <div className="flex gap-3">
-        <Button variant="outline" onClick={() => router.push("/")}>
+        <Button
+          variant="outline"
+          className="oauth-error-btn oauth-error-btn-outline"
+          onClick={() => router.push("/")}
+        >
           {t("auth.backToHome")}
         </Button>
-        <Button onClick={() => router.push("/auth")}>
+        <Button
+          className="oauth-error-btn oauth-error-btn-primary"
+          onClick={() => router.push("/auth")}
+        >
           {t("auth.retryLogin")}
         </Button>
       </div>

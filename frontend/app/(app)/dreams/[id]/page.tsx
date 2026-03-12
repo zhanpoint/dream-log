@@ -16,6 +16,7 @@ import {
   SLEEP_QUALITIES,
   VIVIDNESS_LEVELS,
 } from "@/lib/constants";
+import { API_ORIGIN } from "@/lib/api";
 import { DreamApi, type DreamDetail, type Tag } from "@/lib/dream-api";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -242,7 +243,7 @@ export default function DreamDetailPage() {
       return;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = API_ORIGIN;
 
     const cleanupConnection = () => {
       if (eventSourceRef.current) {

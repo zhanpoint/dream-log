@@ -27,7 +27,7 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="relative overflow-hidden">
+    <footer className="site-footer-root relative overflow-hidden">
       {/* 地平线及辉光效果 */}
       <SphereMask />
       
@@ -55,7 +55,7 @@ export function SiteFooter() {
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="cursor-pointer text-muted-foreground hover:text-foreground duration-200 font-medium text-base"
+                        className="footer-nav-link"
                       >
                         {item.name}
                       </Link>

@@ -3,7 +3,24 @@ import axios from "axios";
 /**
  * API 基础配置
  */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+function getApiOrigin(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+
+  // 服务器侧/构建期：避免把生产环境默认指到 localhost
+  if (typeof window === "undefined") {
+    return process.env.NODE_ENV === "development" ? "http://localhost:8000" : "";
+  }
+
+  // 浏览器侧：避免生产站点误连到开发机 localhost
+  const hostname = window.location.hostname;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "http://localhost:8000";
+  }
+  return window.location.origin;
+}
+
+export const API_ORIGIN = getApiOrigin();
 
 /**
  * Token 存储键
@@ -56,7 +73,7 @@ export function dedupeGet<T>(key: string, fetcher: () => Promise<T>): Promise<T>
  * 创建 Axios 实例
  */
 export const api = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: `${API_ORIGIN}/api`,
   headers: {
     "Content-Type": "application/json",
   },

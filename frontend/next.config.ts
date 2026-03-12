@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
 
   // 环境变量
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+    // 不要在生产构建里把 API URL 默认成 localhost。
+    // 如果没显式配置 NEXT_PUBLIC_API_URL，则在运行时由前端根据当前域名决定（见 lib/api.ts）。
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
   // 实验性功能

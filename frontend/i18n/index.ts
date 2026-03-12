@@ -417,8 +417,8 @@ const resources = {
       marketing: {
         hero: {
           tag: "✨ 探索你的梦境世界",
-          titleLine1: "记录每一个梦境",
-          titleLine2: "探索潜意识的奥秘",
+          titleLine1: "捕捉每一个梦想",
+          titleLine2: "揭开潜意识的面纱",
           subtitleLine1: "使用 AI 技术分析你的梦境，发现隐藏的模式和意义",
           subtitleLine2: "让 Dream Log 成为自我探索的起点",
           cta: "立即开始记录",

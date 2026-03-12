@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Notification } from "./notification-api";
+import { API_ORIGIN, TOKEN_KEYS } from "./api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL = `${API_ORIGIN.replace(/\/$/, "")}/api`;
 
 export type SSEConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
@@ -57,6 +58,7 @@ export function useNotificationSSE(
   const unreadCountRef = useRef(0);
   const onNotificationRef = useRef(onNotification);
   const onUnreadCountChangeRef = useRef(onUnreadCountChange);
+  const refreshInFlightRef = useRef<Promise<string> | null>(null);
 
   useEffect(() => {
     onNotificationRef.current = onNotification;
@@ -100,11 +102,8 @@ export function useNotificationSSE(
 
     (async () => {
       try {
-        // 从 localStorage 获取 token
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("未登录，无法建立 SSE 连接");
-        }
+        // 获取可用 access token（必要时自动 refresh，避免过期 token 导致 401 风暴）
+        const token = await getValidAccessToken();
 
         // 使用 fetch API 建立 SSE 连接
         const response = await fetch(`${API_BASE_URL}/notifications/stream`, {
@@ -117,6 +116,13 @@ export function useNotificationSSE(
         });
 
         if (!response.ok) {
+          // token 过期/轮换后 SSE 不会走 axios 拦截器刷新，这里显式处理一次 401 再重连
+          if (response.status === 401) {
+            await refreshAccessToken();
+            abortControllerRef.current = null;
+            connect();
+            return;
+          }
           throw new Error(`SSE 连接失败: ${response.status} ${response.statusText}`);
         }
 
@@ -234,6 +240,88 @@ export function useNotificationSSE(
       } catch (err) {
         console.error(`[SSE] 解析事件数据失败 (${event}):`, err);
       }
+    }
+
+    function getRawStoredToken(key: string): string | null {
+      const v = localStorage.getItem(key);
+      if (!v) return null;
+      const trimmed = v.trim();
+      if (!trimmed || trimmed === "undefined" || trimmed === "null") return null;
+      return trimmed;
+    }
+
+    function decodeJwtPayload(token: string): { exp?: number } | null {
+      const parts = token.split(".");
+      if (parts.length !== 3) return null;
+      try {
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const pad = "=".repeat((4 - (base64.length % 4)) % 4);
+        const json = atob(base64 + pad);
+        return JSON.parse(json) as { exp?: number };
+      } catch {
+        return null;
+      }
+    }
+
+    function isTokenExpiredSoon(token: string, skewMs = 30_000): boolean {
+      const payload = decodeJwtPayload(token);
+      const expSeconds = payload?.exp;
+      if (!expSeconds) return false; // 无法解析 exp：交给后端校验
+      const expMs = expSeconds * 1000;
+      return Date.now() + skewMs >= expMs;
+    }
+
+    async function refreshAccessToken(): Promise<string> {
+      if (refreshInFlightRef.current) return refreshInFlightRef.current;
+      refreshInFlightRef.current = (async () => {
+        const refreshToken = getRawStoredToken(TOKEN_KEYS.REFRESH_TOKEN);
+        if (!refreshToken) {
+          throw new Error("未找到 refresh token，无法刷新登录态");
+        }
+
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`刷新 Token 失败: ${res.status} ${res.statusText}`);
+        }
+
+        const data = (await res.json()) as {
+          token: string;
+          refresh_token?: string;
+          refreshToken?: string;
+        };
+
+        const newAccessToken = data.token;
+        const newRefreshToken =
+          data.refresh_token ?? data.refreshToken ?? undefined;
+
+        localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, newAccessToken);
+        if (newRefreshToken) {
+          localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, newRefreshToken);
+        }
+
+        return newAccessToken;
+      })().finally(() => {
+        refreshInFlightRef.current = null;
+      });
+
+      return refreshInFlightRef.current;
+    }
+
+    async function getValidAccessToken(): Promise<string> {
+      const token = getRawStoredToken(TOKEN_KEYS.ACCESS_TOKEN);
+      if (!token) {
+        // 未登录：不要打到后端，避免无意义请求
+        throw new Error("未登录，无法建立 SSE 连接");
+      }
+      if (isTokenExpiredSoon(token)) {
+        return await refreshAccessToken();
+      }
+      return token;
     }
   }, [
     autoReconnect,

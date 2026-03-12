@@ -127,6 +127,15 @@
   filter: grayscale(0.3);
 }
 
+/* 我的梦境导航项：图标与文字垂直排布 */
+.nav-link-my-dreams {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center;
+  gap: 0.25rem;
+}
+
 /* 我的梦境 - 月亮图标蓝色 */
 .nav-link:has(svg.lucide-moon) svg {
   color: oklch(60% 0.20 250);
@@ -373,6 +382,8 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  /* 使用 clamp 保持导航与工具区之间在缩放时仍有合理间距 */
+  margin-left: clamp(1.25rem, 3vw, 2.5rem);
 }
 
 /* 桌面端工具区域 */
