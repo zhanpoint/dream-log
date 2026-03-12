@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.deps import get_current_user_optional_token, get_db
+from app.core.deps import get_current_user, get_current_user_optional_token, get_db
 from app.core.sse_manager import sse_event_generator, sse_manager
 from app.models.user import User
 from app.schemas.notifications import (
