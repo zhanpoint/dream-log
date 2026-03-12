@@ -151,6 +151,8 @@ jobs:
           file: frontend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/dream-log-frontend:${{ steps.short-sha.outputs.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'https://dreamlog.xyz' }}
           no-cache: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.force_rebuild_all == 'true' || github.event.inputs.force_rebuild_frontend == 'true') }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,scope=frontend,mode=max
