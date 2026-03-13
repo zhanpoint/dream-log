@@ -130,11 +130,16 @@ class AIService:
     def __init__(self) -> None:
         if not OPENROUTER_API_KEY:
             logger.warning("OPENROUTER_API_KEY 未配置, AI 服务将不可用")
+        logger.info("AI_PROXY_URL configured: %s", bool(settings.ai_proxy_url))
+
+    def _log_proxy_usage(self, action: str) -> None:
+        logger.info("AI proxy usage (%s): %s", action, bool(_get_proxy_url()))
 
     # ========== 公开方法 ==========
 
     async def generate_title(self, content: str, *, target_language: str) -> str:
         """生成梦境标题（仅使用梦境内容，20字限制在 prompt 中）"""
+        self._log_proxy_usage("generate_title")
         result = await _title_chain.ainvoke(
             {"content": content, "target_language": target_language}
         )
@@ -143,6 +148,7 @@ class AIService:
 
     async def analyze_basic(self, dream_context: str, *, target_language: str) -> dict:
         """阶段1：基础分析（合并 snapshot + 情绪 + 触发因素 + 睡眠），低温精确。"""
+        self._log_proxy_usage("analyze_basic")
         return await _basic_analysis_chain.ainvoke(
             {"dream_context": dream_context, "target_language": target_language}
         )
@@ -165,6 +171,7 @@ class AIService:
         target_language: str,
     ) -> dict:
         """阶段2：生成深度洞察（依赖阶段1结果），中高温共情。"""
+        self._log_proxy_usage("generate_insight")
         basic = basic_analysis or {}
         triggers_text = self._format_triggers_for_insight(basic.get("triggers") or [])
         return await _insight_chain.ainvoke(
@@ -191,6 +198,7 @@ class AIService:
         """使用配置的图像生成模型，根据梦境内容生成一张梦境图像。"""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY 未配置")
+        self._log_proxy_usage("generate_dream_image")
 
         title_section = f"Dream title: {dream_title}\n\n" if dream_title else ""
         base_prompt = IMAGE_GENERATION_PROMPT.format(
@@ -364,6 +372,7 @@ class AIService:
     async def generate_embedding(self, text: str) -> list[float]:
         """生成文本的 embedding 向量（用于相似度搜索）"""
         try:
+            self._log_proxy_usage("generate_embedding")
             proxy_url = _get_proxy_url()
             http_client = None
             if proxy_url:

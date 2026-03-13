@@ -249,7 +249,7 @@ jobs:
                 echo "BACKEND_IMAGE_URI=${BACKEND_IMAGE_URI}" | sudo tee -a .env.deployment >/dev/null
 
               sudo docker pull "$BACKEND_IMAGE_URI"
-              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend"
+              SERVICES_TO_RESTART="$SERVICES_TO_RESTART backend worker"
             fi
 
             if [ "${{ needs.build-frontend.result }}" = "success" ]; then

@@ -59,7 +59,7 @@ services:
     build:
       context: backend
     container_name: dream_log_worker
-    command: python scripts/start_worker.py
+    command: python -m scripts.start_worker
     env_file: ./.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
