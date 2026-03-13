@@ -83,8 +83,10 @@ def _create_llm(
     """创建指定任务的 ChatOpenAI 实例（多阶段认知管道）"""
     proxy_url = _get_proxy_url()
     http_client = None
+    http_async_client = None
     if proxy_url:
         http_client = httpx.Client(proxy=proxy_url, timeout=120.0)
+        http_async_client = httpx.AsyncClient(proxy=proxy_url, timeout=120.0)
 
     return ChatOpenAI(
         model=MODELS[model_key],
@@ -93,6 +95,7 @@ def _create_llm(
         temperature=temperature,
         max_tokens=max_tokens,
         http_client=http_client,
+        http_async_client=http_async_client,
     )
 
 
