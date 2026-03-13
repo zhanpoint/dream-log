@@ -69,6 +69,8 @@ class Settings(BaseSettings):
 
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
+    # AI 请求代理（可选，用于开发机需要代理访问 OpenRouter 的场景）
+    ai_proxy_url: str | None = Field(default=None, alias="AI_PROXY_URL")
 
     # Dify 工作流（梦境符号批量生成）
     dify_api_key: str | None = Field(default=None, alias="DIFY_API_KEY")

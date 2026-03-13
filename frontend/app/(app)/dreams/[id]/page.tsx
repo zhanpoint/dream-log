@@ -107,18 +107,20 @@ export default function DreamDetailPage() {
   const [dream, setDream] = useState<DreamDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeCanceling, setAnalyzeCanceling] = useState(false);
   const [similarDreams, setSimilarDreams] = useState<SimilarDreamItem[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [answeringQuestion, setAnsweringQuestion] = useState<string | null>(null);
   const [answerText, setAnswerText] = useState("");
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [imageCanceling, setImageCanceling] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const analyzeCancelingRef = useRef(false);
-  const imageAbortRef = useRef<AbortController | null>(null);
   const imageCancelingRef = useRef(false);
+  const imageAbortRef = useRef<AbortController | null>(null);
   const reflectionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const stopBtnClass =
@@ -206,19 +208,23 @@ export default function DreamDetailPage() {
     }
   }, [dreamId, router]);
 
+  const cleanupConnection = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     fetchDream();
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
+      cleanupConnection();
     };
-  }, [fetchDream]);
+  }, [fetchDream, cleanupConnection]);
 
   // 确保进入编辑状态时，光标自动定位到文本末尾
   useEffect(() => {
@@ -244,17 +250,6 @@ export default function DreamDetailPage() {
     }
 
     const apiUrl = API_ORIGIN;
-
-    const cleanupConnection = () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
-    };
 
     const scheduleReconnect = () => {
       if (reconnectTimerRef.current || analyzeCancelingRef.current) return;
@@ -296,6 +291,8 @@ export default function DreamDetailPage() {
         cleanupConnection();
         reconnectAttemptsRef.current = 0;
         setAnalyzing(false);
+        setAnalyzeCanceling(false);
+        analyzeCancelingRef.current = false;
         if (data.similar_dreams?.length) {
           setSimilarDreams(data.similar_dreams);
         }
@@ -304,6 +301,8 @@ export default function DreamDetailPage() {
         cleanupConnection();
         reconnectAttemptsRef.current = 0;
         setAnalyzing(false);
+        setAnalyzeCanceling(false);
+        analyzeCancelingRef.current = false;
         if (mode === "manual") {
           if (!data?.cancelled) {
             toast.error(data.message || t("dreams.detail.analysisFailed"));
@@ -351,8 +350,7 @@ export default function DreamDetailPage() {
 
     setTimeout(() => {
       if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
+        cleanupConnection();
         scheduleReconnect();
       }
     }, 120000);
@@ -362,21 +360,16 @@ export default function DreamDetailPage() {
     if (!dream) return;
     if (analyzeCancelingRef.current) return;
     analyzeCancelingRef.current = true;
+    setAnalyzeCanceling(true);
     try {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
+      cleanupConnection();
       setAnalyzing(false);
       await DreamApi.cancelAnalysis(dream.id);
     } catch {
       // ignore cancel errors
     } finally {
       analyzeCancelingRef.current = false;
+      setAnalyzeCanceling(false);
     }
   };
 
@@ -405,6 +398,8 @@ export default function DreamDetailPage() {
 
   const handleGenerateImage = async () => {
     if (!dream) return;
+    imageCancelingRef.current = false;
+    setImageCanceling(false);
     setGeneratingImage(true);
     try {
       const controller = new AbortController();
@@ -433,6 +428,7 @@ export default function DreamDetailPage() {
       toast.error(t("dreams.detail.imageGenerateFailed"));
     } finally {
       setGeneratingImage(false);
+      setImageCanceling(false);
       imageAbortRef.current = null;
     }
   };
@@ -441,6 +437,7 @@ export default function DreamDetailPage() {
     if (!dream) return;
     if (imageCancelingRef.current) return;
     imageCancelingRef.current = true;
+    setImageCanceling(true);
     try {
       imageAbortRef.current?.abort();
       imageAbortRef.current = null;
@@ -450,6 +447,7 @@ export default function DreamDetailPage() {
       // ignore cancel errors
     } finally {
       imageCancelingRef.current = false;
+      setImageCanceling(false);
     }
   };
 
@@ -904,7 +902,7 @@ export default function DreamDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={generatingImage ? handleStopGenerateImage : handleGenerateImage}
-                      disabled={imageCancelingRef.current}
+                      disabled={imageCanceling}
                       className={cn(
                         "gap-1.5 border-muted-foreground/40 dark:border-muted-foreground/60 hover:scale-105 active:scale-95 transition-all duration-200",
                         generatingImage
@@ -961,7 +959,7 @@ export default function DreamDetailPage() {
                   </div>
                   <Button
                     onClick={generatingImage ? handleStopGenerateImage : handleGenerateImage}
-                    disabled={imageCancelingRef.current}
+                    disabled={imageCanceling}
                     className={cn(
                       "text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 border-0 gap-2",
                       generatingImage
@@ -1382,7 +1380,7 @@ export default function DreamDetailPage() {
                       size="lg"
                       className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-500/90 hover:to-pink-500/90 text-white font-semibold shadow-lg hover:shadow-xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 border-0 px-8"
                       onClick={analyzing ? handleStopAnalyze : () => handleAnalyze("manual")}
-                      disabled={analyzeCancelingRef.current}
+                      disabled={analyzeCanceling}
                     >
                       {analyzing ? (
                         <>
@@ -1423,7 +1421,7 @@ export default function DreamDetailPage() {
                   <div className="flex items-center justify-center gap-2">
                   <Button 
                       onClick={analyzing ? handleStopAnalyze : () => handleAnalyze("manual")} 
-                      disabled={analyzeCancelingRef.current}
+                      disabled={analyzeCanceling}
                       size="lg"
                       className={cn(
                         "text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border-0 px-8",

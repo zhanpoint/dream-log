@@ -41,15 +41,7 @@ services:
     volumes:
       - logs_volume:/app/logs
     env_file: ./.env
-    environment:
-      # 让后端容器通过宿主机的代理访问外网（如 OpenRouter / OpenAI）
-      # 请确保宿主机代理监听在 0.0.0.0:7897 或至少对 Docker 网桥开放。
-      HTTP_PROXY: http://host.docker.internal:7897
-      HTTPS_PROXY: http://host.docker.internal:7897
-      # 避免内部服务（数据库、Redis、容器间调用）走代理
-      NO_PROXY: postgres,cache,backend,worker,frontend,nginx,localhost,127.0.0.1
     extra_hosts:
-      # 在 Linux 上为容器提供访问宿主机的固定名称
       - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
@@ -69,10 +61,6 @@ services:
     container_name: dream_log_worker
     command: python scripts/start_worker.py
     env_file: ./.env
-    environment:
-      HTTP_PROXY: http://host.docker.internal:7897
-      HTTPS_PROXY: http://host.docker.internal:7897
-      NO_PROXY: postgres,cache,backend,worker,frontend,nginx,localhost,127.0.0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

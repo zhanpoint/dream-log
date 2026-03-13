@@ -264,7 +264,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   const handleDrawingSave = useCallback(
     (blob: Blob) => {
       if (totalImageCount >= 8) {
-        toast.error("最多只能上传 8 张图片");
+        toast.error(t("dreams.new.toast.imageLimit"));
         return;
       }
 
@@ -277,7 +277,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         preview: URL.createObjectURL(blob),
       };
       setImageFiles((prev) => [...prev, newFile]);
-      toast.success("画作已添加");
+      toast.success(t("dreams.new.toast.drawingAdded"));
     },
     [totalImageCount]
   );
@@ -410,12 +410,12 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      toast.error("请描述你的梦境内容");
+      toast.error(t("dreams.new.toast.contentRequired"));
       return;
     }
 
     if (privacyLevel === "PUBLIC" && shareToCommunityEnabled && !selectedCommunityId) {
-      toast.error("请先选择要分享到的社群");
+      toast.error(t("dreams.new.toast.communityRequired"));
       return;
     }
 
@@ -525,11 +525,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         }
       }
 
-      toast.success(mode === "edit" ? "梦境已更新" : "梦境记录成功！");
+      toast.success(
+        mode === "edit" ? t("dreams.new.toast.updated") : t("dreams.new.toast.created")
+      );
 
       // 强依赖后端返回的 dream.id，若缺失则直接提示错误
       if (!dream?.id) {
-        toast.error("保存成功但未获取到梦境 ID，请稍后重试");
+        toast.error(t("dreams.new.toast.missingDreamId"));
         return;
       }
 
@@ -546,13 +548,13 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
           .map((e: any) => e?.msg || e?.type || "")
           .filter(Boolean)
           .join("；");
-        message = msgs || "保存失败，请检查表单内容";
+        message = msgs || t("dreams.new.toast.saveFormInvalid");
       } else if (rawDetail && typeof rawDetail === "object") {
         message = JSON.stringify(rawDetail);
       } else if (err?.message) {
         message = err.message;
       } else {
-        message = "保存失败，请重试";
+        message = t("dreams.new.toast.saveFailed");
       }
 
       toast.error(message);
@@ -697,7 +699,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         disabled={generatingTitle}
                         onClick={async () => {
                           if (!content.trim()) {
-                            toast("先写下梦境内容，AI 帮你生成标题", {
+                            toast(t("dreams.new.toast.titleNeedContent"), {
                               icon: "✨",
                               duration: 3000,
                             });
@@ -710,9 +712,11 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                             );
                             setTitle(result.title);
                             setTitleGeneratedByAI(true);
-                            toast.success("标题已生成");
+                            toast.success(t("dreams.new.toast.titleGenerated"));
                           } catch (err: any) {
-                            toast.error(err?.response?.data?.detail || "标题生成失败");
+                            toast.error(
+                              err?.response?.data?.detail || t("dreams.new.toast.titleGenerateFailed")
+                            );
                           } finally {
                             setGeneratingTitle(false);
                           }
@@ -722,7 +726,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         {generatingTitle ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>生成中</span>
+                            <span>{t("dreams.new.toast.generating")}</span>
                           </>
                         ) : (
                           <>
@@ -763,7 +767,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       if (newValue.length <= 1000) {
                         setContent(newValue);
                       } else {
-                        toast.error("梦境内容最多1000字");
+                        toast.error(t("dreams.new.toast.contentTooLong"));
                       }
                     }}
                     maxLength={1000}
@@ -1514,7 +1518,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         if (newValue.length <= 500) {
                           setLifeContext(newValue);
                         } else {
-                          toast.error("最多500字");
+                          toast.error(t("dreams.new.toast.lifeContextTooLong"));
                         }
                       }}
                       maxLength={500}
@@ -1576,7 +1580,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         if (newValue.length <= 300) {
                           setUserInterpretation(newValue);
                         } else {
-                          toast.error("个人理解最多300字");
+                          toast.error(t("dreams.new.toast.interpretationTooLong"));
                         }
                       }}
                       maxLength={300}

@@ -36,6 +36,7 @@ from app.config.ai_models import (
     TEMPERATURE_INSIGHT,
     TEMPERATURE_TITLE,
 )
+from app.core.config import settings
 from app.prompts.dream_analysis import (
     BASIC_ANALYSIS_PROMPT,
     IMAGE_GENERATION_PROMPT,
@@ -68,6 +69,11 @@ def get_target_language_from_locale(locale: str | None) -> str:
     return "中文"
 
 
+def _get_proxy_url() -> str | None:
+    """获取 AI 请求代理地址（仅使用 AI_PROXY_URL）。"""
+    return settings.ai_proxy_url
+
+
 def _create_llm(
     model_key: str,
     *,
@@ -75,12 +81,18 @@ def _create_llm(
     max_tokens: int,
 ) -> ChatOpenAI:
     """创建指定任务的 ChatOpenAI 实例（多阶段认知管道）"""
+    proxy_url = _get_proxy_url()
+    http_client = None
+    if proxy_url:
+        http_client = httpx.Client(proxy=proxy_url, timeout=120.0)
+
     return ChatOpenAI(
         model=MODELS[model_key],
         base_url=OPENROUTER_BASE_URL,
         api_key=OPENROUTER_API_KEY,
         temperature=temperature,
         max_tokens=max_tokens,
+        http_client=http_client,
     )
 
 
@@ -241,7 +253,12 @@ class AIService:
         cancelled: Callable[[], Awaitable[bool]] | None = None,
     ) -> tuple[bytes | None, str, dict | None]:
         # 不读取 HTTP(S)_PROXY 等环境变量，避免容器误走代理导致连接异常
-        async with httpx.AsyncClient(timeout=120.0, trust_env=False) as client:
+        proxy_url = _get_proxy_url()
+        client_kwargs: dict = {"timeout": 120.0, "trust_env": False}
+        if proxy_url:
+            client_kwargs["proxy"] = proxy_url
+
+        async with httpx.AsyncClient(**client_kwargs) as client:
             req_task = asyncio.create_task(
                 client.post(
                     f"{OPENROUTER_BASE_URL}/chat/completions",
@@ -347,11 +364,17 @@ class AIService:
     async def generate_embedding(self, text: str) -> list[float]:
         """生成文本的 embedding 向量（用于相似度搜索）"""
         try:
+            proxy_url = _get_proxy_url()
+            http_client = None
+            if proxy_url:
+                http_client = httpx.Client(proxy=proxy_url, timeout=120.0)
+
             embeddings = OpenAIEmbeddings(
                 model=MODELS["embedding"],
                 openai_api_base=OPENROUTER_BASE_URL,
                 openai_api_key=OPENROUTER_API_KEY,
                 dimensions=EMBEDDING_DIMENSIONS,
+                http_client=http_client,
             )
             result = await embeddings.aembed_query(text)
             return result
