@@ -19,7 +19,8 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """升级数据库"""
-    op.drop_column("user_quota_usage", "embeddings_used")
+    # Production DBs may already have this column removed; make migration idempotent.
+    op.execute("ALTER TABLE user_quota_usage DROP COLUMN IF EXISTS embeddings_used")
 
 
 def downgrade() -> None:
