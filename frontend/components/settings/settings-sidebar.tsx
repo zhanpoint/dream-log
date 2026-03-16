@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { User, Shield, Sparkles, Eye, LogOut } from "lucide-react";
+import { CreditCard, User, Shield, Sparkles, Eye, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthHelpers } from "@/lib/auth-api";
 import { toast } from "sonner";
@@ -32,6 +32,12 @@ const menuItems = [
     href: "/settings/account",
     icon: Shield,
     labelKey: "settings.sidebar.account",
+  },
+  {
+    id: "billing",
+    href: "/settings/billing",
+    icon: CreditCard,
+    labelKey: "settings.sidebar.billing",
   },
   {
     id: "insights",

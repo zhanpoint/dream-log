@@ -113,10 +113,25 @@ async def health_check() -> dict[str, str]:
 
 
 # 注册路由
-from app.api import auth, community, dm, dreams, exploration, insights, notifications, oauth, user, voice_ws
+from app.api import (
+    auth,
+    billing,
+    community,
+    quota,
+    dm,
+    dreams,
+    exploration,
+    insights,
+    notifications,
+    oauth,
+    user,
+    voice_ws,
+)
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(oauth.router, prefix="/api")
+app.include_router(billing.router, prefix="/api")
+app.include_router(quota.router, prefix="/api")
 app.include_router(user.router, prefix="/api")
 app.include_router(dreams.router, prefix="/api")
 app.include_router(dreams.tag_router, prefix="/api")

@@ -51,7 +51,7 @@ const relativeTimeLocales: Record<string, Locale> = {
   en: enUS,
   "en-US": enUS,
   ja,
-  "zh-CN": zhCN,
+  cn: zhCN,
 };
 
 function MessagesContent() {

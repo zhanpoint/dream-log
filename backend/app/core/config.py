@@ -54,6 +54,61 @@ class Settings(BaseSettings):
         """解析 CORS 允许的源（支持逗号分隔）"""
         return [origin.strip() for origin in self.allowed_origins.split(",")]
 
+    # Stripe 配置（按环境区分：sandbox/local 与 production）
+    stripe_public_key_sandbox: str | None = Field(
+        default=None, alias="STRIPE_PUBLIC_KEY_SANDBOX"
+    )
+    stripe_public_key_prod: str | None = Field(default=None, alias="STRIPE_PUBLIC_KEY_PROD")
+    stripe_secret_key_sandbox: str | None = Field(
+        default=None, alias="STRIPE_SECRET_KEY_SANDBOX"
+    )
+    stripe_secret_key_prod: str | None = Field(default=None, alias="STRIPE_SECRET_KEY_PROD")
+    stripe_webhook_secret_sandbox: str | None = Field(
+        default=None, alias="STRIPE_WEBHOOK_SECRET_SANDBOX"
+    )
+    stripe_webhook_secret_prod: str | None = Field(
+        default=None, alias="STRIPE_WEBHOOK_SECRET_PROD"
+    )
+    stripe_price_pro_monthly_sandbox: str | None = Field(
+        default=None, alias="STRIPE_PRICE_PRO_MONTHLY_SANDBOX"
+    )
+    stripe_price_pro_monthly_prod: str | None = Field(
+        default=None, alias="STRIPE_PRICE_PRO_MONTHLY_PROD"
+    )
+    stripe_price_ultra_monthly_sandbox: str | None = Field(
+        default=None, alias="STRIPE_PRICE_ULTRA_MONTHLY_SANDBOX"
+    )
+    stripe_price_ultra_monthly_prod: str | None = Field(
+        default=None, alias="STRIPE_PRICE_ULTRA_MONTHLY_PROD"
+    )
+    stripe_success_url_sandbox: str | None = Field(
+        default=None, alias="STRIPE_SUCCESS_URL_SANDBOX"
+    )
+    stripe_success_url_prod: str | None = Field(
+        default=None, alias="STRIPE_SUCCESS_URL_PROD"
+    )
+    stripe_cancel_url_sandbox: str | None = Field(
+        default=None, alias="STRIPE_CANCEL_URL_SANDBOX"
+    )
+    stripe_cancel_url_prod: str | None = Field(
+        default=None, alias="STRIPE_CANCEL_URL_PROD"
+    )
+    stripe_portal_return_url_sandbox: str | None = Field(
+        default=None, alias="STRIPE_PORTAL_RETURN_URL_SANDBOX"
+    )
+    stripe_portal_return_url_prod: str | None = Field(
+        default=None, alias="STRIPE_PORTAL_RETURN_URL_PROD"
+    )
+    stripe_portal_configuration_id_sandbox: str | None = Field(
+        default=None, alias="STRIPE_PORTAL_CONFIGURATION_ID_SANDBOX"
+    )
+    stripe_portal_configuration_id_prod: str | None = Field(
+        default=None, alias="STRIPE_PORTAL_CONFIGURATION_ID_PROD"
+    )
+
+    # Billing kill-switch（用于 Stripe 账号受限时快速关闭收款入口）
+    billing_disabled: bool = Field(default=False, alias="BILLING_DISABLED")
+
     # SMTP 配置
     smtp_host: str = Field(..., alias="SMTP_HOST")
     smtp_port: int = Field(default=465, alias="SMTP_PORT")
@@ -66,6 +121,8 @@ class Settings(BaseSettings):
     google_client_id: str | None = Field(default=None, alias="GOOGLE_CLIENT_ID")
     google_client_secret: str | None = Field(default=None, alias="GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str | None = Field(default=None, alias="GOOGLE_REDIRECT_URI")
+    # Google OAuth 访问代理（国内网络可选）
+    google_oauth_proxy_url: str | None = Field(default=None, alias="GOOGLE_OAUTH_PROXY_URL")
 
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
@@ -127,6 +184,55 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """是否为生产环境"""
         return self.app_env == "production"
+
+    def _select_env_value(self, sandbox_value: str | None, prod_value: str | None) -> str | None:
+        if self.is_production:
+            return prod_value
+        return sandbox_value
+
+    @property
+    def stripe_secret_key(self) -> str | None:
+        return self._select_env_value(self.stripe_secret_key_sandbox, self.stripe_secret_key_prod)
+
+    @property
+    def stripe_webhook_secret(self) -> str | None:
+        return self._select_env_value(
+            self.stripe_webhook_secret_sandbox, self.stripe_webhook_secret_prod
+        )
+
+    @property
+    def stripe_price_pro_monthly(self) -> str | None:
+        return self._select_env_value(
+            self.stripe_price_pro_monthly_sandbox, self.stripe_price_pro_monthly_prod
+        )
+
+    @property
+    def stripe_price_ultra_monthly(self) -> str | None:
+        return self._select_env_value(
+            self.stripe_price_ultra_monthly_sandbox,
+            self.stripe_price_ultra_monthly_prod,
+        )
+
+    @property
+    def stripe_success_url(self) -> str | None:
+        return self._select_env_value(self.stripe_success_url_sandbox, self.stripe_success_url_prod)
+
+    @property
+    def stripe_cancel_url(self) -> str | None:
+        return self._select_env_value(self.stripe_cancel_url_sandbox, self.stripe_cancel_url_prod)
+
+    @property
+    def stripe_portal_return_url(self) -> str | None:
+        return self._select_env_value(
+            self.stripe_portal_return_url_sandbox, self.stripe_portal_return_url_prod
+        )
+
+    @property
+    def stripe_portal_configuration_id(self) -> str | None:
+        return self._select_env_value(
+            self.stripe_portal_configuration_id_sandbox,
+            self.stripe_portal_configuration_id_prod,
+        )
 
 
 @lru_cache

@@ -52,7 +52,7 @@ def get_target_language_from_locale(locale: str | None) -> str:
     将前端传来的语言代码/首选语言映射为提示词中使用的 {target_language} 描述。
 
     约定：
-    - zh-CN / zh 开头: 中文
+    - cn / zh 开头: 中文
     - en / en-*       : English
     - ja / ja-*       : 日语
     其它情况默认中文，保证提示词始终可用。

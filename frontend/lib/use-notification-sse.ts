@@ -9,6 +9,7 @@ export type SSEConnectionStatus = "connecting" | "connected" | "disconnected" | 
 export interface UseNotificationSSEOptions {
   onNotification?: (notification: Notification) => void;
   onUnreadCountChange?: (count: number) => void;
+  onEvent?: (event: string, data: any) => void;
   autoReconnect?: boolean;
   reconnectInterval?: number;
 }
@@ -45,6 +46,7 @@ export function useNotificationSSE(
   const {
     onNotification,
     onUnreadCountChange,
+    onEvent,
     autoReconnect = true,
     reconnectInterval = 3000,
   } = options;
@@ -58,6 +60,7 @@ export function useNotificationSSE(
   const unreadCountRef = useRef(0);
   const onNotificationRef = useRef(onNotification);
   const onUnreadCountChangeRef = useRef(onUnreadCountChange);
+  const onEventRef = useRef(onEvent);
   const refreshInFlightRef = useRef<Promise<string> | null>(null);
 
   useEffect(() => {
@@ -67,6 +70,10 @@ export function useNotificationSSE(
   useEffect(() => {
     onUnreadCountChangeRef.current = onUnreadCountChange;
   }, [onUnreadCountChange]);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   const clearReconnectTimer = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -235,7 +242,9 @@ export function useNotificationSSE(
             break;
 
           default:
-            console.log(`[SSE] 未知事件类型: ${event}`, parsedData);
+            onEventRef.current?.(event, parsedData);
+            // 未被业务消费的事件再打 log，避免噪音
+            // console.log(`[SSE] 未知事件类型: ${event}`, parsedData);
         }
       } catch (err) {
         console.error(`[SSE] 解析事件数据失败 (${event}):`, err);

@@ -54,7 +54,13 @@ async def google_oauth_callback(
 
     # 1. 用 code 换取 access_token
     # 不读取 HTTP(S)_PROXY 等环境变量，避免容器误走代理导致连接异常
-    async with httpx.AsyncClient(trust_env=False) as client:
+    # 使用 AI_PROXY_URL 作为可选代理
+    proxy_url = settings.ai_proxy_url
+    async with httpx.AsyncClient(
+        trust_env=False,
+        proxy=proxy_url,
+        timeout=httpx.Timeout(20.0, connect=10.0),
+    ) as client:
         token_response = await client.post(
             "https://oauth2.googleapis.com/token",
             data={

@@ -8,7 +8,7 @@ from datetime import date, datetime, timezone, timedelta
 
 from sqlalchemy import Date, DateTime, Enum, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -54,7 +54,7 @@ class User(Base):
     birthday: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     # 语言偏好（用于定时任务等无请求头场景）
-    # 存储 i18n locale，如：zh-CN / en / ja；为空表示未设置（由后端默认策略兜底）
+    # 存储 i18n locale，如：cn / en / ja；为空表示未设置（由后端默认策略兜底）
     preferred_locale: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     # 注册信息
@@ -85,6 +85,13 @@ class User(Base):
         default=shanghai_now,
         onupdate=shanghai_now,
         nullable=True,
+    )
+
+    subscription: Mapped["UserSubscription"] = relationship(
+        "UserSubscription",
+        backref="user",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

@@ -36,14 +36,14 @@ const dateLocales: Record<string, Locale> = {
   en: enUS,
   "en-US": enUS,
   ja,
-  "zh-CN": zhCN,
+  cn: zhCN,
 };
 
 const dateFormats: Record<string, string> = {
   en: "MMM d, HH:mm",
   "en-US": "MMM d, HH:mm",
   ja: "M月d日 H:mm",
-  "zh-CN": "M月d日 HH:mm",
+  cn: "M月d日 HH:mm",
 };
 
 export default function NotificationsPage() {

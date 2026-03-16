@@ -40,7 +40,7 @@ export function GreenhouseOverviewPanel({ slug }: GreenhouseOverviewPanelProps) 
 
     const lang = i18n.language || "en";
     const locale =
-      lang.startsWith("zh") ? "zh-CN" :
+      lang.startsWith("zh") ? "cn" :
       lang.startsWith("ja") ? "ja-JP" :
       "en-US";
 

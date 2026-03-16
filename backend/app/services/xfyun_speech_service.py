@@ -114,7 +114,7 @@ class XfyunSpeechService:
         self,
         audio_stream: AsyncIterator[bytes],
         *,
-        language_code: str = "zh-CN",
+        language_code: str = "cn",
         sample_rate: int = 16000,
     ) -> AsyncIterator[str]:
         """

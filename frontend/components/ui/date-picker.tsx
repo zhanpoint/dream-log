@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 // 根据 i18n 语言代码获取 date-fns locale
 function getDateLocale(lang: string): Locale {
   switch (lang) {
-    case "zh-CN":
+    case "cn":
       return zhCN;
     case "ja":
       return ja;

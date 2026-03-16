@@ -3,6 +3,7 @@
 import HeroSection from "@/components/landing/hero-section";
 import FeaturesSection from "@/components/landing/features-section";
 import TestimonialsSection from "@/components/landing/testimonials-section";
+import PricingSection from "@/components/landing/pricing-section";
 import Particles from "@/components/magicui/particles";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ export default function Page() {
       <HeroSection />
       <FeaturesSection />
       <TestimonialsSection />
+      <PricingSection />
       <Particles
         className="absolute inset-0 -z-10"
         quantity={220}

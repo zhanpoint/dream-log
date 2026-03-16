@@ -13,7 +13,7 @@ import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 
-const ORDER: SupportedLanguage[] = ["zh-CN", "en", "ja"];
+const ORDER: SupportedLanguage[] = ["cn", "en", "ja"];
 
 export function LanguageSelector({ className = "" }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -26,7 +26,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
     if (current in SUPPORTED_LANGUAGES) return current as SupportedLanguage;
     const base = current.split("-")[0];
     if (base in SUPPORTED_LANGUAGES) return base as SupportedLanguage;
-    return "zh-CN";
+    return "cn";
   })();
 
   // 避免 SSR/CSR 初始语言不一致导致 hydration mismatch

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import i18n, {
   LANGUAGE_STORAGE_KEY,
@@ -15,18 +15,29 @@ function isSupportedLanguage(v: string): v is SupportedLanguage {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
+    let mounted = true;
     // 注意：不要在模块加载阶段读取 localStorage 并切换语言，否则会导致 SSR/CSR 首屏不一致触发 hydration error。
     // 这里在 hydration 完成后再切换语言，避免首屏 HTML mismatch。
-    try {
-      const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (saved && isSupportedLanguage(saved) && saved !== i18n.language) {
-        void i18n.changeLanguage(saved);
+    const syncLanguage = async () => {
+      try {
+        const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+        if (saved && isSupportedLanguage(saved) && saved !== i18n.language) {
+          await i18n.changeLanguage(saved);
+        }
+        document.documentElement.lang = i18n.language;
+      } catch {
+        // 忽略错误，使用默认语言
+      } finally {
+        if (mounted) {
+          setReady(true);
+        }
       }
-      document.documentElement.lang = i18n.language;
-    } catch {
-      // 忽略错误，使用默认语言
-    }
+    };
+
+    void syncLanguage();
 
     const onChanged = (lng: string) => {
       document.documentElement.lang = lng;
@@ -45,10 +56,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
     i18n.on("languageChanged", onChanged);
     return () => {
+      mounted = false;
       i18n.off("languageChanged", onChanged);
     };
   }, []);
 
-  // 直接渲染子组件，不再有 isReady 门控
+  if (!ready) return null;
+
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
 }

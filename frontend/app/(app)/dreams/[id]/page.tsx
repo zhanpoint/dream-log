@@ -129,7 +129,7 @@ export default function DreamDetailPage() {
   // 根据当前语言获取 date-fns locale
   const getDateLocale = () => {
     switch (i18n.language) {
-      case "zh-CN":
+      case "cn":
         return zhCN;
       case "ja":
         return ja;

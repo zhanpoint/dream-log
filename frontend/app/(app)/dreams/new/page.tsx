@@ -681,12 +681,12 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       // 用户手动编辑后，不再标记为 AI 生成
                       setTitleGeneratedByAI(false);
                     }}
-                    maxLength={50}
+                    maxLength={100}
                     className="text-sm h-10 border border-border/60 bg-transparent focus-visible:border-amber-500/80 dark:focus-visible:border-amber-400/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-[0_0_15px_rgba(251,191,36,0.15)] dark:focus-visible:shadow-[0_0_20px_rgba(251,191,36,0.2)] placeholder:text-sm placeholder:text-muted-foreground/90 dark:placeholder:text-foreground placeholder:opacity-100 px-4 py-3 pr-14 rounded-lg transition-all duration-300"
                   />
                   {/* 字数统计 */}
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                    {title.length}/50
+                    {title.length}/100
                   </span>
                 </div>
                 <TooltipProvider delayDuration={300}>

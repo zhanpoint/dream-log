@@ -19,7 +19,7 @@ export interface UserProfile {
   created_at: string;
 }
 
-export type PreferredLocale = "zh-CN" | "en" | "ja";
+export type PreferredLocale = "cn" | "en" | "ja";
 
 /**
  * 更新个人资料请求

@@ -28,8 +28,8 @@ class UpdateProfileRequest(BaseModel):
     preferred_locale: str | None = Field(
         None,
         max_length=16,
-        pattern="^(zh-CN|en|ja)$",
-        description="UI 语言偏好（zh-CN|en|ja）",
+        pattern="^(cn|en|ja)$",
+        description="UI 语言偏好（cn|en|ja）",
     )
 
     @field_validator("username")

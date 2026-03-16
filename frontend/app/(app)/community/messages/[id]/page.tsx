@@ -29,7 +29,7 @@ const messageTimeLocales: Record<string, Locale> = {
   "en-US": enUS,
   ja,
   "ja-JP": ja,
-  "zh-CN": zhCN,
+  cn: zhCN,
 };
 
 function MessageBubble({

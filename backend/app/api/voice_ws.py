@@ -74,7 +74,7 @@ async def transcribe_voice_stream(websocket: WebSocket) -> None:
         """从 Speech-to-Text 读取转录结果，发送给前端"""
         try:
             async for transcript in speech_service.streaming_transcribe(
-                audio_stream(), sample_rate=16000, language_code="zh-CN"
+                audio_stream(), sample_rate=16000, language_code="cn"
             ):
                 try:
                     await websocket.send_json({

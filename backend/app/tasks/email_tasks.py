@@ -60,7 +60,7 @@ Dream Log 团队
     # HTML 内容
     html_content = f"""
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="cn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

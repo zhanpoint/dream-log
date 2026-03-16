@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { UserAvatar } from "@/components/user-avatar";
-import { AuthToken, AuthUser } from "@/lib/auth-api";
+import type { User } from "@/lib/auth-api";
+import { AuthHelpers, AuthToken, AuthUser as AuthUserStore } from "@/lib/auth-api";
 import { Compass, MessageSquare, Moon, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,25 +19,19 @@ export function SiteHeader() {
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith("/auth");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // 初始化时读取一次认证状态
-    const authenticated = AuthToken.isAuthenticated();
-    setIsAuthenticated(authenticated);
-    if (authenticated) {
-      setCurrentUser(AuthUser.get());
-    }
-  }, []); // 仅在挂载时执行一次，pathname 变化不需要重新读取 localStorage
-
-  useEffect(() => {
-    // 处理用户更新事件：仅在用户数据变更时更新
-    const handleUserUpdated = () => {
-      setCurrentUser(AuthUser.get());
+    setMounted(true);
+    const syncAuthState = () => {
+      setIsAuthenticated(AuthToken.isAuthenticated());
+      setCurrentUser(AuthUserStore.get());
     };
 
-    window.addEventListener("auth:user-updated", handleUserUpdated);
-    return () => window.removeEventListener("auth:user-updated", handleUserUpdated);
+    syncAuthState();
+    window.addEventListener("auth:user-updated", syncAuthState);
+    return () => window.removeEventListener("auth:user-updated", syncAuthState);
   }, []);
 
   return (
@@ -54,7 +49,7 @@ export function SiteHeader() {
               </div>
 
               {/* 核心导航 */}
-              {!isAuthPage && isAuthenticated && currentUser && (
+              {!isAuthPage && mounted && isAuthenticated && currentUser && (
                 <nav className="hidden md:flex items-center gap-2">
                   <Link 
                     href="/dreams"
@@ -97,7 +92,7 @@ export function SiteHeader() {
             </div>
 
             {/* 认证状态显示 */}
-            {!isAuthPage && (
+            {!isAuthPage && mounted && (
               <>
                 {isAuthenticated && currentUser ? (
                   <>
@@ -146,12 +141,18 @@ export function SiteHeader() {
                   </>
                 ) : (
                   <div className="auth-buttons">
-                    <Link href="/auth">
+                    <Link
+                      href="/auth"
+                      onClick={() => AuthHelpers.setPostLoginRedirect(pathname || "/")}
+                    >
                       <Button variant="ghost" size="sm" className="login-btn">
                         {t("common.login")}
                       </Button>
                     </Link>
-                    <Link href="/auth">
+                    <Link
+                      href="/auth"
+                      onClick={() => AuthHelpers.setPostLoginRedirect(pathname || "/")}
+                    >
                       <Button size="sm" className="register-btn">
                         {t("common.register")}
                       </Button>

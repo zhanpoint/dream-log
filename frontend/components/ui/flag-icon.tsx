@@ -3,7 +3,7 @@
 import "@/styles/ui/flag-icon.css";
 
 const FLAG_ICONS: Record<string, React.ReactNode> = {
-  "zh-CN": (
+  cn: (
     <svg className="flag-icon" viewBox="0 0 24 16" fill="none">
       <rect width="24" height="16" fill="#EE1C25" />
       <g fill="#FFDE00">

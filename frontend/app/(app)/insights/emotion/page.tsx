@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 // ===== 辅助函数 =====
 function getDateLocale(lang: string): Locale {
   switch (lang) {
-    case "zh-CN":
+    case "cn":
       return zhCN;
     case "ja":
       return ja;

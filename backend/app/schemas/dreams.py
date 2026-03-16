@@ -18,7 +18,7 @@ class CreateDreamRequest(BaseModel):
     """创建梦境请求"""
 
     # 基础信息
-    title: str | None = Field(None, max_length=50)
+    title: str | None = Field(None, max_length=100)
     dream_date: date = Field(..., description="梦境发生日期")
     dream_time: time | None = None
     content: str = Field(..., min_length=1, max_length=1000, description="梦境内容")
@@ -94,7 +94,7 @@ class CreateDreamRequest(BaseModel):
 class UpdateDreamRequest(BaseModel):
     """更新梦境请求 (PATCH, 所有字段可选)"""
 
-    title: str | None = Field(None, max_length=50)
+    title: str | None = Field(None, max_length=100)
     dream_date: date | None = None
     dream_time: time | None = None
     content: str | None = Field(None, min_length=1, max_length=1000)

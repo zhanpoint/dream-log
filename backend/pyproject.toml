@@ -45,6 +45,8 @@ dependencies = [
     "oss2>=2.18.0",
     "aliyun-python-sdk-core>=2.14.0",
     "aliyun-python-sdk-sts>=3.1.0",
+    # Stripe
+    "stripe",
 ]
 
 [dependency-groups]

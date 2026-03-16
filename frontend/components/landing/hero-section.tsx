@@ -9,10 +9,14 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 
 export default function HeroSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const ref = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
+  const language = i18n.language?.split("-")[0];
+  const heroSuffix = language === "en" ? "-en" : language === "ja" ? "-ja" : language === "cn" ? "-cn" : "";
+  const heroDarkSrc = `/dream-hero-dark${heroSuffix}.svg`;
+  const heroLightSrc = `/dream-hero-light${heroSuffix}.svg`;
 
   useEffect(() => {
     const el = ref.current;
@@ -77,12 +81,12 @@ export default function HeroSection() {
           />
 
           <img
-            src="/dream-hero-dark.svg"
+            src={heroDarkSrc}
             alt="Dream Log Hero"
             className="hero-image-dark relative z-0 w-full h-full rounded-[inherit] border object-contain"
           />
           <img
-            src="/dream-hero-light.svg"
+            src={heroLightSrc}
             alt="Dream Log Hero"
             className="hero-image-light relative z-0 w-full h-full rounded-[inherit] border object-contain"
           />

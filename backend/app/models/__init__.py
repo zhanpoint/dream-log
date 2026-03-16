@@ -32,12 +32,20 @@ from app.models.notification import Notification, NotificationType
 from app.models.search_history import SearchHistory
 from app.models.token_blacklist import TokenBlacklist
 from app.models.user import RegistrationMethod, User
+from app.models.subscription import UserSubscription
+from app.models.usage_quota import UserQuotaUsage
+from app.models.quota_usage_log import QuotaUsageLog
+from app.models.stripe_webhook_event import StripeWebhookEvent
 from app.models.user_insight import UserInsight, UserInsightSettings
 
 __all__ = [
     # 用户模型
     "User",
     "RegistrationMethod",
+    "UserSubscription",
+    "UserQuotaUsage",
+    "QuotaUsageLog",
+    "StripeWebhookEvent",
     "SearchHistory",
     "TokenBlacklist",
     # 梦境核心

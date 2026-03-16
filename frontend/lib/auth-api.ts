@@ -398,9 +398,32 @@ export const AuthUser = {
  */
 export const AuthHelpers = {
   /**
+   * 记录登录后跳转地址
+   */
+  setPostLoginRedirect(redirectUrl: string): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("post_login_redirect", redirectUrl);
+    }
+  },
+
+  /**
+   * 读取并清除登录后跳转地址
+   */
+  consumePostLoginRedirect(): string | null {
+    if (typeof window !== "undefined") {
+      const redirectUrl = localStorage.getItem("post_login_redirect");
+      if (redirectUrl) {
+        localStorage.removeItem("post_login_redirect");
+      }
+      return redirectUrl;
+    }
+    return null;
+  },
+
+  /**
    * 处理登录成功
    */
-  handleLoginSuccess(response: AuthResponse, redirectUrl: string = "/"): void {
+  handleLoginSuccess(response: AuthResponse, redirectUrl?: string): void {
     // 存储 token
     AuthToken.set(response.token, response.refreshToken);
 
@@ -409,7 +432,9 @@ export const AuthHelpers = {
 
     // 跳转
     if (typeof window !== "undefined") {
-      window.location.href = redirectUrl;
+      const storedRedirect = this.consumePostLoginRedirect();
+      const target = redirectUrl || storedRedirect || "/";
+      window.location.href = target;
     }
   },
 
@@ -424,8 +449,10 @@ export const AuthHelpers = {
       AuthToken.clear();
       AuthUser.clear();
 
-      // 跳转到登录页
       if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("auth:user-updated", { detail: null })
+        );
         window.location.href = redirectUrl;
       }
     }
@@ -449,6 +476,13 @@ export const AuthHelpers = {
       // 刷新失败,清除 token
       AuthToken.clear();
       AuthUser.clear();
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("auth:user-updated", { detail: null })
+        );
+      }
+
       return false;
     }
   },

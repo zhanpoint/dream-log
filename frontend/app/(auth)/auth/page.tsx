@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuthFlow, useVerificationTimer, useFormError, type AuthMethod } from "@/hooks/auth";
+import { AuthHelpers, AuthToken } from "@/lib/auth-api";
 import { EmailStep } from "@/components/auth/steps/email-step";
 import { MethodSelectionStep } from "@/components/auth/steps/method-selection-step";
 import { PasswordStep } from "@/components/auth/steps/password-step";
@@ -146,11 +147,21 @@ export default function AuthPage() {
     exit: { opacity: 0, x: -20 },
   };
 
+  // 已登录用户访问认证页时，直接跳转到目标页
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (AuthToken.isAuthenticated()) {
+      const target = AuthHelpers.consumePostLoginRedirect() || "/";
+      window.location.href = target;
+    }
+  }, []);
+
   return (
     <div className="w-full max-w-md relative">
       {/* 返回按钮 */}
       {authFlow.canGoBack && (
         <button
+          type="button"
           onClick={authFlow.goBack}
           disabled={authFlow.isLoading}
           className="absolute -top-12 left-0 group flex items-center gap-1.5 text-sm font-medium auth-secondary hover:text-foreground transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -81,12 +81,12 @@ export const api = axios.create({
 });
 
 // 缓存语言值，避免每次请求都读取 DOM
-let _cachedLang = "zh-CN";
+let _cachedLang = "cn";
 if (typeof document !== "undefined") {
-  _cachedLang = document.documentElement.lang || navigator.language || "zh-CN";
+  _cachedLang = (document.documentElement.lang || navigator.language || "cn").replace(/^zh(-.*)?$/i, "cn");
   // 监听语言变化
   const observer = new MutationObserver(() => {
-    _cachedLang = document.documentElement.lang || "zh-CN";
+    _cachedLang = (document.documentElement.lang || "cn").replace(/^zh(-.*)?$/i, "cn");
   });
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 }
