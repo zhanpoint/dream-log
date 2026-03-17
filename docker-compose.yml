@@ -1,7 +1,6 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: dream_log_postgres
     env_file: ./.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -18,7 +17,6 @@ services:
 
   cache:
     image: redis:7-alpine
-    container_name: dream_log_cache_redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
     env_file: ./.env
     restart: unless-stopped
@@ -36,7 +34,6 @@ services:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     build:
       context: backend
-    container_name: dream_log_backend
     command: /app/scripts/start.sh
     volumes:
       - logs_volume:/app/logs
@@ -58,7 +55,6 @@ services:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     build:
       context: backend
-    container_name: dream_log_worker
     command: python -m scripts.start_worker
     env_file: ./.env
     extra_hosts:
@@ -74,7 +70,6 @@ services:
 
   frontend:
     image: ${FRONTEND_IMAGE_URI:?FRONTEND_IMAGE_URI is not set or empty}
-    container_name: dream_log_frontend
     build:
       context: frontend
       args:
@@ -93,24 +88,42 @@ services:
 
   certbot:
     image: certbot/certbot:latest
-    container_name: dream_log_certbot
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: /bin/sh -c
     command: >
-      "trap exit TERM; while :; do
-       certbot renew --webroot -w /var/www/certbot --deploy-hook 'docker exec dream_log_nginx nginx -s reload';
-       sleep 12h;
-      done"
+      "set -e;
+       # certbot image may not ship docker CLI; install a client to use the mounted docker.sock
+       if ! command -v docker >/dev/null 2>&1; then
+         if command -v apk >/dev/null 2>&1; then
+           apk add --no-cache docker-cli >/dev/null;
+         elif command -v apt-get >/dev/null 2>&1; then
+           apt-get update -y >/dev/null;
+           apt-get install -y --no-install-recommends docker.io >/dev/null;
+         else
+           echo 'docker CLI not found and no supported package manager (apk/apt-get) available.' 1>&2;
+           exit 1;
+         fi;
+       fi;
+       trap exit TERM;
+       while :; do
+         certbot renew --webroot -w /var/www/certbot --deploy-hook '
+           NGINX_CID=$(docker ps -q
+             --filter label=com.docker.compose.service=nginx
+             --filter label=com.docker.compose.project=${COMPOSE_PROJECT_NAME:-dream_log}
+             | head -n 1);
+           if [ -n "$NGINX_CID" ]; then docker exec "$NGINX_CID" nginx -s reload; fi
+         ';
+         sleep 12h;
+       done"
     restart: unless-stopped
     networks:
       - dream-log-net
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: dream_log_nginx
     ports:
       - "80:80"
       - "443:443"
