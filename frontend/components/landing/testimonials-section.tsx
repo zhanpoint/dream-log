@@ -65,7 +65,7 @@ const TestimonialCard = ({
     <figure
       className={cn(
         "testimonial-card",
-        "relative w-80 min-h-[180px] cursor-pointer overflow-hidden rounded-2xl border p-6 shadow-lg backdrop-blur-sm transition-transform duration-300",
+        "relative w-80 min-h-[180px] overflow-hidden rounded-2xl border p-6 shadow-lg backdrop-blur-sm transition-transform duration-300",
         "border-border/50",
         "hover:border-primary/30",
         "hover:shadow-2xl hover:shadow-primary/10",

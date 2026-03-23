@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { Pressable } from "@/components/ui/pressable";
 
 const TYPE_ICONS: Record<string, string> = {
   MONTHLY_REPORT: "📊",
@@ -229,11 +230,16 @@ export default function NotificationsPage() {
                 >
                   <div
                     className={cn(
-                      "relative px-4 py-4 cursor-pointer transition-colors hover:bg-muted/30 border-b border-border/40",
+                      "relative px-4 py-4 transition-colors hover:bg-muted/30 border-b border-border/40",
                       !n.is_read && "bg-primary/[0.02]"
                     )}
-                    onClick={() => handleClick(n)}
                   >
+                    {/* Full-row semantic click target (keeps styles, stable in a11y tree) */}
+                    <Pressable
+                      className="absolute inset-0 cursor-pointer"
+                      aria-label={getTitle(n)}
+                      onClick={() => handleClick(n)}
+                    />
                     {/* 未读指示器 */}
                     {!n.is_read && (
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />

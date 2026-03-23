@@ -4,6 +4,7 @@
 
 from arq.connections import ArqRedis
 from fastapi import HTTPException, status
+import anyio
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -136,7 +137,10 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误"
             )
 
-        if not PasswordService.verify_password(password, user.hashed_password):
+        ok = await anyio.to_thread.run_sync(
+            PasswordService.verify_password, password, user.hashed_password
+        )
+        if not ok:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误"
             )

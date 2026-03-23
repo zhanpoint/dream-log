@@ -37,6 +37,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { Pressable } from "@/components/ui/pressable";
 import "@/styles/community.css";
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -149,7 +150,7 @@ function TrendingSidebar() {
                 <Link
                   key={tag.name}
                   href={`/community?q=%23${encodeURIComponent(tag.name)}&channel=plaza`}
-                  className="group flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/20 hover:-translate-y-0.5"
+                  className="group flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-primary/5 transition-all border border-transparent hover:border-primary/20 hover:-translate-y-0.5"
                   title={t("community.home.hotTags.searchTitle", { tag: tag.name })}
                 >
                   <div className="flex items-center gap-2.5 text-sm">
@@ -1010,7 +1011,18 @@ function SearchResultsInline({
         <p className="text-xs mb-4">{t("community.search.empty.hint")}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {HOT_KEYWORDS_FALLBACK.map((kw) => (
-            <Link key={kw} href="#" onClick={(e) => { e.preventDefault(); }} className="text-xs px-3 py-1 rounded-full border border-gray-300/80 dark:border-gray-600/80 hover:border-primary/50 hover:text-primary hover:scale-105 transition-all duration-200">{kw}</Link>
+            <Pressable
+              key={kw}
+              className="text-xs px-3 py-1 rounded-full border border-gray-300/80 dark:border-gray-600/80 hover:border-primary/50 hover:text-primary hover:scale-105 transition-all duration-200"
+              aria-label={`快捷搜索：${kw}`}
+              onClick={() => {
+                // This empty-state uses fallback chips as affordances only.
+                // We keep behavior minimal to avoid navigation side-effects.
+                onTabChange("all");
+              }}
+            >
+              {kw}
+            </Pressable>
           ))}
         </div>
       </div>
@@ -1041,7 +1053,7 @@ function SearchResultsInline({
       {(tab === "all" || tab === "tags") && result.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {result.tags.map((tag: string) => (
-            <span key={tag} className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
+            <span key={tag} className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary/40 hover:bg-primary/5 transition-all">
               <span className="text-primary/60 mr-0.5">#</span>{tag}
             </span>
           ))}

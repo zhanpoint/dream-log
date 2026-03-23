@@ -275,7 +275,7 @@ export function DreamCardSocialComponent({
         {dream.is_seeking_interpretation && (
           <Badge
             variant="outline"
-            className="text-[10px] py-0.5 px-2 border-violet-400/50 text-violet-600 dark:text-violet-400 dark:border-violet-600/50 bg-violet-500/10 hover:bg-violet-500/20 transition-all duration-200 cursor-pointer"
+            className="text-[10px] py-0.5 px-2 border-violet-400/50 text-violet-600 dark:text-violet-400 dark:border-violet-600/50 bg-violet-500/10 hover:bg-violet-500/20 transition-all duration-200"
           >
             <Search className="h-3 w-3 mr-1" />
             寻求解读

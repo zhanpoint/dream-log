@@ -656,7 +656,13 @@ function DmDetailContent() {
       </div>
 
       {previewImage?.media_url ? (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/90"
+            aria-label="关闭图片预览"
+            onClick={() => setPreviewImage(null)}
+          />
           <button
             type="button"
             className="group absolute right-4 top-4 h-10 w-10 rounded-xl bg-black/55 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80 hover:scale-105 hover:-translate-y-0.5 active:scale-95"

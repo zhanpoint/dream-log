@@ -167,7 +167,7 @@ export default function InsightSettingsPage() {
           {/* 三个报告开关 - 同一行，简洁布局 */}
           <div className="flex items-center justify-between gap-6">
             {/* 周报 */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors group">
               <Calendar className="h-4 w-4 text-blue-500 group-hover:scale-110 transition-transform" />
               <Label htmlFor="weekly-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableWeekly")}</Label>
               <Switch
@@ -178,7 +178,7 @@ export default function InsightSettingsPage() {
             </div>
 
             {/* 月报 */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors group">
               <CalendarDays className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
               <Label htmlFor="monthly-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableMonthly")}</Label>
               <Switch
@@ -189,7 +189,7 @@ export default function InsightSettingsPage() {
             </div>
 
             {/* 年度回顾 */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors cursor-pointer group">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.15] dark:hover:bg-white/[0.15] transition-colors group">
               <Award className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
               <Label htmlFor="annual-enabled" className="text-sm cursor-pointer">{t("settings.insights.enableAnnual")}</Label>
               <Switch

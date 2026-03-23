@@ -229,7 +229,12 @@ export function CommentItem({
 
   // Collapsed stub - shows when comment is collapsed
   const collapsedStub = (
-    <div className="comment-collapsed-stub" onClick={toggleCollapse}>
+    <button
+      type="button"
+      className="comment-collapsed-stub"
+      onClick={toggleCollapse}
+      aria-label="展开折叠评论"
+    >
       <ChevronRight className="h-3 w-3" />
       <span>{authorName}</span>
       <span className="text-muted-foreground">•</span>
@@ -238,7 +243,7 @@ export function CommentItem({
           ? t("community.comments.replyCount", { count: comment.reply_count ?? 0 })
           : ""}
       </span>
-    </div>
+    </button>
   );
 
   // Comment content area

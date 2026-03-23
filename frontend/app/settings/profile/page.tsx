@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Camera, CheckCircle2, XCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { Pressable } from "@/components/ui/pressable";
 
 const USER_CACHE_TTL = 5 * 60 * 1000;
 const userCache: {
@@ -201,10 +202,11 @@ export default function ProfilePage() {
             {/* 头像和基本信息区域 - 左右布局 */}
             <div className="flex items-start gap-6">
               {/* 左侧：头像 */}
-              <div 
-                className="relative w-28 h-28 cursor-pointer group flex-shrink-0" 
+              <Pressable
+                className="relative w-28 h-28 cursor-pointer group flex-shrink-0"
                 onClick={() => setIsAvatarModalOpen(true)}
                 title={t("settings.profile.changeAvatar")}
+                aria-label={t("settings.profile.changeAvatar")}
               >
                 <UserAvatar
                   userId={user.id}
@@ -217,7 +219,7 @@ export default function ProfilePage() {
                 <div className="absolute -bottom-0.5 -right-0.5 bg-primary rounded-full p-1.5 border-2 border-background shadow-lg group-hover:scale-110 transition-transform">
                   <Camera className="h-3.5 w-3.5 text-primary-foreground" />
                 </div>
-              </div>
+              </Pressable>
 
               {/* 右侧：用户名和生日 - 水平排列 */}
               <div className="flex-1 flex gap-6 pt-1">

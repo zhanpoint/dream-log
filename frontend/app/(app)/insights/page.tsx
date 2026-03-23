@@ -541,11 +541,11 @@ function PeriodicCard({
         ) : latestInsight ? (
           <Link
             href={config.href ? config.href(latestInsight.id) : "#"}
-            className="block"
+            className="block cursor-pointer"
           >
             <div
               className={cn(
-                "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all cursor-pointer",
+                "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all",
                 !latestInsight.is_read && "border-primary/60"
               )}
             >
@@ -734,10 +734,11 @@ function PeriodicSectionList({
               <Link
                 key={insight.id}
                 href={config.href ? config.href(insight.id) : "#"}
+                className="block cursor-pointer"
               >
                 <div
                   className={cn(
-                    "flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border",
+                    "flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border",
                     !insight.is_read && "border-l-2 border-l-primary"
                   )}
                 >
@@ -931,9 +932,9 @@ function PeriodicSection({
             {t("insights.theme.archivedReports")}
           </p>
         ) : currentInsight ? (
-          <Link href={config.href ? config.href(currentInsight.id) : "#"}>
+          <Link href={config.href ? config.href(currentInsight.id) : "#"} className="block cursor-pointer">
             <div className={cn(
-              "flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border",
+              "flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border",
               !currentInsight.is_read && "border-l-2 border-l-primary"
             )}>
               <div className="min-w-0 flex-1">
@@ -1138,7 +1139,7 @@ function ThemeReportCard({
                 <Link key={insight.id} href={`${config.href}?id=${insight.id}`} className="block">
                   <div
                     className={cn(
-                      "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all cursor-pointer",
+                      "p-4 rounded-lg border border-border/70 hover:border-primary/80 hover:shadow-md transition-all",
                       !insight.is_read && "border-primary/60"
                     )}
                   >

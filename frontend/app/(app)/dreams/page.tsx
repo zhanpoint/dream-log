@@ -876,7 +876,7 @@ function DreamCard({
   return (
     <Link href={`/dreams/${dream.id}`}>
       <Card
-        className="group break-inside-avoid overflow-hidden hover:shadow-2xl dream-card-hover border-l-4 hover:border-l-6 cursor-pointer transition-all duration-300"
+        className="group break-inside-avoid overflow-hidden hover:shadow-2xl dream-card-hover border-l-4 hover:border-l-6 transition-all duration-300"
         style={{ borderLeftColor: borderColor }}
       >
         <CardHeader className="pb-3">

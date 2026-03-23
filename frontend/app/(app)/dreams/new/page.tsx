@@ -4,7 +4,7 @@ import { DrawingBoard } from "@/components/dream/drawing-board";
 import type { UploadedFile } from "@/components/dream/image-upload";
 import { VoiceRecorder } from "@/components/dream/voice-recorder";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
-import { Badge } from "@/components/ui/badge";
+import { Badge, BadgeButton } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -955,18 +955,28 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         <Collapsible open={emotionCardOpen} onOpenChange={setEmotionCardOpen}>
         <Card className="overflow-hidden hover:shadow-lg transition-all border border-border/60 border-l-4 border-l-primary/30">
           <CollapsibleTrigger asChild>
-            <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" />
-                <CardTitle className="text-base text-primary">{t("dreams.new.emotionSection")}</CardTitle>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                  emotionCardOpen && "rotate-180"
-                )}
-              />
-            </CardHeader>
+            <button
+              type="button"
+              data-testid="collapsible-trigger-emotion"
+              aria-label={emotionCardOpen ? "收起情绪感受" : "展开情绪感受"}
+              className="w-full text-left"
+            >
+              <CardHeader className="flex-row items-center justify-between py-3 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-base text-primary">
+                    {t("dreams.new.emotionSection")}
+                  </CardTitle>
+                </div>
+                <ChevronDown
+                  data-testid="collapsible-chevron-emotion"
+                  className={cn(
+                    "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                    emotionCardOpen && "rotate-180"
+                  )}
+                />
+              </CardHeader>
+            </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
           <CardContent className="pt-5 pb-6 space-y-6">
@@ -1078,18 +1088,28 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         <Collapsible open={sleepCardOpen} onOpenChange={setSleepCardOpen}>
         <Card className="overflow-hidden hover:shadow-lg transition-all border border-border/60 border-l-4 border-l-blue-500/30">
           <CollapsibleTrigger asChild>
-            <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
-              <div className="flex items-center gap-2">
-                <Moon className="w-5 h-5 text-blue-500" />
-                <CardTitle className="text-base text-blue-500">{t("dreams.new.sleepSection")}</CardTitle>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                  sleepCardOpen && "rotate-180"
-                )}
-              />
-            </CardHeader>
+            <button
+              type="button"
+              data-testid="collapsible-trigger-sleep"
+              aria-label={sleepCardOpen ? "收起睡眠信息" : "展开睡眠信息"}
+              className="w-full text-left"
+            >
+              <CardHeader className="flex-row items-center justify-between py-3 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
+                <div className="flex items-center gap-2">
+                  <Moon className="w-5 h-5 text-blue-500" />
+                  <CardTitle className="text-base text-blue-500">
+                    {t("dreams.new.sleepSection")}
+                  </CardTitle>
+                </div>
+                <ChevronDown
+                  data-testid="collapsible-chevron-sleep"
+                  className={cn(
+                    "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                    sleepCardOpen && "rotate-180"
+                  )}
+                />
+              </CardHeader>
+            </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
           <CardContent className="pt-5 pb-6 space-y-6">
@@ -1298,18 +1318,28 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         <Collapsible open={featuresCardOpen} onOpenChange={setFeaturesCardOpen}>
         <Card className="overflow-hidden hover:shadow-lg transition-all border border-border/60 border-l-4 border-l-purple-500/30">
           <CollapsibleTrigger asChild>
-            <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-purple-500" />
-                <CardTitle className="text-base text-purple-500">{t("dreams.new.characteristicsSection")}</CardTitle>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                  featuresCardOpen && "rotate-180"
-                )}
-              />
-            </CardHeader>
+            <button
+              type="button"
+              data-testid="collapsible-trigger-features"
+              aria-label={featuresCardOpen ? "收起梦境特征" : "展开梦境特征"}
+              className="w-full text-left"
+            >
+              <CardHeader className="flex-row items-center justify-between py-3 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors border-b border-border/60">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-purple-500" />
+                  <CardTitle className="text-base text-purple-500">
+                    {t("dreams.new.characteristicsSection")}
+                  </CardTitle>
+                </div>
+                <ChevronDown
+                  data-testid="collapsible-chevron-features"
+                  className={cn(
+                    "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                    featuresCardOpen && "rotate-180"
+                  )}
+                />
+              </CardHeader>
+            </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
           <CardContent className="pt-5 pb-6 space-y-6">
@@ -1359,11 +1389,17 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   
                   const IconComponent = iconConfig?.component;
                   const isSelected = dreamTypes.includes(dtype.value);
+                  const dreamTypeLabelKey = `dreams.new.dreamType${
+                    dtype.value.charAt(0) + dtype.value.slice(1).toLowerCase()
+                  }`;
+                  const dreamTypeDescKey = `${dreamTypeLabelKey}Desc`;
                   
                   return (
-                    <Badge
+                    <BadgeButton
                       key={dtype.value}
-                      variant="outline"
+                      data-testid={`dream-type-${dtype.value}`}
+                      data-state={isSelected ? "on" : "off"}
+                      title={t(dreamTypeDescKey)}
                       className={cn(
                         "cursor-pointer hover:scale-105 transition-all duration-200 px-3 py-2",
                         isSelected
@@ -1373,15 +1409,15 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         !isSelected && "hover:bg-primary/5 dark:hover:bg-primary/10"
                       )}
                       onClick={() => toggleDreamType(dtype.value)}
-                      title={t(`dreams.new.dreamType${dtype.value.charAt(0) + dtype.value.slice(1).toLowerCase()}Desc`)}
+                      variant="outline"
                     >
                       {IconComponent && (
                         <IconComponent 
                           className={cn("w-3.5 h-3.5 mr-1.5", iconConfig.color)} 
                         />
                       )}
-                      {t(`dreams.new.dreamType${dtype.value.charAt(0) + dtype.value.slice(1).toLowerCase()}`)}
-                    </Badge>
+                      {t(dreamTypeLabelKey)}
+                    </BadgeButton>
                   );
                 })}
               </div>
@@ -1488,18 +1524,28 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         <Collapsible open={realityCardOpen} onOpenChange={setRealityCardOpen}>
           <Card className="border border-border/60 border-l-4 border-l-green-500/30">
             <CollapsibleTrigger asChild>
-              <CardHeader className="flex-row items-center justify-between py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-5 h-5 text-green-500" />
-                  <CardTitle className="text-base text-green-500">{t("dreams.new.realityConnectionSection")}</CardTitle>
-                </div>
-                <ChevronDown
-                  className={cn(
-                    "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                    realityCardOpen && "rotate-180"
-                  )}
-                />
-              </CardHeader>
+              <button
+                type="button"
+                data-testid="collapsible-trigger-reality"
+                aria-label={realityCardOpen ? "收起与现实的关联" : "展开与现实的关联"}
+                className="w-full text-left"
+              >
+                <CardHeader className="flex-row items-center justify-between py-3 hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors group border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <Link2 className="w-5 h-5 text-green-500" />
+                    <CardTitle className="text-base text-green-500">
+                      {t("dreams.new.realityConnectionSection")}
+                    </CardTitle>
+                  </div>
+                  <ChevronDown
+                    data-testid="collapsible-chevron-reality"
+                    className={cn(
+                      "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                      realityCardOpen && "rotate-180"
+                    )}
+                  />
+                </CardHeader>
+              </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-5 pb-6 space-y-5">

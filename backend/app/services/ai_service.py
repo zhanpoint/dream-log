@@ -82,10 +82,8 @@ def _create_llm(
 ) -> ChatOpenAI:
     """创建指定任务的 ChatOpenAI 实例（多阶段认知管道）"""
     proxy_url = _get_proxy_url()
-    http_client = None
     http_async_client = None
     if proxy_url:
-        http_client = httpx.Client(proxy=proxy_url, timeout=120.0)
         http_async_client = httpx.AsyncClient(proxy=proxy_url, timeout=120.0)
 
     return ChatOpenAI(
@@ -94,7 +92,6 @@ def _create_llm(
         api_key=OPENROUTER_API_KEY,
         temperature=temperature,
         max_tokens=max_tokens,
-        http_client=http_client,
         http_async_client=http_async_client,
     )
 
@@ -377,19 +374,22 @@ class AIService:
         try:
             self._log_proxy_usage("generate_embedding")
             proxy_url = _get_proxy_url()
-            http_client = None
+            http_async_client = None
             if proxy_url:
-                http_client = httpx.Client(proxy=proxy_url, timeout=120.0)
+                http_async_client = httpx.AsyncClient(proxy=proxy_url, timeout=120.0)
 
             embeddings = OpenAIEmbeddings(
                 model=MODELS["embedding"],
                 openai_api_base=OPENROUTER_BASE_URL,
                 openai_api_key=OPENROUTER_API_KEY,
                 dimensions=EMBEDDING_DIMENSIONS,
-                http_client=http_client,
+                http_async_client=http_async_client,
             )
-            result = await embeddings.aembed_query(text)
-            return result
+            try:
+                return await embeddings.aembed_query(text)
+            finally:
+                if http_async_client is not None:
+                    await http_async_client.aclose()
         except Exception as e:
             logger.error(f"生成 embedding 失败: {e}")
             raise

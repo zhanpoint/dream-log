@@ -12,6 +12,37 @@ description: FastAPI 项目最佳实践规则
 - 路由函数优先使用 `async def`，除非确定是纯计算任务
 - 数据库操作使用异步 ORM（如 SQLAlchemy 的 `AsyncSession`）
 
+### 严禁在 `async def` 中直接调用阻塞实现（硬性规则）
+- **禁止**在 `async def` 路由/服务中直接调用同步阻塞的下游依赖或 SDK（同步 HTTP 客户端、同步云 SDK、同步文件大读写、CPU 密集型密码哈希等）。
+- 必须满足其一：
+  - **优先选择异步驱动/客户端库**并全程 `await`（例如 `httpx.AsyncClient`、`redis.asyncio`、SQLAlchemy `AsyncSession` + `asyncpg`）。
+  - 若依赖只提供同步实现（例如部分云 SDK/支付 SDK/加密校验等），必须显式使用线程池隔离：`asyncio.to_thread(...)` 或 `anyio.to_thread.run_sync(...)`。
+- 违反该规则的典型后果：**阻塞事件循环** → 同进程内所有请求/WS/SSE 延迟飙升、吞吐急剧下降。
+
+```python
+# ✅ 正确：同步 SDK 放进线程池
+import anyio
+import stripe
+
+async def verify_webhook(payload: bytes, signature: str) -> dict:
+    event = await anyio.to_thread.run_sync(
+        lambda: stripe.Webhook.construct_event(payload, signature, "whsec_***")
+    )
+    return event
+
+# ✅ 正确：CPU 密集型 bcrypt 放进线程池
+from app.services.password_service import PasswordService
+
+async def set_password(password: str) -> str:
+    return await anyio.to_thread.run_sync(PasswordService.hash_password, password)
+
+# ❌ 错误：在 async def 内直接跑同步阻塞调用（会卡 event loop）
+def blocking_sdk_call(): ...
+
+async def handler():
+    blocking_sdk_call()
+```
+
 ```python
 # ✅ 正确
 @app.get("/users/{user_id}")

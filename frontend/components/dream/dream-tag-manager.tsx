@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { BadgeButton } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -258,7 +258,7 @@ export function DreamTagManager({
                     </div>
                     <div className="flex flex-wrap gap-2 px-2 pb-2">
                       {currentTags.map((tag, index) => (
-                        <Badge
+                        <BadgeButton
                           key={tag.id}
                           variant="outline"
                           className={cn(
@@ -267,10 +267,11 @@ export function DreamTagManager({
                             "hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive"
                           )}
                           onClick={() => handleRemoveTag(tag.id)}
+                          aria-label={`移除标签：${tag.name}`}
                         >
                           <X className="w-3 h-3" />
                           {tag.name}
-                        </Badge>
+                        </BadgeButton>
                       ))}
                     </div>
                   </CommandGroup>
@@ -282,7 +283,7 @@ export function DreamTagManager({
                     </div>
                     <div className="flex flex-wrap gap-2 px-2 pb-2">
                       {filteredAvailableTags.map((tag, index) => (
-                        <Badge
+                        <BadgeButton
                           key={tag.id}
                           variant="outline"
                           className={cn(
@@ -290,10 +291,11 @@ export function DreamTagManager({
                             getTagColor(tag.name, index)
                           )}
                           onClick={() => handleAddTag(tag.id)}
+                          aria-label={`添加标签：${tag.name}`}
                         >
                           <TagIcon className="w-3 h-3" />
                           {tag.name}
-                        </Badge>
+                        </BadgeButton>
                       ))}
                     </div>
                   </CommandGroup>

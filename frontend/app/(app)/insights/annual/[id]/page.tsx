@@ -484,8 +484,8 @@ export default function AnnualReportPage() {
                 : format(dreamDate, "MMM d", { locale: dateLocale });
               
               return (
-                <Link key={d.id} href={`/dreams/${d.id}`}>
-                  <Card className="hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group">
+                <Link key={d.id} href={`/dreams/${d.id}`} className="block cursor-pointer">
+                  <Card className="hover:shadow-lg hover:border-primary/30 transition-all group">
                     <CardContent className="pt-5 pb-4">
                       <div className="space-y-3">
                         {/* 标题和标签行 */}

@@ -4,6 +4,7 @@
 
 import uuid
 
+import anyio
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,7 +64,10 @@ class UserService:
         )
 
         if password:
-            user.hashed_password = PasswordService.hash_password(password)
+            # bcrypt 是 CPU 密集型，避免阻塞事件循环
+            user.hashed_password = await anyio.to_thread.run_sync(
+                PasswordService.hash_password, password
+            )
 
         # 如果没有提供用户名，自动生成
         if not user.username:
@@ -226,7 +230,10 @@ async def change_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="账户未设置密码，请使用验证码验证",
             )
-        if not PasswordService.verify_password(old_password, user.hashed_password):
+        ok = await anyio.to_thread.run_sync(
+            PasswordService.verify_password, old_password, user.hashed_password
+        )
+        if not ok:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="旧密码错误",
@@ -250,7 +257,9 @@ async def change_password(
         )
     
     # 更新密码
-    user.hashed_password = PasswordService.hash_password(new_password)
+    user.hashed_password = await anyio.to_thread.run_sync(
+        PasswordService.hash_password, new_password
+    )
     
     await db.commit()
 

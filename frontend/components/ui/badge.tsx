@@ -33,4 +33,18 @@ function Badge({ className, variant, ...props }: BadgeProps) {
   )
 }
 
-export { Badge, badgeVariants }
+export interface BadgeButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function BadgeButton({ className, variant, type = "button", ...props }: BadgeButtonProps) {
+  return (
+    <button
+      type={type}
+      className={cn(badgeVariants({ variant }), className)}
+      {...props}
+    />
+  )
+}
+
+export { Badge, BadgeButton, badgeVariants }

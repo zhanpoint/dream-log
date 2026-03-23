@@ -82,8 +82,8 @@ export default function ExplorationPage() {
           {modules.map((mod) => {
             const Icon = mod.icon;
             return (
-              <Link key={mod.href} href={mod.href} className="group">
-                <Card className="relative h-full overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-border/50 hover:border-primary/50">
+              <Link key={mod.href} href={mod.href} className="group cursor-pointer">
+                <Card className="relative h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-border/50 hover:border-primary/50">
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3">
                       <div className={`p-3 rounded-xl ${mod.bg} transition-transform duration-300 group-hover:scale-110`}>

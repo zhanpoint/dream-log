@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend API",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\.venv\\Scripts\\python.exe scripts/dev.py",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Backend Worker",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ".\\.venv\\Scripts\\python.exe scripts/start_worker.py",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Frontend",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack",
+      "configurations": [
+        "Backend API",
+        "Backend Worker",
+        "Frontend"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Backend + Worker",
+      "configurations": [
+        "Backend API",
+        "Backend Worker"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Frontend",
+      "configurations": [
+        "Frontend"
+      ],
+      "stopAll": true
+    }
+  ]
+}

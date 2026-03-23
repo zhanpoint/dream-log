@@ -164,8 +164,10 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button 
+        <button
+          type="button"
           className="relative h-9 w-9 inline-flex items-center justify-center rounded-md hover:scale-110 transition-transform duration-200"
+          aria-label={t("notifications.title")}
           title={
             status === "connected"
               ? t("notifications.tooltipConnected")

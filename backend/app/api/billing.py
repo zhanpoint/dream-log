@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import anyio
 import logging
 import json
 from datetime import datetime, timezone
@@ -136,7 +137,8 @@ async def stripe_webhook(
 ) -> JSONResponse:
     payload = await request.body()
     signature = request.headers.get("stripe-signature")
-    event = ensure_stripe_signature(payload, signature)
+    # Stripe SDK/签名校验为同步实现，放到线程池避免阻塞事件循环
+    event = await anyio.to_thread.run_sync(ensure_stripe_signature, payload, signature)
 
     # 幂等 + 可重试：Stripe 可能重放同一个 event.id
     event_id = event.get("id")
