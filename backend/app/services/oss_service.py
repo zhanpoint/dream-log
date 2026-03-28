@@ -176,23 +176,32 @@ class OssService:
             "expires_in": expires_seconds,
         }
 
-    async def upload_private_image(
+    async def generate_dm_image_upload_signature(
         self,
         *,
-        conversation_id: str,
-        filename: str | None,
-        content: bytes,
-    ) -> UploadedObject:
-        object_key = self._build_dm_object_key(conversation_id, filename)
-        content_type = self._detect_content_type(filename)
+        conversation_id: uuid.UUID | str,
+        filename: str,
+        content_type: str,
+        expires_seconds: int = 900,
+    ) -> dict[str, str | int]:
+        object_key = self._build_dm_object_key(str(conversation_id), filename)
 
-        await self._put_object_with_retry(
-            bucket_type="private",
-            object_key=object_key,
-            content=content,
-            content_type=content_type,
-        )
-        return UploadedObject(object_key=object_key, content_type=content_type, size=len(content))
+        def _do_sign() -> tuple[str, str]:
+            bucket = self._get_bucket("private")
+            upload_url = bucket.sign_url(
+                method="PUT",
+                key=object_key,
+                expires=expires_seconds,
+                headers={"Content-Type": content_type},
+            )
+            return upload_url, object_key
+
+        upload_url, file_key = await asyncio.to_thread(_do_sign)
+        return {
+            "upload_url": upload_url,
+            "file_key": file_key,
+            "expires_in": expires_seconds,
+        }
 
     async def upload_public_ai_image(
         self,

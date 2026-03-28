@@ -121,8 +121,6 @@ class Settings(BaseSettings):
     google_client_id: str | None = Field(default=None, alias="GOOGLE_CLIENT_ID")
     google_client_secret: str | None = Field(default=None, alias="GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str | None = Field(default=None, alias="GOOGLE_REDIRECT_URI")
-    # Google OAuth 访问代理（国内网络可选）
-    google_oauth_proxy_url: str | None = Field(default=None, alias="GOOGLE_OAUTH_PROXY_URL")
 
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")

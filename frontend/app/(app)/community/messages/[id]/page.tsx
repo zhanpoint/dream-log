@@ -1,7 +1,6 @@
 "use client";
 
 import { type ChangeEvent, type ClipboardEvent, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,9 @@ const messageTimeLocales: Record<string, Locale> = {
   "ja-JP": ja,
   cn: zhCN,
 };
+
+const isUuid = (value?: string | null): boolean =>
+  !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 function MessageBubble({
   msg,
@@ -290,7 +292,7 @@ function DmDetailContent() {
   }, [pendingImages]);
 
   const handleRefreshImageUrl = useCallback(async (message: DmMessageOut) => {
-    if (!message.id) return;
+    if (!isUuid(message.id)) return;
     try {
       const refreshed = await dmAPI.refreshImageUrl(id, message.id);
       setMessages((prev) =>
@@ -338,11 +340,12 @@ function DmDetailContent() {
   };
 
   const uploadAndSendImage = useCallback(async (file: File, imageCaption: string) => {
-    const upload = await dmAPI.uploadImage(id, file);
+    const presign = await dmAPI.presignImageUpload(id, file);
+    await dmAPI.uploadImageToSignedUrl(presign.upload_url, file);
     await dmAPI.sendMessage(id, {
       content: imageCaption,
       content_type: "image",
-      media_url: upload.object_key,
+      media_url: presign.file_key,
     });
   }, [id]);
 
@@ -459,6 +462,10 @@ function DmDetailContent() {
       } catch {
         // ignore, then refresh signed url
       }
+    }
+
+    if (!isUuid(message.id)) {
+      return null;
     }
 
     try {

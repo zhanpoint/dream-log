@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title=settings.app_name,
-    description="梦境日志系统 API (FastAPI 版本)",
+    description="梦境日志系统",
     version="2.0.0",
     debug=settings.debug,
     lifespan=lifespan,

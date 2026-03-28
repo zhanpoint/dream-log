@@ -58,11 +58,10 @@ export interface SendMessageRequest {
   media_url?: string;
 }
 
-export interface UploadDmImageResponse {
-  object_key: string;
-  signed_url: string;
-  content_type: string;
-  size: number;
+export interface PresignDmImageUploadResponse {
+  upload_url: string;
+  file_key: string;
+  expires_in: number;
 }
 
 export interface RefreshDmImageUrlResponse {
@@ -118,15 +117,36 @@ export const dmAPI = {
     return res.data;
   },
 
-  uploadImage: async (conversationId: string, file: File): Promise<UploadDmImageResponse> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await api.post<UploadDmImageResponse>(`/dm/conversations/${conversationId}/images`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+  presignImageUpload: async (
+    conversationId: string,
+    file: File
+  ): Promise<PresignDmImageUploadResponse> => {
+    const res = await api.post<PresignDmImageUploadResponse>(
+      `/dm/conversations/${conversationId}/images/presign`,
+      undefined,
+      {
+        params: {
+          filename: file.name,
+          content_type: file.type,
+          file_size: file.size,
+        },
+      }
+    );
     return res.data;
+  },
+
+  uploadImageToSignedUrl: async (uploadUrl: string, file: File): Promise<void> => {
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+      },
+      body: file,
+    });
+
+    if (!res.ok) {
+      throw new Error(`UPLOAD_FAILED_${res.status}`);
+    }
   },
 
   sendMessage: async (conversationId: string, data: SendMessageRequest): Promise<DmMessageOut> => {

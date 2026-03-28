@@ -4,8 +4,9 @@
 
 import logging
 import uuid
+from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,6 +32,26 @@ logger = logging.getLogger(__name__)
 
 _IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+
+
+def _normalize_object_key(file_url_or_key: str | None) -> str:
+    if not file_url_or_key:
+        return ""
+    if file_url_or_key.startswith("http://") or file_url_or_key.startswith("https://"):
+        return urlparse(file_url_or_key).path.lstrip("/")
+    return file_url_or_key.lstrip("/")
+
+
+def _validate_dm_media_key(media_url: str, conversation_id: uuid.UUID) -> str:
+    object_key = _normalize_object_key(media_url)
+    if not object_key:
+        raise HTTPException(status_code=400, detail="图片消息缺少有效 media_url")
+
+    expected_prefix = f"dm/{conversation_id}/"
+    if not object_key.startswith(expected_prefix):
+        raise HTTPException(status_code=400, detail="图片资源不属于当前会话")
+
+    return object_key
 
 
 def _build_message_out(msg, signed_media_url: str | None = None) -> DmMessageOut:
@@ -178,15 +199,17 @@ async def send_knock(
     )
 
 
-# ── 上传私聊图片（私有桶） ───────────────────────────────────────────────────────
+# ── 私聊图片直传签名（私有桶） ────────────────────────────────────────────────────
 
 @router.post(
-    "/conversations/{conversation_id}/images",
-    summary="上传私聊图片到 OSS 私有桶",
+    "/conversations/{conversation_id}/images/presign",
+    summary="获取私聊图片上传预签名（前端直传 OSS 私有桶）",
 )
-async def upload_dm_image(
+async def presign_dm_image_upload(
     conversation_id: uuid.UUID,
-    file: UploadFile = File(...),
+    filename: str = Query(..., description="文件名"),
+    content_type: str = Query(..., description="MIME 类型"),
+    file_size: int = Query(..., gt=0, description="文件大小（字节）"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -201,35 +224,24 @@ async def upload_dm_image(
     if conv.status == "pending" and current_user.id == conv.initiator_id:
         raise HTTPException(status_code=400, detail="等待对方回复中，暂不能发送图片")
 
-    if file.content_type not in _IMAGE_MIME_TYPES:
+    if content_type not in _IMAGE_MIME_TYPES:
         raise HTTPException(status_code=400, detail="仅支持 jpg/png/webp/gif 图片")
-
-    raw = await file.read()
-    if not raw:
-        raise HTTPException(status_code=400, detail="图片不能为空")
-    if len(raw) > _MAX_IMAGE_SIZE:
+    if file_size > _MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="图片大小不能超过 10MB")
 
     try:
-        oss = get_oss_service()
-        uploaded = await oss.upload_private_image(
-            conversation_id=str(conversation_id),
-            filename=file.filename,
-            content=raw,
+        result = await get_oss_service().generate_dm_image_upload_signature(
+            conversation_id=conversation_id,
+            filename=filename,
+            content_type=content_type,
         )
-        signed_url = await oss.sign_private_object_url(uploaded.object_key, expires_seconds=3600)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.exception("私聊图片上传失败")
-        raise HTTPException(status_code=500, detail=f"上传失败: {e}")
+        logger.exception("私聊图片预签名生成失败")
+        raise HTTPException(status_code=500, detail=f"预签名生成失败: {e}")
 
-    return {
-        "object_key": uploaded.object_key,
-        "signed_url": signed_url,
-        "content_type": uploaded.content_type,
-        "size": uploaded.size,
-    }
+    return result
 
 
 # ── 消息历史 ────────────────────────────────────────────────────────────────────
@@ -279,8 +291,11 @@ async def send_message(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if data.content_type == "image" and not data.media_url:
-        raise HTTPException(status_code=400, detail="图片消息缺少 media_url")
+    normalized_media_url = data.media_url
+    if data.content_type == "image":
+        if not data.media_url:
+            raise HTTPException(status_code=400, detail="图片消息缺少 media_url")
+        normalized_media_url = _validate_dm_media_key(data.media_url, conversation_id)
 
     svc = DmService(db)
     try:
@@ -289,7 +304,7 @@ async def send_message(
             sender_id=current_user.id,
             content=data.content,
             content_type=data.content_type,
-            media_url=data.media_url,
+            media_url=normalized_media_url,
         )
         await db.commit()
     except ValueError as e:
