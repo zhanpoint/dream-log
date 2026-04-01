@@ -22,10 +22,11 @@ router = APIRouter(prefix="/auth/passkey", tags=["Passkey"])
 
 @router.post("/authentication/options", response_model=PasskeyOptionsResponse)
 async def passkey_authentication_options(
+    request: Request,
     passkey_service: PasskeyService = Depends(get_passkey_service),
 ) -> PasskeyOptionsResponse:
     """获取无账号输入登录的认证 options"""
-    data = await passkey_service.generate_authentication_options()
+    data = await passkey_service.generate_authentication_options(request)
     return PasskeyOptionsResponse.model_validate(data)
 
 
@@ -90,12 +91,14 @@ async def passkey_enroll_verify_code(
 
 @router.post("/registration/options", response_model=PasskeyOptionsResponse)
 async def passkey_registration_options(
+    request: Request,
     current_user: User = Depends(get_current_user),
     passkey_service: PasskeyService = Depends(get_passkey_service),
 ) -> PasskeyOptionsResponse:
     """获取注册 options（必须先完成 enroll step-up）"""
     display_name = current_user.username or current_user.email
     data = await passkey_service.generate_registration_options(
+        request=request,
         user_id=str(current_user.id),
         user_email=current_user.email,
         display_name=display_name,
