@@ -12,6 +12,7 @@ import json
 import secrets
 import base64
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi import HTTPException, Request, status
@@ -63,11 +64,12 @@ class PasskeyService:
         ceremony_id: str,
         purpose: str,
         challenge: str,
+        rp_id: str,
         user_id: str | None,
         ttl_seconds: int = 300,
     ) -> None:
         key = self._ceremony_key(ceremony_id)
-        payload = {"purpose": purpose, "challenge": challenge, "user_id": user_id}
+        payload = {"purpose": purpose, "challenge": challenge, "rp_id": rp_id, "user_id": user_id}
         await self.redis.setex(key, ttl_seconds, json.dumps(payload, separators=(",", ":")))
 
     async def _consume_ceremony(self, ceremony_id: str) -> dict:
@@ -92,18 +94,6 @@ class PasskeyService:
     async def set_enroll_ok(self, user_id: str, ttl_seconds: int = 600) -> None:
         await self.redis.setex(self._enroll_ok_key(user_id), ttl_seconds, "1")
 
-    async def consume_enroll_ok(self, user_id: str) -> None:
-        key = self._enroll_ok_key(user_id)
-        async with self.redis.pipeline(transaction=True) as pipe:
-            pipe.get(key)
-            pipe.delete(key)
-            raw, _ = await pipe.execute()
-        if not raw:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="需要先完成邮箱验证码验证才能添加通行密钥",
-            )
-
     async def check_enroll_ok(self, user_id: str) -> bool:
         return bool(await self.redis.get(self._enroll_ok_key(user_id)))
 
@@ -113,27 +103,29 @@ class PasskeyService:
     # -------------------------
     # Options generation
     # -------------------------
-    async def generate_authentication_options(self) -> dict:
+    async def generate_authentication_options(self, request: Request) -> dict:
+        rp_id = self._resolve_rp_id(request)
         options = generate_authentication_options(
-            rp_id=settings.passkey_effective_rp_id,
+            rp_id=rp_id,
             user_verification=UserVerificationRequirement.REQUIRED,
         )
         options_json = json.loads(options_to_json(options))
 
         ceremony_id = secrets.token_urlsafe(32)
-        # options.challenge 是 bytes；options_to_json 已将其编码到 JSON 中的 base64url 字符串，
-        # verify 时我们使用库的解析器从 credential 中校验 challenge，因此这里保存原始 challenge（bytes）即可。
-        # 但为了传输与存储简化，统一存 base64url 字符串：取 JSON 中的 challenge。
         await self._save_ceremony(
             ceremony_id=ceremony_id,
             purpose="authentication",
             challenge=options_json["challenge"],
+            rp_id=rp_id,
             user_id=None,
         )
 
         return {"ceremony_id": ceremony_id, "publicKey": options_json}
 
-    async def generate_registration_options(self, *, user_id: str, user_email: str, display_name: str) -> dict:
+    async def generate_registration_options(
+        self, *, request: Request, user_id: str, user_email: str, display_name: str
+    ) -> dict:
+        rp_id = self._resolve_rp_id(request)
         # enroll_ok 票据不在这里消费，避免用户误触后无法继续；在 verify 时一次性消费
         if not await self.check_enroll_ok(user_id):
             raise HTTPException(
@@ -158,7 +150,7 @@ class PasskeyService:
 
         options = generate_registration_options(
             rp_name=settings.passkey_rp_name,
-            rp_id=settings.passkey_effective_rp_id,
+            rp_id=rp_id,
             user_id=_user_id_bytes(user_id),
             user_name=user_email,
             user_display_name=display_name,
@@ -176,6 +168,7 @@ class PasskeyService:
             ceremony_id=ceremony_id,
             purpose="registration",
             challenge=options_json["challenge"],
+            rp_id=rp_id,
             user_id=user_id,
         )
         return {"ceremony_id": ceremony_id, "publicKey": options_json}
@@ -190,6 +183,38 @@ class PasskeyService:
             return origin
         # 兜底：若没有 Origin（某些同源场景/代理），使用配置的第一个 origin
         return settings.passkey_origins[0]
+
+    @staticmethod
+    def _resolve_rp_id(request: Request) -> str:
+        # 显式配置优先（生产推荐）
+        if settings.passkey_rp_id:
+            return settings.passkey_rp_id.strip()
+        # 未显式配置时，按当前请求 origin 的 host 动态推导，避免被 localhost 默认值污染
+        origin = request.headers.get("origin")
+        if origin:
+            host = urlparse(origin).hostname
+            if host:
+                return host
+        # 反向代理场景兜底：优先 x-forwarded-host
+        forwarded_host = request.headers.get("x-forwarded-host")
+        if forwarded_host:
+            host = forwarded_host.split(",")[0].strip().split(":")[0]
+            if host:
+                return host
+        # 直接取 Host 头（本地开发常见）
+        host_header = request.headers.get("host")
+        if host_header:
+            host = host_header.split(":")[0].strip()
+            if host:
+                return host
+        expected_origin = PasskeyService._pick_expected_origin(request)
+        host = urlparse(expected_origin).hostname
+        if host:
+            return host
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Passkey RP ID 配置错误，请检查 PASSKEY_RP_ID",
+        )
 
     async def verify_registration(self, *, request: Request, ceremony_id: str, credential_json: dict) -> PasskeyCredential:
         ceremony = await self._consume_ceremony(ceremony_id)
@@ -208,12 +233,13 @@ class PasskeyService:
 
         expected_origin = self._pick_expected_origin(request)
         expected_challenge = _b64url_to_bytes(ceremony["challenge"])
+        expected_rp_id = str(ceremony.get("rp_id") or self._resolve_rp_id(request))
 
         credential = parse_registration_credential_json(credential_json)
         verification = verify_registration_response(
             credential=credential,
             expected_challenge=expected_challenge,
-            expected_rp_id=settings.passkey_effective_rp_id,
+            expected_rp_id=expected_rp_id,
             expected_origin=expected_origin,
             require_user_verification=True,
         )
@@ -230,16 +256,17 @@ class PasskeyService:
         except Exception:
             transports = None
 
+        transport_values = _transports_to_str_list(transports)
         model = PasskeyCredential(
             id=cred_id_b64,
             user_id=UUID(user_id),
             public_key=public_key,
             sign_count=sign_count,
             aaguid=str(aaguid) if aaguid else None,
-            transports=_transports_to_str_list(transports),
+            transports=transport_values,
             backed_up=backed_up,
             backup_eligible=backup_eligible,
-            name=_default_passkey_name(_transports_to_str_list(transports)),
+            name=_default_passkey_name(transport_values),
             created_at=_shanghai_now(),
         )
         self.db.add(model)
@@ -253,6 +280,7 @@ class PasskeyService:
 
         expected_origin = self._pick_expected_origin(request)
         expected_challenge = _b64url_to_bytes(ceremony["challenge"])
+        expected_rp_id = str(ceremony.get("rp_id") or self._resolve_rp_id(request))
 
         credential = parse_authentication_credential_json(credential_json)
         cred_id = credential.id
@@ -265,7 +293,7 @@ class PasskeyService:
         verification = verify_authentication_response(
             credential=credential,
             expected_challenge=expected_challenge,
-            expected_rp_id=settings.passkey_effective_rp_id,
+            expected_rp_id=expected_rp_id,
             expected_origin=expected_origin,
             credential_public_key=model.public_key,
             credential_current_sign_count=model.sign_count,

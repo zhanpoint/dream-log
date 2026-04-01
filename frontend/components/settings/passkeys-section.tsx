@@ -218,8 +218,7 @@ function PasskeyRow({
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [hoverRename, setHoverRename] = useState(false);
-  const [hoverDelete, setHoverDelete] = useState(false);
+  const [hoveredIcon, setHoveredIcon] = useState<"rename" | "delete" | null>(null);
   const [name, setName] = useState(item.name ?? "");
   const display = item.name || t("settings.passkeys.unnamed");
 
@@ -260,28 +259,28 @@ function PasskeyRow({
           type="button"
           onClick={() => setEditing(true)}
           className="group inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
-          onMouseEnter={() => setHoverRename(true)}
-          onMouseLeave={() => setHoverRename(false)}
+          onMouseEnter={() => setHoveredIcon("rename")}
+          onMouseLeave={() => setHoveredIcon(null)}
           aria-label={t("common.rename")}
           title={t("common.rename")}
         >
           <Pencil
             className="h-5 w-5 transition-colors duration-200"
-            style={{ color: hoverRename ? "#fde047" : "hsl(var(--muted-foreground))" }}
+            style={{ color: hoveredIcon === "rename" ? "#fde047" : "hsl(var(--muted-foreground))" }}
           />
         </button>
         <button
           type="button"
           onClick={() => setConfirmDelete(true)}
           className="group inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
-          onMouseEnter={() => setHoverDelete(true)}
-          onMouseLeave={() => setHoverDelete(false)}
+          onMouseEnter={() => setHoveredIcon("delete")}
+          onMouseLeave={() => setHoveredIcon(null)}
           aria-label={t("common.delete")}
           title={t("common.delete")}
         >
           <Trash2
             className="h-5 w-5 transition-colors duration-200"
-            style={{ color: hoverDelete ? "#fde047" : "hsl(var(--muted-foreground))" }}
+            style={{ color: hoveredIcon === "delete" ? "#fde047" : "hsl(var(--muted-foreground))" }}
           />
         </button>
       </div>

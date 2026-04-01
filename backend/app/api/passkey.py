@@ -37,15 +37,24 @@ async def passkey_authentication_verify(
     passkey_service: PasskeyService = Depends(get_passkey_service),
 ) -> AuthResponse:
     """校验 assertion 并签发 JWT"""
-    user_id = await passkey_service.verify_authentication(
-        request=request,
-        ceremony_id=body.ceremony_id,
-        credential_json=body.credential,
-    )
-    user = await auth_service.user_service.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在")
-    return auth_service._create_auth_response(user)
+    try:
+        user_id = await passkey_service.verify_authentication(
+            request=request,
+            ceremony_id=body.ceremony_id,
+            credential_json=body.credential,
+        )
+        user = await auth_service.user_service.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在")
+        # 显式提交，确保 sign_count / last_used_at 的更新与认证流程一致落库
+        await passkey_service.db.commit()
+        return auth_service._create_auth_response(user)
+    except HTTPException:
+        await passkey_service.db.rollback()
+        raise
+    except Exception:
+        await passkey_service.db.rollback()
+        raise
 
 
 @router.post("/enroll/send-code", response_model=MessageResponse)
@@ -164,4 +173,3 @@ async def delete_passkey(
 ) -> MessageResponse:
     await passkey_service.delete_passkey(user_id=str(current_user.id), credential_id=credential_id)
     return MessageResponse(message="通行密钥已删除")
-
