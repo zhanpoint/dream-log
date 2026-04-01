@@ -24,6 +24,8 @@ dependencies = [
     # 认证
     "python-jose[cryptography]",
     "bcrypt",
+    # Passkey / WebAuthn
+    "webauthn",
     # 缓存
     "redis",
     # 任务队列

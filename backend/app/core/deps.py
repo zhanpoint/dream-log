@@ -14,6 +14,7 @@ from app.core.database import async_session_maker
 from app.core.redis import get_arq_redis, get_redis
 from app.models.user import User
 from app.services.auth_service import AuthService
+from app.services.passkey_service import PasskeyService
 from app.services.token_service import TokenService
 from app.services.user_service import UserService
 
@@ -41,6 +42,14 @@ def get_auth_service(
 ) -> AuthService:
     """获取认证服务"""
     return AuthService(db, redis, arq_redis)
+
+
+def get_passkey_service(
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+) -> PasskeyService:
+    """获取 Passkey/WebAuthn 服务"""
+    return PasskeyService(db, redis)
 
 
 async def get_current_user(

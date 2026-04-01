@@ -3,6 +3,7 @@
 """
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import Field, PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -53,6 +54,28 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         """解析 CORS 允许的源（支持逗号分隔）"""
         return [origin.strip() for origin in self.allowed_origins.split(",")]
+
+    # Passkey / WebAuthn 配置
+    passkey_rp_name: str = Field(default="Dream Log", alias="PASSKEY_RP_NAME")
+    # RP ID: 仅域名（不带协议/端口），例如 example.com
+    passkey_rp_id: str | None = Field(default=None, alias="PASSKEY_RP_ID")
+    # expected origins: 逗号分隔，必须带协议（https://example.com）
+    passkey_expected_origins: str | None = Field(default=None, alias="PASSKEY_EXPECTED_ORIGINS")
+
+    @property
+    def passkey_origins(self) -> list[str]:
+        """用于 WebAuthn 校验的允许 Origin 列表（默认取 CORS origins）。"""
+        raw = self.passkey_expected_origins or self.allowed_origins
+        return [o.strip() for o in raw.split(",") if o.strip()]
+
+    @property
+    def passkey_effective_rp_id(self) -> str:
+        """WebAuthn RP ID（默认从第一个 Origin 推导）。"""
+        if self.passkey_rp_id:
+            return self.passkey_rp_id.strip()
+        first_origin = self.passkey_origins[0] if self.passkey_origins else "http://localhost:3000"
+        host = urlparse(first_origin).hostname
+        return host or "localhost"
 
     # Stripe 配置（按环境区分：sandbox/local 与 production）
     stripe_public_key_sandbox: str | None = Field(

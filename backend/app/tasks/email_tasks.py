@@ -36,6 +36,11 @@ def get_email_template(purpose: str, code: str) -> tuple[str, str]:
             "action": "重置密码",
             "description": "您正在重置 Dream Log 账户密码，请使用以下验证码完成重置：",
         },
+        "passkey_enroll": {
+            "title": "添加通行密钥验证码",
+            "action": "添加通行密钥",
+            "description": "您正在为 Dream Log 账户添加通行密钥（生物识别），请使用以下验证码完成验证：",
+        },
     }
     
     config = purpose_config.get(purpose, purpose_config["signup"])
@@ -160,6 +165,7 @@ async def send_verification_email(
             "signup": "Dream Log - 注册验证码",
             "login": "Dream Log - 登录验证码",
             "reset": "Dream Log - 重置密码验证码",
+            "passkey_enroll": "Dream Log - 添加通行密钥验证码",
         }.get(purpose, "Dream Log - 验证码")
         
         message["From"] = settings.smtp_user

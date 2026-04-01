@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { AuthUser } from "@/lib/auth-api";
+import { PasskeysSection } from "@/components/settings/passkeys-section";
 
 const formSchema = z
   .object({
@@ -159,9 +160,15 @@ export default function AccountPage() {
         <h2 className="text-lg font-semibold mb-6">{t("settings.email.title")}</h2>
         
         {/* 当前邮箱 */}
-        <div className="mb-6">
+        <div className="mb-6 max-w-[880px]">
           <label className="block text-base font-medium mb-4">{t("settings.email.currentEmail")}</label>
-          <Input value={currentUser?.email || ""} disabled className="h-10 w-[calc(50%-12px)] opacity-75" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input
+              value={currentUser?.email || ""}
+              disabled
+              className="h-10 w-full opacity-75"
+            />
+          </div>
         </div>
 
         <div className="border-t border-border/60 pt-6">
@@ -211,8 +218,9 @@ export default function AccountPage() {
                   <FormItem className="space-y-4">
                     <FormLabel className="block text-base font-medium mb-4">{t("settings.account.currentPassword")}</FormLabel>
                     <FormControl>
-                      <div className="w-[calc(50%-12px)]">
+                      <div className="w-full max-w-[420px]">
                         <PasswordInput 
+                          placeholder={t("settings.account.currentPasswordPlaceholder")}
                           className="h-10 placeholder:text-muted-foreground hover:border-input/80 hover:shadow-md transition-all duration-200" 
                           {...field} 
                         />
@@ -229,7 +237,7 @@ export default function AccountPage() {
                 render={({ field }: { field: ControllerRenderProps<FormValues, "verificationCode"> & FieldValues }) => (
                   <FormItem className="space-y-4">
                     <FormLabel className="block text-base font-medium mb-4">{t("settings.email.verificationCode")}</FormLabel>
-                    <div className="flex gap-2 w-[calc(50%-12px)]">
+                    <div className="flex gap-2 w-full max-w-[420px]">
                       <FormControl>
                         <Input
                           placeholder={t("settings.email.codePlaceholder")}
@@ -262,10 +270,11 @@ export default function AccountPage() {
               control={form.control}
               name="newPassword"
               render={({ field }: { field: ControllerRenderProps<FormValues, "newPassword"> & FieldValues }) => (
-                <FormItem className="space-y-4">
+                <FormItem className="space-y-4 w-full max-w-[420px]">
                   <FormLabel className="block text-base font-medium mb-4">{t("settings.account.newPassword")}</FormLabel>
                   <FormControl>
                     <PasswordInput 
+                      placeholder={t("settings.account.newPasswordPlaceholder")}
                       className="h-10 placeholder:text-muted-foreground hover:border-input/80 hover:shadow-md transition-all duration-200" 
                       {...field} 
                     />
@@ -288,10 +297,11 @@ export default function AccountPage() {
               control={form.control}
               name="confirmPassword"
               render={({ field }: { field: ControllerRenderProps<FormValues, "confirmPassword"> & FieldValues }) => (
-                <FormItem className="space-y-4">
+                <FormItem className="space-y-4 w-full max-w-[420px]">
                   <FormLabel className="block text-base font-medium mb-4">{t("settings.account.confirmPassword")}</FormLabel>
                   <FormControl>
                     <PasswordInput 
+                      placeholder={t("settings.account.confirmPasswordPlaceholder")}
                       className="h-10 placeholder:text-muted-foreground hover:border-input/80 hover:shadow-md transition-all duration-200" 
                       {...field} 
                     />
@@ -317,6 +327,9 @@ export default function AccountPage() {
           </form>
         </Form>
       </div>
+
+      {/* 通行密钥管理 */}
+      <PasskeysSection />
     </div>
   );
 }
@@ -383,7 +396,7 @@ function EmailChangeForm() {
     <Form {...emailForm}>
       <form onSubmit={emailForm.handleSubmit(onSubmit)} className="space-y-6">
         {/* 新邮箱和验证码 - 同一行 */}
-        <div className="flex gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[880px]">
           <FormField
             control={emailForm.control}
             name="newEmail"

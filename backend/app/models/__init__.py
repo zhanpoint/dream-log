@@ -32,6 +32,7 @@ from app.models.notification import Notification, NotificationType
 from app.models.search_history import SearchHistory
 from app.models.token_blacklist import TokenBlacklist
 from app.models.user import RegistrationMethod, User
+from app.models.passkey_credential import PasskeyCredential
 from app.models.subscription import UserSubscription
 from app.models.usage_quota import UserQuotaUsage
 from app.models.quota_usage_log import QuotaUsageLog
@@ -48,6 +49,7 @@ __all__ = [
     "StripeWebhookEvent",
     "SearchHistory",
     "TokenBlacklist",
+    "PasskeyCredential",
     # 梦境核心
     "Dream",
     "DreamInsight",

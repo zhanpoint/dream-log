@@ -124,12 +124,14 @@ from app.api import (
     insights,
     notifications,
     oauth,
+    passkey,
     user,
     voice_ws,
 )
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(oauth.router, prefix="/api")
+app.include_router(passkey.router, prefix="/api")
 app.include_router(billing.router, prefix="/api")
 app.include_router(quota.router, prefix="/api")
 app.include_router(user.router, prefix="/api")

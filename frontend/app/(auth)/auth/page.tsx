@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuthFlow, useVerificationTimer, useFormError, type AuthMethod } from "@/hooks/auth";
 import { AuthHelpers, AuthToken } from "@/lib/auth-api";
+import { passkeyAPI } from "@/lib/passkey-api";
+import {
+  isPasskeyAutofillAvailable,
+  isPasskeyUserCancelError,
+  passkeyAuthenticate,
+} from "@/lib/passkey-client";
 import { EmailStep } from "@/components/auth/steps/email-step";
 import { MethodSelectionStep } from "@/components/auth/steps/method-selection-step";
 import { PasswordStep } from "@/components/auth/steps/password-step";
@@ -24,6 +30,7 @@ export default function AuthPage() {
 
   // 存储密码(用于密码注册流程)
   const [tempPassword, setTempPassword] = useState<string>("");
+  const triedConditionalPasskeyRef = useRef(false);
 
   /**
    * 步骤 1: 提交邮箱
@@ -138,6 +145,22 @@ export default function AuthPage() {
     }
   };
 
+  const handlePasskeyLogin = async (opts?: { useAutofill?: boolean; signal?: AbortSignal }) => {
+    try {
+      const { ceremony_id, publicKey } = await passkeyAPI.getAuthenticationOptions();
+      const credential = await passkeyAuthenticate(publicKey, {
+        useAutofill: opts?.useAutofill ?? false,
+        signal: opts?.signal,
+      });
+      const resp = await passkeyAPI.verifyAuthentication(ceremony_id, credential);
+      AuthHelpers.handleLoginSuccess(resp);
+    } catch (e: any) {
+      // 用户取消 passkey 是正常行为，不展示错误提示
+      if (isPasskeyUserCancelError(e)) return;
+      showError(e?.message ?? t("auth.loginFailed"));
+    }
+  };
+
   /**
    * 动画配置
    */
@@ -154,6 +177,26 @@ export default function AuthPage() {
       const target = AuthHelpers.consumePostLoginRedirect() || "/";
       window.location.href = target;
     }
+  }, []);
+
+  // Conditional UI：在登录页自动启用“无账号输入”通行密钥提示
+  useEffect(() => {
+    let mounted = true;
+    const controller = new AbortController();
+    (async () => {
+      if (!mounted) return;
+      if (triedConditionalPasskeyRef.current) return;
+      triedConditionalPasskeyRef.current = true;
+      if (AuthToken.isAuthenticated()) return;
+      const ok = await isPasskeyAutofillAvailable();
+      if (!ok) return;
+      await handlePasskeyLogin({ useAutofill: true, signal: controller.signal });
+    })();
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -186,6 +229,7 @@ export default function AuthPage() {
             <EmailStep
               onSubmit={handleEmailSubmit}
               onGoogleLogin={handleGoogleLogin}
+              onPasskeyLogin={() => handlePasskeyLogin({ useAutofill: false })}
               isLoading={authFlow.isLoading}
               defaultEmail={authFlow.email}
             />

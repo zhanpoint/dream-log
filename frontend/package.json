@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@simplewebauthn/browser": "^13.1.0",
     "axios": "^1.8.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -54,12 +55,15 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.21.0",
     "eslint-config-next": "^16.1.6",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^4.1.12",
     "tailwindcss-animate": "^1.0.7",
