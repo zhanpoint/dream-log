@@ -21,6 +21,7 @@ from app.config.ai_models import (
     OPENROUTER_API_KEY,
     TEMPERATURE_INSIGHT,
 )
+from app.services.openrouter_sdk import get_openrouter_sdk_client
 from app.config.insight_config import InsightConfig
 from app.models.dream import Dream
 from app.models.dream_insight import DreamInsight
@@ -56,6 +57,7 @@ logger = logging.getLogger(__name__)
 _insight_llm = ChatOpenRouter(
     model=MODELS["insight_generation"],
     api_key=OPENROUTER_API_KEY,
+    client=get_openrouter_sdk_client(max_retries=2),
     temperature=TEMPERATURE_INSIGHT,
     max_tokens=MAX_TOKENS_INSIGHT,
     max_retries=2,

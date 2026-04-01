@@ -52,6 +52,7 @@ from app.prompts.dream_content_assist import (
     OPTIMIZE_INSTRUCTION_PROMPT,
     get_content_assist_task_detail,
 )
+from app.services.openrouter_sdk import get_openrouter_sdk_client
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,7 @@ def _create_llm(
     return ChatOpenRouter(
         model=MODELS[model_key],
         api_key=OPENROUTER_API_KEY,
+        client=get_openrouter_sdk_client(max_retries=2),
         temperature=temperature,
         max_tokens=max_tokens,
         streaming=streaming,
@@ -500,7 +502,12 @@ class AIService:
             proxy_url = _get_proxy_url()
             http_async_client = None
             if proxy_url:
-                http_async_client = httpx.AsyncClient(proxy=proxy_url, timeout=120.0)
+                http_async_client = httpx.AsyncClient(
+                    proxy=proxy_url,
+                    timeout=120.0,
+                    trust_env=False,
+                    follow_redirects=True,
+                )
 
             embeddings = OpenAIEmbeddings(
                 model=MODELS["embedding"],
