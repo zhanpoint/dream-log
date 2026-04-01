@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { Eraser, Palette, Redo2, RotateCcw, Save, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface DrawingBoardProps {
   open: boolean;
@@ -52,6 +53,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const { t } = useTranslation();
 
   // 初始化画布
   useEffect(() => {
@@ -224,7 +226,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle>画板</DialogTitle>
+          <DialogTitle>{t("dreams.new.drawingBoard")}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 flex flex-col gap-4 px-6 pb-6 overflow-hidden">
@@ -240,7 +242,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 className="gap-1 h-7 px-2 text-xs transition-all hover:scale-105 hover:-translate-y-0.5 border"
               >
                 <Palette className="w-3 h-3" />
-                画笔
+                {t("dreams.new.drawingBrush")}
               </Button>
               <Button
                 type="button"
@@ -250,7 +252,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 className="gap-1 h-7 px-2 text-xs transition-all hover:scale-105 hover:-translate-y-0.5 border"
               >
                 <Eraser className="w-3 h-3" />
-                橡皮擦
+                {t("dreams.new.drawingEraser")}
               </Button>
             </div>
 
@@ -292,7 +294,9 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
 
             {/* 画笔粗细 */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-medium text-foreground whitespace-nowrap">粗细</span>
+              <span className="text-xs font-medium text-foreground whitespace-nowrap">
+                {t("dreams.new.drawingSize")}
+              </span>
               <div className="relative w-20">
                 <Slider
                   value={[brushSize]}
@@ -317,7 +321,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
               onClick={() => setBgDark(!bgDark)}
               className="h-7 px-2 text-xs shrink-0 transition-all hover:scale-105 hover:-translate-y-0.5 border"
             >
-              {bgDark ? "浅" : "深"}色
+              {bgDark ? t("dreams.new.drawingLightBg") : t("dreams.new.drawingDarkBg")}
             </Button>
 
             {/* 分隔线 */}
@@ -331,7 +335,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 variant="secondary"
                 onClick={handleUndo}
                 disabled={historyIndex < 0}
-                title="撤销"
+                title={t("dreams.new.drawingUndo")}
                 className="h-7 w-7 p-0 transition-all hover:scale-110 hover:-translate-y-0.5 disabled:hover:scale-100 disabled:hover:translate-y-0 border"
               >
                 <Undo2 className="w-3 h-3" />
@@ -342,7 +346,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 variant="secondary"
                 onClick={handleRedo}
                 disabled={historyIndex >= paths.length - 1}
-                title="重做"
+                title={t("dreams.new.drawingRedo")}
                 className="h-7 w-7 p-0 transition-all hover:scale-110 hover:-translate-y-0.5 disabled:hover:scale-100 disabled:hover:translate-y-0 border"
               >
                 <Redo2 className="w-3 h-3" />
@@ -352,7 +356,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 size="sm"
                 variant="secondary"
                 onClick={handleClear}
-                title="清空"
+                title={t("dreams.new.drawingClear")}
                 className="h-7 w-7 p-0 transition-all hover:scale-110 hover:-translate-y-0.5 border"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -364,7 +368,7 @@ export function DrawingBoard({ open, onOpenChange, onSave }: DrawingBoardProps) 
                 className="gap-1 h-7 px-2 text-xs transition-all hover:scale-105 hover:-translate-y-0.5 border"
               >
                 <Save className="w-3 h-3" />
-                保存
+                {t("common.save")}
               </Button>
             </div>
           </div>

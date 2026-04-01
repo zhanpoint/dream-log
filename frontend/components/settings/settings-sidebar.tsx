@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { CreditCard, User, Shield, Sparkles, Eye, LogOut } from "lucide-react";
+import { CreditCard, User, Shield, Sparkles, Eye, LogOut, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthHelpers } from "@/lib/auth-api";
 import { toast } from "sonner";
@@ -50,6 +50,12 @@ const menuItems = [
     href: "/settings/privacy",
     icon: Eye,
     labelKey: "settings.sidebar.privacy",
+  },
+  {
+    id: "data",
+    href: "/settings/data",
+    icon: Trash2,
+    labelKey: "settings.sidebar.data",
   },
 ];
 

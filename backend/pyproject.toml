@@ -34,6 +34,7 @@ dependencies = [
     "httpx",
     # AI 服务
     "langchain-openai",
+    "langchain-openrouter",
     "langchain",
     # pgvector
     "pgvector",
@@ -111,6 +112,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "langchain_openai.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "langchain_openrouter.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

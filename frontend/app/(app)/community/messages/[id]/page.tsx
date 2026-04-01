@@ -63,7 +63,7 @@ function MessageBubble({
   onImageCopy?: (msg: DmMessageOut) => void;
   onImageDownload?: (msg: DmMessageOut) => void;
 }) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const dateLocale = messageTimeLocales[i18n.language] ?? zhCN;
 
   const createdAt = new Date(msg.created_at);
@@ -82,7 +82,7 @@ function MessageBubble({
         <Link
           href={isOwn ? (selfUserId ? `/community/users/${selfUserId}` : "/community/messages") : (otherUserId ? `/community/users/${otherUserId}` : "/community/messages")}
           className="flex-shrink-0"
-          aria-label={isOwn ? "查看我的资料" : "查看对方资料"}
+          aria-label={isOwn ? t("community.dm.viewMyProfile") : t("community.dm.viewOtherProfile")}
         >
           <UserAvatar
             userId={isOwn ? "self" : "other"}
@@ -111,11 +111,11 @@ function MessageBubble({
                     type="button"
                     onClick={() => onImageClick?.(msg)}
                     className="block"
-                    aria-label="查看图片"
+                    aria-label={t("community.dm.viewImage")}
                   >
                     <img
                       src={msg.media_url}
-                      alt={msg.content || "私聊图片"}
+                      alt={msg.content || t("community.dm.imageAlt")}
                       className="max-w-[min(58vw,320px)] h-auto max-h-[380px] object-contain"
                       onError={() => onImageError?.(msg)}
                     />
@@ -129,8 +129,8 @@ function MessageBubble({
                         e.stopPropagation();
                         onImageDownload?.(msg);
                       }}
-                      title="下载"
-                      aria-label="下载图片"
+                      title={t("community.dm.downloadImage")}
+                      aria-label={t("community.dm.downloadImage")}
                     >
                       <Download className="h-4 w-4" />
                     </button>
@@ -141,8 +141,8 @@ function MessageBubble({
                         e.stopPropagation();
                         onImageCopy?.(msg);
                       }}
-                      title="复制"
-                      aria-label="复制图片"
+                      title={t("community.dm.copyImage")}
+                      aria-label={t("community.dm.copyImage")}
                     >
                       <Copy className="h-4 w-4" />
                     </button>
@@ -667,13 +667,13 @@ function DmDetailContent() {
           <button
             type="button"
             className="absolute inset-0 bg-black/90"
-            aria-label="关闭图片预览"
+            aria-label={t("community.dm.closeImagePreview")}
             onClick={() => setPreviewImage(null)}
           />
           <button
             type="button"
             className="group absolute right-4 top-4 h-10 w-10 rounded-xl bg-black/55 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80 hover:scale-105 hover:-translate-y-0.5 active:scale-95"
-            aria-label="关闭预览"
+            aria-label={t("community.dm.closePreview")}
             onClick={(e) => {
               e.stopPropagation();
               setPreviewImage(null);
@@ -683,7 +683,7 @@ function DmDetailContent() {
           </button>
           <img
             src={previewImage.media_url}
-            alt={previewImage.content || "私聊图片"}
+            alt={previewImage.content || t("community.dm.imageAlt")}
             className="max-w-[92vw] max-h-[88vh] h-auto w-auto object-contain"
             onClick={(e) => e.stopPropagation()}
             onError={() => handleRefreshImageUrl(previewImage)}
@@ -699,7 +699,7 @@ function DmDetailContent() {
                 <div className="rounded-lg overflow-hidden ring-1 ring-primary/35 dark:ring-primary/75 bg-primary/5 dark:bg-primary/10 shadow-sm">
                   <img
                     src={item.previewUrl}
-                    alt="待发送图片"
+                    alt={t("community.dm.pendingImageAlt")}
                     className="max-w-[130px] max-h-[130px] h-auto w-auto object-contain"
                   />
                 </div>
@@ -707,7 +707,7 @@ function DmDetailContent() {
                   type="button"
                   className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/90 hover:scale-105 active:scale-95 z-10"
                   onClick={() => removePendingImage(item.id)}
-                  aria-label="移除待发送图片"
+                  aria-label={t("community.dm.removePendingImage")}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -730,8 +730,8 @@ function DmDetailContent() {
             multiple
             className="hidden"
             onChange={handleSelectImage}
-            aria-label={t("community.dm.sendImage") ?? "Send image"}
-            title={t("community.dm.sendImage") ?? "Send image"}
+            aria-label={t("community.dm.sendImage")}
+            title={t("community.dm.sendImage")}
           />
           <textarea
             ref={inputRef}
@@ -764,7 +764,7 @@ function DmDetailContent() {
             onClick={handlePickImage}
             disabled={!canSend || sending || uploadingImage}
             className="h-9 w-9 p-0 rounded-xl flex-shrink-0 border-slate-400 bg-background text-slate-700 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-500 dark:border-slate-500 dark:text-slate-200 dark:hover:text-white dark:hover:bg-slate-800 transition-all duration-200 hover:-translate-y-0.5 hover:scale-105"
-            title="发送图片"
+            title={t("community.dm.sendImage")}
           >
             <ImageIcon className="h-4 w-4" />
           </Button>

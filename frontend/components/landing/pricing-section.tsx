@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/billing-api";
 import { AuthHelpers, AuthToken } from "@/lib/auth-api";
 import { toast } from "sonner";
+import { ScrollReveal } from "@/components/magicui/scroll-reveal";
 
 const planCopy = {
   free: {
@@ -165,92 +166,100 @@ export default function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="mx-auto mt-14 w-full max-w-screen-xl px-6 pb-12">
-      <div className="mx-auto mb-10 max-w-3xl text-center">
-        <h2 className="text-4xl font-semibold text-foreground">{t("billing.hero.title")}</h2>
-        <p className="mt-3 text-lg text-muted-foreground">
-          {t("billing.hero.subtitle")}
-        </p>
-      </div>
+    <section id="pricing" className="mx-auto mt-20 w-full max-w-screen-xl px-6 pb-16">
+      <ScrollReveal variant="fade-up">
+        <div className="mx-auto mb-10 max-w-3xl text-center">
+          <h2 className="text-4xl font-semibold text-foreground">{t("billing.hero.title")}</h2>
+          <p className="mt-3 text-lg text-muted-foreground">
+            {t("billing.hero.subtitle")}
+          </p>
+        </div>
+      </ScrollReveal>
       <div className="grid gap-6 lg:grid-cols-3">
-        {plans.map((plan) => (
-          <div
+        {plans.map((plan, index) => (
+          <ScrollReveal
             key={plan.id}
-            className={cn(
-              "group relative overflow-hidden rounded-2xl border bg-background p-6 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)]",
-              plan.id === "free" && "border-emerald-500/30 hover:border-emerald-400/45",
-              plan.id === "pro" && "border-primary/40 ring-1 ring-primary/25",
-              plan.id === "ultra" && "border-amber-400/40 hover:border-amber-300/55"
-            )}
+            variant="fade-up"
+            delay={0.06 * index}
+            className="h-full"
           >
-            {plan.id === "pro" && (
-              <span className="absolute right-4 top-4 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                {t("billing.plans.pro.badge")}
-              </span>
-            )}
-            <div className="relative z-10">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold">{t(plan.titleKey)}</h3>
-                <p className="text-sm text-muted-foreground">{t(plan.subtitleKey)}</p>
-              </div>
-              <div
-                className={cn(
-                  "mb-4 text-2xl font-semibold",
-                  plan.id === "free" &&
-                    "text-emerald-600 dark:text-emerald-300",
-                  plan.id === "pro" &&
-                    "bg-gradient-to-r from-indigo-500 via-sky-500 to-purple-500 bg-clip-text text-transparent",
-                  plan.id === "ultra" &&
-                    "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent"
-                )}
-              >
-                {formatPrice(prices[plan.id])}
-              </div>
-              <ul className="space-y-2 text-sm text-foreground/95">
-                {plan.features.map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-foreground">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    {t(item)}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6">
-                {currentPlan === plan.id ? (
-                  <Button
-                    variant="outline"
-                    className="h-10 w-fit rounded-full px-6 transition-all duration-300"
-                    disabled
-                  >
-                    {t("billing.action.currentPlan")}
-                  </Button>
-                ) : plan.id === "free" ? (
-                  <Button
-                    disabled
-                    variant="outline"
-                    className="h-10 w-fit rounded-full px-6 transition-all duration-300"
-                  >
-                    {t(planCopy.free.cta)}
-                  </Button>
-                ) : (
-                  <Button
-                    className="h-10 w-fit rounded-full px-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)] focus-visible:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)]"
-                    onClick={() => handleUpgrade(plan.id)}
-                    disabled={loadingPlan !== null}
-                  >
-                    {(() => {
-                      const isLower =
-                        planRank[currentPlan] > planRank[plan.id as PlanType];
-                      const copy = planCopy[plan.id as "pro" | "ultra"];
-                      const text = isLower ? copy.downgrade : copy.upgrade;
-                      return loadingPlan === plan.id
-                        ? t("billing.action.redirecting")
-                        : t(text);
-                    })()}
-                  </Button>
-                )}
+            <div
+              className={cn(
+                "group relative overflow-hidden rounded-2xl border bg-background p-6 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)]",
+                plan.id === "free" && "border-emerald-500/30 hover:border-emerald-400/45",
+                plan.id === "pro" && "border-primary/40 ring-1 ring-primary/25",
+                plan.id === "ultra" && "border-amber-400/40 hover:border-amber-300/55"
+              )}
+            >
+              {plan.id === "pro" && (
+                <span className="absolute right-4 top-4 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                  {t("billing.plans.pro.badge")}
+                </span>
+              )}
+              <div className="relative z-10">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold">{t(plan.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground">{t(plan.subtitleKey)}</p>
+                </div>
+                <div
+                  className={cn(
+                    "mb-4 text-2xl font-semibold",
+                    plan.id === "free" &&
+                      "text-emerald-600 dark:text-emerald-300",
+                    plan.id === "pro" &&
+                      "bg-gradient-to-r from-indigo-500 via-sky-500 to-purple-500 bg-clip-text text-transparent",
+                    plan.id === "ultra" &&
+                      "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent"
+                  )}
+                >
+                  {formatPrice(prices[plan.id])}
+                </div>
+                <ul className="space-y-2 text-sm text-foreground/95">
+                  {plan.features.map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                      {t(item)}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6">
+                  {currentPlan === plan.id ? (
+                    <Button
+                      variant="outline"
+                      className="h-10 w-fit rounded-full px-6 transition-all duration-300"
+                      disabled
+                    >
+                      {t("billing.action.currentPlan")}
+                    </Button>
+                  ) : plan.id === "free" ? (
+                    <Button
+                      disabled
+                      variant="outline"
+                      className="h-10 w-fit rounded-full px-6 transition-all duration-300"
+                    >
+                      {t(planCopy.free.cta)}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="h-10 w-fit rounded-full px-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)] focus-visible:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)]"
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={loadingPlan !== null}
+                    >
+                      {(() => {
+                        const isLower =
+                          planRank[currentPlan] > planRank[plan.id as PlanType];
+                        const copy = planCopy[plan.id as "pro" | "ultra"];
+                        const text = isLower ? copy.downgrade : copy.upgrade;
+                        return loadingPlan === plan.id
+                          ? t("billing.action.redirecting")
+                          : t(text);
+                      })()}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </section>

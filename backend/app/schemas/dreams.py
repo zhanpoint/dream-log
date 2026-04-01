@@ -5,6 +5,8 @@
 from datetime import date, datetime, time
 from uuid import UUID
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.constants.dreams import DREAM_TYPES
@@ -21,7 +23,7 @@ class CreateDreamRequest(BaseModel):
     title: str | None = Field(None, max_length=100)
     dream_date: date = Field(..., description="梦境发生日期")
     dream_time: time | None = None
-    content: str = Field(..., min_length=1, max_length=1000, description="梦境内容")
+    content: str = Field(..., min_length=1, max_length=3000, description="梦境内容")
     is_nap: bool = False
 
     # 睡眠上下文
@@ -97,7 +99,7 @@ class UpdateDreamRequest(BaseModel):
     title: str | None = Field(None, max_length=100)
     dream_date: date | None = None
     dream_time: time | None = None
-    content: str | None = Field(None, min_length=1, max_length=1000)
+    content: str | None = Field(None, min_length=1, max_length=3000)
     is_nap: bool | None = None
 
     # 可选睡眠时间字段，在 PATCH 时可以省略
@@ -361,6 +363,20 @@ class GenerateTitleRequest(BaseModel):
     """生成标题请求（不依赖梦境 ID）"""
 
     content: str = Field(..., min_length=1, description="梦境完整内容")
+
+
+class AssistDreamContentRequest(BaseModel):
+    """梦境正文 AI：意象补完 / 文学润色 / 智能续写（完整正文，不截断）"""
+
+    content: str = Field(..., max_length=3000, description="当前梦境正文全文")
+    action: Literal["imagery_completion", "literary_polish", "smart_continue"] | None = None
+    instruction: str = Field(..., min_length=2, max_length=500, description="用户指令（AI 面板输入）")
+
+
+class OptimizeInstructionRequest(BaseModel):
+    """润色「补充说明」输入框内的短指令"""
+
+    text: str = Field(..., min_length=1, max_length=500)
 
 
 class AddReflectionAnswerRequest(BaseModel):

@@ -10,8 +10,8 @@ from datetime import date, timedelta
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from sqlalchemy import delete, func, select, and_
+from langchain_openrouter import ChatOpenRouter
+from sqlalchemy import delete, func, select, and_, desc
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,6 @@ from app.config.ai_models import (
     MAX_TOKENS_INSIGHT,
     MODELS,
     OPENROUTER_API_KEY,
-    OPENROUTER_BASE_URL,
     TEMPERATURE_INSIGHT,
 )
 from app.config.insight_config import InsightConfig
@@ -54,12 +53,12 @@ from app.services.notification_service import NotificationService
 logger = logging.getLogger(__name__)
 
 # AI 链
-_insight_llm = ChatOpenAI(
+_insight_llm = ChatOpenRouter(
     model=MODELS["insight_generation"],
-    base_url=OPENROUTER_BASE_URL,
     api_key=OPENROUTER_API_KEY,
     temperature=TEMPERATURE_INSIGHT,
     max_tokens=MAX_TOKENS_INSIGHT,
+    max_retries=2,
 ).bind(response_format={"type": "json_object"})
 
 def _make_chain(prompt: str):
@@ -87,6 +86,28 @@ class InsightService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def _get_existing_period_insight(
+        self,
+        user_id: uuid.UUID,
+        insight_type: InsightType,
+        start: date,
+        end: date,
+    ) -> UserInsight | None:
+        """同一用户 + 类型 + 周期的报告已存在则直接复用，避免定时任务重复跑 LLM。"""
+        stmt = (
+            select(UserInsight)
+            .where(
+                UserInsight.user_id == user_id,
+                UserInsight.insight_type == insight_type,
+                UserInsight.time_period_start == start,
+                UserInsight.time_period_end == end,
+            )
+            .order_by(desc(UserInsight.created_at))
+            .limit(1)
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+
     # ========== 月度报告 ==========
 
     async def generate_monthly_report(
@@ -96,6 +117,10 @@ class InsightService:
         start = date(year, month, 1)
         _, last_day = monthrange(year, month)
         end = date(year, month, last_day)
+
+        existing = await self._get_existing_period_insight(user_id, InsightType.MONTHLY, start, end)
+        if existing:
+            return existing
 
         dreams = await self._fetch_dreams(user_id, start, end)
 
@@ -186,6 +211,10 @@ class InsightService:
         week_end = week_start + timedelta(days=6)
         prev_start = week_start - timedelta(days=7)
         prev_end = week_start - timedelta(days=1)
+
+        existing = await self._get_existing_period_insight(user_id, InsightType.WEEKLY, week_start, week_end)
+        if existing:
+            return existing
 
         dreams = await self._fetch_dreams(user_id, week_start, week_end)
         prev_dreams = await self._fetch_dreams(user_id, prev_start, prev_end)
@@ -283,6 +312,11 @@ class InsightService:
         """生成年度回顾"""
         start = date(year, 1, 1)
         end = date(year, 12, 31)
+
+        existing = await self._get_existing_period_insight(user_id, InsightType.ANNUAL, start, end)
+        if existing:
+            return existing
+
         dreams = await self._fetch_dreams(user_id, start, end)
 
         if len(dreams) < InsightConfig.ANNUAL_MIN_DREAMS:

@@ -449,7 +449,6 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
             if need_title and not isinstance(title_result, BaseException) and title_result:
                 dream.title = title_result
                 dream.title_generated_by_ai = True
-                dream.is_draft = False
                 logger.info(f"标题已生成: {title_result}")
             elif need_title and isinstance(title_result, BaseException):
                 logger.warning(f"标题生成失败: {title_result}")

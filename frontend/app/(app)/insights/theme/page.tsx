@@ -106,8 +106,15 @@ function ThemePatternContent() {
 }
 
 export default function ThemePatternPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">加载中...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">
+          <span>{t("common.loading")}</span>
+        </div>
+      }
+    >
       <ThemePatternContent />
     </Suspense>
   );

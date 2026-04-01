@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -101,6 +101,7 @@ type ContentStructured = {
 export default function DreamDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dreamId = params.id as string;
   const { t, i18n } = useTranslation();
 
@@ -122,7 +123,6 @@ export default function DreamDetailPage() {
   const imageCancelingRef = useRef(false);
   const imageAbortRef = useRef<AbortController | null>(null);
   const reflectionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-
   const stopBtnClass =
     "bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 text-white shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-rose-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background";
 
@@ -236,9 +236,7 @@ export default function DreamDetailPage() {
 
   const handleAnalyze = async (mode: "auto" | "manual" = "manual") => {
     if (!dream) return;
-    if (mode === "manual") {
-      setAnalyzing(true);
-    }
+    setAnalyzing(true);
 
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -355,6 +353,32 @@ export default function DreamDetailPage() {
       }
     }, 120000);
   };
+
+  const handleAnalyzeRef = useRef(handleAnalyze);
+  handleAnalyzeRef.current = handleAnalyze;
+
+  useEffect(() => {
+    if (loading || !dream) return;
+    if (searchParams.get("autoAnalyze") !== "1") return;
+    const consumedKey = `dream:autoAnalyzeConsumed:${dreamId}`;
+    if (typeof sessionStorage !== "undefined" && sessionStorage.getItem(consumedKey) === "1") {
+      if (searchParams.get("autoAnalyze") === "1") {
+        router.replace(`/dreams/${dreamId}`, { scroll: false });
+      }
+      return;
+    }
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(consumedKey, "1");
+    }
+    router.replace(`/dreams/${dreamId}`, { scroll: false });
+    const needsStream =
+      !dream.title?.trim() ||
+      dream.ai_processing_status === "PENDING" ||
+      dream.ai_processing_status === "PROCESSING";
+    if (needsStream) {
+      void handleAnalyzeRef.current("auto");
+    }
+  }, [loading, dream, dreamId, searchParams, router]);
 
   const handleStopAnalyze = async () => {
     if (!dream) return;

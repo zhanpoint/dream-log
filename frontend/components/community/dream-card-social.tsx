@@ -185,7 +185,9 @@ export function DreamCardSocialComponent({
       {dream.is_featured && (
         <div className="flex items-center gap-1.5 mb-2.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/30">
           <Sparkles className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">精选梦境</span>
+          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+            {t("community.featured.badge")}
+          </span>
           {dream.inspiration_score !== undefined && dream.inspiration_score > 0 && (
             <span className="ml-auto text-[10px] text-amber-500/80 font-medium">
               ✦ {dream.inspiration_score.toFixed(1)}

@@ -110,8 +110,15 @@ function SleepQualityContent() {
 }
 
 export default function SleepQualityPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">加载中...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-[40vh] flex items-center justify-center text-muted-foreground">
+          {t("common.loading")}
+        </div>
+      }
+    >
       <SleepQualityContent />
     </Suspense>
   );

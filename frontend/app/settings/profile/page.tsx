@@ -186,7 +186,7 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return <div>用户信息加载失败</div>;
+    return <div>{t("settings.profile.loadFailed")}</div>;
   }
 
   return (

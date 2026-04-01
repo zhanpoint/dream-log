@@ -84,7 +84,7 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               className="footer-beian-link flex items-center gap-1"
             >
-              <img src="/beian.png" alt="公安备案" className="w-3 h-3" />
+              <img src="/beian.png" alt={t("footer.publicSecurityRecord")} className="w-3 h-3" />
               豫公网安备41911002000051号
             </a>
           </div>

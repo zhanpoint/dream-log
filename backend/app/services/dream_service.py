@@ -455,7 +455,7 @@ class DreamService:
 
 
 
-            is_draft=request.title is None,
+            is_draft=False,
 
 
 
@@ -818,57 +818,19 @@ class DreamService:
 
 
     async def list_dreams(
-
-
-
         self,
-
-
-
         user_id: uuid.UUID,
-
-
-
         page: int = 1,
-
-
-
         page_size: int = 20,
-
-
-
         sort_by: str = "dream_date",
-
-
-
         sort_order: str = "desc",
-
-
-
         dream_type: str | None = None,
-
-
-
         emotion: str | None = None,
-
-
-
         date_from: date | None = None,
-
-
-
         date_to: date | None = None,
-
-
-
         search: str | None = None,
-
-
-
         is_favorite: bool | None = None,
-
-
-
+        privacy_level: str | None = None,
     ) -> tuple[list[Dream], int]:
 
 
@@ -1038,16 +1000,20 @@ class DreamService:
 
 
         if is_favorite is not None:
-
-
-
             base = base.where(Dream.is_favorite == is_favorite)
 
-
-
-
-
-
+        if privacy_level:
+            levels: list[PrivacyLevel] = []
+            for raw in privacy_level.split(","):
+                key = raw.strip()
+                if not key:
+                    continue
+                try:
+                    levels.append(PrivacyLevel[key])
+                except KeyError:
+                    continue
+            if levels:
+                base = base.where(Dream.privacy_level.in_(levels))
 
         # 统计总数
 
@@ -1866,6 +1832,81 @@ class DreamService:
 
 
         await self.db.commit()
+
+
+    async def delete_all_dreams(
+        self,
+        user_id: uuid.UUID,
+    ) -> None:
+        """
+        一键删除当前用户所有梦境及其相关资源。
+
+        不返回数量。
+        """
+        from app.services.oss_service import get_oss_service
+
+        stmt = (
+            select(Dream)
+            .where(
+                Dream.user_id == user_id,
+                Dream.deleted_at.is_(None),
+            )
+            .options(selectinload(Dream.attachments))
+        )
+
+        result = await self.db.execute(stmt)
+        dreams = result.scalars().all()
+        if not dreams:
+            return
+
+        oss_service = get_oss_service()
+        # 先删除 OSS 上的附件文件 + 缩略图
+        for dream in dreams:
+            for att in dream.attachments or []:
+                try:
+                    ok = await oss_service.delete_object_by_url(att.file_url, bucket_type="private")
+                    if not ok:
+                        logger.warning(
+                            "删除梦境附件 OSS 文件失败(返回 False) dream_id=%s url=%s",
+                            dream.id,
+                            getattr(att, "file_url", ""),
+                        )
+                except Exception as e:
+                    # 理论上 delete_object_by_url 内部不会抛异常，但这里兜底记录
+                    logger.warning(
+                        "删除梦境附件 OSS 文件失败 dream_id=%s url=%s: %s",
+                        dream.id,
+                        getattr(att, "file_url", ""),
+                        e,
+                    )
+
+                if getattr(att, "thumbnail_url", None):
+                    try:
+                        ok = await oss_service.delete_object_by_url(
+                            att.thumbnail_url, bucket_type="private"
+                        )
+                        if not ok:
+                            logger.warning(
+                                "删除梦境附件缩略图 OSS 失败(返回 False) dream_id=%s url=%s",
+                                dream.id,
+                                att.thumbnail_url,
+                            )
+                    except Exception as e:
+                        logger.warning(
+                            "删除梦境附件缩略图 OSS 失败 dream_id=%s: %s",
+                            dream.id,
+                            e,
+                        )
+
+        # 然后批量硬删除梦境记录（依赖数据库级联清理关联表）
+        await self.db.execute(
+            Dream.__table__.delete().where(
+                Dream.user_id == user_id,
+                Dream.deleted_at.is_(None),
+            )
+        )
+        await self.db.commit()
+        return
 
 
 

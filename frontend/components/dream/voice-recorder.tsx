@@ -1,14 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Loader2, Mic, Square, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void;
   className?: string;
+  compact?: boolean;
 }
 
 const SAMPLE_RATE = 16000;
@@ -20,7 +21,8 @@ const BUFFER_SIZE = 4096; // 256ms @ 16kHz
  * 使用 Google Cloud Speech-to-Text V2 流式转录
  * 前端直接发送 16-bit PCM 二进制数据到后端 WebSocket
  */
-export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps) {
+export function VoiceRecorder({ onTranscription, className, compact }: VoiceRecorderProps) {
+  const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -83,7 +85,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
     if (ws && ws.readyState === WebSocket.OPEN) ws.close();
     wsRef.current = null;
     cleanup();
-    toast.info("已取消录音");
+    toast.info(t("dreams.new.voiceRecording.canceled"));
   }, [cleanup]);
 
   const startRecording = useCallback(async () => {
@@ -146,7 +148,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
           if (data.type === "transcription" && data.text) {
             onTranscription(data.text);
           } else if (data.type === "error") {
-            toast.error(data.message || "转录失败");
+            toast.error(data.message || t("dreams.new.voiceRecording.error"));
           }
         } catch {
           // 忽略非 JSON
@@ -154,7 +156,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
       };
 
       ws.onerror = () => {
-        toast.error("连接失败，请检查网络");
+        toast.error(t("dreams.new.voiceRecording.connectionFailed"));
         cleanup();
       };
 
@@ -162,7 +164,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
     } catch {
       setConnecting(false);
       cleanup();
-      toast.error("无法访问麦克风，请检查浏览器权限");
+      toast.error(t("dreams.new.voiceRecording.permissionDenied"));
     }
   }, [onTranscription, cleanup]);
 
@@ -177,13 +179,13 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
   // ========== 渲染 ==========
   if (recording) {
     return (
-      <div className="flex items-center gap-3">
-        {/* 声波动画 - 5个垂直条 */}
-        <div className="voice-wave-bars flex items-center gap-0.5 h-5">
+      <div className="inline-flex items-center gap-3">
+        {/* 声波动画 - 增强 3D 质感 */}
+        <div className="voice-wave-bars flex items-center gap-1 h-5">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="voice-wave-bar w-0.5 bg-primary/70 rounded-full"
+              className="voice-wave-bar w-0.5 bg-gradient-to-t from-primary/40 via-primary to-primary/90 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.75)]"
             />
           ))}
         </div>
@@ -192,28 +194,46 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
         <button
           type="button"
           onClick={stopRecording}
-          className="p-1.5 rounded-full bg-primary hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 ease-out"
-          title="停止录音"
+          className="inline-flex items-center justify-center h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-[0_14px_30px_rgba(37,99,235,0.55)] hover:shadow-[0_18px_40px_rgba(37,99,235,0.8)] hover:-translate-y-0.5 hover:scale-105 active:translate-y-0 active:scale-95 transition-all duration-200 ease-out border border-white/10"
+          title={t("dreams.new.voiceRecording.stop")}
         >
-          <Square className="w-3.5 h-3.5 fill-white text-white" />
+          <Square className="w-4 h-4 fill-current" />
         </button>
 
         <style jsx>{`
           @keyframes wave {
-            0%, 100% { height: 40%; }
-            50% { height: 85%; }
+            0%,
+            100% {
+              height: 35%;
+              transform: translateZ(0) scaleY(0.9);
+            }
+            50% {
+              height: 95%;
+              transform: translateZ(0) scaleY(1.25);
+            }
           }
 
           .voice-wave-bar {
             height: 40%;
-            animation: wave 1.2s ease-in-out infinite;
+            animation: wave 1.1s ease-in-out infinite;
+            transform-origin: center bottom;
           }
 
-          .voice-wave-bars .voice-wave-bar:nth-child(1) { animation-delay: 0s; }
-          .voice-wave-bars .voice-wave-bar:nth-child(2) { animation-delay: 0.15s; }
-          .voice-wave-bars .voice-wave-bar:nth-child(3) { animation-delay: 0.3s; }
-          .voice-wave-bars .voice-wave-bar:nth-child(4) { animation-delay: 0.45s; }
-          .voice-wave-bars .voice-wave-bar:nth-child(5) { animation-delay: 0.6s; }
+          .voice-wave-bars .voice-wave-bar:nth-child(1) {
+            animation-delay: 0s;
+          }
+          .voice-wave-bars .voice-wave-bar:nth-child(2) {
+            animation-delay: 0.12s;
+          }
+          .voice-wave-bars .voice-wave-bar:nth-child(3) {
+            animation-delay: 0.24s;
+          }
+          .voice-wave-bars .voice-wave-bar:nth-child(4) {
+            animation-delay: 0.36s;
+          }
+          .voice-wave-bars .voice-wave-bar:nth-child(5) {
+            animation-delay: 0.48s;
+          }
         `}</style>
       </div>
     );
@@ -224,12 +244,15 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
       type="button"
       onClick={startRecording}
       className={cn(
-        "p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200",
+        "voice-recorder-trigger relative inline-flex items-center justify-center h-11 w-11 rounded-2xl text-primary-foreground bg-gradient-to-br from-sky-500/80 via-indigo-500/80 to-purple-500/80 shadow-[0_10px_24px_rgba(15,23,42,0.55)] border border-white/25 overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-[0_16px_36px_rgba(15,23,42,0.75)] active:translate-y-0 active:scale-95",
         className
       )}
-      title="语音输入（实时转录）"
+      title={t("dreams.new.voiceRecording.tooltip")}
     >
-      <Mic className="w-5 h-5" />
+      <span
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-80 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_55%),radial-gradient(circle_at_70%_80%,rgba(56,189,248,0.35),transparent_55%)]"
+      />
+      <Mic className="relative w-5 h-5" />
     </button>
   );
 }

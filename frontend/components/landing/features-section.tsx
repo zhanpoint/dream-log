@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import {
   Brain,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { MagicCard } from "@/components/magicui/magic-card";
 import { useTranslation } from "react-i18next";
+import { ScrollReveal } from "@/components/magicui/scroll-reveal";
 
 export default function FeaturesSection() {
   const { t } = useTranslation();
@@ -102,50 +103,58 @@ export default function FeaturesSection() {
   return (
     <section
       id="features"
-      className="mx-auto max-w-[80rem] px-6 text-center md:px-8 py-14"
+      className="mx-auto max-w-[80rem] px-6 text-center md:px-8 py-20"
     >
-      <div className="mx-auto max-w-5xl">
-        <h2 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl mb-6">
-          {t("marketing.features.heading")}
-        </h2>
-        <p className="text-xl text-muted-foreground mb-16">
-          {t("marketing.features.subheading")}
-        </p>
-      </div>
+      {/* 标题：先进入视野浮现 */}
+      <ScrollReveal variant="fade-up">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl mb-6">
+            {t("marketing.features.heading")}
+          </h2>
+          <p className="text-xl text-muted-foreground mb-16">
+            {t("marketing.features.subheading")}
+          </p>
+        </div>
+      </ScrollReveal>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-        {features.map((feature, idx) => {
-          const Icon = feature.icon;
-          return (
-            <MagicCard
-              key={idx}
-              className="group relative flex flex-col h-full text-left p-8 rounded-2xl border border-border transition-all duration-300"
-              gradientSize={200}
-              gradientFrom={feature.gradientFrom}
-              gradientTo={feature.gradientTo}
-              gradientColor={feature.gradientColor}
-              gradientOpacity={0.6}
-            >
-              <div className="relative flex-shrink-0 mb-5">
-                <div
-                  className={`w-14 h-14 flex items-center justify-center rounded-lg border border-border transition-all duration-300 group-hover:scale-105 ${feature.iconBgColor}`}
-                >
-                  <Icon className={`h-8 w-8 transition-transform duration-300 group-hover:scale-110 ${feature.iconColor}`} />
+      {/* 卡片网格：统一触发，避免逐个错峰导致“乱/拖沓”的体验 */}
+      <ScrollReveal variant="fade-up" delay={0.08}>
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+          {features.map((feature, idx) => {
+            const Icon = feature.icon;
+            return (
+              <MagicCard
+                key={idx}
+                className="group relative flex flex-col h-full text-left p-8 rounded-2xl border border-border transition-all duration-300"
+                gradientSize={200}
+                gradientFrom={feature.gradientFrom}
+                gradientTo={feature.gradientTo}
+                gradientColor={feature.gradientColor}
+                gradientOpacity={0.6}
+              >
+                <div className="relative flex-shrink-0 mb-5">
+                  <div
+                    className={`w-14 h-14 flex items-center justify-center rounded-lg border border-border transition-all duration-300 group-hover:scale-105 ${feature.iconBgColor}`}
+                  >
+                    <Icon
+                      className={`h-8 w-8 transition-transform duration-300 group-hover:scale-110 ${feature.iconColor}`}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="relative flex flex-col flex-grow">
-                <h3 className="text-2xl font-semibold text-left text-card-foreground mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-base text-muted-foreground text-left leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            </MagicCard>
-          );
-        })}
-      </div>
+                <div className="relative flex flex-col flex-grow">
+                  <h3 className="text-2xl font-semibold text-left text-card-foreground mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-base text-muted-foreground text-left leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </MagicCard>
+            );
+          })}
+        </div>
+      </ScrollReveal>
     </section>
   );
 }

@@ -40,7 +40,7 @@ export function SiteHeader() {
         <div className="navbar-container-wrapper">
           <div className="navbar-container">
             {/* 左侧：Logo + 导航 */}
-            <div className="flex items-center gap-24">
+            <div className="flex items-center gap-5 md:gap-6">
               <div className="navbar-logo">
                 <Link href="/" className="flex items-center gap-2">
                   <img src="/logo.jpg" alt="Dream Log" className="h-12 w-12" />
@@ -50,7 +50,7 @@ export function SiteHeader() {
 
               {/* 核心导航 */}
               {!isAuthPage && mounted && isAuthenticated && currentUser && (
-                <nav className="hidden md:flex items-center gap-2">
+                <nav className="hidden md:flex items-center gap-1">
                   <Link 
                     href="/dreams"
                     className={`nav-link ${pathname === '/dreams' ? 'active' : ''}`}

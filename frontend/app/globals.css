@@ -95,6 +95,10 @@
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    /*
+     * 不要用 css zoom / transform:scale 做「整页缩放」：易出现右侧留白、滚动条与内容不同步。
+     * 需要 90% 等观感请用 Chrome 自带页面缩放（Ctrl/Cmd + -），行为与布局才是原生一致。
+     */
   }
 
   body {

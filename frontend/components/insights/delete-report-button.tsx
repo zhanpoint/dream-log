@@ -16,6 +16,7 @@ import { insightAPI } from "@/lib/insight-api";
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -34,8 +35,9 @@ export function DeleteReportButton({
   variant = "ghost",
   size = "sm",
   className,
-  label = "删除报告",
+  label,
 }: DeleteReportButtonProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -44,11 +46,11 @@ export function DeleteReportButton({
     setDeleting(true);
     try {
       await insightAPI.delete(insightId);
-      toast.success("报告已删除");
+      toast.success(t("common.deleteSuccess"));
       setOpen(false);
       router.push(redirectTo);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "删除失败";
+      const msg = e instanceof Error ? e.message : t("common.deleteFailed");
       toast.error(msg);
     } finally {
       setDeleting(false);
@@ -66,21 +68,21 @@ export function DeleteReportButton({
             "hover:!bg-transparent hover:text-destructive hover:scale-110 active:scale-95 active:!bg-transparent",
             className
           )}
-          title={label}
+          title={label ?? t("common.delete")}
         >
           <Trash2 className="h-4 w-4 transition-transform duration-200" />
-          <span className="sr-only">{label}</span>
+          <span className="sr-only">{label ?? t("common.delete")}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>删除报告</AlertDialogTitle>
+          <AlertDialogTitle>{label ?? t("common.delete")}</AlertDialogTitle>
           <AlertDialogDescription>
-            删除后无法恢复，确定要删除这份报告吗？
+            {t("insights.report.deleteConfirm")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -92,10 +94,10 @@ export function DeleteReportButton({
             {deleting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                删除中…
+                {t("common.loading")}
               </>
             ) : (
-              "删除"
+              t("common.delete")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

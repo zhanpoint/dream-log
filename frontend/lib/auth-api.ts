@@ -1,3 +1,4 @@
+import { persistCreateDraftForExternalExit } from "@/lib/dream-create-draft-bridge";
 import { api } from "./api";
 import { handleAuthError, AuthError } from "./auth-error-handler";
 import type { UserProfile } from "./user-api";
@@ -443,6 +444,7 @@ export const AuthHelpers = {
    */
   async handleLogout(redirectUrl: string = "/auth"): Promise<void> {
     try {
+      await persistCreateDraftForExternalExit();
       await authAPI.logout();
     } finally {
       // 清除本地数据

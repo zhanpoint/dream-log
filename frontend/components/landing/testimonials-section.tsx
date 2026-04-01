@@ -1,9 +1,10 @@
-"use client";
+ "use client";
 
 import Marquee from "@/components/magicui/marquee";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import "@/styles/testimonials.css";
+import { ScrollReveal } from "@/components/magicui/scroll-reveal";
 
 /**
  * 用户评价数据
@@ -105,58 +106,68 @@ export default function TestimonialsSection() {
   const secondRow = testimonials.slice(Math.ceil(testimonials.length / 2));
 
   return (
-    <section className="relative py-24 px-6 overflow-x-hidden bg-background">
+    <section className="relative py-28 px-6 overflow-x-hidden bg-background">
       <div className="max-w-7xl mx-auto overflow-x-hidden">
         {/* 标题区域 */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            {t("marketing.testimonials.heading")}
-          </h2>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+              {t("marketing.testimonials.heading")}
+            </h2>
+          </div>
+        </ScrollReveal>
 
         {/* 无限滚动评价区域 */}
-        <div className="relative flex w-full flex-col items-center justify-center overflow-x-hidden testimonials-fade-mask">
-          {/* 第一行 - 从左到右 */}
-          <Marquee pauseOnHover className="[--duration:60s] mb-4 max-w-full">
-            {firstRow.map((testimonial) => (
-              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-            ))}
-          </Marquee>
+        <ScrollReveal variant="fade-up" delay={0.12}>
+          <div className="relative flex w-full flex-col items-center justify-center overflow-x-hidden testimonials-fade-mask">
+            {/* 第一行 - 从左到右 */}
+            <Marquee pauseOnHover className="[--duration:60s] mb-4 max-w-full">
+              {firstRow.map((testimonial) => (
+                <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+              ))}
+            </Marquee>
 
-          {/* 第二行 - 从右到左 */}
-          <Marquee reverse pauseOnHover className="[--duration:60s] max-w-full">
-            {secondRow.map((testimonial) => (
-              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-            ))}
-          </Marquee>
-        </div>
+            {/* 第二行 - 从右到左 */}
+            <Marquee reverse pauseOnHover className="[--duration:60s] max-w-full">
+              {secondRow.map((testimonial) => (
+                <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+              ))}
+            </Marquee>
+          </div>
+        </ScrollReveal>
 
         {/* 底部统计信息 */}
         <div className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center">
-          <div className="flex flex-col">
-            <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              50+
-            </span>
-            <span className="text-sm text-muted-foreground font-medium mt-2">
-              {t("marketing.testimonials.stats.users")}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              800+
-            </span>
-            <span className="text-sm text-muted-foreground font-medium mt-2">
-              {t("marketing.testimonials.stats.dreams")}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              95%
-            </span>
-            <span className="text-sm text-muted-foreground font-medium mt-2">
-              {t("marketing.testimonials.stats.satisfaction")}
-            </span>
-          </div>
+          <ScrollReveal variant="scale" className="flex flex-col">
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                50+
+              </span>
+              <span className="text-sm text-muted-foreground font-medium mt-2">
+                {t("marketing.testimonials.stats.users")}
+              </span>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal variant="scale" delay={0.08} className="flex flex-col">
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                800+
+              </span>
+              <span className="text-sm text-muted-foreground font-medium mt-2">
+                {t("marketing.testimonials.stats.dreams")}
+              </span>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal variant="scale" delay={0.16} className="flex flex-col">
+            <div className="flex flex-col">
+              <span className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                95%
+              </span>
+              <span className="text-sm text-muted-foreground font-medium mt-2">
+                {t("marketing.testimonials.stats.satisfaction")}
+              </span>
+            </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

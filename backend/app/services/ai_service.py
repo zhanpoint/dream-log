@@ -8,10 +8,11 @@ import base64
 import logging
 import os
 from pathlib import Path
-from typing import Awaitable, Callable
+from typing import AsyncIterator, Awaitable, Callable
 from uuid import UUID
 
 import httpx
+from langchain_core.messages import AIMessageChunk
 
 # 在首次使用 OpenAIEmbeddings 前设置 tiktoken 缓存目录，避免每次请求去拉取
 # openaipublic.blob.core.windows.net（国内/受限网络易 SSL 超时）
@@ -22,17 +23,20 @@ if "TIKTOKEN_CACHE_DIR" not in os.environ:
 
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_openrouter import ChatOpenRouter
 
 from app.config.ai_models import (
     EMBEDDING_DIMENSIONS,
     MAX_TOKENS_BASIC,
+    MAX_TOKENS_CONTENT_ASSIST,
     MAX_TOKENS_INSIGHT,
     MAX_TOKENS_TITLE,
     MODELS,
     OPENROUTER_API_KEY,
     OPENROUTER_BASE_URL,
     TEMPERATURE_BASIC,
+    TEMPERATURE_CONTENT_ASSIST_DEFAULT,
     TEMPERATURE_INSIGHT,
     TEMPERATURE_TITLE,
 )
@@ -42,6 +46,11 @@ from app.prompts.dream_analysis import (
     IMAGE_GENERATION_PROMPT,
     INSIGHT_PROMPT,
     TITLE_GENERATION_PROMPT,
+)
+from app.prompts.dream_content_assist import (
+    DREAM_CONTENT_ASSIST_PROMPT,
+    OPTIMIZE_INSTRUCTION_PROMPT,
+    get_content_assist_task_detail,
 )
 
 logger = logging.getLogger(__name__)
@@ -79,20 +88,16 @@ def _create_llm(
     *,
     temperature: float,
     max_tokens: int,
-) -> ChatOpenAI:
-    """创建指定任务的 ChatOpenAI 实例（多阶段认知管道）"""
-    proxy_url = _get_proxy_url()
-    http_async_client = None
-    if proxy_url:
-        http_async_client = httpx.AsyncClient(proxy=proxy_url, timeout=120.0)
-
-    return ChatOpenAI(
+    streaming: bool = False,
+) -> ChatOpenRouter:
+    """创建指定任务的 ChatOpenRouter 实例（多阶段认知管道）"""
+    return ChatOpenRouter(
         model=MODELS[model_key],
-        base_url=OPENROUTER_BASE_URL,
         api_key=OPENROUTER_API_KEY,
         temperature=temperature,
         max_tokens=max_tokens,
-        http_async_client=http_async_client,
+        streaming=streaming,
+        max_retries=2,
     )
 
 
@@ -132,6 +137,13 @@ class AIService:
             logger.warning("OPENROUTER_API_KEY 未配置, AI 服务将不可用")
         logger.info("AI_PROXY_URL configured: %s", bool(settings.ai_proxy_url))
 
+    def _content_assist_temperature(self, action: str) -> float:
+        return {
+            "imagery_completion": 0.74,
+            "literary_polish": 0.62,
+            "smart_continue": 0.72,
+        }.get(action, TEMPERATURE_CONTENT_ASSIST_DEFAULT)
+
     def _log_proxy_usage(self, action: str) -> None:
         logger.info("AI proxy usage (%s): %s", action, bool(_get_proxy_url()))
 
@@ -145,6 +157,118 @@ class AIService:
         )
         title = result.strip().strip('"\'《》「」')
         return title if title else "无题之梦"
+
+    def _build_content_assist_chain(self, picked_action: str):
+        temp = self._content_assist_temperature(picked_action)
+        return (
+            ChatPromptTemplate.from_messages([("human", DREAM_CONTENT_ASSIST_PROMPT)])
+            | _create_llm(
+                "content_assist",
+                temperature=temp,
+                max_tokens=MAX_TOKENS_CONTENT_ASSIST,
+            )
+            | StrOutputParser()
+        )
+
+    async def assist_dream_content(
+        self,
+        content: str,
+        action: str | None,
+        *,
+        target_language: str,
+        instruction: str,
+    ) -> str:
+        """梦境正文：意象补完 / 文学润色 / 智能续写。"""
+        self._log_proxy_usage("assist_dream_content")
+        picked_action = self._pick_content_assist_action(content, instruction, action)
+        task_detail = get_content_assist_task_detail(picked_action)
+        if action is None:
+            task_detail = f"（未选择模式，已自动判定）{task_detail}"
+        chain = self._build_content_assist_chain(picked_action)
+        text = await chain.ainvoke(
+            {
+                "content": content if content is not None else "",
+                "target_language": target_language,
+                "task_detail": task_detail,
+                "instruction": instruction.strip(),
+            }
+        )
+        out = text.strip()
+        return out if out else (content or "")
+
+    def assist_dream_content_stream(
+        self,
+        content: str,
+        action: str | None,
+        *,
+        target_language: str,
+        instruction: str,
+    ) -> tuple[str, AsyncIterator[str]]:
+        """流式返回梦境正文增量文本。"""
+        self._log_proxy_usage("assist_dream_content_stream")
+        picked_action = self._pick_content_assist_action(content, instruction, action)
+        task_detail = get_content_assist_task_detail(picked_action)
+        if action is None:
+            task_detail = f"（未选择模式，已自动判定）{task_detail}"
+        temp = self._content_assist_temperature(picked_action)
+        chain = (
+            ChatPromptTemplate.from_messages([("human", DREAM_CONTENT_ASSIST_PROMPT)])
+            | _create_llm(
+                "content_assist",
+                temperature=temp,
+                max_tokens=MAX_TOKENS_CONTENT_ASSIST,
+            )
+        )
+        payload = {
+            "content": content if content is not None else "",
+            "target_language": target_language,
+            "task_detail": task_detail,
+            "instruction": instruction.strip(),
+        }
+
+        async def _gen() -> AsyncIterator[str]:
+            async for chunk in chain.astream(payload):
+                # Best practice: 流式路径直接消费 AIMessageChunk，避免 parser 层聚合导致“看似无增量”。
+                piece = ""
+                if isinstance(chunk, AIMessageChunk):
+                    piece = chunk.text or ""
+                elif isinstance(chunk, str):
+                    piece = chunk
+                if piece:
+                    yield piece
+
+        return picked_action, _gen()
+
+    def _pick_content_assist_action(
+        self, content: str, instruction: str, action: str | None
+    ) -> str:
+        """
+        当用户未选择模式（action 为 None）时，做一个温和的自动判定。
+        规则目标：不强行锁定风格，只在“续写意图明显/文本长度足够”时选择对应模式。
+        """
+        if action in ("imagery_completion", "literary_polish", "smart_continue"):
+            return action
+        ins = (instruction or "").strip()
+        txt = (content or "").strip()
+        if ins:
+            lower = ins.lower()
+            if any(k in ins for k in ("续写", "接着", "继续", "后续", "然后", "往后")) or any(
+                k in lower for k in ("continue", "next", "keep going")
+            ):
+                return "smart_continue" if len(txt) >= 5 else "imagery_completion"
+        return "literary_polish" if len(txt) >= 80 else "imagery_completion"
+
+    async def optimize_instruction(self, text: str, *, target_language: str) -> str:
+        """润色补充说明短文本，便于后续梦境正文 AI 理解。"""
+        self._log_proxy_usage("optimize_instruction")
+        chain = (
+            ChatPromptTemplate.from_messages([("human", OPTIMIZE_INSTRUCTION_PROMPT)])
+            | _create_llm("content_assist", temperature=0.35, max_tokens=400)
+            | StrOutputParser()
+        )
+        out = await chain.ainvoke({"text": text.strip(), "target_language": target_language})
+        result = out.strip()
+        return result if result else text.strip()
 
     async def analyze_basic(self, dream_context: str, *, target_language: str) -> dict:
         """阶段1：基础分析（合并 snapshot + 情绪 + 触发因素 + 睡眠），低温精确。"""

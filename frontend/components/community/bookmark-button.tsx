@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface BookmarkButtonProps {
   dreamId: string;
@@ -24,6 +25,7 @@ export function BookmarkButton({
 }: BookmarkButtonProps) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleToggle = async () => {
     if (loading) return;
@@ -34,10 +36,10 @@ export function BookmarkButton({
       const res = await communityAPI.toggleBookmark(dreamId);
       setBookmarked(res.bookmarked);
       onToggle?.(res.bookmarked);
-      toast.success(res.bookmarked ? "已收藏" : "已取消收藏");
+      toast.success(res.bookmarked ? t("community.bookmark.added") : t("community.bookmark.removed"));
     } catch {
       setBookmarked(prev);
-      toast.error("操作失败，请稍后重试");
+      toast.error(t("community.bookmark.failed"));
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ export function BookmarkButton({
       )}
       onClick={handleToggle}
       disabled={loading}
-      title={bookmarked ? "取消收藏" : "收藏梦境"}
+      title={bookmarked ? t("community.bookmark.remove") : t("community.bookmark.add")}
     >
       <Bookmark className={cn("h-4 w-4", bookmarked && "fill-current")} />
     </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export const DREAMER_LEVELS: Record<
   number,
@@ -121,6 +122,7 @@ interface InspirationPointsBadgeProps {
 }
 
 export function InspirationPointsBadge({ points, className, size = "sm" }: InspirationPointsBadgeProps) {
+  const { t } = useTranslation();
   const sizeClasses = {
     xs: "text-[9px] px-1.5 py-0.5",
     sm: "text-[10px] px-2 py-0.5",
@@ -140,7 +142,7 @@ export function InspirationPointsBadge({ points, className, size = "sm" }: Inspi
     >
       <span>✦</span>
       <span>{points.toLocaleString()}</span>
-      <span className="opacity-70">灵感值</span>
+      <span className="opacity-70">{t("community.dreamerLevel.inspirationPoints")}</span>
     </span>
   );
 }

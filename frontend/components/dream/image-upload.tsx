@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface UploadedFile {
   id: string;
@@ -30,6 +31,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const { t } = useTranslation();
 
   const addFiles = useCallback(
     (newFiles: FileList | File[]) => {
@@ -94,7 +96,7 @@ export function ImageUpload({
               ) : (
                 <button
                   type="button"
-                  title="删除图片"
+                  title={t("dreams.new.deleteImage")}
                   onClick={() => removeFile(f.id)}
                   className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
                 >
@@ -121,7 +123,7 @@ export function ImageUpload({
             type="file"
             accept="image/*"
             multiple
-            title="选择图片"
+            title={t("dreams.new.selectImage")}
             className="hidden"
             onChange={(e) => {
               if (e.target.files) addFiles(e.target.files);
@@ -135,7 +137,7 @@ export function ImageUpload({
               dragOver && "border-primary bg-primary/5"
             )}
             onClick={() => inputRef.current?.click()}
-            title="上传图片"
+            title={t("dreams.new.uploadImage")}
           >
             <ImagePlus className="w-5 h-5" />
             {files.length > 0 && (

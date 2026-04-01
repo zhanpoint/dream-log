@@ -18,6 +18,7 @@ MODELS: dict[str, str] = {
     "insight_generation": settings.ai_model_insight_generation,  # 阶段2 深度洞察
     "image_generation": settings.ai_model_image_generation,       # 梦境图像生成
     "embedding": settings.ai_model_embedding,
+    "content_assist": settings.ai_model_content_assist,
 }
 
 # Embedding 维度
@@ -36,3 +37,7 @@ MAX_TOKENS_BASIC = 3072  # 估算输出 1500-2000 tokens（含 JSON 结构）
 # 阶段2 深度洞察（中高温 = 温暖、共情）
 TEMPERATURE_INSIGHT = 0.7
 MAX_TOKENS_INSIGHT = 4096  # 估算输出 1800-2200 tokens（含 JSON 结构）
+
+# 梦境正文辅助（续写/润色/扩写/缩写/深度）
+TEMPERATURE_CONTENT_ASSIST_DEFAULT = 0.65
+MAX_TOKENS_CONTENT_ASSIST = 2200

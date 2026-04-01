@@ -43,6 +43,7 @@ import {
   VIVIDNESS_LEVELS,
   COMPLETENESS_LEVELS,
 } from "@/lib/constants";
+import { shouldUseOfflineToast } from "@/lib/api";
 import { DreamApi, type CreateDreamPayload, type DreamDetail } from "@/lib/dream-api";
 import { communityAPI, type CommunityResponse } from "@/lib/community-api";
 import { getEmotionLabel } from "@/lib/emotion-utils";
@@ -75,18 +76,47 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DreamContentAiProvider,
+  DreamContentAiToolbarButton,
+} from "@/components/dream/dream-content-ai";
+import { useDreamEditorDraft } from "@/hooks/use-dream-editor-draft";
+import { setCreateDreamDraftPersister } from "@/lib/dream-create-draft-bridge";
+import {
+  clearCreateDreamRestoreNextVisit,
+  clearDraftFully,
+  draftHasMeaningfulContent,
+  isCreateDreamRestoreNextVisit,
+  loadDraft,
+  loadUploadedFilesFromRefs,
+  setCreateDreamRestoreNextVisit,
+  type DreamEditorDraftSnapshot,
+} from "@/lib/dream-draft-storage";
 
 type DreamEditorProps = {
   mode?: "create" | "edit";
   initialDream?: DreamDetail | null;
 };
 
+const MIN_DREAM_CONTENT_HEIGHT = 300;
+
 export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
@@ -100,11 +130,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   const [featuresCardOpen, setFeaturesCardOpen] = useState(false);
   const [realityCardOpen, setRealityCardOpen] = useState(false);
 
-  useEffect(() => {
-    if (contentAreaRef.current) {
-      contentAreaRef.current.style.height = `${textareaHeight}px`;
-    }
-  }, [textareaHeight]);
+  // 高度通过 JSX style + minHeight 声明式保证（避免偶发被覆盖）
 
   useEffect(() => {
     if (lifeContextAreaRef.current) {
@@ -118,6 +144,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
     }
   }, [userInterpretationHeight]);
   const containerRef = useRef<HTMLDivElement>(null);
+  /** 主列 max-w-4xl 容器，用于 AI 面板宽度与左右边距对齐 */
+  const editorColumnRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const lifeContextAreaRef = useRef<HTMLTextAreaElement>(null);
   const userInterpretationAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -187,6 +215,16 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   const [selectedCommunityId, setSelectedCommunityId] = useState("");
   const [shareToCommunityEnabled, setShareToCommunityEnabled] = useState(false);
 
+  const contentRef = useRef("");
+  const titleRef = useRef("");
+  const hasUnsavedDraftRef = useRef(false);
+  const skipLeaveGuardRef = useRef(false);
+  const pendingNavigationRef = useRef<string | null>(null);
+  const [leaveDraftDialogOpen, setLeaveDraftDialogOpen] = useState(false);
+
+  contentRef.current = content;
+  titleRef.current = title;
+
   // 从 URL 预填（仅创建模式）：?seek=1&privacy=PUBLIC
   useEffect(() => {
     if (mode !== "create") return;
@@ -254,6 +292,15 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
       : 0;
   const totalImageCount = existingImageCount + imageFiles.length;
 
+  /** 创建页未提交内容：用于离开前询问是否保存草稿 */
+  const hasUnsavedDraft = useMemo(
+    () =>
+      mode === "create" &&
+      Boolean(content.trim() || title.trim() || imageFiles.length > 0),
+    [mode, content, title, imageFiles.length]
+  );
+  hasUnsavedDraftRef.current = hasUnsavedDraft;
+
   const toggleDreamType = useCallback((type: string) => {
     setDreamTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
@@ -290,7 +337,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const delta = moveEvent.clientY - startY;
-      const newHeight = Math.max(300, startHeight + delta);
+      const newHeight = Math.max(MIN_DREAM_CONTENT_HEIGHT, startHeight + delta);
       setTextareaHeight(newHeight);
     };
 
@@ -407,6 +454,291 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
     setSelectedCommunityId((initialDream as any).community_id ?? "");
     setShareToCommunityEnabled(!!(initialDream as any).community_id);
   }, [mode, initialDream]);
+
+  const buildDraftSnapshot = useCallback(() => {
+    return {
+      mode,
+      dreamId: initialDream?.id,
+      fields: {
+        title,
+        content,
+        dreamDateIso: format(dreamDate, "yyyy-MM-dd"),
+        dreamTime,
+        isNap,
+        primaryEmotion,
+        emotionIntensity,
+        emotionResidual,
+        sleepStartTime,
+        awakeningTime,
+        sleepQuality,
+        sleepDepth,
+        sleepFragmented,
+        sleepHours,
+        sleepMinutes,
+        awakeningState,
+        dreamTypes,
+        lucidityLevel,
+        vividness,
+        completenessScore,
+        lifeContext,
+        realityCorrelation,
+        userInterpretation,
+        privacyLevel,
+        titleGeneratedByAI,
+        isAnonymous,
+        isSeekingInterpretation,
+        selectedCommunityId,
+        shareToCommunityEnabled,
+        textareaHeight,
+        lifeContextHeight,
+        userInterpretationHeight,
+      },
+      imageFiles,
+    };
+  }, [
+    mode,
+    initialDream?.id,
+    title,
+    content,
+    dreamDate,
+    dreamTime,
+    isNap,
+    primaryEmotion,
+    emotionIntensity,
+    emotionResidual,
+    sleepStartTime,
+    awakeningTime,
+    sleepQuality,
+    sleepDepth,
+    sleepFragmented,
+    sleepHours,
+    sleepMinutes,
+    awakeningState,
+    dreamTypes,
+    lucidityLevel,
+    vividness,
+    completenessScore,
+    lifeContext,
+    realityCorrelation,
+    userInterpretation,
+    privacyLevel,
+    titleGeneratedByAI,
+    isAnonymous,
+    isSeekingInterpretation,
+    selectedCommunityId,
+    shareToCommunityEnabled,
+    textareaHeight,
+    lifeContextHeight,
+    userInterpretationHeight,
+    imageFiles,
+  ]);
+
+  const markRestoreAfterExternalExit = useCallback(() => {
+    if (skipLeaveGuardRef.current) return;
+    if (!hasUnsavedDraftRef.current) return;
+    setCreateDreamRestoreNextVisit();
+  }, []);
+
+  const { flush, scheduleSave, cancelPendingSave } = useDreamEditorDraft({
+    enabled: mode === "create",
+    debounceMs: 1000,
+    buildSnapshot: buildDraftSnapshot,
+    skipFlushRef: skipLeaveGuardRef,
+    afterPageHideFlush: markRestoreAfterExternalExit,
+  });
+
+  const imageDraftSig = useMemo(
+    () => imageFiles.map((f) => f.id).join(","),
+    [imageFiles]
+  );
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    scheduleSave();
+  }, [
+    mode,
+    scheduleSave,
+    title,
+    content,
+    dreamDate,
+    dreamTime,
+    isNap,
+    primaryEmotion,
+    emotionIntensity,
+    emotionResidual,
+    sleepStartTime,
+    awakeningTime,
+    sleepQuality,
+    sleepDepth,
+    sleepFragmented,
+    sleepHours,
+    sleepMinutes,
+    awakeningState,
+    dreamTypes,
+    lucidityLevel,
+    vividness,
+    completenessScore,
+    lifeContext,
+    realityCorrelation,
+    userInterpretation,
+    privacyLevel,
+    titleGeneratedByAI,
+    isAnonymous,
+    isSeekingInterpretation,
+    selectedCommunityId,
+    shareToCommunityEnabled,
+    textareaHeight,
+    lifeContextHeight,
+    userInterpretationHeight,
+    imageDraftSig,
+  ]);
+
+  const applyDraftSnapshot = useCallback(async (d: DreamEditorDraftSnapshot) => {
+    setTitle(d.fields.title);
+    setContent(d.fields.content);
+    setDreamDate(new Date(`${d.fields.dreamDateIso}T12:00:00`));
+    setDreamTime(d.fields.dreamTime);
+    setIsNap(d.fields.isNap);
+    setPrimaryEmotion(d.fields.primaryEmotion);
+    setEmotionIntensity(d.fields.emotionIntensity);
+    setEmotionResidual(d.fields.emotionResidual);
+    setSleepStartTime(d.fields.sleepStartTime);
+    setAwakeningTime(d.fields.awakeningTime);
+    setSleepQuality(d.fields.sleepQuality);
+    setSleepDepth(d.fields.sleepDepth);
+    setSleepFragmented(d.fields.sleepFragmented);
+    setSleepHours(d.fields.sleepHours);
+    setSleepMinutes(d.fields.sleepMinutes);
+    setAwakeningState(d.fields.awakeningState);
+    setDreamTypes(d.fields.dreamTypes);
+    setLucidityLevel(d.fields.lucidityLevel);
+    setVividness(d.fields.vividness);
+    setCompletenessScore(d.fields.completenessScore);
+    setLifeContext(d.fields.lifeContext);
+    setRealityCorrelation(d.fields.realityCorrelation);
+    setUserInterpretation(d.fields.userInterpretation);
+    setPrivacyLevel(d.fields.privacyLevel);
+    setTitleGeneratedByAI(d.fields.titleGeneratedByAI);
+    setIsAnonymous(d.fields.isAnonymous);
+    setIsSeekingInterpretation(d.fields.isSeekingInterpretation);
+    setSelectedCommunityId(d.fields.selectedCommunityId);
+    setShareToCommunityEnabled(d.fields.shareToCommunityEnabled);
+    setTextareaHeight(Math.max(MIN_DREAM_CONTENT_HEIGHT, d.fields.textareaHeight || 0));
+    setLifeContextHeight(d.fields.lifeContextHeight);
+    setUserInterpretationHeight(d.fields.userInterpretationHeight);
+    const files = await loadUploadedFilesFromRefs(d.images);
+    setImageFiles(files);
+  }, []);
+
+  /** session 标记「下次恢复」且 IDB 有内容时恢复（站内保存草稿、关标签、登出等）；否则清空本机草稿 */
+  useEffect(() => {
+    if (mode !== "create") return;
+    let cancelled = false;
+    void (async () => {
+      const wantRestore = isCreateDreamRestoreNextVisit();
+      const d = await loadDraft();
+      if (cancelled) return;
+      if (wantRestore && d && draftHasMeaningfulContent(d)) {
+        await applyDraftSnapshot(d);
+        if (cancelled) return;
+        clearCreateDreamRestoreNextVisit();
+        toast.success(t("dreams.new.toast.draftAutoRestored"), {
+          id: "dream-draft-auto-restored",
+          duration: 3000,
+        });
+      } else {
+        if (wantRestore) clearCreateDreamRestoreNextVisit();
+        await clearDraftFully(d);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, applyDraftSnapshot]);
+
+  const completeLeaveWithDraftChoice = useCallback(
+    async (saveDraft: boolean) => {
+      const href = pendingNavigationRef.current;
+      pendingNavigationRef.current = null;
+      setLeaveDraftDialogOpen(false);
+      skipLeaveGuardRef.current = true;
+      if (mode === "create") {
+        if (saveDraft) {
+          await flush();
+          setCreateDreamRestoreNextVisit();
+        } else {
+          const snap = await loadDraft();
+          await clearDraftFully(snap);
+          clearCreateDreamRestoreNextVisit();
+        }
+      }
+      if (href) router.push(href);
+      window.setTimeout(() => {
+        skipLeaveGuardRef.current = false;
+      }, 0);
+    },
+    [mode, flush, router]
+  );
+
+  /** 登出等：在跳转前由 bridge 调用，默认保存草稿并标记下次恢复 */
+  useEffect(() => {
+    if (mode !== "create") {
+      setCreateDreamDraftPersister(null);
+      return;
+    }
+    setCreateDreamDraftPersister(async () => {
+      if (!hasUnsavedDraftRef.current) return;
+      await flush();
+      setCreateDreamRestoreNextVisit();
+    });
+    return () => setCreateDreamDraftPersister(null);
+  }, [mode, flush]);
+
+  /** 拦截站内链接离开本页（创建模式且有未提交内容） */
+  useEffect(() => {
+    if (mode !== "create" || !hasUnsavedDraft) return;
+    if (!pathname.includes("/dreams/new")) return;
+    const onClickCapture = (e: MouseEvent) => {
+      if (skipLeaveGuardRef.current) return;
+      const tEl = e.target as HTMLElement | null;
+      if (!tEl) return;
+      const a = tEl.closest("a[href]");
+      if (!a) return;
+      if (e.defaultPrevented) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const href = a.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+        return;
+      }
+      if (href.startsWith("http") && !href.startsWith(window.location.origin)) return;
+      let url: URL;
+      try {
+        url = new URL(href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.origin !== window.location.origin) return;
+      const next = `${url.pathname}${url.search}${url.hash}`;
+      const cur = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (next === cur) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pendingNavigationRef.current = next;
+      setLeaveDraftDialogOpen(true);
+    };
+    document.addEventListener("click", onClickCapture, true);
+    return () => document.removeEventListener("click", onClickCapture, true);
+  }, [mode, hasUnsavedDraft, pathname]);
+
+  useEffect(() => {
+    if (mode !== "create" || !hasUnsavedDraft) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [mode, hasUnsavedDraft]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -535,29 +867,44 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         return;
       }
 
-      router.push(`/dreams/${dream.id}`);
-    } catch (err: any) {
-      const rawDetail = err?.response?.data?.detail;
-      let message: string;
-
-      if (typeof rawDetail === "string") {
-        message = rawDetail;
-      } else if (Array.isArray(rawDetail)) {
-        // Pydantic 校验错误数组
-        const msgs = rawDetail
-          .map((e: any) => e?.msg || e?.type || "")
-          .filter(Boolean)
-          .join("；");
-        message = msgs || t("dreams.new.toast.saveFormInvalid");
-      } else if (rawDetail && typeof rawDetail === "object") {
-        message = JSON.stringify(rawDetail);
-      } else if (err?.message) {
-        message = err.message;
-      } else {
-        message = t("dreams.new.toast.saveFailed");
+      if (mode === "create") {
+        cancelPendingSave();
+        clearCreateDreamRestoreNextVisit();
+        const snap = await loadDraft();
+        await clearDraftFully(snap);
       }
 
-      toast.error(message);
+      const needsAutoAnalyze = mode === "create" && !title.trim();
+      skipLeaveGuardRef.current = true;
+      router.push(
+        `/dreams/${dream.id}${needsAutoAnalyze ? "?autoAnalyze=1" : ""}`
+      );
+    } catch (err: any) {
+      if (mode === "create") {
+        await flush();
+      }
+      if (shouldUseOfflineToast(err)) {
+        toast.error(t("dreams.new.toast.offlineSaveLocal"));
+      } else {
+        const rawDetail = err?.response?.data?.detail;
+        let message: string;
+        if (typeof rawDetail === "string") {
+          message = rawDetail;
+        } else if (Array.isArray(rawDetail)) {
+          const msgs = rawDetail
+            .map((e: { msg?: string; type?: string }) => e?.msg || e?.type || "")
+            .filter(Boolean)
+            .join("；");
+          message = msgs || t("dreams.new.toast.saveFormInvalid");
+        } else if (rawDetail && typeof rawDetail === "object") {
+          message = JSON.stringify(rawDetail);
+        } else if (err?.message) {
+          message = err.message;
+        } else {
+          message = t("dreams.new.toast.saveFailed");
+        }
+        toast.error(message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -565,12 +912,44 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
   return (
     <div className="min-h-screen bg-background">
+      <AlertDialog
+        open={leaveDraftDialogOpen}
+        onOpenChange={(open) => {
+          setLeaveDraftDialogOpen(open);
+          if (!open) pendingNavigationRef.current = null;
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("dreams.new.leaveDraftTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("dreams.new.leaveDraftDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              type="button"
+              onClick={() => void completeLeaveWithDraftChoice(false)}
+            >
+              {t("dreams.new.leaveDraftNo")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              onClick={() => void completeLeaveWithDraftChoice(true)}
+            >
+              {t("dreams.new.leaveDraftYes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* 主内容区 */}
       <motion.div
+        ref={editorColumnRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="max-w-3xl mx-auto px-4 py-8 space-y-3"
+        className="max-w-4xl mx-auto px-4 py-8 space-y-3"
       >
         {/* 顶部标题区 */}
         <div className="flex items-center gap-4 mb-8">
@@ -651,7 +1030,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
               value={dreamTime}
               onChange={(e) => setDreamTime(e.target.value)}
               className="group h-10 w-[120px] pl-9 border border-border/60 hover:border-primary/50 hover:scale-[1.02] active:scale-[0.98] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              placeholder="梦境时间"
+              placeholder={t("dreams.new.dreamTimePlaceholder")}
             />
           </div>
         </div>
@@ -674,7 +1053,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <Input
-                    placeholder="给你的梦境起个名字吧..."
+                    placeholder={t("dreams.new.dreamTitlePlaceholder")}
                     value={title}
                     onChange={(e) => {
                       setTitle(e.target.value);
@@ -750,34 +1129,42 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 <Eye className="w-4 h-4 text-primary transition-all duration-300 group-focus-within:text-blue-500 group-focus-within:scale-110" />
                 <span className="transition-colors duration-300 group-focus-within:text-blue-500">{t("dreams.new.dreamContent")}</span>
               </Label>
+              <DreamContentAiProvider
+                layoutAnchorRef={editorColumnRef}
+                content={content}
+                onContentChange={setContent}
+                maxLength={3000}
+              >
               <div 
                 ref={(node) => {
                   containerRef.current = node;
                   contentAreaRef.current = node;
                 }}
-                className="relative rounded-lg border border-border/60 bg-transparent focus-within:border-blue-500/80 dark:focus-within:border-blue-400/60 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] dark:focus-within:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-shadow duration-300 flex flex-col"
+                style={{ height: Math.max(MIN_DREAM_CONTENT_HEIGHT, textareaHeight || 0) }}
+                className="relative min-h-[300px] rounded-lg border border-border/60 bg-transparent focus-within:border-blue-500/80 dark:focus-within:border-blue-400/60 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] dark:focus-within:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-shadow duration-300 flex flex-col"
               >
                 {/* 文本输入区域 - 可滚动 */}
                 <div className="flex-1 overflow-y-auto">
                   <Textarea
-                    placeholder="描述你的梦境... 放松，想到什么写什么"
+                    placeholder={t("dreams.new.dreamContentPlaceholder")}
                     value={content}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      if (newValue.length <= 1000) {
+                      if (newValue.length <= 3000) {
                         setContent(newValue);
                       } else {
                         toast.error(t("dreams.new.toast.contentTooLong"));
                       }
                     }}
-                    maxLength={1000}
+                    maxLength={3000}
                     className="text-sm leading-relaxed border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground/90 dark:placeholder:text-foreground placeholder:opacity-100 p-4 rounded-t-lg w-full h-full min-h-full"
                   />
                 </div>
+                {/* AI 生成已直接写入正文，这里不再渲染预览确认区 */}
                 
                 {/* 底部操作栏 - 固定 */}
-                <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-t border-border/40 bg-gradient-to-t from-background/20 to-transparent rounded-b-lg">
-                  <div className="flex items-center gap-2">
+                <div className="flex-shrink-0 grid grid-cols-[auto_1fr_auto] items-center px-3 py-2 border-t border-border/40 bg-gradient-to-t from-background/20 to-transparent rounded-b-lg">
+                  <div className="flex items-center gap-3">
                     {/* 图片上传按钮 */}
                     <div className="relative">
                       <input
@@ -807,10 +1194,10 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       />
                       <label
                         htmlFor="dream-image-input"
-                        className="relative flex items-center justify-center p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer hover:scale-110 hover:-translate-y-0.5"
+                        className="relative flex items-center justify-center p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer hover:scale-105"
                         title={t("dreams.new.uploadImage")}
                       >
-                        <ImagePlus className="w-5 h-5 transition-transform duration-200" />
+                        <ImagePlus className="w-[18px] h-[18px] transition-transform duration-200" />
                         {totalImageCount > 0 && (
                           <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[10px] font-medium bg-primary/80 text-primary-foreground rounded-full">
                             {totalImageCount}
@@ -819,28 +1206,32 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       </label>
                     </div>
 
-                    {/* 画板按钮 */}
+                    {/* 画板按钮（保持原尺寸样式） */}
                     <button
                       type="button"
                       onClick={() => setDrawingBoardOpen(true)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 hover:scale-105"
                       title={t("dreams.new.drawingBoard")}
                     >
-                      <PenTool className="w-5 h-5" />
+                      <PenTool className="w-[18px] h-[18px]" />
                     </button>
+                    <DreamContentAiToolbarButton />
+                  </div>
 
-                    {/* 语音录制按钮 */}
+                  {/* 语音录制按钮（居中） */}
+                  <div className="flex items-center justify-center">
                     <VoiceRecorder
                       onTranscription={(text) =>
                         setContent((prev) => (prev ? prev + " " + text : text))
                       }
-                      className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5"
+                      className="voice-recorder-trigger"
+                      compact
                     />
                   </div>
 
                   {/* 字数统计 */}
                   <span className="text-xs text-muted-foreground">
-                    {content.length}/1000
+                    {content.length}/3000
                   </span>
                 </div>
 
@@ -851,6 +1242,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   title={t("dreams.new.dragToResize")}
                 />
               </div>
+              </DreamContentAiProvider>
 
               {/* 图片预览：编辑时已有 + 本次新增共用一个网格，从左到右、自动换行 */}
               {((mode === "edit" &&
@@ -1168,7 +1560,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       onChange={(e) => setSleepHours(e.target.value)}
                       className="w-16 h-10 text-center border border-border/60 hover:border-primary/50 hover:shadow-md hover:scale-105 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all duration-200"
                     />
-                    <span className="text-muted-foreground text-sm">时</span>
+                    <span className="text-muted-foreground text-sm">{t("dreams.new.hours")}</span>
                     <Input
                       type="number"
                       min="0"
@@ -1178,7 +1570,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       onChange={(e) => setSleepMinutes(e.target.value)}
                       className="w-16 h-10 text-center border border-border/60 hover:border-primary/50 hover:shadow-md hover:scale-105 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all duration-200"
                     />
-                    <span className="text-muted-foreground text-sm">分</span>
+                    <span className="text-muted-foreground text-sm">{t("dreams.new.minutes")}</span>
                   </div>
                 </div>
               </div>
@@ -1764,9 +2156,9 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
               <span className="text-muted-foreground whitespace-nowrap">{t("dreams.new.visibilityQuestion")}</span>
               <div className="inline-flex rounded-full border border-border/40 dark:border-border/30 bg-transparent p-0.5 backdrop-blur-sm">
                 {[
-                  { value: "PRIVATE", label: t("dreams.new.visibilityPrivate"), title: "只有你自己能看到" },
-                  { value: "FRIENDS", label: t("dreams.new.visibilityFriends"), title: "未来支持好友可见" },
-                  { value: "PUBLIC", label: t("dreams.new.visibilityPublic"), title: "所有人都可以看到" },
+                  { value: "PRIVATE", label: t("dreams.new.visibilityPrivate"), title: t("dreams.new.visibilityPrivateHint") },
+                  { value: "FRIENDS", label: t("dreams.new.visibilityFriends"), title: t("dreams.new.visibilityFriendsHint") },
+                  { value: "PUBLIC", label: t("dreams.new.visibilityPublic"), title: t("dreams.new.visibilityPublicHint") },
                 ].map((opt) => (
                   <button
                     key={opt.value}

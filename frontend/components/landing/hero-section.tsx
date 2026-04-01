@@ -1,10 +1,11 @@
 "use client";
 
 import { BorderBeam } from "@/components/magicui/border-beam";
+import { TypingAnimation } from "@/components/magicui/typing-animation";
 import { ShinyButton } from "@/components/ui/shiny-button";
-import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 
@@ -38,17 +39,35 @@ export default function HeroSection() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  
+
+  const heroTitleText = useMemo(
+    () =>
+      `${t("marketing.hero.titleLine1")}\n${t("marketing.hero.titleLine2")}`,
+    [t, i18n.language]
+  );
+
   return (
     <section
       id="hero"
       className="relative mx-auto mt-32 max-w-[80rem] px-6 text-center md:px-8"
     >
       <h1 className="py-6 text-5xl font-medium leading-none tracking-tighter text-balance sm:text-6xl md:text-7xl lg:text-8xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
-        <AnimatedGradientText className="hero-title">
-          {t("marketing.hero.titleLine1")}
-          <br className="hidden md:block" /> {t("marketing.hero.titleLine2")}
-        </AnimatedGradientText>
+        <TypingAnimation
+          gradientClassName="hero-title"
+          style={
+            {
+              "--bg-size": "300%",
+              "--color-from": "#ffaa40",
+              "--color-to": "#9c40ff",
+            } as CSSProperties
+          }
+          typeSpeed={52}
+          delay={320}
+          startOnView
+          cursorStyle="line"
+        >
+          {heroTitleText}
+        </TypingAnimation>
       </h1>
       <p className="hero-subtitle mb-12 text-xl tracking-tight md:text-2xl text-balance translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms]">
         {t("marketing.hero.subtitleLine1")}

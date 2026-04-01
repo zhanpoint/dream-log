@@ -3,10 +3,11 @@
 """
 
 from datetime import date
+import json
 from uuid import UUID
 
 from arq.connections import ArqRedis
-from fastapi import APIRouter, Depends, Query, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Header, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +16,7 @@ from app.core.sse_manager import sse_event_generator, sse_manager
 from app.models.user import User
 from app.schemas.dreams import (
     AddReflectionAnswerRequest,
+    AssistDreamContentRequest,
     AttachmentResponse,
     AnalysisStatusResponse,
     CreateDreamRequest,
@@ -24,15 +26,59 @@ from app.schemas.dreams import (
     DreamListResponse,
     DreamStatsResponse,
     GenerateTitleRequest,
+    OptimizeInstructionRequest,
     TagResponse,
     TriggerResponse,
     UpdateDreamRequest,
     UpdateTagRequest,
 )
+from app.models.enums import AIProcessingStatus
 from app.services.community_service import CommunityService
 from app.services.dream_service import DreamService
 
 router = APIRouter(prefix="/dreams", tags=["梦境"])
+
+
+async def _enqueue_dream_analysis_if_needed(
+    dream_id: UUID,
+    user_id: UUID,
+    db: AsyncSession,
+    arq: ArqRedis,
+    accept_language: str | None,
+) -> None:
+    """
+    无标题创建后自动排队 AI 分析（生成标题与完整分析）。
+    与 POST /{id}/analyze 使用相同锁与队列，避免重复入队。
+    """
+    service = DreamService(db)
+    dream = await service.get_dream(dream_id, user_id)
+
+    lock_key = f"ai:lock:dream-analysis:{dream_id}"
+    if dream.ai_processing_status in (AIProcessingStatus.PENDING, AIProcessingStatus.PROCESSING):
+        try:
+            lock_exists = bool(await arq.exists(lock_key))
+        except Exception:
+            lock_exists = True
+        if lock_exists:
+            return
+
+    try:
+        acquired = await arq.set(lock_key, "1", ex=180, nx=True)
+    except Exception:
+        acquired = True
+    if not acquired:
+        return
+
+    dream.ai_processing_status = AIProcessingStatus.PENDING
+    dream.ai_processed = False
+    await db.commit()
+
+    try:
+        await arq.delete(f"ai:cancel:dream-analysis:{dream_id}")
+    except Exception:
+        pass
+
+    await arq.enqueue_job("analyze_dream", str(dream_id), accept_language)
 
 
 def _build_list_item(dream) -> DreamListItem:
@@ -160,8 +206,10 @@ async def create_dream(
     request: CreateDreamRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    arq: ArqRedis = Depends(get_arq_redis),
+    accept_language: str | None = Header(None, alias="Accept-Language"),
 ) -> DreamDetailResponse:
-    """创建梦境 (不自动触发 AI 分析，需手动调用 /analyze)"""
+    """创建梦境。未填标题时会自动排队 AI 分析以生成标题并写入记录。"""
     service = DreamService(db)
     dream = await service.create_dream(request, current_user.id)
 
@@ -169,6 +217,18 @@ async def create_dream(
     if dream.privacy_level and dream.privacy_level.value == "PUBLIC":
         await CommunityService(db).refresh_featured_snapshot(dream.id)
         await db.commit()
+
+    needs_auto_title = request.title is None or (
+        isinstance(request.title, str) and not request.title.strip()
+    )
+    if needs_auto_title:
+        await _enqueue_dream_analysis_if_needed(
+            dream.id,
+            current_user.id,
+            db,
+            arq,
+            accept_language,
+        )
 
     # 重新查询以加载关联数据
     dream = await service.get_dream(dream.id, current_user.id)
@@ -189,6 +249,9 @@ async def list_dreams(
     date_to: date | None = None,
     search: str | None = None,
     is_favorite: bool | None = None,
+    privacy_level: str | None = Query(
+        None, pattern="^(PRIVATE|FRIENDS|PUBLIC)(,(PRIVATE|FRIENDS|PUBLIC))*$"
+    ),
 ) -> DreamListResponse:
     """获取梦境列表 (分页/过滤/排序)"""
     service = DreamService(db)
@@ -204,6 +267,7 @@ async def list_dreams(
         date_to=date_to,
         search=search,
         is_favorite=is_favorite,
+        privacy_level=privacy_level,
     )
 
     return DreamListResponse(
@@ -270,6 +334,15 @@ async def delete_dream(
     await service.delete_dream(dream_id, current_user.id)
 
 
+@router.delete("", status_code=204)
+async def delete_all_dreams(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """一键删除当前用户的所有梦境（不返回数量）"""
+    service = DreamService(db)
+    await service.delete_all_dreams(current_user.id)
+
 @router.post("/{dream_id}/favorite")
 async def toggle_favorite(
     dream_id: UUID,
@@ -312,6 +385,157 @@ async def generate_title_standalone(
         target_language=target_language,
     )
     return {"title": title}
+
+
+@router.post("/assist-content")
+async def assist_dream_content_standalone(
+    body: AssistDreamContentRequest,
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """梦境正文 AI：意象补完、文学润色、智能续写（不依赖梦境 ID）"""
+    from app.config.ai_models import OPENROUTER_API_KEY
+    from app.services.ai_service import ai_service, get_target_language_from_locale
+
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI 服务未配置",
+        )
+
+    stripped = body.content.strip()
+    instruction = body.instruction.strip()
+    # 指令字段在 schema 已强制 min_length=2，这里仅兜底 trim 结果
+    if len(instruction) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="用户指令至少 2 个字",
+        )
+    if body.action == "literary_polish" and len(stripped) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="文学润色需要至少数十字的正文",
+        )
+    if body.action == "smart_continue" and len(stripped) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="智能续写需要已有一定长度的前文",
+        )
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
+
+    # AIService 内部会在 action=None 时自动判定并稳定执行
+    text = await ai_service.assist_dream_content(
+        body.content,
+        body.action,
+        target_language=target_language,
+        instruction=instruction,
+    )
+    # 将实际使用的模式回传给前端（便于“续写”合并行为等 UI 逻辑）
+    picked = ai_service._pick_content_assist_action(body.content, instruction, body.action)
+    return {"text": text, "action": picked}
+
+
+@router.post("/assist-content/stream")
+async def assist_dream_content_stream(
+    body: AssistDreamContentRequest,
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    """梦境正文 AI 流式输出（SSE）。"""
+    from app.config.ai_models import OPENROUTER_API_KEY
+    from app.services.ai_service import ai_service, get_target_language_from_locale
+
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI 服务未配置",
+        )
+
+    stripped = body.content.strip()
+    instruction = body.instruction.strip()
+    if len(instruction) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="用户指令至少 2 个字",
+        )
+    if body.action == "literary_polish" and len(stripped) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="文学润色需要至少数十字的正文",
+        )
+    if body.action == "smart_continue" and len(stripped) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="智能续写需要已有一定长度的前文",
+        )
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
+    picked_action, stream_iter = ai_service.assist_dream_content_stream(
+        body.content,
+        body.action,
+        target_language=target_language,
+        instruction=instruction,
+    )
+
+    async def _sse():
+        full = ""
+        has_delta = False
+        # 先发模式元信息，前端可据此决定按钮行为
+        yield f"event: meta\ndata: {json.dumps({'action': picked_action}, ensure_ascii=False)}\n\n"
+        async for piece in stream_iter:
+            if await http_request.is_disconnected():
+                break
+            full += piece
+            has_delta = True
+            yield f"event: delta\ndata: {json.dumps({'text': piece}, ensure_ascii=False)}\n\n"
+        if has_delta:
+            final_text = full.strip()
+        else:
+            # 某些模型/网关在流式链路下可能不给 token 增量；兜底走一次非流式生成，避免回原文
+            final_text = (
+                await ai_service.assist_dream_content(
+                    body.content,
+                    body.action,
+                    target_language=target_language,
+                    instruction=instruction,
+                )
+            ).strip()
+        yield f"event: done\ndata: {json.dumps({'text': final_text, 'action': picked_action}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _sse(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.post("/optimize-instruction")
+async def optimize_instruction_standalone(
+    body: OptimizeInstructionRequest,
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """将补充说明润色为更清晰、具体的短指令（与梦境正文生成共用 content_assist 模型配置）"""
+    from app.config.ai_models import OPENROUTER_API_KEY
+    from app.services.ai_service import ai_service, get_target_language_from_locale
+
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI 服务未配置",
+        )
+
+    accept_language = http_request.headers.get("Accept-Language")
+    target_language = get_target_language_from_locale(accept_language)
+    text = await ai_service.optimize_instruction(body.text, target_language=target_language)
+    return {"text": text}
 
 
 @router.post("/{dream_id}/analyze")

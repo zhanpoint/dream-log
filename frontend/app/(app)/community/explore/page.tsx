@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 function SectionSkeleton({ rows = 4 }: { rows?: number }) {
@@ -29,6 +30,7 @@ function SectionSkeleton({ rows = 4 }: { rows?: number }) {
 }
 
 export default function ExplorePage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<ExploreResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [joinedSlugs, setJoinedSlugs] = useState<Set<string>>(new Set());
@@ -36,9 +38,9 @@ export default function ExplorePage() {
   useEffect(() => {
     communityAPI.getExplore()
       .then(setData)
-      .catch(() => toast.error("加载发现页失败"))
+      .catch(() => toast.error(t("community.explore.loadFailed")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const handleJoin = async (slug: string) => {
     try {
@@ -57,9 +59,11 @@ export default function ExplorePage() {
           ),
         });
       }
-      toast.success(res.joined ? "已加入社群！" : "已退出社群");
+      toast.success(
+        res.joined ? t("community.explore.joinedSuccess") : t("community.explore.leftSuccess")
+      );
     } catch {
-      toast.error("操作失败，请稍后重试");
+      toast.error(t("common.operationFailed"));
     }
   };
 
@@ -73,9 +77,9 @@ export default function ExplorePage() {
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            发现探索
+            {t("community.explore.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">探索热门话题、加入社群、认识梦友</p>
+          <p className="text-sm text-muted-foreground">{t("community.explore.subtitle")}</p>
         </div>
       </div>
 
@@ -86,7 +90,7 @@ export default function ExplorePage() {
             <div className="relative">
               <Flame className="h-4 w-4 text-orange-500" />
             </div>
-            本周热门标签
+            {t("community.explore.hotTags")}
           </h2>
           {loading ? (
             <div className="flex flex-wrap gap-2">
@@ -117,7 +121,7 @@ export default function ExplorePage() {
                 </button>
               ))}
               {(data?.trending_tags ?? []).length === 0 && (
-                <p className="text-sm text-muted-foreground">暂无热门标签</p>
+                <p className="text-sm text-muted-foreground">{t("community.home.hotTags.empty")}</p>
               )}
             </div>
           )}
@@ -128,19 +132,19 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-sm flex items-center gap-2">
               <Users className="h-4 w-4 text-emerald-500" />
-              推荐社群
+              {t("community.explore.recommendedCommunities")}
             </h2>
             <Link
               href="/community/greenhouse"
               className="text-xs text-primary hover:underline"
             >
-              查看全部
+              {t("community.search.viewMore")}
             </Link>
           </div>
           {loading ? (
             <SectionSkeleton rows={3} />
           ) : (data?.recommended_communities ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">暂无推荐社群</p>
+            <p className="text-sm text-muted-foreground py-2">{t("community.explore.noRecommendedCommunities")}</p>
           ) : (
             <div className="space-y-3">
               {data!.recommended_communities.map((community) => (
@@ -166,11 +170,11 @@ export default function ExplorePage() {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
-                        {community.member_count} 成员
+                        {community.member_count} {t("community.greenhouse.common.members")}
                       </span>
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-3 h-3" />
-                        {community.post_count} 梦境
+                        {community.post_count} {t("community.greenhouse.common.dreams")}
                       </span>
                     </div>
                   </div>
@@ -184,7 +188,7 @@ export default function ExplorePage() {
                     }`}
                     onClick={() => handleJoin(community.slug)}
                   >
-                    {community.is_member ? "已加入" : "加入"}
+                    {community.is_member ? t("community.greenhouse.common.joined") : t("community.greenhouse.common.join")}
                   </Button>
                 </div>
               ))}
@@ -196,12 +200,12 @@ export default function ExplorePage() {
         <section className="bg-card border border-border rounded-xl p-5">
           <h2 className="font-semibold text-sm flex items-center gap-2 mb-4">
             <Crown className="h-4 w-4 text-violet-500" />
-            活跃解梦者
+            {t("community.explore.activeInterpreters")}
           </h2>
           {loading ? (
             <SectionSkeleton rows={4} />
           ) : (data?.active_interpreters ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">暂无数据</p>
+            <p className="text-sm text-muted-foreground py-2">{t("community.explore.noData")}</p>
           ) : (
             <div className="space-y-2">
               {data!.active_interpreters.map((u, i) => (
@@ -219,14 +223,16 @@ export default function ExplorePage() {
                       {u.username?.slice(0, 1) ?? "?"}
                     </div>
                     <div>
-                      <p className="text-sm font-medium group-hover:text-violet-500 transition-colors">{u.username ?? "匿名"}</p>
+                      <p className="text-sm font-medium group-hover:text-violet-500 transition-colors">{u.username ?? t("community.home.anonymous")}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <UserPlus className="h-3 w-3" />
-                        Lv{u.dreamer_level} 解梦者
+                        Lv{u.dreamer_level} {t("community.explore.interpreter")}
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs text-violet-500 font-semibold">{u.interpretation_count} 次解读</span>
+                  <span className="text-xs text-violet-500 font-semibold">
+                    {u.interpretation_count} {t("community.explore.interpretationTimes")}
+                  </span>
                 </Link>
               ))}
             </div>

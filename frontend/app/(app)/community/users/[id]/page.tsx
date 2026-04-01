@@ -90,7 +90,7 @@ export default function UserPublicProfilePage() {
         profileCache.set(id, p);
       } catch {
         if (!profileCache.has(id)) {
-          toast.error("加载用户主页失败");
+          toast.error(t("community.userProfile.loadProfileFailed"));
         }
       } finally {
         setLoadingProfile(false);
@@ -165,7 +165,7 @@ export default function UserPublicProfilePage() {
         setCreatedCommunityCount(meta.created_community_count);
         setJoinedCommunityCount(meta.joined_community_count);
       })
-      .catch(() => toast.error("加载用户资产元信息失败"));
+      .catch(() => toast.error(t("community.userProfile.loadAssetsMetaFailed")));
   }, [id]);
 
   const loadAssetTab = useCallback(async (tab: "bookmarks" | "created" | "joined") => {
@@ -194,7 +194,7 @@ export default function UserPublicProfilePage() {
 
       setLoadedTabs((prev) => new Set(prev).add(tab));
     } catch {
-      toast.error("加载标签页数据失败");
+      toast.error(t("community.userProfile.loadTabFailed"));
     } finally {
       setLoadingAssets(false);
     }
@@ -238,7 +238,9 @@ export default function UserPublicProfilePage() {
           className="h-9 px-2 gap-1.5 text-sm font-medium text-foreground/90 hover:text-foreground hover:bg-transparent transition-all duration-200"
         >
           <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
-          <span className="transition-transform duration-200 group-hover:-translate-y-px">返回社区</span>
+          <span className="transition-transform duration-200 group-hover:-translate-y-px">
+            {t("community.userProfile.backToCommunity")}
+          </span>
         </Button>
       </Link>
 
@@ -257,7 +259,9 @@ export default function UserPublicProfilePage() {
                   size="lg"
                 />
                 <div>
-                  <h1 className="text-xl font-bold">{profile.username ?? "匿名做梦者"}</h1>
+                  <h1 className="text-xl font-bold">
+                    {profile.username ?? t("community.userProfile.anonymousDreamer")}
+                  </h1>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <DreamerLevelBadge
                       level={profile.dreamer_level}
@@ -306,10 +310,10 @@ export default function UserPublicProfilePage() {
             {/* Stats */}
             <div className="grid grid-cols-4 gap-3 mt-6">
               {[
-                { label: "梦境", value: profile.public_dream_count, icon: Moon },
-                { label: "解读", value: profile.interpretation_count, icon: Brain },
-                { label: "粉丝", value: profile.follower_count, icon: Users },
-                { label: "关注", value: profile.following_count, icon: Users },
+                { label: t("community.userProfile.statsDreams"), value: profile.public_dream_count, icon: Moon },
+                { label: t("community.userProfile.statsInterpretations"), value: profile.interpretation_count, icon: Brain },
+                { label: t("community.userProfile.statsFollowers"), value: profile.follower_count, icon: Users },
+                { label: t("community.userProfile.statsFollowing"), value: profile.following_count, icon: Users },
               ].map((stat) => (
                 <div
                   key={stat.label}
@@ -322,7 +326,9 @@ export default function UserPublicProfilePage() {
             </div>
           </>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">用户不存在</div>
+          <div className="text-center py-8 text-muted-foreground">
+            {t("community.userProfile.userNotFound")}
+          </div>
         )}
       </div>
 
@@ -330,10 +336,10 @@ export default function UserPublicProfilePage() {
       <div>
         <div className="flex items-center gap-2 mb-4 border-b border-border">
           {[
-            { key: "public", label: "公开梦境", count: publicDreamCount, visible: true },
-            { key: "bookmarks", label: "收藏梦境", count: bookmarkedDreamCount, visible: canViewBookmarks },
-            { key: "created", label: "创建社群", count: createdCommunityCount, visible: canViewCreatedCommunities },
-            { key: "joined", label: "加入社群", count: joinedCommunityCount, visible: canViewJoinedCommunities },
+            { key: "public", label: t("community.userProfile.tabPublicDreams"), count: publicDreamCount, visible: true },
+            { key: "bookmarks", label: t("community.userProfile.tabBookmarkedDreams"), count: bookmarkedDreamCount, visible: canViewBookmarks },
+            { key: "created", label: t("community.userProfile.tabCreatedCommunities"), count: createdCommunityCount, visible: canViewCreatedCommunities },
+            { key: "joined", label: t("community.userProfile.tabJoinedCommunities"), count: joinedCommunityCount, visible: canViewJoinedCommunities },
           ]
             .filter((tab) => tab.visible)
             .map((tab) => (
@@ -357,7 +363,7 @@ export default function UserPublicProfilePage() {
           <>
             <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
               <Moon className="h-4 w-4 text-primary" />
-              我公开的梦境
+              {t("community.userProfile.myPublicDreams")}
               {total > 0 && <span className="text-xs text-muted-foreground">({total})</span>}
             </h2>
             {loadingDreams ? (
@@ -373,7 +379,7 @@ export default function UserPublicProfilePage() {
             ) : dreams.length === 0 ? (
               <div className="text-center py-14 text-muted-foreground">
                 <p className="text-3xl mb-3">🌙</p>
-                <p className="text-sm">还没有公开的梦境</p>
+                <p className="text-sm">{t("community.userProfile.noPublicDreams")}</p>
               </div>
             ) : (
               <>
@@ -386,7 +392,7 @@ export default function UserPublicProfilePage() {
                   <div className="flex justify-center mt-6">
                     <Button variant="outline" onClick={() => fetchDreams(page + 1)} disabled={loadingMore}>
                       {loadingMore ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ChevronRight className="h-4 w-4 mr-2" />}
-                      加载更多
+                      {t("community.home.loadMore")}
                     </Button>
                   </div>
                 )}
@@ -399,16 +405,20 @@ export default function UserPublicProfilePage() {
           <>
             <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
               <Bookmark className="h-4 w-4 text-primary" />
-              我收藏的梦境
+              {t("community.userProfile.myBookmarkedDreams")}
             </h2>
             {!canViewBookmarks ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.contentNotVisible")}
+              </div>
             ) : loadingAssets ? (
               <div className="grid sm:grid-cols-2 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
               </div>
             ) : bookmarks.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">还没有收藏梦境</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.noBookmarkedDreams")}
+              </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
                 {bookmarks.map((dream) => (
@@ -423,20 +433,26 @@ export default function UserPublicProfilePage() {
           <>
             <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              我创建的社群
+              {t("community.userProfile.myCreatedCommunities")}
             </h2>
             {!canViewCreatedCommunities ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.contentNotVisible")}
+              </div>
             ) : loadingAssets ? (
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
             ) : createdCommunities.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">你还没有创建社群</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.noCreatedCommunities")}
+              </div>
             ) : (
               <div className="space-y-2">
                 {createdCommunities.map((c) => (
                   <Link key={c.id} href={`/community/greenhouse/${c.slug}`} className="block rounded-xl border border-border p-3 hover:border-primary/40 transition-colors">
                     <p className="font-medium text-sm">{c.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{c.description || "暂无简介"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {c.description || t("community.userProfile.noDescription")}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -448,20 +464,26 @@ export default function UserPublicProfilePage() {
           <>
             <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              我加入的社群
+              {t("community.userProfile.myJoinedCommunities")}
             </h2>
             {!canViewJoinedCommunities ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">该内容不可见</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.contentNotVisible")}
+              </div>
             ) : loadingAssets ? (
               <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
             ) : joinedCommunities.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-10 text-center">你还没有加入社群</div>
+              <div className="text-sm text-muted-foreground py-10 text-center">
+                {t("community.userProfile.noJoinedCommunities")}
+              </div>
             ) : (
               <div className="space-y-2">
                 {joinedCommunities.map((c) => (
                   <Link key={c.id} href={`/community/greenhouse/${c.slug}`} className="block rounded-xl border border-border p-3 hover:border-primary/40 transition-colors">
                     <p className="font-medium text-sm">{c.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{c.description || "暂无简介"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {c.description || t("community.userProfile.noDescription")}
+                    </p>
                   </Link>
                 ))}
               </div>

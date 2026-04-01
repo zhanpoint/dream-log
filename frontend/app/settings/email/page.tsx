@@ -99,7 +99,7 @@ export default function EmailPage() {
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">修改邮箱</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("settings.email.changeEmail")}</h3>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -132,7 +132,7 @@ export default function EmailPage() {
                       <div className="flex gap-2">
                         <FormControl>
                           <Input
-                            placeholder="6位验证码"
+                            placeholder={t("settings.email.codePlaceholder")}
                             maxLength={6}
                             {...field}
                           />

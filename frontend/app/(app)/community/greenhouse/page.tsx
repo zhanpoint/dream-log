@@ -82,7 +82,7 @@ function CommunityCard({ community, onJoinToggle }: { community: CommunityRespon
   const handleJoin = async (e: MouseEvent) => {
     e.preventDefault();
     if (isSynthetic) {
-      toast.info("该社群即将上线，敬请期待");
+      toast.info(t("community.greenhouse.list.comingSoon"));
       return;
     }
     setJoining(true);
@@ -307,19 +307,19 @@ export default function GreenhousePage() {
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>创建你的社群</DialogTitle>
-            <DialogDescription>填写基础信息，我们会快速审核并反馈结果。</DialogDescription>
+            <DialogTitle>{t("community.greenhouse.list.createTitle")}</DialogTitle>
+            <DialogDescription>{t("community.greenhouse.list.createDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input
-              placeholder="社群名称（必填）"
+              placeholder={t("community.greenhouse.list.namePlaceholder")}
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               maxLength={100}
             />
             <div className="relative">
               <Textarea
-                placeholder="社群简介（必填，10-200字）"
+                placeholder={t("community.greenhouse.list.descriptionPlaceholder")}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 maxLength={200}
@@ -332,7 +332,7 @@ export default function GreenhousePage() {
 
             <div className="relative">
               <Textarea
-                placeholder="创建动机（必填，10-300字）"
+                placeholder={t("community.greenhouse.list.motivationPlaceholder")}
                 value={form.motivation}
                 onChange={(e) => setForm((f) => ({ ...f, motivation: e.target.value }))}
                 maxLength={300}
@@ -350,7 +350,7 @@ export default function GreenhousePage() {
                 onClick={() => setShowCreateModal(false)}
                 className="text-foreground dark:text-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted/70 dark:hover:bg-muted/30 transition-all duration-200 hover:scale-[1.02]"
               >
-                取消
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -358,7 +358,7 @@ export default function GreenhousePage() {
                 disabled={submitting}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 hover:scale-[1.02]"
               >
-                {submitting ? "提交中..." : "提交申请"}
+                {submitting ? t("common.loading") : t("community.greenhouse.list.submitRequest")}
               </Button>
             </div>
           </div>
@@ -373,8 +373,8 @@ export default function GreenhousePage() {
           ? (
             <div className="text-center py-16 text-muted-foreground">
               <div className="text-5xl mb-4">🌿</div>
-              <p className="font-medium">暂无社群</p>
-              <p className="text-sm mt-1">敬请期待更多精彩社群</p>
+              <p className="font-medium">{t("community.greenhouse.list.emptyTitle")}</p>
+              <p className="text-sm mt-1">{t("community.greenhouse.list.emptyDescription")}</p>
             </div>
           )
           : displayCommunities.map((c) => (

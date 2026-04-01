@@ -15,6 +15,52 @@ from app.models.user_insight import UserInsightSettings
 logger = logging.getLogger(__name__)
 
 
+async def _run_for_users(
+    users: list[tuple[object, str | None]],
+    *,
+    handler,
+    delay_seconds: float,
+) -> tuple[int, int]:
+    """
+    批量执行洞察生成任务。
+
+    - 默认顺序执行，并在每次 AI 请求后 sleep 一小段，降低网关/模型限流风险。
+    - 当 InsightConfig.AI_CONCURRENT_ENABLED=True 时启用有限并发，提高整体吞吐，避免 cron 任务超时。
+    """
+    success = 0
+    failed = 0
+
+    if not users:
+        return success, failed
+
+    async def _one(uid, preferred_locale):
+        nonlocal success, failed
+        try:
+            ok = await handler(uid, preferred_locale)
+            if ok:
+                success += 1
+        except Exception as e:
+            failed += 1
+            logger.error(f"洞察任务执行失败: {uid}, {e}")
+        finally:
+            if delay_seconds > 0:
+                await asyncio.sleep(delay_seconds)
+
+    if not InsightConfig.AI_CONCURRENT_ENABLED:
+        for uid, preferred_locale in users:
+            await _one(uid, preferred_locale)
+        return success, failed
+
+    sem = asyncio.Semaphore(max(1, int(InsightConfig.AI_MAX_CONCURRENT)))
+
+    async def _guarded(uid, preferred_locale):
+        async with sem:
+            await _one(uid, preferred_locale)
+
+    await asyncio.gather(*(_guarded(uid, loc) for uid, loc in users))
+    return success, failed
+
+
 async def generate_monthly_reports(_ctx: dict) -> dict:
     """每月1号生成上月月度报告"""
     from app.core.database import async_session_maker
@@ -30,7 +76,6 @@ async def generate_monthly_reports(_ctx: dict) -> dict:
         year, month = today.year, today.month - 1
 
     logger.info(f"开始生成 {year}年{month}月 月度报告")
-    success, failed = 0, 0
 
     async with async_session_maker() as db:
         stmt = (
@@ -47,16 +92,15 @@ async def generate_monthly_reports(_ctx: dict) -> dict:
             result = await db.execute(stmt)
             users = [(row[0], row[1]) for row in result.all()]
 
-    for uid, preferred_locale in users:
-        try:
-            target_language = get_target_language_from_locale(preferred_locale)
-            ok = await _generate_monthly_for_user(uid, year, month, target_language=target_language)
-            if ok:
-                success += 1
-            await asyncio.sleep(InsightConfig.AI_REQUEST_DELAY)
-        except Exception as e:
-            failed += 1
-            logger.error(f"月报生成失败: {uid}, {e}")
+    async def _handler(uid, preferred_locale):
+        target_language = get_target_language_from_locale(preferred_locale)
+        return await _generate_monthly_for_user(uid, year, month, target_language=target_language)
+
+    success, failed = await _run_for_users(
+        users,
+        handler=_handler,
+        delay_seconds=float(InsightConfig.AI_REQUEST_DELAY),
+    )
 
     logger.info(f"月报生成完成: 成功 {success}, 失败 {failed}")
     return {"success": success, "failed": failed}
@@ -76,7 +120,6 @@ async def generate_weekly_reports(_ctx: dict) -> dict:
     last_monday = today - timedelta(days=days_since_monday + 7)
 
     logger.info(f"开始生成 {last_monday} 周报")
-    success, failed = 0, 0
 
     async with async_session_maker() as db:
         # 拉取启用周报的用户及其语言偏好（用于定时任务：无请求头场景）
@@ -94,16 +137,15 @@ async def generate_weekly_reports(_ctx: dict) -> dict:
             result = await db.execute(stmt)
             users = [(row[0], row[1]) for row in result.all()]
 
-    for uid, preferred_locale in users:
-        try:
-            target_language = get_target_language_from_locale(preferred_locale)
-            ok = await _generate_weekly_for_user(uid, last_monday, target_language=target_language)
-            if ok:
-                success += 1
-            await asyncio.sleep(InsightConfig.AI_REQUEST_DELAY)
-        except Exception as e:
-            failed += 1
-            logger.error(f"周报生成失败: {uid}, {e}")
+    async def _handler(uid, preferred_locale):
+        target_language = get_target_language_from_locale(preferred_locale)
+        return await _generate_weekly_for_user(uid, last_monday, target_language=target_language)
+
+    success, failed = await _run_for_users(
+        users,
+        handler=_handler,
+        delay_seconds=float(InsightConfig.AI_REQUEST_DELAY),
+    )
 
     logger.info(f"周报生成完成: 成功 {success}, 失败 {failed}")
     return {"success": success, "failed": failed}
@@ -119,7 +161,6 @@ async def generate_annual_reports(_ctx: dict) -> dict:
 
     last_year = date.today().year - 1
     logger.info(f"开始生成 {last_year} 年度回顾")
-    success, failed = 0, 0
 
     async with async_session_maker() as db:
         stmt = (
@@ -136,16 +177,15 @@ async def generate_annual_reports(_ctx: dict) -> dict:
             result = await db.execute(stmt)
             users = [(row[0], row[1]) for row in result.all()]
 
-    for uid, preferred_locale in users:
-        try:
-            target_language = get_target_language_from_locale(preferred_locale)
-            ok = await _generate_annual_for_user(uid, last_year, target_language=target_language)
-            if ok:
-                success += 1
-            await asyncio.sleep(InsightConfig.AI_REQUEST_DELAY)
-        except Exception as e:
-            failed += 1
-            logger.error(f"年报生成失败: {uid}, {e}")
+    async def _handler(uid, preferred_locale):
+        target_language = get_target_language_from_locale(preferred_locale)
+        return await _generate_annual_for_user(uid, last_year, target_language=target_language)
+
+    success, failed = await _run_for_users(
+        users,
+        handler=_handler,
+        delay_seconds=float(InsightConfig.AI_REQUEST_DELAY),
+    )
 
     logger.info(f"年度回顾生成完成: 成功 {success}, 失败 {failed}")
     return {"success": success, "failed": failed}

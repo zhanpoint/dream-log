@@ -101,8 +101,8 @@
 .nav-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem;
   font-size: 0.9375rem;
   font-weight: 500;
   color: oklch(var(--foreground) / 0.85);
@@ -139,7 +139,7 @@
   align-items: center !important;
   justify-content: center !important;
   text-align: center;
-  gap: 0.5rem;
+  gap: 0.125rem;
 }
 
 /* 我的梦境 - 月亮图标蓝色 */

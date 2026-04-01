@@ -72,7 +72,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
   useEffect(() => {
     communityAPI.getCommunity(slug)
       .then(setCommunity)
-      .catch(() => toast.error("加载社群信息失败"))
+      .catch(() => toast.error(t("community.greenhouse.detail.loadCommunityFailed")))
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -86,7 +86,7 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
       setDreams((prev) => (replace || p === 1 ? res.items : [...prev, ...res.items]));
       setPage(p);
     } catch {
-      toast.error("加载梦境失败");
+      toast.error(t("community.greenhouse.detail.loadDreamsFailed"));
     } finally {
       setFeedLoading(false);
       setLoadingMore(false);
@@ -121,9 +121,13 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
     try {
       const res = await communityAPI.joinCommunity(slug);
       setCommunity((prev) => prev ? { ...prev, is_member: res.joined, member_count: res.member_count } : prev);
-      toast.success(res.joined ? "已成功加入社群！" : "已退出社群");
+      toast.success(
+        res.joined
+          ? t("community.greenhouse.detail.joinedSuccess")
+          : t("community.greenhouse.detail.leftSuccess")
+      );
     } catch {
-      toast.error("操作失败，请稍后重试");
+      toast.error(t("common.operationFailed"));
     } finally {
       setJoining(false);
     }
@@ -156,7 +160,9 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-muted-foreground mb-6">社群不存在</div>
+        <div className="text-center py-8 text-muted-foreground mb-6">
+          {t("community.greenhouse.detail.notFound")}
+        </div>
       )}
 
       <div className="relative flex items-center gap-2 mb-5" ref={sortRef}>
@@ -219,10 +225,12 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
       ) : dreams.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-border rounded-xl">
           <div className="text-5xl mb-4">🌙</div>
-          <p className="font-medium text-muted-foreground">这个社群还没有梦境</p>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">加入后分享你的梦境，成为第一位！</p>
+          <p className="font-medium text-muted-foreground">{t("community.greenhouse.detail.emptyDreams")}</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            {t("community.greenhouse.detail.emptyDreamsHint")}
+          </p>
           <Link href="/dreams/new">
-            <Button size="sm">记录我的梦境</Button>
+            <Button size="sm">{t("community.home.empty.recordDream")}</Button>
           </Link>
         </div>
       ) : (
@@ -239,9 +247,12 @@ export default function CommunityDetailPage({ params }: { params: Promise<{ slug
                 className="border-primary/30 hover:border-primary hover:bg-primary/5"
               >
                 {loadingMore ? (
-                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />加载中...</>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    {t("common.loading")}
+                  </>
                 ) : (
-                  "加载更多"
+                  t("community.home.loadMore")
                 )}
               </Button>
             </div>

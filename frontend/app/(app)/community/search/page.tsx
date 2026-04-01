@@ -281,11 +281,12 @@ function SearchPageContent() {
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 function EmptyPrompt() {
+  const { t } = useTranslation();
   return (
     <div className="text-center py-16 text-muted-foreground">
       <div className="text-4xl mb-4">🔍</div>
-      <p className="text-sm font-medium mb-1">在这里探索梦境世界</p>
-      <p className="text-xs opacity-70">搜索梦境内容、用户</p>
+      <p className="text-sm font-medium mb-1">{t("community.search.emptyPromptTitle")}</p>
+      <p className="text-xs opacity-70">{t("community.search.emptyPromptDesc")}</p>
     </div>
   );
 }
@@ -327,6 +328,7 @@ function SearchResults({
   onLoadMore: () => void;
   onTabChange: (t: SearchTab) => void;
 }) {
+  const { t } = useTranslation();
   const isEmpty =
     result.dreams.length === 0 && result.users.length === 0 && result.tags.length === 0;
 
@@ -334,10 +336,16 @@ function SearchResults({
     return (
       <div className="text-center py-16 text-muted-foreground">
         <div className="text-4xl mb-4">🌙</div>
-        <p className="text-sm font-medium mb-1">没有找到「{keyword}」的相关内容</p>
-        <p className="text-xs mb-4">换个关键词试试，或切换搜索范围</p>
+        <p className="text-sm font-medium mb-1">{t("community.search.empty.all", { keyword })}</p>
+        <p className="text-xs mb-4">{t("community.search.empty.hint")}</p>
         <div className="flex flex-wrap justify-center gap-2">
-          {["噩梦", "清醒梦", "飞行", "追逐", "迷失"].map((tag) => (
+          {[
+            t("community.search.hotKeywords.nightmare"),
+            t("community.search.hotKeywords.lucid"),
+            t("community.search.hotKeywords.flying"),
+            t("community.search.hotKeywords.chasing"),
+            t("community.search.hotKeywords.lost"),
+          ].map((tag) => (
             <Link
               key={tag}
               href={`/community/search?q=${encodeURIComponent(tag)}&channel=${channel}`}

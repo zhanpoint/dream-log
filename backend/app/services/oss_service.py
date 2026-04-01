@@ -9,6 +9,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlparse
+from urllib.parse import unquote
 
 import oss2
 
@@ -56,8 +57,19 @@ class OssService:
             return ""
         if file_url_or_key.startswith("http://") or file_url_or_key.startswith("https://"):
             parsed = urlparse(file_url_or_key)
-            return parsed.path.lstrip("/")
-        return file_url_or_key.lstrip("/")
+            key = parsed.path.lstrip("/")
+        else:
+            # 非 URL：同样进行 unquote，避免传入编码后的 key 无法命中
+            key = file_url_or_key.lstrip("/")
+
+        # 签名 URL 可能出现一次或二次编码：%2F / %252F
+        # 最多解码两轮，且如果本轮解码后无变化则提前停止。
+        for _ in range(2):
+            decoded = unquote(key)
+            if decoded == key:
+                break
+            key = decoded
+        return key
 
     @staticmethod
     def _build_avatar_object_key(user_id: uuid.UUID | str, filename: str | None) -> str:
@@ -245,11 +257,14 @@ class OssService:
                 expires=expires_seconds,
                 headers={"Content-Type": content_type},
             )
-            return upload_url, object_key
+            # 返回私有对象的可访问地址（签名 GET URL），用于前端立即展示
+            access_url = bucket.sign_url("GET", object_key, expires_seconds)
+            return upload_url, object_key, access_url
 
-        upload_url, file_key = await asyncio.to_thread(_do_sign)
+        upload_url, file_key, access_url = await asyncio.to_thread(_do_sign)
         return {
             "upload_url": upload_url,
+            "access_url": access_url,
             "file_key": file_key,
             "expires_in": expires_seconds,
         }

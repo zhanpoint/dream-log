@@ -113,11 +113,12 @@ function GoogleCallbackContent() {
 }
 
 export default function GoogleCallbackPage() {
+  const { t } = useTranslation();
   return (
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">加载中...</p>
+        <p className="text-muted-foreground">{t("common.loading")}</p>
       </div>
     }>
       <GoogleCallbackContent />

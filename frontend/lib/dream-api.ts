@@ -2,7 +2,7 @@
  * 梦境 API 服务
  */
 
-import { api, getCached, setCache, invalidateCache, dedupeGet } from "./api";
+import { API_ORIGIN, TOKEN_KEYS, api, getCached, setCache, invalidateCache, dedupeGet } from "./api";
 
 // ============= 类型定义 =============
 
@@ -166,6 +166,7 @@ export interface DreamListParams {
   date_to?: string;
   search?: string;
   is_favorite?: boolean;
+  privacy_level?: string;
 }
 
 // ============= API 调用 =============
@@ -232,6 +233,13 @@ export const DreamApi = {
     invalidateCache("/dreams/stats");
   },
 
+  /** 一键删除当前用户所有梦境 */
+  async deleteAll(): Promise<void> {
+    await api.delete("/dreams");
+    invalidateCache("/dreams?");
+    invalidateCache("/dreams/stats");
+  },
+
   /** 切换收藏 */
   async toggleFavorite(id: string): Promise<{ is_favorite: boolean }> {
     const res = await api.post(`/dreams/${id}/favorite`);
@@ -250,6 +258,86 @@ export const DreamApi = {
   async generateTitleStandalone(content: string): Promise<{ title: string }> {
     const res = await api.post("/dreams/generate-title", { content });
     return res.data;
+  },
+
+  /** 润色「补充说明」输入框内的短指令 */
+  async optimizeInstruction(text: string): Promise<{ text: string }> {
+    const res = await api.post("/dreams/optimize-instruction", { text }, { timeout: 60_000 });
+    return res.data;
+  },
+
+  /** 梦境正文 AI：流式返回增量文本（SSE） */
+  async assistContentStream(
+    payload: {
+      content: string;
+      action?: "imagery_completion" | "literary_polish" | "smart_continue" | null;
+      instruction: string;
+    },
+    options: {
+      signal?: AbortSignal;
+      onMeta?: (meta: { action: "imagery_completion" | "literary_polish" | "smart_continue" }) => void;
+      onDelta?: (deltaText: string) => void;
+      onDone?: (result: { text: string; action: "imagery_completion" | "literary_polish" | "smart_continue" }) => void;
+    } = {}
+  ): Promise<void> {
+    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN) : null;
+    const lang =
+      typeof document !== "undefined"
+        ? (document.documentElement.lang || navigator.language || "cn").replace(/^zh(-.*)?$/i, "cn")
+        : "cn";
+    const resp = await fetch(`${API_ORIGIN}/api/dreams/assist-content/stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept-Language": lang,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: options.signal,
+    });
+    if (!resp.ok) {
+      let detail = "生成失败，请稍后重试";
+      try {
+        const body = await resp.json();
+        if (typeof body?.detail === "string") detail = body.detail;
+      } catch {
+        // ignore non-json error body
+      }
+      throw new Error(detail);
+    }
+    const reader = resp.body?.getReader();
+    if (!reader) return;
+    const decoder = new TextDecoder();
+    let buffer = "";
+    const handleEvent = (raw: string) => {
+      const lines = raw.split("\n");
+      const eventType = lines.find((l) => l.startsWith("event:"))?.slice(6).trim() || "message";
+      const dataText = lines
+        .filter((l) => l.startsWith("data:"))
+        .map((l) => l.slice(5).trim())
+        .join("\n");
+      if (!dataText) return;
+      const data = JSON.parse(dataText) as Record<string, unknown>;
+      if (eventType === "meta" && data.action) {
+        options.onMeta?.({ action: data.action as "imagery_completion" | "literary_polish" | "smart_continue" });
+      } else if (eventType === "delta" && typeof data.text === "string") {
+        options.onDelta?.(data.text);
+      } else if (eventType === "done" && typeof data.text === "string" && data.action) {
+        options.onDone?.({
+          text: data.text,
+          action: data.action as "imagery_completion" | "literary_polish" | "smart_continue",
+        });
+      }
+    };
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop() ?? "";
+      for (const p of parts) handleEvent(p);
+    }
+    if (buffer.trim()) handleEvent(buffer);
   },
 
   /** 触发 AI 分析 */

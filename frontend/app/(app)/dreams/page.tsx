@@ -84,6 +84,7 @@ export default function MyDreamsPage() {
   const [emotionFilter, setEmotionFilter] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
+  const [privacyFilter, setPrivacyFilter] = useState<Array<"PRIVATE" | "FRIENDS" | "PUBLIC">>([]);
 
   const pageSize = 12;
 
@@ -104,6 +105,7 @@ export default function MyDreamsPage() {
         emotion: emotionFilter.length ? emotionFilter.join(",") : undefined,
         date_from: dateFrom || undefined,
         date_to: dateTo || undefined,
+        privacy_level: privacyFilter.length ? privacyFilter.join(",") : undefined,
       };
       // 并行加载梦境列表和统计数据，两个请求同时发出
       const [res] = await Promise.all([
@@ -117,7 +119,7 @@ export default function MyDreamsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, sortBy, sortOrder, search, favoriteOnly, dreamTypeFilter, emotionFilter, dateFrom, dateTo, stats]);
+  }, [page, sortBy, sortOrder, search, favoriteOnly, dreamTypeFilter, emotionFilter, dateFrom, dateTo, privacyFilter, stats]);
 
   useEffect(() => {
     fetchDreams();
@@ -343,7 +345,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-40 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+              <SelectTrigger className="w-32 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
                 <div className="flex items-center gap-1.5">
                   <span 
                     className="text-base leading-none text-muted-foreground group-hover/select:text-primary transition-colors font-medium" 
@@ -351,7 +353,7 @@ export default function MyDreamsPage() {
                   >
                     ⇅
                   </span>
-                  <SelectValue placeholder="排序" />
+                  <SelectValue placeholder={t("dreams.list.filterSort")} />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -367,7 +369,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "group/filter h-10 gap-1.5 px-3 transition-all duration-200 text-foreground",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     (dateFrom || dateTo) && "border-primary/50 bg-primary/5"
                   )}
@@ -430,7 +432,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "group/filter h-10 gap-1.5 px-3 transition-all duration-200 text-foreground",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     dreamTypeFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
@@ -562,6 +564,70 @@ export default function MyDreamsPage() {
               </PopoverContent>
             </Popover>
 
+            {/* 隐私类型筛选 */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className={cn(
+                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                    privacyFilter.length > 0 && "border-primary/50 bg-primary/5"
+                  )}
+                >
+                  <Lock className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  {t("dreams.list.privacyFilter", "隐私类型")}
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="filter-popover-content w-56 p-2" align="start">
+                <p className="text-xs text-muted-foreground px-2 py-1 mb-1">
+                  {t("dreams.list.multiSelect")}
+                </p>
+                <div className="space-y-0.5">
+                    {[
+                    { value: "PUBLIC", icon: Globe, label: t("settings.privacy.visibility.public") },
+                    { value: "FRIENDS", icon: Users, label: t("settings.privacy.visibility.friends") },
+                    { value: "PRIVATE", icon: Lock, label: t("settings.privacy.visibility.private") },
+                  ].map((opt) => {
+                    const selected = privacyFilter.includes(opt.value as any);
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={cn(
+                          "filter-popover-option w-full flex items-center gap-2 rounded-md px-2 py-2 text-sm text-left transition-colors",
+                          selected && "filter-popover-option-selected bg-primary/15 text-primary",
+                          !selected && "hover:bg-muted"
+                        )}
+                        onClick={() => {
+                          setPrivacyFilter((prev) =>
+                            selected
+                              ? prev.filter((v) => v !== (opt.value as any))
+                              : [...prev, opt.value as any]
+                          );
+                          setPage(1);
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                            selected ? "bg-primary border-primary" : "border-muted-foreground/30"
+                          )}
+                        >
+                          {selected && <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />}
+                        </div>
+                        <Icon className="w-3.5 h-3.5 opacity-80" />
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* 收藏（放最后，与其余四按钮样式一致） */}
             <Button
               variant="outline"
@@ -571,7 +637,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
               className={cn(
-                "group/filter gap-1.5 h-10 transition-all duration-200 text-foreground",
+                "group/filter gap-1.5 h-10 px-3 transition-all duration-200 text-foreground",
                 "hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 favoriteOnly 
                   ? "border-amber-500/50 bg-amber-500/5 text-amber-600 dark:text-amber-400 shadow-md" 
@@ -589,7 +655,7 @@ export default function MyDreamsPage() {
             </div>
             
             {/* 筛选结果统计 - 简约版 */}
-            {!loading && (search || dreamTypeFilter.length > 0 || emotionFilter.length > 0 || dateFrom || dateTo || favoriteOnly) && (
+            {!loading && (search || dreamTypeFilter.length > 0 || emotionFilter.length > 0 || dateFrom || dateTo || favoriteOnly || privacyFilter.length > 0) && (
               <div className="flex items-center gap-3 text-sm">
                   <span className="text-muted-foreground">
                     {t("dreams.list.filteredCount", { count: total })}
@@ -605,6 +671,7 @@ export default function MyDreamsPage() {
                     setDateFrom(null);
                     setDateTo(null);
                     setFavoriteOnly(false);
+                    setPrivacyFilter([]);
                     setPage(1);
                   }}
                     title={t("dreams.list.clearFilters")}

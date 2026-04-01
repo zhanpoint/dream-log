@@ -190,10 +190,19 @@ api.interceptors.response.use(
             isRefreshing = false;
           }
         } else {
-          // 没有 refresh token,直接跳转登录
+          // 无 refresh：仅当本地曾有登录态（access/refresh 之一）时再清会话并跳登录。
+          // 访客访问公开页时，业务接口可能返回 401，不应全局强制 /auth（例如首页加载订阅/配额接口）。
+          const hadSession =
+            !!localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN) ||
+            !!localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
           localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+          localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
           localStorage.removeItem("user");
-          window.location.href = "/auth";
+          isRefreshing = false;
+          if (hadSession) {
+            window.location.href = "/auth";
+          }
+          return Promise.reject(error);
         }
       }
     }
@@ -201,3 +210,21 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * 是否展示「网络断开」类提示：浏览器离线，或请求发出后未收到任何 HTTP 响应。
+ * 已有 HTTP 响应（含 4xx/5xx）时返回 false，应展示服务端错误信息。
+ */
+export function shouldUseOfflineToast(err: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  if (axios.isCancel(err)) return false;
+
+  const e = err as { response?: unknown; request?: unknown; code?: string };
+  if (e?.response != null) return false;
+
+  return Boolean(
+    e?.request ||
+      e?.code === "ERR_NETWORK" ||
+      e?.code === "ECONNABORTED"
+  );
+}

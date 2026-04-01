@@ -38,13 +38,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const DREAM_TYPE_LABELS: Record<string, string> = {
-  LUCID: "清醒梦",
-  NIGHTMARE: "噩梦",
-  RECURRING: "重复梦",
-  SYMBOLIC: "象征性强",
-  VIVID: "特别清晰",
-  NORMAL: "普通梦",
+const DREAM_TYPE_LABEL_KEYS: Record<string, string> = {
+  LUCID: "dreams.new.dreamTypeLucid",
+  NIGHTMARE: "dreams.new.dreamTypeNightmare",
+  RECURRING: "dreams.new.dreamTypeRecurring",
+  SYMBOLIC: "dreams.new.dreamTypeSymbolic",
+  VIVID: "dreams.new.dreamTypeVivid",
+  NORMAL: "dreams.new.dreamTypeNormal",
 };
 
 function DetailSkeleton() {
@@ -125,7 +125,7 @@ export default function CommunityDreamDetailPage() {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      toast.success("链接已复制到剪贴板");
+      toast.success(t("community.dreamDetail.shareCopied"));
       if (dream?.id) {
         communityAPI.incrementDreamShare(dream.id).then((res) => {
           setDream((prev) => (prev && prev.id === dream.id ? { ...prev, share_count: res.share_count } : prev));
@@ -172,7 +172,9 @@ export default function CommunityDreamDetailPage() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   {dream.is_anonymous ? (
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm shrink-0">匿</div>
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm shrink-0">
+                      {t("community.dreamDetail.anonymousAvatar")}
+                    </div>
                   ) : (
                     <Link href={`/community/users/${dream.author?.id}`} className="shrink-0">
                       <UserAvatar
@@ -213,7 +215,7 @@ export default function CommunityDreamDetailPage() {
                 <div className="flex items-center gap-1 shrink-0">
                   {dream.dream_types?.map((type) => (
                     <Badge key={type} variant="secondary" className="text-xs">
-                      {DREAM_TYPE_LABELS[type] ?? type}
+                      {t(DREAM_TYPE_LABEL_KEYS[type] ?? type)}
                     </Badge>
                   ))}
                   <DropdownMenu>

@@ -19,7 +19,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const current = (i18n.resolvedLanguage || i18n.language) as string;
 
   const normalized: SupportedLanguage = ((): SupportedLanguage => {
@@ -40,7 +40,7 @@ export function LanguageSelector({ className = "" }: { className?: string }) {
           variant="ghost"
           size="icon"
           className={`navbar-language-selector ${className}`}
-          aria-label="切换语言"
+          aria-label={t("settings.appearance.language")}
         >
           <FlagIcon
             countryCode={normalized}

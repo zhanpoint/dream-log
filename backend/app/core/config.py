@@ -137,6 +137,8 @@ class Settings(BaseSettings):
     # AI 模型配置（两阶段：基础分析 + 标题 + 深度洞察 + 图像生成）
     ai_model_text_analysis: str = Field(default="openai/gpt-4o", alias="AI_MODEL_TEXT_ANALYSIS")
     ai_model_title_generation: str = Field(default="google/gemini-flash-1.5", alias="AI_MODEL_TITLE_GENERATION")
+    # 梦境正文 AI（意象补完 / 文学润色 / 智能续写），与标题生成独立配置
+    ai_model_content_assist: str = Field(default="openai/gpt-4o", alias="AI_MODEL_CONTENT_ASSIST")
     ai_model_insight_generation: str = Field(default="openai/gpt-4o", alias="AI_MODEL_INSIGHT_GENERATION")
     # 图像生成模型必须由环境变量提供，避免代码内“默认值”掩盖部署配置。
     ai_model_image_generation: str = Field(..., alias="AI_MODEL_IMAGE_GENERATION")

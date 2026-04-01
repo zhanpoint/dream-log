@@ -87,15 +87,16 @@ class WorkerSettings:
         cron(
             generate_monthly_reports,
             month={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-            day=1,
+            # 允许在 1-3 号补跑，避免 1 号当日 worker 不在线导致漏执行
+            day={1, 2, 3},
             hour=InsightConfig.MONTHLY_REPORT_CRON_HOUR,
             minute=0,
             unique=True,
         ),
-        # 每周一生成周报（weekday=0 表示周一）
+        # 允许周一/周二触发，避免周一当日 worker 不在线导致漏执行
         cron(
             generate_weekly_reports,
-            weekday=0,
+            weekday={0, 1},
             hour=InsightConfig.WEEKLY_REPORT_CRON_HOUR,
             minute=0,
             unique=True,
@@ -104,7 +105,8 @@ class WorkerSettings:
         cron(
             generate_annual_reports,
             month=1,
-            day=1,
+            # 允许在 1-3 号补跑，避免 1 号当日 worker 不在线导致漏执行
+            day={1, 2, 3},
             hour=InsightConfig.ANNUAL_REPORT_CRON_HOUR,
             minute=0,
             unique=True,
@@ -122,7 +124,9 @@ class WorkerSettings:
 
     # Worker 配置
     max_jobs = 10
-    job_timeout = 300  # 5 分钟 (AI 分析可能较慢)
+    # 洞察类 cron 任务可能需要遍历大量用户并多次调用 LLM。
+    # 为避免在用户增长后被统一的超时设置掐断，这里提高默认超时。
+    job_timeout = 1800  # 30 分钟
     keep_result = 3600
     max_tries = 3
 

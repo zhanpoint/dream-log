@@ -233,7 +233,7 @@ export function CommentItem({
       type="button"
       className="comment-collapsed-stub"
       onClick={toggleCollapse}
-      aria-label="展开折叠评论"
+      aria-label={t("community.comments.a11y.expandThread")}
     >
       <ChevronRight className="h-3 w-3" />
       <span>{authorName}</span>

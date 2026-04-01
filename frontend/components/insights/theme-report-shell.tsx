@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export function ThemeReportShell({
   icon,
   renderReport,
 }: ThemeReportShellProps) {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const insightIdFromUrl = searchParams.get("id");
@@ -120,14 +122,14 @@ export function ThemeReportShell({
       {loading && (
         <div className="text-center py-16">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">正在加载报告...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       )}
 
       {!loading && !insight && (
         <div className="text-center py-16 text-muted-foreground">
           <div className="flex justify-center mb-4">{icon}</div>
-          <p className="text-sm">未找到报告，请返回洞察页面生成</p>
+          <p className="text-sm">{t("insights.report.reportNotFound")}</p>
         </div>
       )}
 
