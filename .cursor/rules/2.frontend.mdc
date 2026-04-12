@@ -1,0 +1,406 @@
+---
+description: 面向本项目 Next.js/React 前端（frontend/）的工程与编码规范；编辑页面、组件、lib、hooks、i18n、样式与前端根目录构建配置时遵循。globs 刻意收窄：不包含 node_modules、.next 等构建产物与 .env* 本地环境变量文件，减少无关或敏感上下文触发；需要讨论环境变量时请手动 @ 文档或 .env.example。
+globs:
+  - "frontend/app/**"
+  - "frontend/components/**"
+  - "frontend/lib/**"
+  - "frontend/hooks/**"
+  - "frontend/i18n/**"
+  - "frontend/styles/**"
+  - "frontend/scripts/**"
+  - "frontend/next.config.ts"
+  - "frontend/tailwind.config.ts"
+  - "frontend/postcss.config.mjs"
+  - "frontend/tsconfig.json"
+  - "frontend/eslint.config.mjs"
+  - "frontend/components.json"
+  - "frontend/package.json"
+  - "frontend/next-env.d.ts"
+alwaysApply: false
+---
+
+## 项目目录结构
+
+```
+frontend/
+├── app/                        # Next.js App Router（核心路由层）
+│   ├── layout.tsx              # 根布局：Provider 注入、全局 metadata
+│   ├── globals.css             # 全局 CSS 变量 & Tailwind 基础层
+│   ├── api/                    # Route Handlers（BFF 层，服务端专用）
+│   ├── (marketing)/            # 路由组：落地页、营销页（无需鉴权）
+│   ├── (auth)/                 # 路由组：登录/注册流程
+│   ├── (app)/                  # 路由组：核心应用（需鉴权）
+│   │   ├── layout.tsx          # 应用布局（含导航栏）
+│   │   ├── auth-guard.tsx      # 鉴权守卫组件
+│   │   ├── dreams/             # 梦境模块
+│   │   ├── insights/           # 数据洞察模块
+│   │   ├── community/          # 社区模块
+│   │   └── exploration/        # 探索模块
+│   └── settings/               # 设置模块（独立布局）
+├── components/                 # 可复用组件
+│   ├── ui/                     # 原子 UI 组件（Button、Card、Dialog 等）
+│   ├── auth/                   # 认证相关组件
+│   ├── dream/                  # 梦境业务组件
+│   ├── community/              # 社区业务组件
+│   ├── landing/                # 落地页区块组件
+│   ├── settings/               # 设置页组件
+│   ├── magicui/                # 动效增强组件
+│   ├── theme-provider.tsx      # 主题 Provider（next-themes 封装）
+│   └── i18n-provider.tsx       # 国际化 Provider
+├── lib/                        # 工具函数 & API 客户端
+│   ├── api.ts                  # Axios 实例、拦截器、缓存/去重工具
+│   ├── auth-api.ts             # 认证相关 API
+│   ├── dream-api.ts            # 梦境相关 API
+│   ├── insight-api.ts          # 洞察相关 API
+│   ├── community-api.ts        # 社区相关 API
+│   ├── billing-api.ts          # 计费相关 API
+│   ├── user-api.ts             # 用户相关 API
+│   ├── utils.ts                # 通用工具函数（cn、格式化等）
+│   ├── plans.ts                # 订阅计划定义
+│   └── price.ts                # 价格计算逻辑
+├── hooks/                      # 自定义 React Hooks
+│   ├── use-form-error.ts       # 表单错误统一处理 Hook
+│   ├── use-page-metadata.ts    # 动态页面 title/meta Hook
+│   └── use-notification-sse.ts # SSE 实时通知 Hook
+├── i18n/                       # 国际化配置与翻译资源
+├── styles/                     # 模块化 CSS（补充 Tailwind 不易表达的样式）
+├── public/                     # 静态资源（图片、字体、favicon）
+├── next.config.ts              # Next.js 配置（图片优化、编译器、实验特性）
+├── tailwind.config.ts          # Tailwind 主题扩展
+├── tsconfig.json               # TypeScript 配置（strict、路径别名）
+└── package.json                # 依赖与脚本
+```
+
+---
+
+## App Router 核心规范
+
+### Server Component vs Client Component 决策树
+
+```
+需要 useState / useEffect / 事件监听 / 浏览器 API?
+  └── YES → 文件顶部加 "use client"，尽可能下推到叶子组件
+  └── NO  → 默认 Server Component（零 JS bundle、可直接 async/await）
+```
+
+**原则：Client 边界越靠近叶子越好。** 让父级保持 Server Component 以便流式渲染。
+
+### 路由组（Route Groups）
+
+括号命名 `(name)` 的目录不影响 URL，用于：
+- 共享布局而不影响路径：`(app)/layout.tsx` 给所有应用页提供导航栏
+- 逻辑分组：`(marketing)` / `(auth)` / `(app)` 隔离不同区域的逻辑
+
+### 动态路由
+
+
+
+动态路由页面必须导出 `generateStaticParams`（静态生成）或依赖运行时渲染，并声明正确的 `params` 类型：
+
+
+
+### Metadata
+
+```tsx
+// 静态 metadata
+export const metadata: Metadata = { title: "页面标题", description: "..." };
+
+// 动态 metadata（需要数据）
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const dream = await fetchDream(id);
+  return { title: dream.title };
+}
+```
+
+---
+
+## 组件开发规范
+
+### 文件与命名
+
+- 组件文件名与导出名一致，使用 **PascalCase**：`DreamCard.tsx`
+- 每个文件只导出一个主组件（辅助子组件可共存于同一文件）
+- UI 原子组件放 `components/ui/`，业务组件按模块分目录
+
+### CVA 变体系统（shadcn/ui 模式）
+
+### `cn()` 工具函数
+
+始终使用 `cn()` 合并 Tailwind 类名，它结合了 `clsx`（条件类）和 `tailwind-merge`（冲突去重）：
+
+---
+
+## 样式系统规范
+
+### Tailwind CSS v4
+
+- 使用 CSS 变量定义设计令牌（`--background`、`--foreground`、`--primary` 等）
+- 颜色使用语义化变量而非硬编码色值：`bg-background` 而非 `bg-white`
+- 避免任意值（`w-[137px]`），优先使用设计系统间距比例
+- 响应式优先使用移动端基准：`text-sm md:text-base lg:text-lg`
+
+### 全局 CSS（`globals.css`）
+
+
+### 外部 CSS 文件
+
+仅当 Tailwind 难以表达（如复杂伪元素、第三方组件覆盖、keyframe 动画）时才使用独立 `.css` 文件（放 `styles/` 目录），其余全部用 Tailwind。
+
+---
+
+## API 客户端规范
+
+### Axios 实例（`lib/api.ts`）
+
+项目已配置统一的 Axios 实例，具备以下能力：
+
+| 能力 | 说明 |
+|---|---|
+| 自动注入 JWT | 请求拦截器从 `localStorage` 读取 `access_token` |
+| Token 静默刷新 | 401 时自动调用 `/auth/refresh`，刷新期间并发请求入队等待 |
+| 无 Refresh 时的智能跳转 | 访客访问公开页返回 401 时不强制跳转，避免误伤 |
+| 多语言请求头 | 自动注入 `Accept-Language`，响应语言跟随界面设置 |
+| GET 内存缓存 | `getCached` / `setCache` / `invalidateCache` 短期缓存减少重复请求 |
+| GET 请求去重 | `dedupeGet` 保证同 URL 并发只发一次网络请求 |
+| 生产超时 | 12 秒超时（避免长时间挂起） |
+
+### API 模块拆分规范
+
+每个业务域独立一个 API 文件，不要将所有接口堆在 `api.ts`：
+
+```
+lib/
+├── api.ts          # Axios 实例 + 基础工具（禁止堆业务接口）
+├── auth-api.ts     # 认证：登录、注册、OAuth、Token 刷新
+├── dream-api.ts    # 梦境 CRUD
+├── insight-api.ts  # 数据分析 & 洞察报告
+├── community-api.ts
+├── billing-api.ts
+└── user-api.ts
+```
+
+---
+
+## 表单开发规范
+
+### React Hook Form + Zod 模式
+
+---
+
+## 鉴权与路由守卫
+
+### 守卫模式
+
+应用路由使用客户端守卫组件（`auth-guard.tsx`）而非中间件（当前项目选择），在布局层统一检查登录态：
+
+守卫检测到未登录时使用 `router.replace("/auth")` 跳转，避免在浏览器历史记录中留下受保护路由。
+
+### Token 存储
+
+- `access_token` 和 `refresh_token` 存储在 `localStorage`
+- 键名通过 `TOKEN_KEYS` 常量统一管理，避免硬编码字符串散落各处
+- SSR 中不可访问 `localStorage`，必须用 `typeof window !== "undefined"` 守卫
+
+---
+
+## 主题系统
+
+### 暗色/亮色模式
+
+通过 `next-themes` 实现，主题类名注入到 `<html>` 元素：
+
+CSS 变量在 `:root`（亮色）和 `.dark`（暗色）中分别定义，Tailwind 颜色工具类自动适配。
+
+---
+
+## 国际化（i18n）
+
+项目使用 `i18next` + `react-i18next`，通过 `I18nProvider` 初始化：
+
+语言资源文件放 `i18n/` 目录，API 请求自动携带 `Accept-Language` 头（由 `api.ts` 拦截器注入）。
+
+---
+
+## 性能优化规范
+
+### 图片优化
+
+使用 Next.js `<Image>` 组件代替原生 `<img>`，自动处理 WebP/AVIF 转换、懒加载、尺寸优化：
+
+### 代码分割与懒加载
+
+### `optimizePackageImports`（next.config.ts）
+
+生产构建启用对大型包的 tree-shaking 优化，减少 bundle 体积：
+
+```ts
+experimental: {
+  optimizePackageImports: ["lucide-react", "framer-motion", "echarts", ...]
+}
+```
+
+### 避免过度渲染
+
+```tsx
+// ✅ 使用 memo 缓存纯展示组件
+const DreamCard = memo(({ dream }: { dream: Dream }) => { ... });
+
+// ✅ 使用 useCallback 缓存事件处理函数
+const handleDelete = useCallback((id: string) => {
+  deleteDream(id);
+}, []);
+```
+
+---
+
+## Next.js 配置关键项（next.config.ts）
+
+| 配置项 | 值 | 原因 |
+|-----|-----|---|
+| `reactStrictMode` | `false` | 避免开发环境 effect 双执行导致 SSE 重复连接 |
+| `images.unoptimized` | `isDev` | 开发环境跳过图片代理，避免远程图片超时 |
+| `images.formats` | `["image/avif", "image/webp"]` | 优先现代格式，减少带宽 |
+| `images.minimumCacheTTL` | `604800`（7天） | 图片 CDN 缓存时长 |
+| `compiler.removeConsole` | 生产环境排除 error/warn | 清理调试日志，保留错误日志 |
+| `NEXT_PUBLIC_API_URL` | 运行时注入 | 禁止生产构建硬编码 localhost |
+
+---
+
+## TypeScript 规范
+
+```jsonc
+// tsconfig.json 关键配置
+{
+  "compilerOptions": {
+    "strict": true,           // 启用所有严格检查
+    "noEmit": true,           // 仅类型检查，不生成文件（由 Next.js 处理）
+    "moduleResolution": "bundler", // 适配现代打包工具
+    "paths": {
+      "@/*": ["./*"]          // 路径别名，避免 ../../ 相对路径
+    }
+  }
+}
+```
+
+### 路径别名使用规则
+
+```tsx
+// ✅ 始终使用别名
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+
+// ❌ 禁止深层相对路径
+import { api } from "../../../lib/api";
+```
+
+### 类型定义规范
+
+- 接口用 `interface`，联合/交叉类型用 `type`
+- Props 接口以组件名 + `Props` 命名：`DreamCardProps`
+- 禁止 `as any`，使用类型守卫或 `unknown` + 断言
+- API 响应体定义独立的类型文件或在对应 `*-api.ts` 中导出
+
+---
+
+## 错误处理规范
+
+### API 错误统一处理
+
+```tsx
+import { toast } from "sonner";
+
+async function handleSubmit(data: FormData) {
+  try {
+    await api.post("/dreams", data);
+    toast.success("保存成功");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.message ?? "请求失败，请稍后重试";
+      toast.error(message);
+    } else {
+      toast.error("发生未知错误");
+    }
+  }
+}
+```
+
+### 页面级 Error Boundary
+
+```tsx
+// app/(app)/dreams/error.tsx
+"use client";
+
+export default function DreamsError({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <p>加载失败：{error.message}</p>
+      <button onClick={reset}>重试</button>
+    </div>
+  );
+}
+```
+
+---
+
+## 开发工作流
+
+### 环境变量
+
+```bash
+# .env.local（本地开发，不提交 git）
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+# 生产环境通过 CI/CD 注入，禁止硬编码
+```
+
+`NEXT_PUBLIC_` 前缀的变量会暴露给浏览器，敏感信息（密钥、数据库 URL）绝不使用此前缀。
+
+### 常用命令
+
+```bash
+npm run dev          # 开发服务器（Turbopack 加速）
+npm run build        # 生产构建
+npm run start        # 启动生产服务器
+npm run lint         # ESLint 检查
+npm run type-check   # TypeScript 类型检查（无编译产物）
+```
+
+### 新增页面检查清单
+
+- [ ] 确认是否需要 `"use client"`，默认 Server Component
+- [ ] 声明 `metadata` 或 `generateMetadata`
+- [ ] 动态路由 `params` 使用 `Promise<{ id: string }>` 类型（Next.js 15+）
+- [ ] 受保护页面是否在 `(app)` 路由组下（自动获得鉴权守卫）
+- [ ] 重型依赖（图表、富文本编辑器）使用 `dynamic` 懒加载
+- [ ] 图片使用 `<Image>` 组件，首屏图片加 `priority`
+
+### 新增组件检查清单
+
+- [ ] Props 接口有明确的 TypeScript 类型
+- [ ] 支持 `className` prop（使用 `cn()` 合并）
+- [ ] 样式使用 Tailwind 语义化颜色变量（支持深色模式）
+- [ ] 交互元素可通过键盘访问（使用 Radix UI 原语）
+- [ ] 避免在组件内直接调用 API，通过 Props 或 Hook 传入数据
+
+---
+
+## 常见陷阱与禁忌
+
+| 陷阱 | 正确做法 |
+|---|---|
+| 在 Server Component 里使用 `useState` | 添加 `"use client"` 或下推到子组件 |
+| 在服务端访问 `localStorage` / `window` | 用 `typeof window !== "undefined"` 守卫 |
+| 硬编码 `http://localhost:8000` | 使用 `API_ORIGIN`（`lib/api.ts` 导出） |
+| 大量 `any` 类型 | 定义具体接口，使用 `unknown` + 类型守卫 |
+| 忘记处理 `async params`（Next.js 15） | `params` 类型为 `Promise<{...}>`，需 `await` |
+| 图标库全量导入 | 具名导入：`import { X } from "lucide-react"` |
+| 组件内直接 `fetch` 而不考虑缓存 | 使用 `getCached` + `dedupeGet` 工具 |
+| 表单直接 `setState` 管理字段 | 使用 React Hook Form 的非受控模式 |
+| 颜色使用硬编码 hex | 使用 CSS 变量 / Tailwind 语义色（支持主题切换） |

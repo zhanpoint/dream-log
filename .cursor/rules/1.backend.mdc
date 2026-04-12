@@ -1,0 +1,319 @@
+---
+description: 面向本项目 FastAPI 后端（backend/）的工程与编码规范；编辑 app、迁移、脚本与后端根目录项目配置时遵循。globs 刻意收窄：不包含虚拟环境、依赖锁定文件与本地环境变量文件（如 .env），减少无关上下文触发；需要改 env 示例时请手动 @ 引用 .env.example 或相关说明。
+globs:
+  - "backend/app/**"
+  - "backend/alembic/**"
+  - "backend/scripts/**"
+  - "backend/pyproject.toml"
+  - "backend/alembic.ini"
+  - "backend/Dockerfile"
+alwaysApply: false
+---
+
+## 1. 项目结构约定
+
+标准 FastAPI 项目采用**功能分层**结构，严格遵循关注点分离原则：
+
+```
+backend/
+├── app/
+│   ├── api/            # 路由层：仅做参数接收、调用 service、返回响应
+│   ├── core/           # 核心基础设施：数据库、Redis、依赖注入、配置
+│   ├── models/         # SQLAlchemy ORM 模型（数据库表定义）
+│   ├── schemas/        # Pydantic 模型（请求/响应数据结构）
+│   ├── services/       # 业务逻辑层：所有业务规则在此实现
+│   ├── tasks/          # 后台异步任务（arq / Celery worker 函数）
+│   ├── config/         # 业务级配置常量（区别于环境变量）
+│   ├── constants/      # 不可变枚举与常量定义
+│   ├── prompts/        # AI prompt 模板管理（如有 LLM 集成）
+│   └── main.py         # FastAPI 应用入口，注册路由与中间件
+├── scripts/            # 一次性脚本、开发辅助工具
+├── .env.example        # 环境变量模板（必须提交到版本控制）
+└── pyproject.toml      # 统一项目配置（依赖、工具链、脚本）
+```
+
+**层级职责边界（硬性规则）**：
+
+| 层级 | 允许 | 禁止 |
+|---|---|---|
+| `api/` | 调用 `services/`、使用 `Depends()` | 直接操作数据库、包含业务逻辑 |
+| `services/` | 调用 `models/`、调用其他 `services/` | 直接处理 HTTP 请求/响应对象 |
+| `models/` | 定义表结构、关系、枚举 | 包含业务逻辑、调用 `services/` |
+| `schemas/` | 定义 Pydantic 模型与验证规则 | 引用 SQLAlchemy 模型 |
+
+---
+
+## 2. 异步编程规范
+
+### 核心原则：绝不阻塞事件循环
+
+所有 I/O 操作（数据库、网络、文件）必须使用 `async/await`。
+
+### 同步阻塞代码的处理
+
+当必须调用**同步阻塞**的第三方 SDK（支付、加密、部分云服务）时，必须使用线程池隔离，防止阻塞事件循环：
+
+**优先级**：优先选择库的异步版本（`httpx` > `requests`，`redis.asyncio` > `redis`，`asyncpg` > `psycopg2`）。
+
+---
+
+## 3. 应用生命周期管理
+
+使用 `lifespan` 上下文管理器（替代已废弃的 `on_event`）管理应用启动与关闭时的资源：
+
+**原则**：
+- 连接池（数据库、Redis、HTTP Client）必须在 `lifespan` 中创建与销毁
+- 不要在模块顶层直接建立连接（导入时副作用难以控制）
+
+---
+
+## 4. 依赖注入模式
+
+通过 `Depends()` 统一管理横切关注点，保持路由函数纯净：
+
+**使用规范**：
+- 所有路由的认证、鉴权、限流均通过依赖注入实现，不在路由体内硬编码
+- 依赖可以链式组合（`get_current_active_superuser` 依赖 `get_current_user`）
+- 带副作用的依赖（数据库、锁）使用 `yield` 确保清理
+
+---
+
+## 5. 数据验证与序列化
+
+### Pydantic Schema 分层设计
+
+每个资源定义多个 Schema 变体，遵循单一职责：
+
+**规则**：
+- 响应模型必须通过 `response_model=` 明确声明，避免意外泄露字段
+- 使用 `model_config = ConfigDict(from_attributes=True)` 支持 ORM 对象直接序列化
+- 不要在 Schema 中引用 SQLAlchemy 模型类型
+
+---
+
+## 6. 配置管理
+
+使用 `pydantic-settings` 实现类型安全的环境变量管理：
+
+**原则**：
+- `.env.example` 必须包含所有配置项（值留空或填示例值）并提交到版本控制
+- 生产环境通过系统环境变量注入，不依赖 `.env` 文件
+- 敏感值（密钥、Token）不得有默认值，缺失时应在启动时报错
+
+---
+
+## 7. 数据库操作规范
+
+### 异步 SQLAlchemy 配置
+
+
+### ORM 模型规范
+
+### 查询最佳实践
+
+```python
+# ✅ 正确：使用 selectinload 预加载，避免 N+1 查询
+stmt = (
+    select(User)
+    .options(selectinload(User.posts))
+    .where(User.is_active == True)
+    .order_by(User.created_at.desc())
+    .limit(20)
+)
+result = await db.execute(stmt)
+users = result.scalars().all()
+
+# ✅ 正确：分页查询使用 offset/limit，大数据集用 keyset pagination
+stmt = select(User).where(User.id > last_id).limit(page_size)
+
+# ❌ 错误：隐式懒加载（在异步环境中会报错）
+user = await db.get(User, user_id)
+posts = user.posts  # AttributeError：异步会话不支持隐式懒加载
+```
+
+---
+
+## 8. API 路由组织
+
+### 模块化路由
+
+**路由设计规则**：
+- 路由函数只做：参数接收 → 调用 service → 返回响应，不包含业务逻辑
+- 始终声明 `response_model` 和 `status_code`
+- 使用复数名词作为资源路径（`/users`，`/dreams`）
+
+---
+
+## 9. 错误处理
+
+### 统一响应格式
+
+**规则**：
+- 使用标准 HTTP 状态码（`404` 资源不存在，`422` 参数验证失败，`409` 冲突，`429` 限流）
+- 错误响应格式全局统一，不在各路由中散落不同格式
+- 不向客户端暴露内部错误详情（数据库错误、堆栈信息）
+
+---
+
+## 10. 认证与安全
+
+### JWT 认证标准实现
+
+**安全规则**：
+- 密码必须使用 `bcrypt` 哈希（通过线程池调用，避免阻塞事件循环）
+- Refresh Token 存储于 Redis，支持主动撤销（Token 黑名单机制）
+- CORS 配置 `allowed_origins` 明确白名单，生产环境禁止 `*`
+- 敏感操作（密码修改、账户删除）需要重新验证身份
+
+---
+
+## 11. 后台任务与异步队列
+
+### arq（推荐）vs Celery
+
+本项目使用 **arq**（基于 Redis 的纯异步任务队列），相比 Celery 更轻量，与 asyncio 原生集成。
+
+**规则**：
+- 耗时超过 1 秒的操作必须异步化（AI 推理、邮件发送、文件处理、向量计算）
+- Worker 与 API 进程独立部署，共享数据库和 Redis
+- 任务函数必须幂等（可重试），使用任务 ID 防止重复执行
+
+---
+
+## 12. 实时通信：WebSocket 与 SSE
+
+### Server-Sent Events（SSE）
+
+适用于服务端单向推送（通知、进度更新、AI 流式输出）：
+
+### WebSocket 连接管理
+
+---
+
+## 13. HTTP 客户端管理
+
+**禁止**在请求处理中创建 `httpx.AsyncClient`，必须复用 `lifespan` 中创建的全局实例：
+
+---
+
+## 14. 类型注解规范
+
+所有函数必须有完整的参数与返回值类型注解，配合 `mypy` 静态检查：
+
+**使用 Python 3.10+ 联合类型语法**：
+- `X | None` 代替 `Optional[X]`
+- `list[str]` 代替 `List[str]`
+- `dict[str, Any]` 代替 `Dict[str, Any]`
+
+---
+
+## 15. 代码质量工具链
+
+本项目使用 **uv** 管理依赖，**Ruff** 统一 lint 和格式化，**mypy** 静态类型检查。
+
+### 常用命令
+
+```bash
+# 安装依赖（开发模式）
+uv pip install -e ".[dev]"
+
+# 格式化代码
+uv run ruff format .
+
+# Lint 检查
+uv run ruff check .
+
+# 自动修复 lint 问题
+uv run ruff check --fix .
+
+# 静态类型检查
+uv run mypy app
+
+# 启动开发服务器（热重载）
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+### pyproject.toml 推荐配置
+
+```toml
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+# ASYNC 规则检测事件循环阻塞问题
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.uv.scripts]
+dev = "uvicorn app.main:app --reload"
+worker = "arq app.core.arq_app.WorkerSettings"
+lint = "ruff check ."
+format = "ruff format ."
+typecheck = "mypy app"
+```
+
+---
+
+## 16. 数据库迁移
+
+使用 **Alembic** 管理 schema 版本：
+
+```bash
+# 根据 ORM 模型变更自动生成迁移脚本
+uv run alembic revision --autogenerate -m "add users table"
+
+# 执行所有待执行迁移（升级到最新）
+uv run alembic upgrade head
+
+# 回滚一个版本
+uv run alembic downgrade -1
+
+# 查看当前迁移状态
+uv run alembic current
+
+# 查看迁移历史
+uv run alembic history --verbose
+```
+
+**迁移规范**：
+- 每次 ORM 模型变更后立即生成迁移文件并提交到版本控制
+- 生产部署时在应用启动前执行 `alembic upgrade head`
+- 迁移脚本审查：确保 `downgrade()` 函数正确实现回滚逻辑
+- 不要手动修改已部署的迁移文件
+
+---
+
+## 17. 快速启动参考
+
+```bash
+# 1. 安装 uv
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"   # Windows
+curl -LsSf https://astral.sh/uv/install.sh | sh               # macOS/Linux
+
+# 2. 安装依赖
+cd backend
+uv pip install -e ".[dev]"
+
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入数据库、Redis、密钥等配置
+
+# 4. 执行数据库迁移
+uv run alembic upgrade head
+
+# 5. 启动 API 服务
+uv run uvicorn app.main:app --reload --port 8000
+
+# 6. 启动后台 Worker（新终端）
+uv run arq app.core.arq_app.WorkerSettings
+
+# API 文档访问地址
+# Swagger UI:  http://localhost:8000/docs
+# ReDoc:       http://localhost:8000/redoc
+# OpenAPI JSON: http://localhost:8000/openapi.json
+```

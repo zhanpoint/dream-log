@@ -175,7 +175,7 @@ export default function PricingSection() {
           </p>
         </div>
       </ScrollReveal>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid items-stretch gap-6 lg:grid-cols-3">
         {plans.map((plan, index) => (
           <ScrollReveal
             key={plan.id}
@@ -185,7 +185,7 @@ export default function PricingSection() {
           >
             <div
               className={cn(
-                "group relative overflow-hidden rounded-2xl border bg-background p-6 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)]",
+                "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-background p-6 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)]",
                 plan.id === "free" && "border-emerald-500/30 hover:border-emerald-400/45",
                 plan.id === "pro" && "border-primary/40 ring-1 ring-primary/25",
                 plan.id === "ultra" && "border-amber-400/40 hover:border-amber-300/55"
@@ -196,7 +196,7 @@ export default function PricingSection() {
                   {t("billing.plans.pro.badge")}
                 </span>
               )}
-              <div className="relative z-10">
+              <div className="relative z-10 flex h-full flex-col">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold">{t(plan.titleKey)}</h3>
                   <p className="text-sm text-muted-foreground">{t(plan.subtitleKey)}</p>
@@ -214,7 +214,7 @@ export default function PricingSection() {
                 >
                   {formatPrice(prices[plan.id])}
                 </div>
-                <ul className="space-y-2 text-sm text-foreground/95">
+                <ul className="flex-1 space-y-2 text-sm text-foreground/95">
                   {plan.features.map((item) => (
                     <li key={item} className="flex items-center gap-2 text-foreground">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -222,7 +222,7 @@ export default function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-6">
+                <div className="mt-6 mt-auto">
                   {currentPlan === plan.id ? (
                     <Button
                       variant="outline"

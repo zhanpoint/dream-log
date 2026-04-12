@@ -85,6 +85,7 @@ frontend/yarn-error.log*
 frontend/pnpm-debug.log*
 frontend/lerna-debug.log*
 frontend/node_modules
+scripts/pptx-backend-arch/node_modules
 frontend/dist
 frontend/dist-ssr
 frontend/*.local
