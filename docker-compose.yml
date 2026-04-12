@@ -46,6 +46,13 @@ services:
       cache:
         condition: service_healthy
     restart: on-failure
+    init: true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     expose:
       - "8000"
     networks:
@@ -55,8 +62,10 @@ services:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     build:
       context: backend
-    command: python -m scripts.start_worker
+    # 与本地一致：python -m（不依赖 arq 控制台脚本是否在 PATH）
+    command: ["python", "-m", "scripts.start_worker"]
     env_file: ./.env
+    init: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -79,7 +88,7 @@ services:
       - NODE_ENV=production
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     expose:
       - "3000"
@@ -135,7 +144,7 @@ services:
       frontend:
         condition: service_started
       backend:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     networks:
       - dream-log-net

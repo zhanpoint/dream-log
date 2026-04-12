@@ -1,12 +1,13 @@
 """
-将 articles_input.json 中的文章批量导入 PostgreSQL exploration_articles 表
+将文章 JSON 批量导入 PostgreSQL exploration_articles 表
 
 使用方法（在 backend 根目录）：
     python scripts/articles/import_articles.py
+    python scripts/articles/import_articles.py /path/to/custom.json
 
 说明：
+    - 默认读取 src/explorer/articles/all_articles_optimized.json（可用参数覆盖）
     - 重复运行安全（已存在的 module+section 组合会更新内容，不会重复插入）
-    - articles_input.json 为18篇文章的 JSON 数组，由 GPT/Claude 生成后手动合并
     - 每条记录必须包含：module, section, order_index, content
 
 JSON 格式示例：
@@ -78,7 +79,7 @@ async def import_articles() -> None:
         records: list[dict] = json.load(f)
 
     if not isinstance(records, list):
-        print("错误：articles_input.json 必须是 JSON 数组")
+        print(f"错误：{INPUT_FILE.name} 必须是 JSON 数组")
         return
 
     print(f"加载 {len(records)} 条记录，开始校验...")
@@ -94,7 +95,7 @@ async def import_articles() -> None:
         print("\n校验失败，发现以下错误：")
         for err in errors:
             print(f"  ✗ {err}")
-        print("\n请修正 articles_input.json 后重新运行")
+        print(f"\n请修正 {INPUT_FILE} 后重新运行")
         return
 
     print(f"校验通过，开始导入...")

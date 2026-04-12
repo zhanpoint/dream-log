@@ -5,14 +5,14 @@
       "name": "Backend API",
       "type": "node-terminal",
       "request": "launch",
-      "command": ".\\.venv\\Scripts\\python.exe scripts/dev.py",
+      "command": "uv run python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
       "cwd": "${workspaceFolder}/backend"
     },
     {
       "name": "Backend Worker",
       "type": "node-terminal",
       "request": "launch",
-      "command": ".\\.venv\\Scripts\\python.exe scripts/start_worker.py",
+      "command": "uv run python -m scripts.start_worker",
       "cwd": "${workspaceFolder}/backend"
     },
     {

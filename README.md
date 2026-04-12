@@ -63,7 +63,8 @@ uv run uvicorn app.main:app --reload --port 8000
 
 ```bash
 cd backend
-uv run arq app.core.arq_app.WorkerSettings
+uv run python -m scripts.start_worker
+# 等价：uv run arq app.core.arq_app.WorkerSettings
 ```
 
 **前端**
