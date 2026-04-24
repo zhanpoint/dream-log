@@ -49,9 +49,9 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative mx-auto mt-32 max-w-[80rem] px-6 text-center md:px-8"
+      className="relative mx-auto mt-16 max-w-[80rem] px-4 text-center sm:mt-20 sm:px-6 md:mt-24 md:px-8"
     >
-      <h1 className="py-6 text-5xl font-medium leading-none tracking-tighter text-balance sm:text-6xl md:text-7xl lg:text-8xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
+      <h1 className="py-4 text-4xl font-medium leading-[0.95] tracking-tighter text-balance sm:py-6 sm:text-5xl md:text-7xl lg:text-8xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms]">
         <TypingAnimation
           gradientClassName="hero-title"
           style={
@@ -69,23 +69,23 @@ export default function HeroSection() {
           {heroTitleText}
         </TypingAnimation>
       </h1>
-      <p className="hero-subtitle mb-12 text-xl tracking-tight md:text-2xl text-balance translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms]">
+      <p className="hero-subtitle mb-8 text-base tracking-tight text-balance sm:mb-10 sm:text-lg md:mb-12 md:text-2xl translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:400ms]">
         {t("marketing.hero.subtitleLine1")}
         <br className="hidden md:block" /> {t("marketing.hero.subtitleLine2")}
       </p>
       <ShinyButton 
         onClick={() => router.push("/dreams/new")}
-        className="translate-y-[-1rem] animate-fade-in opacity-0 ease-in-out [--animation-delay:600ms] text-base"
+        className="min-h-11 w-full max-w-xs translate-y-[-1rem] animate-fade-in px-6 text-base opacity-0 ease-in-out sm:w-auto [--animation-delay:600ms]"
       >
         {t("marketing.hero.cta")}
         <ArrowRightIcon className="size-5 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
       </ShinyButton>
       <div
         ref={ref}
-        className="relative mt-[8rem] animate-fade-up opacity-0 [--animation-delay:400ms] [perspective:2000px] after:absolute after:inset-0 after:z-50 after:[background:linear-gradient(to_top,hsl(var(--background))_30%,transparent)]"
+        className="relative mt-12 animate-fade-up opacity-0 [--animation-delay:400ms] [perspective:2000px] sm:mt-16 md:mt-24 after:absolute after:inset-0 after:z-50 after:[background:linear-gradient(to_top,hsl(var(--background))_18%,transparent)]"
       >
         <div
-          className={`relative overflow-hidden rounded-xl border border-white/10 bg-white bg-opacity-[0.01] before:absolute before:bottom-1/2 before:left-0 before:top-0 before:h-full before:w-full before:opacity-0 before:[filter:blur(180px)] before:[background-image:linear-gradient(to_bottom,var(--color-one),var(--color-one),transparent_40%)] before:z-0 ${
+          className={`relative overflow-hidden rounded-2xl border border-white/10 bg-white bg-opacity-[0.01] before:absolute before:bottom-1/2 before:left-0 before:top-0 before:h-full before:w-full before:opacity-0 before:[filter:blur(180px)] before:[background-image:linear-gradient(to_bottom,var(--color-one),var(--color-one),transparent_40%)] before:z-0 ${
             inView ? "before:animate-image-glow" : ""
           }`}
         >
@@ -102,12 +102,12 @@ export default function HeroSection() {
           <img
             src={heroDarkSrc}
             alt="Dream Log Hero"
-            className="hero-image-dark relative z-0 w-full h-full rounded-[inherit] border object-contain"
+            className="hero-image-dark relative z-0 aspect-[5/4] w-full rounded-[inherit] border object-cover object-top sm:aspect-auto sm:h-full sm:object-contain"
           />
           <img
             src={heroLightSrc}
             alt="Dream Log Hero"
-            className="hero-image-light relative z-0 w-full h-full rounded-[inherit] border object-contain"
+            className="hero-image-light relative z-0 aspect-[5/4] w-full rounded-[inherit] border object-cover object-top sm:aspect-auto sm:h-full sm:object-contain"
           />
         </div>
       </div>

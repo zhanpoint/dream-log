@@ -59,9 +59,16 @@ const menuItems = [
   },
 ];
 
-export function SettingsSidebar() {
+type SettingsSidebarProps = {
+  variant?: "sidebar" | "rail";
+};
+
+export function SettingsSidebar({
+  variant = "sidebar",
+}: SettingsSidebarProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const isRail = variant === "rail";
 
   const handleLogout = async () => {
     try {
@@ -72,8 +79,17 @@ export function SettingsSidebar() {
   };
 
   return (
-    <nav className="space-y-1">
-      <h2 className="mb-4 text-lg font-semibold">{t("settings.title")}</h2>
+    <nav className={cn(isRail ? "flex flex-col gap-3" : "flex flex-col gap-1")}>
+      <h2 className={cn("text-lg font-semibold", isRail ? "px-1" : "mb-3")}>
+        {t("settings.title")}
+      </h2>
+      <div
+        className={cn(
+          isRail
+            ? "scrollbar-hide -mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+            : "flex flex-col gap-1"
+        )}
+      >
       {menuItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href;
@@ -83,25 +99,36 @@ export function SettingsSidebar() {
             key={item.id}
             href={item.href}
             className={cn(
-              "group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200",
+              "group rounded-lg transition-all duration-200",
+              isRail
+                ? "flex min-w-fit items-center gap-2 whitespace-nowrap border px-3 py-2"
+                : "flex items-center gap-3 px-4 py-2.5",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:translate-x-1"
+                ? "border-primary bg-primary text-primary-foreground"
+                : cn(
+                    isRail
+                      ? "border-border/60 bg-card/60 text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:translate-x-1"
+                  )
             )}
           >
-            <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            <Icon className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110" />
             <span className="transition-opacity duration-200">{t(item.labelKey)}</span>
           </Link>
         );
       })}
+      </div>
 
-      <div className="pt-4 mt-4 border-t border-border/60">
+      <div className={cn("border-border/60", isRail ? "pt-1" : "mt-4 border-t pt-4")}>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
               type="button"
               variant="outline"
-              className="w-auto min-w-[120px] justify-start gap-2.5 text-destructive border-destructive/30 bg-transparent hover:bg-transparent hover:text-destructive hover:border-destructive/50 hover:scale-[1.03] hover:shadow-md transition-all duration-200"
+              className={cn(
+                "gap-2.5 border-destructive/30 bg-transparent text-destructive transition-all duration-200 hover:scale-[1.03] hover:border-destructive/50 hover:bg-transparent hover:text-destructive hover:shadow-md",
+                isRail ? "w-full justify-center" : "w-auto min-w-[120px] justify-start"
+              )}
             >
               <LogOut className="h-4 w-4" />
               {t("settings.logout.button")}

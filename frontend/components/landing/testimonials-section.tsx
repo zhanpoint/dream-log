@@ -66,7 +66,7 @@ const TestimonialCard = ({
     <figure
       className={cn(
         "testimonial-card",
-        "relative w-80 min-h-[180px] overflow-hidden rounded-2xl border p-6 shadow-lg backdrop-blur-sm transition-transform duration-300",
+        "relative w-full sm:w-80 min-h-[180px] overflow-hidden rounded-2xl border p-5 sm:p-6 shadow-lg backdrop-blur-sm transition-transform duration-300",
         "border-border/50",
         "hover:border-primary/30",
         "hover:shadow-2xl hover:shadow-primary/10",
@@ -104,14 +104,15 @@ export default function TestimonialsSection() {
   // 将评价分为两行
   const firstRow = testimonials.slice(0, Math.ceil(testimonials.length / 2));
   const secondRow = testimonials.slice(Math.ceil(testimonials.length / 2));
+  const mobileCards = testimonials.slice(0, 4);
 
   return (
-    <section className="relative py-28 px-6 overflow-x-hidden bg-background">
+    <section className="relative overflow-x-hidden bg-background px-4 py-18 sm:px-6 sm:py-24">
       <div className="max-w-7xl mx-auto overflow-x-hidden">
         {/* 标题区域 */}
         <ScrollReveal variant="fade-up">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+          <div className="mb-12 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold leading-tight text-foreground sm:mb-6 sm:text-4xl md:text-5xl">
               {t("marketing.testimonials.heading")}
             </h2>
           </div>
@@ -119,7 +120,12 @@ export default function TestimonialsSection() {
 
         {/* 无限滚动评价区域 */}
         <ScrollReveal variant="fade-up" delay={0.12}>
-          <div className="relative flex w-full flex-col items-center justify-center overflow-x-hidden testimonials-fade-mask">
+          <div className="grid gap-4 sm:hidden">
+            {mobileCards.map((testimonial) => (
+              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+            ))}
+          </div>
+          <div className="relative hidden w-full flex-col items-center justify-center overflow-x-hidden testimonials-fade-mask sm:flex">
             {/* 第一行 - 从左到右 */}
             <Marquee pauseOnHover className="[--duration:60s] mb-4 max-w-full">
               {firstRow.map((testimonial) => (
@@ -137,7 +143,7 @@ export default function TestimonialsSection() {
         </ScrollReveal>
 
         {/* 底部统计信息 */}
-        <div className="flex flex-wrap justify-center items-center gap-16 mt-16 text-center">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-center sm:mt-16 sm:gap-16">
           <ScrollReveal variant="scale" className="flex flex-col">
             <div className="flex flex-col">
               <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">

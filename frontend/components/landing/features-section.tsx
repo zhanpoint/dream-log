@@ -103,15 +103,15 @@ export default function FeaturesSection() {
   return (
     <section
       id="features"
-      className="mx-auto max-w-[80rem] px-6 text-center md:px-8 py-20"
+      className="mx-auto max-w-[80rem] px-4 py-16 text-center sm:px-6 md:px-8 md:py-20"
     >
       {/* 标题：先进入视野浮现 */}
       <ScrollReveal variant="fade-up">
         <div className="mx-auto max-w-5xl">
-          <h2 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl mb-6">
+          <h2 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:mb-6 sm:text-5xl md:text-6xl">
             {t("marketing.features.heading")}
           </h2>
-          <p className="text-xl text-muted-foreground mb-16">
+          <p className="mb-10 text-base text-muted-foreground sm:mb-16 sm:text-xl">
             {t("marketing.features.subheading")}
           </p>
         </div>
@@ -119,13 +119,13 @@ export default function FeaturesSection() {
 
       {/* 卡片网格：统一触发，避免逐个错峰导致“乱/拖沓”的体验 */}
       <ScrollReveal variant="fade-up" delay={0.08}>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4 lg:gap-8">
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <MagicCard
                 key={idx}
-                className="group relative flex flex-col h-full text-left p-8 rounded-2xl border border-border transition-all duration-300"
+                className="group relative flex h-full flex-col rounded-2xl border border-border p-5 text-left transition-all duration-300 sm:p-6 lg:p-8"
                 gradientSize={200}
                 gradientFrom={feature.gradientFrom}
                 gradientTo={feature.gradientTo}
@@ -134,19 +134,19 @@ export default function FeaturesSection() {
               >
                 <div className="relative flex-shrink-0 mb-5">
                   <div
-                    className={`w-14 h-14 flex items-center justify-center rounded-lg border border-border transition-all duration-300 group-hover:scale-105 ${feature.iconBgColor}`}
+                    className={`flex size-12 items-center justify-center rounded-lg border border-border transition-all duration-300 group-hover:scale-105 sm:size-14 ${feature.iconBgColor}`}
                   >
                     <Icon
-                      className={`h-8 w-8 transition-transform duration-300 group-hover:scale-110 ${feature.iconColor}`}
+                      className={`h-7 w-7 transition-transform duration-300 group-hover:scale-110 sm:h-8 sm:w-8 ${feature.iconColor}`}
                     />
                   </div>
                 </div>
 
                 <div className="relative flex flex-col flex-grow">
-                  <h3 className="text-2xl font-semibold text-left text-card-foreground mb-3">
+                  <h3 className="mb-2 text-xl font-semibold text-left text-card-foreground sm:mb-3 sm:text-2xl">
                     {feature.title}
                   </h3>
-                  <p className="text-base text-muted-foreground text-left leading-relaxed">
+                  <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
                     {feature.description}
                   </p>
                 </div>

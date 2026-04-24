@@ -192,12 +192,12 @@ export default function MyDreamsPage() {
     <div className="min-h-screen">
       {/* 标题 + 统计 */}
       <div className="mt-4">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-5 sm:py-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">{t("dreams.list.title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("dreams.list.title")}</h1>
             
             {/* 统计数据 */}
-            <div className="flex flex-wrap items-center gap-8">
+            <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-8">
               {/*
                 统计优先使用后端 /dreams/stats 返回的数据：
                 - total: 全部梦境数量
@@ -208,7 +208,7 @@ export default function MyDreamsPage() {
               */}
 
               {/* 全部梦境 */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                   <Moon className="h-5 w-5 text-primary" />
                 </div>
@@ -223,7 +223,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 连续记录天数 */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10">
                   <Flame className="h-5 w-5 text-orange-500" />
                 </div>
@@ -238,7 +238,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 本周记录数 */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
                   <Calendar className="h-5 w-5 text-emerald-500" />
                 </div>
@@ -253,7 +253,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 本月记录数 */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
                   <Calendar className="h-5 w-5 text-blue-500" />
                 </div>
@@ -272,11 +272,11 @@ export default function MyDreamsPage() {
       </div>
 
       {/* 搜索与过滤栏 */}
-      <div className="sticky top-0 z-40 bg-background">
+      <div className="sticky top-[60px] z-40 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/95">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3 flex-wrap flex-1">
-            <div className="relative w-full sm:w-80 md:w-96">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 xl:flex-nowrap">
+            <div className="relative w-full xl:w-auto xl:min-w-[15rem] xl:max-w-[17rem] 2xl:max-w-[18rem]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
                 placeholder={t("dreams.list.searchPlaceholder")}
@@ -291,7 +291,7 @@ export default function MyDreamsPage() {
                 }}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => setTimeout(() => setSearchOpen(false), 180)}
-                className="pl-10 h-10"
+                className="h-9 rounded-lg pl-10"
               />
               {searchOpen && searchHistory.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 py-1 rounded-lg border bg-popover shadow-lg z-50 backdrop-blur-sm">
@@ -345,7 +345,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-32 h-10 group/select text-foreground hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+              <SelectTrigger className="group/select h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] rounded-lg text-foreground transition-all duration-200 hover:scale-[1.02] hover:border-primary/50 hover:bg-primary/10 hover:text-primary hover:shadow-md active:scale-[0.98] sm:w-[7.5rem]">
                 <div className="flex items-center gap-1.5">
                   <span 
                     className="text-base leading-none text-muted-foreground group-hover/select:text-primary transition-colors font-medium" 
@@ -369,7 +369,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 px-3 transition-all duration-200 text-foreground",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     (dateFrom || dateTo) && "border-primary/50 bg-primary/5"
                   )}
@@ -432,7 +432,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 px-3 transition-all duration-200 text-foreground",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     dreamTypeFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
@@ -501,7 +501,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     emotionFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
@@ -571,7 +571,7 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-10 gap-1.5 transition-all duration-200 text-foreground",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     privacyFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
@@ -637,7 +637,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
               className={cn(
-                "group/filter gap-1.5 h-10 px-3 transition-all duration-200 text-foreground",
+                "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-center gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto",
                 "hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 favoriteOnly 
                   ? "border-amber-500/50 bg-amber-500/5 text-amber-600 dark:text-amber-400 shadow-md" 
@@ -656,7 +656,7 @@ export default function MyDreamsPage() {
             
             {/* 筛选结果统计 - 简约版 */}
             {!loading && (search || dreamTypeFilter.length > 0 || emotionFilter.length > 0 || dateFrom || dateTo || favoriteOnly || privacyFilter.length > 0) && (
-              <div className="flex items-center gap-3 text-sm">
+              <div className="shrink-0 flex items-center gap-2 text-sm sm:justify-end xl:pl-3">
                   <span className="text-muted-foreground">
                     {t("dreams.list.filteredCount", { count: total })}
                   </span>
@@ -694,7 +694,7 @@ export default function MyDreamsPage() {
           
           {/* 搜索历史快捷词 */}
           {searchHistory.length > 0 && !searchOpen && (
-            <div className="flex flex-wrap gap-1.5 items-center mt-2.5">
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
               <span className="text-sm text-muted-foreground">{t("dreams.list.recent")}</span>
               {searchHistory.slice(0, 5).map((term, i) => (
                 <div
@@ -733,9 +733,9 @@ export default function MyDreamsPage() {
       </div>
 
       {/* 梦境卡片网格：Grid 平铺填满宽度，避免右侧留白 */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i}>
                 <CardHeader>
@@ -749,7 +749,7 @@ export default function MyDreamsPage() {
             ))}
           </div>
         ) : dreams.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="py-16 text-center sm:py-20">
             <Moon className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
             <h3 className="text-xl font-semibold mb-2">
               {t("dreams.list.emptyTitle")}
@@ -777,7 +777,7 @@ export default function MyDreamsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
               <AnimatePresence mode="popLayout">
                 {dreams.map((dream, idx) => (
                   <motion.div
@@ -800,7 +800,7 @@ export default function MyDreamsPage() {
 
             {/* 分页 */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-10">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -831,7 +831,7 @@ export default function MyDreamsPage() {
       {/* 右下角浮动按钮：记录新梦境 */}
       <Link
         href="/dreams/new"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 md:bottom-6 md:right-6 md:z-50"
         style={{
           background: "linear-gradient(135deg, rgb(124 58 237) 0%, rgb(147 51 234) 100%)",
           boxShadow: "0 4px 20px rgb(124 58 237 / 0.4), 0 2px 8px rgb(0 0 0 / 0.15)",

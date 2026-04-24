@@ -35,8 +35,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main>{children}</main>
+      <main className="pb-24 md:pb-0">{children}</main>
     </div>
   );
 }
-

@@ -166,16 +166,16 @@ export default function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="mx-auto mt-20 w-full max-w-screen-xl px-6 pb-16">
+    <section id="pricing" className="mx-auto mt-14 w-full max-w-screen-xl px-4 pb-16 sm:px-6 md:mt-20">
       <ScrollReveal variant="fade-up">
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <h2 className="text-4xl font-semibold text-foreground">{t("billing.hero.title")}</h2>
-          <p className="mt-3 text-lg text-muted-foreground">
+          <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">{t("billing.hero.title")}</h2>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
             {t("billing.hero.subtitle")}
           </p>
         </div>
       </ScrollReveal>
-      <div className="grid items-stretch gap-6 lg:grid-cols-3">
+      <div className="grid items-stretch gap-4 lg:grid-cols-3 lg:gap-6">
         {plans.map((plan, index) => (
           <ScrollReveal
             key={plan.id}
@@ -185,7 +185,7 @@ export default function PricingSection() {
           >
             <div
               className={cn(
-                "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-background p-6 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)]",
+                "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-background p-5 text-foreground shadow-[0_20px_50px_-20px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-20px_rgba(59,130,246,0.35)] sm:p-6",
                 plan.id === "free" && "border-emerald-500/30 hover:border-emerald-400/45",
                 plan.id === "pro" && "border-primary/40 ring-1 ring-primary/25",
                 plan.id === "ultra" && "border-amber-400/40 hover:border-amber-300/55"

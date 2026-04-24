@@ -39,8 +39,8 @@ export function SettingsGuard({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="mb-4 md:mb-6">
           <Link href="/" className="inline-block group">
             <Button
               variant="ghost"
@@ -55,12 +55,18 @@ export function SettingsGuard({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
 
-        <div className="flex gap-8">
+        <div className="mb-5 md:hidden">
+          <SettingsSidebar variant="rail" />
+        </div>
+
+        <div className="flex gap-6 lg:gap-8">
           <aside className="hidden md:block w-64 flex-shrink-0">
-            <SettingsSidebar />
+            <div className="sticky top-24">
+              <SettingsSidebar />
+            </div>
           </aside>
 
-          <main className="flex-1 max-w-4xl">
+          <main className="min-w-0 flex-1 max-w-4xl pb-24 md:pb-0">
             <div className="animate-in fade-in duration-200">{children}</div>
           </main>
         </div>
@@ -68,4 +74,3 @@ export function SettingsGuard({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
