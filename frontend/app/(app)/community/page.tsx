@@ -607,21 +607,22 @@ function CommunityPageContent() {
         <div className="flex-1 min-w-0">
 
           {/* Channel tabs */}
-          <div className="flex items-center gap-3 mb-4 overflow-x-auto overflow-y-visible pb-2 pt-3 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="mb-4 -mx-4 overflow-x-auto overflow-y-visible px-4 pb-2 pt-3 scrollbar-hide md:mx-0 md:px-0">
+            <div className="flex min-w-max items-center gap-2.5 md:gap-3">
             {CHANNELS.map((c) => (
               <button
                 key={c.value}
                 onClick={() => handleChannelChange(c.value)}
-                className={`group relative px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                className={`group relative flex min-h-11 flex-shrink-0 items-center rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                   channel === c.value && c.value !== "greenhouse"
                     ? `bg-gradient-to-r ${c.gradient} text-white shadow-md border border-white/50 dark:border-white/40`
-                    : "text-foreground bg-card border border-gray-300/70 dark:border-gray-400/70 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-primary/10 hover:-translate-y-[2.5px] hover:shadow-lg"
+                    : "text-foreground bg-[oklch(var(--card))] border border-border/80 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-primary/10 hover:-translate-y-[2.5px] hover:shadow-lg"
                 }`}
               >
                 {channel === c.value && c.value !== "greenhouse" ? (
                   <div className="flex items-center gap-2">
                     <span>{c.label}</span>
-                    <span className="text-xs opacity-90 font-normal">· {c.description}</span>
+                    <span className="hidden text-xs font-normal opacity-90 sm:inline">· {c.description}</span>
                   </div>
                 ) : (
                   <span className="flex items-center gap-1">
@@ -633,17 +634,18 @@ function CommunityPageContent() {
                 )}
               </button>
             ))}
+            </div>
           </div>
 
           {/* ── Search bar & Sort tabs combined ───────────────────────────────────── */}
-          <div className="flex items-center gap-3 mb-5">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search input */}
             <div className="relative flex-1">
               <div className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-xl border bg-card transition-all duration-200",
+                "flex items-center gap-2 rounded-xl border bg-[oklch(var(--card))] px-3 py-2 transition-all duration-200",
                 searchActive || showSuggestions
                   ? "border-primary ring-2 ring-primary/20"
-                  : "border-gray-300 hover:border-blue-500 dark:border-gray-600 dark:hover:border-blue-400"
+                  : "border-border hover:border-blue-500 dark:hover:border-blue-400"
               )}>
                 <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <input
@@ -800,7 +802,8 @@ function CommunityPageContent() {
 
             {/* Sort tabs (only in normal feed mode) */}
             {!searchActive && (
-              <div className="flex items-center gap-2 bg-card border border-gray-300/80 dark:border-gray-600/80 rounded-xl shadow-sm hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200">
+              <div className="-mx-1 overflow-x-auto px-1 scrollbar-hide sm:mx-0 sm:px-0">
+              <div className="flex min-w-max items-center gap-2 rounded-xl border border-border/80 bg-[oklch(var(--card))] shadow-sm transition-all duration-200 hover:border-blue-500 dark:hover:border-blue-400">
                 {SORTS.map((s) => {
                   const active = !followingOnly && sort === s.value;
                   const indicatorColor = 
@@ -815,7 +818,7 @@ function CommunityPageContent() {
                     <button
                       key={s.value}
                       onClick={() => handleSortChange(s.value)}
-                      className={`group relative px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                      className={`group relative flex h-11 flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                         active
                           ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
@@ -829,6 +832,7 @@ function CommunityPageContent() {
                     </button>
                   );
                 })}
+              </div>
               </div>
             )}
 

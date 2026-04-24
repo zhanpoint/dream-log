@@ -163,7 +163,7 @@ export function SiteHeader() {
                       <div className="mobile-menu-sheet">
                         <div className="mobile-menu-handle" />
                         <div className="mobile-menu-section px-5 pt-3">
-                          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/70 p-4">
+                          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-[oklch(var(--card)/0.9)] p-4 shadow-sm">
                             <UserAvatar
                               userId={currentUser.id}
                               avatar={currentUser.avatar}

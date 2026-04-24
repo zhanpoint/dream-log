@@ -208,7 +208,7 @@ export default function MyDreamsPage() {
               */}
 
               {/* 全部梦境 */}
-              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-[oklch(var(--card)/0.92)] p-3 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                   <Moon className="h-5 w-5 text-primary" />
                 </div>
@@ -223,7 +223,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 连续记录天数 */}
-              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-[oklch(var(--card)/0.92)] p-3 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10">
                   <Flame className="h-5 w-5 text-orange-500" />
                 </div>
@@ -238,7 +238,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 本周记录数 */}
-              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-[oklch(var(--card)/0.92)] p-3 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
                   <Calendar className="h-5 w-5 text-emerald-500" />
                 </div>
@@ -253,7 +253,7 @@ export default function MyDreamsPage() {
               </div>
 
               {/* 本月记录数 */}
-              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-[oklch(var(--card)/0.92)] p-3 shadow-sm sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
                   <Calendar className="h-5 w-5 text-blue-500" />
                 </div>
@@ -345,10 +345,10 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="group/select h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] rounded-lg text-foreground transition-all duration-200 hover:scale-[1.02] hover:border-primary/50 hover:bg-primary/10 hover:text-primary hover:shadow-md active:scale-[0.98] sm:w-[7.5rem]">
+            <SelectTrigger className="group/select h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] rounded-lg px-2 text-foreground transition-all duration-200 hover:scale-[1.02] hover:border-primary/50 hover:bg-primary/10 hover:text-primary hover:shadow-md active:scale-[0.98] sm:w-[7rem]">
                 <div className="flex items-center gap-1.5">
                   <span 
-                    className="text-base leading-none text-muted-foreground group-hover/select:text-primary transition-colors font-medium" 
+                    className="text-base leading-none text-cyan-400 group-hover/select:text-cyan-300 transition-colors font-medium" 
                     aria-hidden
                   >
                     ⇅
@@ -369,12 +369,12 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] justify-between gap-1 rounded-lg px-2 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     (dateFrom || dateTo) && "border-primary/50 bg-primary/5"
                   )}
                 >
-                  <CalendarRange className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  <CalendarRange className="h-3.5 w-3.5 shrink-0 text-emerald-400 transition-colors group-hover/filter:text-emerald-300" />
                   {dateFrom || dateTo ? (
                     <span className="text-sm">
                       {dateFrom ? format(new Date(dateFrom), "M/d", { locale: zhCN }) : "…"} — {dateTo ? format(new Date(dateTo), "M/d", { locale: zhCN }) : "…"}
@@ -432,12 +432,12 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] justify-between gap-1 rounded-lg px-2 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     dreamTypeFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
                 >
-                  <Tag className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  <Tag className="h-3.5 w-3.5 shrink-0 text-violet-400 transition-colors group-hover/filter:text-violet-300" />
                   {t("dreams.list.dreamType")}
                   {dreamTypeFilter.length > 0 && (
                     <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
@@ -501,12 +501,12 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] justify-between gap-1 rounded-lg px-2 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     emotionFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
                 >
-                  <Sparkles className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  <Sparkles className="h-3.5 w-3.5 shrink-0 text-fuchsia-400 transition-colors group-hover/filter:text-fuchsia-300" />
                   {t("dreams.list.emotion")}
                   {emotionFilter.length > 0 && (
                     <Badge variant="secondary" className="h-5 min-w-5 px-1.5 text-xs bg-primary/20 dark:bg-primary/15 text-primary border-primary/30">
@@ -571,12 +571,12 @@ export default function MyDreamsPage() {
                   variant="outline"
                   size="default"
                   className={cn(
-                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-between gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
+                    "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] justify-between gap-1 rounded-lg px-2 text-foreground transition-all duration-200 sm:w-auto sm:justify-center",
                     "hover:bg-primary/10 hover:border-primary/50 hover:text-primary hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                     privacyFilter.length > 0 && "border-primary/50 bg-primary/5"
                   )}
                 >
-                  <Lock className="w-3.5 h-3.5 shrink-0 transition-colors group-hover/filter:text-primary" />
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-blue-400 transition-colors group-hover/filter:text-blue-300" />
                   {t("dreams.list.privacyFilter", "隐私类型")}
                   <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-50 transition-all group-hover/filter:opacity-100 group-hover/filter:text-primary" />
                 </Button>
@@ -637,7 +637,7 @@ export default function MyDreamsPage() {
                 setPage(1);
               }}
               className={cn(
-                "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[8.5rem] justify-center gap-1.5 rounded-lg px-2.5 text-foreground transition-all duration-200 sm:w-auto",
+                "group/filter h-9 w-[calc(50%-0.25rem)] min-w-[7.5rem] justify-center gap-1 rounded-lg px-2 text-foreground transition-all duration-200 sm:w-auto",
                 "hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
                 favoriteOnly 
                   ? "border-amber-500/50 bg-amber-500/5 text-amber-600 dark:text-amber-400 shadow-md" 
@@ -786,6 +786,7 @@ export default function MyDreamsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    className="h-full"
                   >
                     <DreamCard
                       dream={dream}
@@ -941,17 +942,17 @@ function DreamCard({
   };
 
   return (
-    <Link href={`/dreams/${dream.id}`}>
+    <Link href={`/dreams/${dream.id}`} className="block h-full">
       <Card
-        className="group break-inside-avoid overflow-hidden hover:shadow-2xl dream-card-hover border-l-4 hover:border-l-6 transition-all duration-300"
+        className="group break-inside-avoid h-[200px] overflow-hidden border-l-4 transition-all duration-300 hover:border-l-6 hover:shadow-2xl dream-card-hover flex flex-col"
         style={{ borderLeftColor: borderColor }}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               {/* 标题行：标题 + AI徽章 */}
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-1">
+              <div className="flex min-w-0 items-center gap-2">
+                <CardTitle className="truncate whitespace-nowrap text-lg transition-colors group-hover:text-primary">
                   {searchKeyword
                     ? renderHighlight(dream.title || "无标题梦境", "title")
                     : (dream.title || "无标题梦境")}
@@ -1053,7 +1054,7 @@ function DreamCard({
           </div>
         </CardHeader>
 
-        <CardContent className="pb-3">
+        <CardContent className="flex-1 pb-3">
           <p className="text-sm line-clamp-3 text-muted-foreground leading-relaxed">
             {searchKeyword
               ? renderHighlight(dream.content_preview, "content")
