@@ -112,7 +112,7 @@ class AuthAPIService {
         code,
         name,
       });
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -152,7 +152,7 @@ class AuthAPIService {
         email,
         password,
       });
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -167,7 +167,7 @@ class AuthAPIService {
         email,
         code,
       });
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -187,7 +187,7 @@ class AuthAPIService {
           password,
         }
       );
-      return normalizeAuthResponse(response.data);
+      return response.data;
     } catch (error) {
       throw handleAuthError(error);
     }
