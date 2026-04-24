@@ -20,6 +20,7 @@ import websockets
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+TranscriptionChunk = dict[str, str | bool]
 
 # 讯飞 API 常量
 XFYUN_WS_URL = "wss://office-api-ast-dx.iflyaisol.com/ast/communicate/v1"
@@ -47,6 +48,7 @@ def _generate_xfyun_url() -> str:
         "accessKeyId": access_key_id,
         "appId": app_id,
         "audio_encode": "pcm_s16le",
+        "eng_vad_mdn": "2",
         "lang": "autodialect",
         "samplerate": "16000",
         "utc": utc_str,
@@ -69,11 +71,13 @@ def _generate_xfyun_url() -> str:
     return f"{XFYUN_WS_URL}?{urllib.parse.urlencode(params)}"
 
 
-def _parse_xfyun_result(msg: dict) -> str | None:
+def _parse_xfyun_result(msg: dict) -> TranscriptionChunk | None:
     """
     从讯飞返回的 JSON 中提取转录文本
-    
-    仅返回确定性结果（type=0），忽略中间结果（type=1）
+
+    官方文档中:
+    - type=1: 中间结果
+    - type=0: 确定性结果
     """
     if msg.get("msg_type") != "result" or msg.get("res_type") != "asr":
         return None
@@ -81,11 +85,11 @@ def _parse_xfyun_result(msg: dict) -> str | None:
     data = msg.get("data", {})
     cn = data.get("cn", {})
     st = cn.get("st", {})
-    
-    # 只返回确定性结果（type="0"），忽略中间结果（type="1"）
-    if st.get("type") != "0":
+
+    st_type = str(st.get("type", ""))
+    if st_type not in {"0", "1"}:
         return None
-    
+
     rt_list = st.get("rt", [])
 
     # 拼接所有词
@@ -100,7 +104,12 @@ def _parse_xfyun_result(msg: dict) -> str | None:
                     words.append(w)
 
     text = "".join(words).strip()
-    return text if text else None
+    if not text:
+        return None
+    return {
+        "text": text,
+        "is_final": st_type == "0",
+    }
 
 
 def _is_started_message(msg: dict) -> bool:
@@ -144,7 +153,7 @@ class XfyunSpeechService:
         *,
         language_code: str = "cn",
         sample_rate: int = 16000,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[TranscriptionChunk]:
         """
         流式转录音频
 
@@ -154,7 +163,7 @@ class XfyunSpeechService:
             sample_rate: 采样率
 
         Yields:
-            转录文本片段（仅返回确定性结果）
+            转录文本片段（中间结果 + 确定性结果）
         """
         url = _generate_xfyun_url()
         logger.info("连接讯飞实时转写服务...")
@@ -176,8 +185,9 @@ class XfyunSpeechService:
                 session_id: str | None = None
                 session_started = asyncio.Event()
                 service_error: Exception | None = None
-                result_queue: asyncio.Queue[str | None] = asyncio.Queue()
+                result_queue: asyncio.Queue[TranscriptionChunk | None] = asyncio.Queue()
                 sent_audio = False
+                client_closed = False
 
                 async def close_ws() -> None:
                     try:
@@ -186,7 +196,7 @@ class XfyunSpeechService:
                         pass
 
                 async def receive_results() -> None:
-                    nonlocal session_id, service_error
+                    nonlocal session_id, service_error, client_closed
                     try:
                         async for message in ws:
                             if isinstance(message, str):
@@ -212,6 +222,7 @@ class XfyunSpeechService:
                                 except json.JSONDecodeError:
                                     pass
                     except websockets.exceptions.ConnectionClosed:
+                        client_closed = True
                         logger.info("讯飞 WebSocket 连接已关闭")
                     finally:
                         session_started.set()
@@ -241,6 +252,9 @@ class XfyunSpeechService:
                             return
 
                         await asyncio.wait_for(session_started.wait(), timeout=5)
+                        if client_closed:
+                            logger.info("客户端已主动关闭转录连接，跳过讯飞结束报文")
+                            return
                         if service_error is not None:
                             raise service_error
                         if not session_id:
@@ -252,7 +266,13 @@ class XfyunSpeechService:
                         logger.info("讯飞音频发送完成")
                     except websockets.exceptions.ConnectionClosed:
                         logger.info("讯飞连接已关闭，停止发送")
+                    except asyncio.CancelledError:
+                        logger.info("讯飞音频发送任务已取消")
+                        raise
                     except TimeoutError as e:
+                        if client_closed:
+                            logger.info("客户端已断开，忽略讯飞会话建立超时")
+                            return
                         service_error = RuntimeError("讯飞会话建立超时，未收到 started/sessionId")
                         logger.error("讯飞会话建立超时", exc_info=True)
                         await close_ws()

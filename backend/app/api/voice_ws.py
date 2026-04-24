@@ -79,9 +79,14 @@ async def transcribe_voice_stream(websocket: WebSocket) -> None:
                 try:
                     await websocket.send_json({
                         "type": "transcription",
-                        "text": transcript,
+                        "text": transcript["text"],
+                        "is_final": transcript.get("is_final", True),
                     })
-                    logger.info("转录: %s", transcript[:50])
+                    logger.info(
+                        "转录(%s): %s",
+                        "final" if transcript.get("is_final", True) else "interim",
+                        str(transcript["text"])[:50],
+                    )
                 except WebSocketDisconnect:
                     logger.info("WebSocket 断开，停止发送转录")
                     break

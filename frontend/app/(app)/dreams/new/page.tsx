@@ -156,6 +156,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   // 核心表单状态
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const voiceInterimTextRef = useRef("");
   const [contentAiStreaming, setContentAiStreaming] = useState(false);
   const [dreamDate, setDreamDate] = useState<Date>(new Date());
   const [dreamTime, setDreamTime] = useState(() => {
@@ -186,6 +187,31 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   const [primaryEmotion, setPrimaryEmotion] = useState("");
   const [emotionIntensity, setEmotionIntensity] = useState("");
   const [emotionResidual, setEmotionResidual] = useState(false);
+
+  const handleVoiceTranscription = useCallback(
+    (text: string, isFinal: boolean = true) => {
+      setContent((prev: string) => {
+        const interim = voiceInterimTextRef.current;
+        const base =
+          interim && prev.endsWith(interim)
+            ? prev.slice(0, -interim.length).trimEnd()
+            : prev;
+        const nextText = text.trim();
+        if (!nextText) {
+          voiceInterimTextRef.current = "";
+          return base;
+        }
+        const separator = base ? " " : "";
+        if (isFinal) {
+          voiceInterimTextRef.current = "";
+          return `${base}${separator}${nextText}`;
+        }
+        voiceInterimTextRef.current = `${separator}${nextText}`;
+        return `${base}${voiceInterimTextRef.current}`;
+      });
+    },
+    []
+  );
 
   // 睡眠
   const [sleepStartTime, setSleepStartTime] = useState("");
@@ -1202,6 +1228,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     value={content}
                     onChange={(e) => {
                       shouldStickToContentBottomRef.current = true;
+                      voiceInterimTextRef.current = "";
                       const newValue = e.target.value;
                       if (newValue.length <= 3000) {
                         setContent(newValue);
@@ -1278,9 +1305,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                   {/* 语音录制按钮（居中） */}
                   <div className="flex items-center justify-center">
                     <VoiceRecorder
-                      onTranscription={(text) =>
-                        setContent((prev) => (prev ? prev + " " + text : text))
-                      }
+                      onTranscription={handleVoiceTranscription}
                       className="voice-recorder-trigger"
                       compact
                     />

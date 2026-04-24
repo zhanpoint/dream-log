@@ -14,6 +14,8 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+TranscriptionChunk = dict[str, str | bool]
+
 
 class SpeechService:
     """语音转录统一入口（代理模式）"""
@@ -61,7 +63,7 @@ class SpeechService:
         *,
         language_code: str = "cn",
         sample_rate: int = 16000,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[TranscriptionChunk]:
         """
         流式转录音频（根据 provider 自动路由）
 
@@ -74,16 +76,16 @@ class SpeechService:
             转录文本片段
         """
         if self._provider == "google":
-            async for text in self._google_streaming(
+            async for chunk in self._google_streaming(
                 audio_stream, language_code=language_code, sample_rate=sample_rate
             ):
-                yield text
+                yield chunk
         else:
             service = self._get_xfyun_service()
-            async for text in service.streaming_transcribe(
+            async for chunk in service.streaming_transcribe(
                 audio_stream, language_code=language_code, sample_rate=sample_rate
             ):
-                yield text
+                yield chunk
 
     async def _google_streaming(
         self,
@@ -91,7 +93,7 @@ class SpeechService:
         *,
         language_code: str,
         sample_rate: int,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[TranscriptionChunk]:
         """Google Cloud Speech-to-Text V2 流式转录"""
         svc = self._get_google_service()
         speech_types = svc["speech_types"]
@@ -139,7 +141,10 @@ class SpeechService:
                 if result.alternatives and result.alternatives[0].transcript:
                     transcript = result.alternatives[0].transcript.strip()
                     if transcript:
-                        yield transcript
+                        yield {
+                            "text": transcript,
+                            "is_final": bool(result.is_final),
+                        }
 
 
 speech_service = SpeechService()

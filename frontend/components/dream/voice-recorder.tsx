@@ -7,13 +7,13 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 interface VoiceRecorderProps {
-  onTranscription: (text: string) => void;
+  onTranscription: (text: string, isFinal?: boolean) => void;
   className?: string;
   compact?: boolean;
 }
 
 const SAMPLE_RATE = 16000;
-const BUFFER_SIZE = 1024; // 64ms @ 16kHz，降低首帧延迟
+const BUFFER_SIZE = 512; // 32ms @ 16kHz，缩短首帧采集延迟
 const WS_CLOSE_GRACE_MS = 3000;
 
 /**
@@ -30,6 +30,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
 
   const wsRef = useRef<WebSocket | null>(null);
   const sentAudioRef = useRef(false);
+  const intentionalCloseRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -86,12 +87,14 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
     const ws = wsRef.current;
     wsRef.current = null;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      intentionalCloseRef.current = true;
       ws.close();
     }
   }, [clearCloseTimer, stopLocalRecording]);
 
   const stopRecording = useCallback(() => {
     const ws = wsRef.current;
+    const hadSentAudio = sentAudioRef.current;
     stopLocalRecording();
 
     if (!ws || ws.readyState !== WebSocket.OPEN) {
@@ -99,11 +102,12 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
       return;
     }
 
-    if (!sentAudioRef.current) {
+    if (!hadSentAudio) {
       cleanup();
       return;
     }
 
+    intentionalCloseRef.current = true;
     ws.send(JSON.stringify({ type: "stop" }));
     clearCloseTimer();
     closeTimerRef.current = setTimeout(() => {
@@ -179,7 +183,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
         try {
           const data = JSON.parse(event.data);
           if (data.type === "transcription" && data.text) {
-            onTranscription(data.text);
+            onTranscription(data.text, data.is_final !== false);
           } else if (data.type === "error") {
             toast.error(data.message || t("dreams.new.voiceRecording.error"));
           }
@@ -189,7 +193,9 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
       };
 
       ws.onerror = () => {
-        toast.error(t("dreams.new.voiceRecording.connectionFailed"));
+        if (!intentionalCloseRef.current) {
+          toast.error(t("dreams.new.voiceRecording.connectionFailed"));
+        }
         cleanup();
       };
 
@@ -198,6 +204,7 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
         if (wsRef.current === ws) {
           wsRef.current = null;
         }
+        intentionalCloseRef.current = false;
         stopLocalRecording();
       };
     } catch {

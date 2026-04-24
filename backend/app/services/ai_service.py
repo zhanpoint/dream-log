@@ -8,7 +8,7 @@ import base64
 import logging
 import os
 from pathlib import Path
-from typing import AsyncIterator, Awaitable, Callable
+from typing import Any, AsyncIterator, Awaitable, Callable
 from uuid import UUID
 
 import httpx
@@ -90,6 +90,7 @@ def _create_llm(
     temperature: float,
     max_tokens: int,
     streaming: bool = False,
+    reasoning: dict[str, Any] | None = None,
 ) -> ChatOpenRouter:
     """创建指定任务的 ChatOpenRouter 实例（多阶段认知管道）"""
     return ChatOpenRouter(
@@ -99,17 +100,22 @@ def _create_llm(
         temperature=temperature,
         max_tokens=max_tokens,
         streaming=streaming,
+        reasoning=reasoning,
         max_retries=2,
     )
 
 
 # ========== LCEL 多阶段认知管道 ==========
 
-# 标题生成链: 高温 = 诗意、人性化（仅用 content）
+# 标题生成链：关闭 reasoning，直接读取标准 content 输出
 _title_chain = (
     ChatPromptTemplate.from_messages([("human", TITLE_GENERATION_PROMPT)])
-    | _create_llm("title_generation", temperature=TEMPERATURE_TITLE, max_tokens=MAX_TOKENS_TITLE)
-    | StrOutputParser()
+    | _create_llm(
+        "title_generation",
+        temperature=TEMPERATURE_TITLE,
+        max_tokens=MAX_TOKENS_TITLE,
+        reasoning={"effort": "none"},
+    )
 )
 
 _ANALYSIS_MAX_IMAGE_COUNT = 4
@@ -163,6 +169,27 @@ class AIService:
             return "".join(pieces)
         return str(content) if content is not None else ""
 
+    @staticmethod
+    def _extract_ai_message_text(message: object) -> str:
+        content = getattr(message, "content", message)
+        text = AIService._extract_text_content(content).strip()
+        if text:
+            return text
+
+        content_blocks = getattr(message, "content_blocks", None)
+        if isinstance(content_blocks, list):
+            pieces: list[str] = []
+            for block in content_blocks:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "text" and isinstance(block.get("text"), str):
+                    pieces.append(block["text"])
+            joined = "".join(pieces).strip()
+            if joined:
+                return joined
+
+        return ""
+
     async def _invoke_multimodal_json(
         self,
         *,
@@ -189,7 +216,8 @@ class AIService:
         result = await _title_chain.ainvoke(
             {"content": content, "target_language": target_language}
         )
-        title = result.strip().strip('"\'《》「」')
+        raw_title = self._extract_ai_message_text(result)
+        title = raw_title.strip().strip('"\'《》「」')
         return title if title else "无题之梦"
 
     def _build_content_assist_chain(self, picked_action: str):
