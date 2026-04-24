@@ -80,6 +80,14 @@ export const api = axios.create({
   timeout: 12000, // 12 秒超时（原 30s 过长，普通接口应快速响应）
 });
 
+function extractRotatedRefreshToken(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const payload = data as { refreshToken?: unknown; refresh_token?: unknown };
+  if (typeof payload.refreshToken === "string" && payload.refreshToken) return payload.refreshToken;
+  if (typeof payload.refresh_token === "string" && payload.refresh_token) return payload.refresh_token;
+  return undefined;
+}
+
 // 缓存语言值，避免每次请求都读取 DOM
 let _cachedLang = "cn";
 if (typeof document !== "undefined") {
@@ -126,6 +134,12 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = String(originalRequest?.url || "");
+
+    // refresh 接口自身失败时不能再次进入刷新流程，否则会造成递归排队和 401 风暴
+    if (error.response?.status === 401 && requestUrl.includes("/auth/refresh")) {
+      return Promise.reject(error);
+    }
 
     // 处理 401 错误(Token 过期)
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -152,7 +166,8 @@ api.interceptors.response.use(
         if (refreshToken) {
           try {
             const response = await api.post("/auth/refresh", { refreshToken });
-            const { token: newAccessToken, refreshToken: newRefreshToken } = response.data;
+            const { token: newAccessToken } = response.data;
+            const newRefreshToken = extractRotatedRefreshToken(response.data);
 
             // 更新 token
             localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, newAccessToken);

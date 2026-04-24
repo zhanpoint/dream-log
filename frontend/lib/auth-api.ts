@@ -23,7 +23,15 @@ export interface User {
 export interface AuthResponse {
   token: string;
   refreshToken?: string;
+  refresh_token?: string;
   user: User;
+}
+
+function normalizeAuthResponse(response: AuthResponse): AuthResponse {
+  return {
+    ...response,
+    refreshToken: response.refreshToken ?? response.refresh_token,
+  };
 }
 
 /**
@@ -126,7 +134,7 @@ class AuthAPIService {
         code,
         name,
       });
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -179,7 +187,7 @@ class AuthAPIService {
           password,
         }
       );
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -215,7 +223,7 @@ class AuthAPIService {
           newPassword,
         }
       );
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -246,7 +254,7 @@ class AuthAPIService {
           code,
         }
       );
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
@@ -272,7 +280,7 @@ class AuthAPIService {
       const response = await api.post<AuthResponse>("/auth/refresh", {
         refreshToken,
       });
-      return response.data;
+      return normalizeAuthResponse(response.data);
     } catch (error) {
       throw handleAuthError(error);
     }
