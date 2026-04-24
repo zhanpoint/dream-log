@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -101,7 +101,6 @@ type ContentStructured = {
 export default function DreamDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const dreamId = params.id as string;
   const { t, i18n } = useTranslation();
 
@@ -353,32 +352,6 @@ export default function DreamDetailPage() {
       }
     }, 120000);
   };
-
-  const handleAnalyzeRef = useRef(handleAnalyze);
-  handleAnalyzeRef.current = handleAnalyze;
-
-  useEffect(() => {
-    if (loading || !dream) return;
-    if (searchParams.get("autoAnalyze") !== "1") return;
-    const consumedKey = `dream:autoAnalyzeConsumed:${dreamId}`;
-    if (typeof sessionStorage !== "undefined" && sessionStorage.getItem(consumedKey) === "1") {
-      if (searchParams.get("autoAnalyze") === "1") {
-        router.replace(`/dreams/${dreamId}`, { scroll: false });
-      }
-      return;
-    }
-    if (typeof sessionStorage !== "undefined") {
-      sessionStorage.setItem(consumedKey, "1");
-    }
-    router.replace(`/dreams/${dreamId}`, { scroll: false });
-    const needsStream =
-      !dream.title?.trim() ||
-      dream.ai_processing_status === "PENDING" ||
-      dream.ai_processing_status === "PROCESSING";
-    if (needsStream) {
-      void handleAnalyzeRef.current("auto");
-    }
-  }, [loading, dream, dreamId, searchParams, router]);
 
   const handleStopAnalyze = async () => {
     if (!dream) return;

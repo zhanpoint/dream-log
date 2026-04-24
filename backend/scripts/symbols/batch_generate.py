@@ -181,11 +181,12 @@ async def run() -> None:
             names_first = ", ".join(s["name"] for s in wave[0][1])
             print(f"[{batch_indices[0]+1}~{batch_indices[-1]+1}/{loops}] 并发 {len(wave)} 批: {names_first} ...", end="", flush=True)
 
-            tasks = [
-                process_one_batch(client, idx, batch)
-                for idx, batch in wave
-            ]
-            completed = await asyncio.gather(*tasks)
+            batch_tasks: list[asyncio.Task[tuple[int, list[dict] | None, Exception | None]]] = []
+            async with asyncio.TaskGroup() as tg:
+                for idx, batch in wave:
+                    batch_tasks.append(tg.create_task(process_one_batch(client, idx, batch)))
+
+            completed = [task.result() for task in batch_tasks]
 
             completed.sort(key=lambda x: x[0])
             batch_by_index = {idx: batch for idx, batch in wave}

@@ -246,7 +246,7 @@ uv run ruff check --fix .
 uv run mypy app
 
 # 启动开发服务器（热重载）
-uv run uvicorn app.main:app --reload --port 8000
+uv run dev
 ```
 
 ### pyproject.toml 推荐配置
@@ -265,12 +265,9 @@ python_version = "3.11"
 strict = true
 ignore_missing_imports = true
 
-[tool.uv.scripts]
-dev = "uvicorn app.main:app --reload"
-worker = "arq app.core.arq_app.WorkerSettings"
-lint = "ruff check ."
-format = "ruff format ."
-typecheck = "mypy app"
+[project.scripts]
+dev = "app.cli:run_dev"
+worker = "app.cli:run_worker_command"
 ```
 
 ---
@@ -323,10 +320,10 @@ cp .env.example .env
 uv run alembic upgrade head
 
 # 5. 启动 API 服务
-uv run uvicorn app.main:app --reload --port 8000
+uv run dev
 
 # 6. 启动后台 Worker（新终端）
-uv run arq app.core.arq_app.WorkerSettings
+uv run worker
 
 # API 文档访问地址
 # Swagger UI:  http://localhost:8000/docs

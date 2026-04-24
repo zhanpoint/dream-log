@@ -147,12 +147,16 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
   /** 主列 max-w-4xl 容器，用于 AI 面板宽度与左右边距对齐 */
   const editorColumnRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const shouldStickToContentBottomRef = useRef(true);
   const lifeContextAreaRef = useRef<HTMLTextAreaElement>(null);
   const userInterpretationAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // 核心表单状态
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [contentAiStreaming, setContentAiStreaming] = useState(false);
   const [dreamDate, setDreamDate] = useState<Date>(new Date());
   const [dreamTime, setDreamTime] = useState(() => {
     const now = new Date();
@@ -224,6 +228,51 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
 
   contentRef.current = content;
   titleRef.current = title;
+
+  const updateContentBottomStickiness = useCallback(() => {
+    const textareaEl = contentTextareaRef.current;
+    const scrollEl = contentScrollRef.current;
+    const threshold = 48;
+
+    const textareaNearBottom =
+      !!textareaEl &&
+      textareaEl.scrollHeight - textareaEl.clientHeight - textareaEl.scrollTop <= threshold;
+    const containerNearBottom =
+      !!scrollEl &&
+      scrollEl.scrollHeight - scrollEl.clientHeight - scrollEl.scrollTop <= threshold;
+
+    shouldStickToContentBottomRef.current =
+      contentAiStreaming || textareaNearBottom || containerNearBottom;
+  }, [contentAiStreaming]);
+
+  const scrollDreamContentToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    const textareaEl = contentTextareaRef.current;
+    const scrollEl = contentScrollRef.current;
+
+    if (textareaEl) {
+      textareaEl.scrollTop = textareaEl.scrollHeight;
+      const end = textareaEl.value.length;
+      textareaEl.setSelectionRange(end, end);
+    }
+
+    if (scrollEl) {
+      scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (contentAiStreaming) {
+      shouldStickToContentBottomRef.current = true;
+    }
+  }, [contentAiStreaming]);
+
+  useEffect(() => {
+    if (!shouldStickToContentBottomRef.current) return;
+    const rafId = window.requestAnimationFrame(() => {
+      scrollDreamContentToBottom(contentAiStreaming ? "auto" : "smooth");
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [content, contentAiStreaming, scrollDreamContentToBottom]);
 
   // 从 URL 预填（仅创建模式）：?seek=1&privacy=PUBLIC
   useEffect(() => {
@@ -874,11 +923,8 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
         await clearDraftFully(snap);
       }
 
-      const needsAutoAnalyze = mode === "create" && !title.trim();
       skipLeaveGuardRef.current = true;
-      router.push(
-        `/dreams/${dream.id}${needsAutoAnalyze ? "?autoAnalyze=1" : ""}`
-      );
+      router.push(`/dreams/${dream.id}`);
     } catch (err: any) {
       if (mode === "create") {
         await flush();
@@ -1133,6 +1179,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 layoutAnchorRef={editorColumnRef}
                 content={content}
                 onContentChange={setContent}
+                onLoadingChange={setContentAiStreaming}
                 maxLength={3000}
               >
               <div 
@@ -1144,11 +1191,17 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                 className="relative min-h-[300px] rounded-lg border border-border/60 bg-transparent focus-within:border-blue-500/80 dark:focus-within:border-blue-400/60 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] dark:focus-within:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-shadow duration-300 flex flex-col"
               >
                 {/* 文本输入区域 - 可滚动 */}
-                <div className="flex-1 overflow-y-auto">
+                <div
+                  ref={contentScrollRef}
+                  className="flex-1 overflow-y-auto"
+                  onScroll={updateContentBottomStickiness}
+                >
                   <Textarea
+                    ref={contentTextareaRef}
                     placeholder={t("dreams.new.dreamContentPlaceholder")}
                     value={content}
                     onChange={(e) => {
+                      shouldStickToContentBottomRef.current = true;
                       const newValue = e.target.value;
                       if (newValue.length <= 3000) {
                         setContent(newValue);
@@ -1156,6 +1209,10 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                         toast.error(t("dreams.new.toast.contentTooLong"));
                       }
                     }}
+                    onScroll={updateContentBottomStickiness}
+                    onClick={updateContentBottomStickiness}
+                    onKeyUp={updateContentBottomStickiness}
+                    onSelect={updateContentBottomStickiness}
                     maxLength={3000}
                     className="text-sm leading-relaxed border-0 bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-sm placeholder:text-muted-foreground/90 dark:placeholder:text-foreground placeholder:opacity-100 p-4 rounded-t-lg w-full h-full min-h-full"
                   />
@@ -1194,7 +1251,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                       />
                       <label
                         htmlFor="dream-image-input"
-                        className="relative flex items-center justify-center p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer hover:scale-105"
+                        className="group relative flex items-center justify-center p-1.5 rounded-lg text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-cyan-400/20 transition-all duration-200 cursor-pointer hover:scale-105"
                         title={t("dreams.new.uploadImage")}
                       >
                         <ImagePlus className="w-[18px] h-[18px] transition-transform duration-200" />
@@ -1210,7 +1267,7 @@ export function DreamEditor({ mode = "create", initialDream }: DreamEditorProps)
                     <button
                       type="button"
                       onClick={() => setDrawingBoardOpen(true)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-all duration-200 hover:scale-105"
+                      className="group p-1.5 rounded-lg text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 dark:hover:bg-amber-400/20 transition-all duration-200 hover:scale-105"
                       title={t("dreams.new.drawingBoard")}
                     >
                       <PenTool className="w-[18px] h-[18px]" />

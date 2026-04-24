@@ -52,6 +52,10 @@ dependencies = [
     "stripe",
 ]
 
+[project.scripts]
+dev = "app.cli:run_dev"
+worker = "app.cli:run_worker_command"
+
 [dependency-groups]
 dev = [
     "ruff>=0.9.1",

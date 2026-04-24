@@ -6,6 +6,7 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime
+from typing import TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,10 +18,11 @@ from app.models.dream_insight import DreamInsight
 from app.models.dream_tag import DreamTag
 from app.models.dream_trigger import DreamTrigger
 from app.models.dream_type import DreamTypeMapping
-from app.models.enums import AIProcessingStatus
+from app.models.enums import AIProcessingStatus, AttachmentType
 from app.models.user import shanghai_now
 
 logger = logging.getLogger(__name__)
+T = TypeVar("T")
 
 
 async def _get_db_session():
@@ -29,6 +31,14 @@ async def _get_db_session():
 
     async with async_session_maker() as session:
         yield session
+
+
+async def _capture_result(awaitable) -> T | BaseException:
+    """保留 gather(return_exceptions=True) 语义，返回结果或异常对象。"""
+    try:
+        return await awaitable
+    except BaseException as exc:
+        return exc
 
 
 def _format_dream_context(dream: Dream, insight: DreamInsight | None, *, target_language: str) -> str:
@@ -307,6 +317,28 @@ def _format_dream_context(dream: Dream, insight: DreamInsight | None, *, target_
     return base
 
 
+async def _collect_analysis_image_urls(dream: Dream) -> list[str]:
+    """收集用户上传图片并签名，供多模态梦境分析使用。"""
+    image_attachments = [
+        att
+        for att in (dream.attachments or [])
+        if getattr(att, "attachment_type", None) == AttachmentType.IMAGE and getattr(att, "file_url", None)
+    ]
+    if not image_attachments:
+        return []
+
+    from app.services.oss_service import get_oss_service
+
+    oss = get_oss_service()
+    signed_urls: list[str] = []
+    for att in image_attachments[:4]:
+        try:
+            signed_urls.append(await oss.sign_private_object_url(att.file_url, expires_seconds=3600))
+        except Exception as exc:
+            logger.warning("梦境分析图片签名失败 dream_id=%s attachment_id=%s: %s", dream.id, att.id, exc)
+    return signed_urls
+
+
 async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = None) -> dict:
     """
     完整梦境分析工作流（两阶段）
@@ -349,6 +381,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                 select(Dream)
                 .where(Dream.id == uuid.UUID(dream_id))
                 .options(
+                    selectinload(Dream.attachments),
                     selectinload(Dream.tags).selectinload(DreamTag.tag),
                     selectinload(Dream.type_mappings).selectinload(DreamTypeMapping.dream_type),
                 )
@@ -395,6 +428,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                 db.add(insight)
                 await db.flush()
             dream_context = _format_dream_context(dream, insight, target_language=target_language)
+            analysis_image_urls = await _collect_analysis_image_urls(dream)
 
             # ===== 两阶段分析：阶段1 并行 → 阶段2 串行（依赖阶段1）=====
             async def _noop():
@@ -435,12 +469,25 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
 
             # 阶段1（并行）：标题 + 基础分析（合并 structure + emotion + trigger + sleep）
             await _touch_lock()
-            phase1_results = await asyncio.gather(
-                ai_service.generate_title(content, target_language=target_language) if need_title else _noop(),
-                ai_service.analyze_basic(dream_context, target_language=target_language),
-                return_exceptions=True,
-            )
-            title_result, basic_result = phase1_results
+            async with asyncio.TaskGroup() as tg:
+                title_task = tg.create_task(
+                    _capture_result(
+                        ai_service.generate_title(content, target_language=target_language)
+                        if need_title
+                        else _noop()
+                    )
+                )
+                basic_task = tg.create_task(
+                    _capture_result(
+                        ai_service.analyze_basic(
+                            dream_context,
+                            target_language=target_language,
+                            image_urls=analysis_image_urls,
+                        )
+                    )
+                )
+            title_result = title_task.result()
+            basic_result = basic_task.result()
 
             if await _cancelled():
                 return await _finish_cancelled()
@@ -497,6 +544,7 @@ async def analyze_dream(ctx: dict, dream_id: str, accept_language: str | None = 
                     dream_context,
                     basic_analysis,
                     target_language=target_language,
+                    image_urls=analysis_image_urls,
                 )
             except Exception as e:
                 logger.warning(f"阶段2深度洞察失败: {e}")

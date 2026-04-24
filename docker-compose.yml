@@ -62,8 +62,8 @@ services:
     image: ${BACKEND_IMAGE_URI:?BACKEND_IMAGE_URI is not set or empty}
     build:
       context: backend
-    # 与本地一致：python -m（不依赖 arq 控制台脚本是否在 PATH）
-    command: ["python", "-m", "scripts.start_worker"]
+    # 与后端 pyproject.toml 的 uv 脚本别名保持一致
+    command: ["uv", "run", "worker"]
     env_file: ./.env
     init: true
     extra_hosts:

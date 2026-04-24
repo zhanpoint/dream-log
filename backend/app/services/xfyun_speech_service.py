@@ -103,6 +103,34 @@ def _parse_xfyun_result(msg: dict) -> str | None:
     return text if text else None
 
 
+def _is_started_message(msg: dict) -> bool:
+    """官方文档中握手成功可能返回 action=started 或 msg_type=started。"""
+    return msg.get("action") == "started" or msg.get("msg_type") == "started"
+
+
+def _extract_session_id(msg: dict) -> str | None:
+    """兼容 sid / sessionId 两种字段名。"""
+    sid = msg.get("sid") or msg.get("sessionId")
+    return sid if isinstance(sid, str) and sid else None
+
+
+def _extract_error_message(msg: dict) -> str | None:
+    """兼容官方文档中的多种错误载荷格式。"""
+    if msg.get("action") == "error" or msg.get("msg_type") == "error":
+        return str(msg.get("desc") or msg.get("message") or "未知错误")
+
+    if msg.get("msg_type") == "result" and msg.get("res_type") == "frc":
+        data = msg.get("data")
+        if isinstance(data, dict):
+            return str(data.get("desc") or "功能异常")
+
+    code = str(msg.get("code") or "")
+    if code and code != "0":
+        return str(msg.get("desc") or msg.get("message") or f"错误码 {code}")
+
+    return None
+
+
 class XfyunSpeechService:
     """讯飞星火实时语音转写"""
 
@@ -145,86 +173,112 @@ class XfyunSpeechService:
             async with ws_ctx as ws:
                 logger.info("讯飞 WebSocket 已连接")
 
-                # 用于存储 session_id
                 session_id: str | None = None
-
-                # 接收结果的任务
+                session_started = asyncio.Event()
+                service_error: Exception | None = None
                 result_queue: asyncio.Queue[str | None] = asyncio.Queue()
+                sent_audio = False
+
+                async def close_ws() -> None:
+                    try:
+                        await ws.close()
+                    except Exception:
+                        pass
 
                 async def receive_results() -> None:
-                    nonlocal session_id
+                    nonlocal session_id, service_error
                     try:
                         async for message in ws:
                             if isinstance(message, str):
                                 try:
                                     msg = json.loads(message)
 
-                                    # 握手成功，提取 sessionId (msg_type="started")
-                                    if msg.get("msg_type") == "started":
-                                        session_id = msg.get("sid")
+                                    if _is_started_message(msg):
+                                        session_id = _extract_session_id(msg)
                                         logger.info("讯飞握手成功，sessionId: %s", session_id)
+                                        session_started.set()
+                                        continue
 
-                                    # 提取转录文本（仅确定性结果 type=0）
+                                    error_msg = _extract_error_message(msg)
+                                    if error_msg:
+                                        service_error = RuntimeError(f"讯飞转录错误: {error_msg}")
+                                        logger.error("讯飞转录错误: %s", error_msg)
+                                        await close_ws()
+                                        break
+
                                     text = _parse_xfyun_result(msg)
                                     if text:
                                         await result_queue.put(text)
-
-                                    # 检查错误
-                                    if msg.get("msg_type") == "error":
-                                        error_msg = msg.get("message", "未知错误")
-                                        logger.error("讯飞转录错误: %s", error_msg)
-
                                 except json.JSONDecodeError:
                                     pass
                     except websockets.exceptions.ConnectionClosed:
                         logger.info("讯飞 WebSocket 连接已关闭")
                     finally:
+                        session_started.set()
                         await result_queue.put(None)
 
-                # 发送音频的任务
                 async def send_audio() -> None:
+                    nonlocal service_error, sent_audio
                     try:
                         buffer = bytearray()
                         async for chunk in audio_stream:
                             buffer.extend(chunk)
 
-                            # 按讯飞要求每 1280 字节一帧发送
                             while len(buffer) >= AUDIO_FRAME_SIZE:
                                 frame = bytes(buffer[:AUDIO_FRAME_SIZE])
                                 await ws.send(frame)
+                                sent_audio = True
                                 buffer = buffer[AUDIO_FRAME_SIZE:]
                                 await asyncio.sleep(FRAME_INTERVAL)
 
-                        # 发送剩余不足一帧的数据
                         if buffer:
                             await ws.send(bytes(buffer))
+                            sent_audio = True
 
-                        # 发送结束标记（必须包含 sessionId）
-                        end_msg = {"end": True}
-                        if session_id:
-                            end_msg["sessionId"] = session_id
-                            logger.info("发送结束标记，sessionId: %s", session_id)
-                        else:
-                            logger.warning("发送结束标记，但 sessionId 未获取")
+                        if not sent_audio:
+                            logger.info("未发送任何音频帧，直接结束讯飞会话")
+                            await close_ws()
+                            return
+
+                        await asyncio.wait_for(session_started.wait(), timeout=5)
+                        if service_error is not None:
+                            raise service_error
+                        if not session_id:
+                            raise RuntimeError("讯飞未返回 started/sid，无法正常结束会话")
+
+                        end_msg = {"end": True, "sessionId": session_id}
+                        logger.info("发送结束标记，sessionId: %s", session_id)
                         await ws.send(json.dumps(end_msg, ensure_ascii=False))
                         logger.info("讯飞音频发送完成")
                     except websockets.exceptions.ConnectionClosed:
                         logger.info("讯飞连接已关闭，停止发送")
+                    except TimeoutError as e:
+                        service_error = RuntimeError("讯飞会话建立超时，未收到 started/sessionId")
+                        logger.error("讯飞会话建立超时", exc_info=True)
+                        await close_ws()
+                        raise service_error from e
+                    except Exception as e:
+                        service_error = e
+                        await close_ws()
+                        raise
 
-                # 并发运行发送和接收
                 recv_task = asyncio.create_task(receive_results())
                 send_task = asyncio.create_task(send_audio())
 
                 try:
-                    # 逐条 yield 转录结果
                     while True:
                         text = await result_queue.get()
                         if text is None:
                             break
                         yield text
+                    if service_error is not None:
+                        raise service_error
+                    await send_task
                 finally:
-                    send_task.cancel()
-                    recv_task.cancel()
+                    if not send_task.done():
+                        send_task.cancel()
+                    if not recv_task.done():
+                        recv_task.cancel()
                     try:
                         await send_task
                     except (asyncio.CancelledError, Exception):

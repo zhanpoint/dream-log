@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Loader2, Mic, Square, X } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,8 @@ interface VoiceRecorderProps {
 }
 
 const SAMPLE_RATE = 16000;
-const BUFFER_SIZE = 4096; // 256ms @ 16kHz
+const BUFFER_SIZE = 1024; // 64ms @ 16kHz，降低首帧延迟
+const WS_CLOSE_GRACE_MS = 3000;
 
 /**
  * 实时语音转录组件
@@ -21,14 +22,16 @@ const BUFFER_SIZE = 4096; // 256ms @ 16kHz
  * 使用 Google Cloud Speech-to-Text V2 流式转录
  * 前端直接发送 16-bit PCM 二进制数据到后端 WebSocket
  */
-export function VoiceRecorder({ onTranscription, className, compact }: VoiceRecorderProps) {
+export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps) {
   const { t } = useTranslation();
   const [recording, setRecording] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [duration, setDuration] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const sentAudioRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
@@ -39,8 +42,15 @@ export function VoiceRecorder({ onTranscription, className, compact }: VoiceReco
     return `${mm}:${ss}`;
   };
 
-  /** 清理所有资源 */
-  const cleanup = useCallback(() => {
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  /** 停止本地录音资源，但保留 WebSocket 等待最终结果 */
+  const stopLocalRecording = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -65,30 +75,52 @@ export function VoiceRecorder({ onTranscription, className, compact }: VoiceReco
     setRecording(false);
     setConnecting(false);
     setDuration(0);
+    sentAudioRef.current = false;
   }, []);
 
-  const stopRecording = useCallback(() => {
-    // 发送停止信号
+  /** 清理所有资源 */
+  const cleanup = useCallback(() => {
+    clearCloseTimer();
+    stopLocalRecording();
+
     const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "stop" }));
-      setTimeout(() => {
-        if (ws.readyState === WebSocket.OPEN) ws.close();
-      }, 200);
-    }
     wsRef.current = null;
-    cleanup();
-  }, [cleanup]);
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      ws.close();
+    }
+  }, [clearCloseTimer, stopLocalRecording]);
+
+  const stopRecording = useCallback(() => {
+    const ws = wsRef.current;
+    stopLocalRecording();
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      cleanup();
+      return;
+    }
+
+    if (!sentAudioRef.current) {
+      cleanup();
+      return;
+    }
+
+    ws.send(JSON.stringify({ type: "stop" }));
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => {
+      if (wsRef.current === ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    }, WS_CLOSE_GRACE_MS);
+  }, [cleanup, clearCloseTimer, stopLocalRecording]);
 
   const cancelRecording = useCallback(() => {
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) ws.close();
-    wsRef.current = null;
     cleanup();
     toast.info(t("dreams.new.voiceRecording.canceled"));
-  }, [cleanup]);
+  }, [cleanup, t]);
 
   const startRecording = useCallback(async () => {
+    if (wsRef.current) return;
+
     try {
       setConnecting(true);
 
@@ -132,6 +164,7 @@ export function VoiceRecorder({ onTranscription, className, compact }: VoiceReco
           }
 
           // 直接发送二进制数据（不做 Base64）
+          sentAudioRef.current = true;
           ws.send(pcm16.buffer);
         };
 
@@ -160,18 +193,22 @@ export function VoiceRecorder({ onTranscription, className, compact }: VoiceReco
         cleanup();
       };
 
-      ws.onclose = () => cleanup();
+      ws.onclose = () => {
+        clearCloseTimer();
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+        }
+        stopLocalRecording();
+      };
     } catch {
       setConnecting(false);
       cleanup();
       toast.error(t("dreams.new.voiceRecording.permissionDenied"));
     }
-  }, [onTranscription, cleanup]);
+  }, [onTranscription, cleanup, clearCloseTimer, stopLocalRecording]);
 
   useEffect(() => {
     return () => {
-      const ws = wsRef.current;
-      if (ws && ws.readyState === WebSocket.OPEN) ws.close();
       cleanup();
     };
   }, [cleanup]);

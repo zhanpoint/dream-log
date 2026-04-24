@@ -100,11 +100,13 @@ const toolbarIconClass = cn(
 function AutoResizeInstruction({
   value,
   onChange,
+  onKeyDown,
   disabled,
   placeholder,
 }: {
   value: string;
   onChange: (v: string) => void;
+  onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
   disabled?: boolean;
   placeholder: string;
 }) {
@@ -125,6 +127,7 @@ function AutoResizeInstruction({
       disabled={disabled}
       maxLength={INSTRUCTION_MAX}
       onChange={(e) => onChange(e.target.value.slice(0, INSTRUCTION_MAX))}
+      onKeyDown={onKeyDown}
       placeholder={placeholder}
       className={cn(
         "min-h-[40px] w-full resize-none overflow-hidden scrollbar-hide bg-transparent px-3 py-2.5 text-sm leading-relaxed",
@@ -171,12 +174,14 @@ export function DreamContentAiProvider({
   children,
   content,
   onContentChange,
+  onLoadingChange,
   maxLength = DREAM_CONTENT_MAX,
   layoutAnchorRef,
 }: {
   children: ReactNode;
   content: string;
   onContentChange: (v: string) => void;
+  onLoadingChange?: (loading: boolean) => void;
   maxLength?: number;
   /** 与主编辑列同宽的容器，用于 AI 面板左右边缘与该列对齐 */
   layoutAnchorRef?: RefObject<HTMLElement | null>;
@@ -362,6 +367,10 @@ export function DreamContentAiProvider({
     return () => window.removeEventListener("keydown", onKey);
   }, [loading, stop]);
 
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
+
   const canUndoInstruction = instructionUndoStack.length > 0;
 
   const value = useMemo<DreamContentAiState>(
@@ -521,6 +530,17 @@ export function DreamContentAiToolbarButton() {
     };
   }, [open, layoutAnchorRef, updatePanelLayout]);
 
+  const handleInstructionKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.nativeEvent.isComposing) return;
+      if (event.key !== "Enter" || event.shiftKey) return;
+      event.preventDefault();
+      if (!canRun) return;
+      void run();
+    },
+    [canRun, run]
+  );
+
   return (
     <TooltipProvider delayDuration={300}>
       <Popover open={open} onOpenChange={setOpen}>
@@ -529,16 +549,19 @@ export function DreamContentAiToolbarButton() {
             ref={triggerRef}
             type="button"
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
-              "text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400",
-              "hover:bg-primary/10 dark:hover:bg-primary/20",
+              "group flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
+              "text-fuchsia-500 hover:text-fuchsia-400 dark:text-fuchsia-400 dark:hover:text-fuchsia-300",
+              "hover:bg-fuchsia-500/10 dark:hover:bg-fuchsia-400/20",
               "active:scale-95",
-              open && "text-violet-600 dark:text-violet-400 bg-violet-500/10 dark:bg-violet-500/15"
+              open && "text-fuchsia-500 dark:text-fuchsia-300 bg-fuchsia-500/10 dark:bg-fuchsia-500/20"
             )}
             title={t("dreams.new.contentAi.triggerTitle")}
             aria-label={t("dreams.new.contentAi.triggerTitle")}
           >
-            <Sparkles className="h-[18px] w-[18px]" strokeWidth={2} />
+            <Sparkles
+              className="h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-110 motion-safe:animate-pulse motion-reduce:animate-none"
+              strokeWidth={2}
+            />
           </button>
         </PopoverTrigger>
 
@@ -562,6 +585,7 @@ export function DreamContentAiToolbarButton() {
             <AutoResizeInstruction
               value={instruction}
               onChange={setInstruction}
+              onKeyDown={handleInstructionKeyDown}
               disabled={busy}
               placeholder={t("dreams.new.contentAi.inputPlaceholder")}
             />

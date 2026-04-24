@@ -57,7 +57,9 @@ async def _run_for_users(
         async with sem:
             await _one(uid, preferred_locale)
 
-    await asyncio.gather(*(_guarded(uid, loc) for uid, loc in users))
+    async with asyncio.TaskGroup() as tg:
+        for uid, loc in users:
+            tg.create_task(_guarded(uid, loc))
     return success, failed
 
 

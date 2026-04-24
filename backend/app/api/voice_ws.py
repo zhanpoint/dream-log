@@ -104,10 +104,9 @@ async def transcribe_voice_stream(websocket: WebSocket) -> None:
 
     # 并发：接收音频 + 发送转录
     try:
-        await asyncio.gather(
-            receive_audio(),
-            send_transcriptions(),
-        )
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(receive_audio())
+            tg.create_task(send_transcriptions())
     except Exception as e:
         logger.error("WebSocket 错误: %s", e, exc_info=True)
     finally:

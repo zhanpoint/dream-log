@@ -12,7 +12,7 @@ from typing import AsyncIterator, Awaitable, Callable
 from uuid import UUID
 
 import httpx
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessageChunk, HumanMessage
 
 # 在首次使用 OpenAIEmbeddings 前设置 tiktoken 缓存目录，避免每次请求去拉取
 # openaipublic.blob.core.windows.net（国内/受限网络易 SSL 超时）
@@ -112,23 +112,7 @@ _title_chain = (
     | StrOutputParser()
 )
 
-# 阶段1 基础分析链: 低温 = 精确、无幻觉（合并 structure + emotion + trigger + sleep）
-_basic_analysis_chain = (
-    ChatPromptTemplate.from_messages([("human", BASIC_ANALYSIS_PROMPT)])
-    | _create_llm("text_analysis", temperature=TEMPERATURE_BASIC, max_tokens=MAX_TOKENS_BASIC).bind(
-        response_format={"type": "json_object"}
-    )
-    | JsonOutputParser()
-)
-
-# 阶段2 深度洞察链: 中高温 = 温暖、共情（依赖阶段1结果）
-_insight_chain = (
-    ChatPromptTemplate.from_messages([("human", INSIGHT_PROMPT)])
-    | _create_llm("insight_generation", temperature=TEMPERATURE_INSIGHT, max_tokens=MAX_TOKENS_INSIGHT).bind(
-        response_format={"type": "json_object"}
-    )
-    | JsonOutputParser()
-)
+_ANALYSIS_MAX_IMAGE_COUNT = 4
 
 
 class AIService:
@@ -148,6 +132,54 @@ class AIService:
 
     def _log_proxy_usage(self, action: str) -> None:
         logger.info("AI proxy usage (%s): %s", action, bool(_get_proxy_url()))
+
+    def _build_multimodal_analysis_message(
+        self,
+        prompt_text: str,
+        *,
+        image_urls: list[str] | None = None,
+    ) -> HumanMessage:
+        content: list[dict[str, str]] = [
+            {"type": "text", "text": prompt_text},
+        ]
+        valid_image_urls = [url.strip() for url in (image_urls or []) if isinstance(url, str) and url.strip()]
+        for image_url in valid_image_urls[:_ANALYSIS_MAX_IMAGE_COUNT]:
+            content.append({"type": "image", "url": image_url})
+        return HumanMessage(content=content)
+
+    @staticmethod
+    def _extract_text_content(content: object) -> str:
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            pieces: list[str] = []
+            for block in content:
+                if isinstance(block, str):
+                    pieces.append(block)
+                elif isinstance(block, dict) and block.get("type") == "text":
+                    text = block.get("text")
+                    if isinstance(text, str):
+                        pieces.append(text)
+            return "".join(pieces)
+        return str(content) if content is not None else ""
+
+    async def _invoke_multimodal_json(
+        self,
+        *,
+        model_key: str,
+        temperature: float,
+        max_tokens: int,
+        prompt_text: str,
+        image_urls: list[str] | None = None,
+    ) -> dict:
+        llm = _create_llm(model_key, temperature=temperature, max_tokens=max_tokens).bind(
+            response_format={"type": "json_object"}
+        )
+        response = await llm.ainvoke(
+            [self._build_multimodal_analysis_message(prompt_text, image_urls=image_urls)]
+        )
+        raw_text = self._extract_text_content(getattr(response, "content", response))
+        return JsonOutputParser().parse(raw_text)
 
     # ========== 公开方法 ==========
 
@@ -272,11 +304,30 @@ class AIService:
         result = out.strip()
         return result if result else text.strip()
 
-    async def analyze_basic(self, dream_context: str, *, target_language: str) -> dict:
+    async def analyze_basic(
+        self,
+        dream_context: str,
+        *,
+        target_language: str,
+        image_urls: list[str] | None = None,
+    ) -> dict:
         """阶段1：基础分析（合并 snapshot + 情绪 + 触发因素 + 睡眠），低温精确。"""
         self._log_proxy_usage("analyze_basic")
-        return await _basic_analysis_chain.ainvoke(
-            {"dream_context": dream_context, "target_language": target_language}
+        prompt_text = BASIC_ANALYSIS_PROMPT.format(
+            dream_context=dream_context,
+            target_language=target_language,
+        )
+        if image_urls:
+            prompt_text += (
+                "\n\n补充说明：下面附带的图片是用户上传的梦境内容图片，不是 AI 生成图片。"
+                "请把它们视为梦境叙述的一部分，与文本一起综合分析。"
+            )
+        return await self._invoke_multimodal_json(
+            model_key="text_analysis",
+            temperature=TEMPERATURE_BASIC,
+            max_tokens=MAX_TOKENS_BASIC,
+            prompt_text=prompt_text,
+            image_urls=image_urls,
         )
 
     def _format_triggers_for_insight(self, triggers: list) -> str:
@@ -295,21 +346,32 @@ class AIService:
         basic_analysis: dict,
         *,
         target_language: str,
+        image_urls: list[str] | None = None,
     ) -> dict:
         """阶段2：生成深度洞察（依赖阶段1结果），中高温共情。"""
         self._log_proxy_usage("generate_insight")
         basic = basic_analysis or {}
         triggers_text = self._format_triggers_for_insight(basic.get("triggers") or [])
-        return await _insight_chain.ainvoke(
-            {
-                "dream_context": dream_context,
-                "snapshot": basic.get("snapshot") or "无",
-                "emotional_summary": basic.get("emotional_summary") or "无",
-                "emotion_interpretation": basic.get("emotion_interpretation") or "无",
-                "triggers": triggers_text,
-                "sleep_analysis_text": basic.get("sleep_analysis_text") or "无",
-                "target_language": target_language,
-            }
+        prompt_text = INSIGHT_PROMPT.format(
+            dream_context=dream_context,
+            snapshot=basic.get("snapshot") or "无",
+            emotional_summary=basic.get("emotional_summary") or "无",
+            emotion_interpretation=basic.get("emotion_interpretation") or "无",
+            triggers=triggers_text,
+            sleep_analysis_text=basic.get("sleep_analysis_text") or "无",
+            target_language=target_language,
+        )
+        if image_urls:
+            prompt_text += (
+                "\n\n补充说明：下面附带的图片是用户上传的梦境内容图片，不是 AI 生成图片。"
+                "请把它们视为梦境体验的一部分，在做洞察时纳入考虑。"
+            )
+        return await self._invoke_multimodal_json(
+            model_key="insight_generation",
+            temperature=TEMPERATURE_INSIGHT,
+            max_tokens=MAX_TOKENS_INSIGHT,
+            prompt_text=prompt_text,
+            image_urls=image_urls,
         )
 
     async def generate_dream_image(

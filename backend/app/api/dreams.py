@@ -39,48 +39,6 @@ from app.services.dream_service import DreamService
 router = APIRouter(prefix="/dreams", tags=["梦境"])
 
 
-async def _enqueue_dream_analysis_if_needed(
-    dream_id: UUID,
-    user_id: UUID,
-    db: AsyncSession,
-    arq: ArqRedis,
-    accept_language: str | None,
-) -> None:
-    """
-    无标题创建后自动排队 AI 分析（生成标题与完整分析）。
-    与 POST /{id}/analyze 使用相同锁与队列，避免重复入队。
-    """
-    service = DreamService(db)
-    dream = await service.get_dream(dream_id, user_id)
-
-    lock_key = f"ai:lock:dream-analysis:{dream_id}"
-    if dream.ai_processing_status in (AIProcessingStatus.PENDING, AIProcessingStatus.PROCESSING):
-        try:
-            lock_exists = bool(await arq.exists(lock_key))
-        except Exception:
-            lock_exists = True
-        if lock_exists:
-            return
-
-    try:
-        acquired = await arq.set(lock_key, "1", ex=180, nx=True)
-    except Exception:
-        acquired = True
-    if not acquired:
-        return
-
-    dream.ai_processing_status = AIProcessingStatus.PENDING
-    dream.ai_processed = False
-    await db.commit()
-
-    try:
-        await arq.delete(f"ai:cancel:dream-analysis:{dream_id}")
-    except Exception:
-        pass
-
-    await arq.enqueue_job("analyze_dream", str(dream_id), accept_language)
-
-
 def _build_list_item(dream) -> DreamListItem:
     """将 Dream ORM 对象转为列表项"""
     return DreamListItem(
@@ -206,10 +164,8 @@ async def create_dream(
     request: CreateDreamRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    arq: ArqRedis = Depends(get_arq_redis),
-    accept_language: str | None = Header(None, alias="Accept-Language"),
 ) -> DreamDetailResponse:
-    """创建梦境。未填标题时会自动排队 AI 分析以生成标题并写入记录。"""
+    """创建梦境。AI 分析仅由用户在详情页手动触发。"""
     service = DreamService(db)
     dream = await service.create_dream(request, current_user.id)
 
@@ -217,18 +173,6 @@ async def create_dream(
     if dream.privacy_level and dream.privacy_level.value == "PUBLIC":
         await CommunityService(db).refresh_featured_snapshot(dream.id)
         await db.commit()
-
-    needs_auto_title = request.title is None or (
-        isinstance(request.title, str) and not request.title.strip()
-    )
-    if needs_auto_title:
-        await _enqueue_dream_analysis_if_needed(
-            dream.id,
-            current_user.id,
-            db,
-            arq,
-            accept_language,
-        )
 
     # 重新查询以加载关联数据
     dream = await service.get_dream(dream.id, current_user.id)

@@ -30,7 +30,7 @@ async def startup(ctx: dict) -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     redis_settings = get_arq_redis_settings()
-    print(f"🚀 Arq Worker 启动 | Redis: {redis_settings.host}:{redis_settings.port}")
+    print(f"Arq Worker 启动 | Redis: {redis_settings.host}:{redis_settings.port}")
     # 用于向 API 进程推送 SSE 事件（分析状态等）
     ctx["redis_pub"] = Redis.from_url(
         str(settings.redis_url),
@@ -53,7 +53,7 @@ async def shutdown(ctx: dict) -> None:
     redis_client = ctx.get("redis")
     if redis_client:
         await redis_client.close()
-    print("👋 Arq Worker 关闭")
+    print("Arq Worker 关闭")
 
 
 class WorkerSettings:
