@@ -2,15 +2,21 @@
 用户模型
 """
 
+from __future__ import annotations
+
 import enum
 import uuid
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, DateTime, Enum, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.subscription import UserSubscription
 
 # 东八区时区
 SHANGHAI_TZ = timezone(timedelta(hours=8))
@@ -21,11 +27,12 @@ def shanghai_now() -> datetime:
     return datetime.now(SHANGHAI_TZ)
 
 
-class RegistrationMethod(str, enum.Enum):
+class RegistrationMethod(enum.StrEnum):
     """注册方式枚举"""
 
     EMAIL = "email"
     GOOGLE = "google"
+    WECHAT = "wechat"
 
 
 class User(Base):
@@ -45,6 +52,12 @@ class User(Base):
 
     # OAuth 字段
     google_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True, index=True
+    )
+    wechat_open_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True, index=True
+    )
+    wechat_union_id: Mapped[str | None] = mapped_column(
         String(255), unique=True, nullable=True, index=True
     )
     avatar: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -87,7 +100,7 @@ class User(Base):
         nullable=True,
     )
 
-    subscription: Mapped["UserSubscription"] = relationship(
+    subscription: Mapped[UserSubscription] = relationship(
         "UserSubscription",
         backref="user",
         uselist=False,

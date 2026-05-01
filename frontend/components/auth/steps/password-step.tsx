@@ -53,7 +53,7 @@ export function PasswordStep({
   };
 
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full max-w-xl space-y-8">
       {/* 标题 */}
       <div className="space-y-3 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">

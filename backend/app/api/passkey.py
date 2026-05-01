@@ -8,6 +8,7 @@ from app.core.deps import get_auth_service, get_current_user, get_passkey_servic
 from app.models.user import User
 from app.schemas.auth import AuthResponse, MessageResponse
 from app.schemas.passkey import (
+    PasskeyAuthenticationOptionsRequest,
     PasskeyEnrollVerifyRequest,
     PasskeyItem,
     PasskeyOptionsResponse,
@@ -23,10 +24,14 @@ router = APIRouter(prefix="/auth/passkey", tags=["Passkey"])
 @router.post("/authentication/options", response_model=PasskeyOptionsResponse)
 async def passkey_authentication_options(
     request: Request,
+    body: PasskeyAuthenticationOptionsRequest,
     passkey_service: PasskeyService = Depends(get_passkey_service),
 ) -> PasskeyOptionsResponse:
     """获取无账号输入登录的认证 options"""
-    data = await passkey_service.generate_authentication_options(request)
+    data = await passkey_service.generate_authentication_options_for_email(
+        request=request,
+        email=body.email,
+    )
     return PasskeyOptionsResponse.model_validate(data)
 
 

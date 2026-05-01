@@ -151,9 +151,6 @@ export default function BillingPage() {
       return;
     }
     if (paymentStatus === "cancel" || checkoutStatus === "canceled") {
-      toast.message(t("billing.toast.paymentCanceled.title"), {
-        description: t("billing.toast.paymentCanceled.description"),
-      });
       const url = new URL(window.location.href);
       url.searchParams.delete("status");
       url.searchParams.delete("checkout");
@@ -264,7 +261,7 @@ export default function BillingPage() {
   const renderAction = (plan: "free" | "pro" | "ultra") => {
     if (currentPlan === plan) {
       return (
-        <Button disabled variant="outline" className="h-10 w-fit rounded-full px-6">
+        <Button disabled variant="outline" className="h-9 w-fit rounded-full px-4 text-sm">
           {t("billing.action.currentPlan")}
         </Button>
       );
@@ -272,7 +269,7 @@ export default function BillingPage() {
     if (plan !== "free" && planRank[currentPlan] > planRank[plan]) {
       return (
         <Button
-          className="h-10 w-fit rounded-full bg-primary/15 px-6 text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/25 hover:text-primary-foreground hover:shadow-[0_10px_26px_-16px_rgba(59,130,246,0.9)]"
+          className="h-9 w-fit rounded-full bg-primary/15 px-4 text-sm text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/25 hover:text-primary-foreground hover:shadow-[0_10px_26px_-16px_rgba(59,130,246,0.9)]"
           onClick={() => handleUpgrade(plan)}
           disabled={loadingPlan !== null}
         >
@@ -284,14 +281,14 @@ export default function BillingPage() {
     }
     if (plan === "free") {
       return (
-        <Button disabled variant="outline" className="h-10 w-fit rounded-full px-6">
+        <Button disabled variant="outline" className="h-9 w-fit rounded-full px-4 text-sm">
           {t("billing.action.freePlan")}
         </Button>
       );
     }
     return (
       <Button
-        className="h-10 w-fit rounded-full bg-primary/15 px-6 text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/25 hover:text-primary-foreground hover:shadow-[0_10px_26px_-16px_rgba(59,130,246,0.9)]"
+        className="h-9 w-fit rounded-full bg-primary/15 px-4 text-sm text-primary transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/25 hover:text-primary-foreground hover:shadow-[0_10px_26px_-16px_rgba(59,130,246,0.9)]"
         onClick={() => handleUpgrade(plan)}
         disabled={loadingPlan !== null}
       >
@@ -309,11 +306,6 @@ export default function BillingPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {t("billing.subtitle")}
         </p>
-        {paymentStatus === "cancel" && checkoutStatus === "canceled" && (
-          <div className="mt-4 rounded-2xl border border-amber-200/60 bg-amber-50/70 px-4 py-3 text-sm text-amber-700">
-            {t("billing.alerts.paymentCanceled")}
-          </div>
-        )}
         {(subscription?.status_reason === "payment_failed" ||
           subscription?.status_reason === "payment_action_required") && (
           <div className="mt-4 rounded-2xl border border-rose-200/60 bg-rose-50/70 px-4 py-3 text-sm text-rose-700">
@@ -379,7 +371,7 @@ export default function BillingPage() {
                 </span>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">{t(plan.descKey)}</p>
-              <div className="mt-4">{renderAction(plan.id)}</div>
+              <div className="mt-6">{renderAction(plan.id)}</div>
             </div>
           </div>
         ))}

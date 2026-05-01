@@ -6,8 +6,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # ============= 请求 Schemas =============
 
@@ -83,6 +82,13 @@ class GoogleCallbackRequest(BaseModel):
     code: str
 
 
+class WeChatCallbackRequest(BaseModel):
+    """微信 OAuth 回调请求"""
+
+    code: str
+    state: str
+
+
 class RefreshTokenRequest(BaseModel):
     """刷新 Token 请求"""
 
@@ -119,6 +125,7 @@ class EmailCheckResponse(BaseModel):
     exists: bool
     registered: bool
     has_password: bool | None = None  # 是否设置过密码(仅当exists=True时有值)
+    has_passkey: bool | None = None  # 是否已绑定通行密钥(仅当exists=True时有值)
 
 
 class ValidatePasswordResponse(BaseModel):

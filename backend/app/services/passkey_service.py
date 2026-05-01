@@ -8,9 +8,9 @@ Passkey / WebAuthn 服务
 
 from __future__ import annotations
 
+import base64
 import json
 import secrets
-import base64
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 from uuid import UUID
@@ -26,7 +26,10 @@ from webauthn import (
     verify_authentication_response,
     verify_registration_response,
 )
-from webauthn.helpers import parse_authentication_credential_json, parse_registration_credential_json
+from webauthn.helpers import (
+    parse_authentication_credential_json,
+    parse_registration_credential_json,
+)
 from webauthn.helpers.structs import (
     AttestationConveyancePreference,
     AuthenticatorAttachment,
@@ -38,6 +41,7 @@ from webauthn.helpers.structs import (
 
 from app.core.config import settings
 from app.models.passkey_credential import PasskeyCredential
+from app.models.user import User
 
 SHANGHAI_TZ = timezone(timedelta(hours=8))
 
@@ -104,10 +108,44 @@ class PasskeyService:
     # Options generation
     # -------------------------
     async def generate_authentication_options(self, request: Request) -> dict:
+        return await self.generate_authentication_options_for_email(request=request, email=None)
+
+    async def generate_authentication_options_for_email(
+        self, *, request: Request, email: str | None
+    ) -> dict:
         rp_id = self._resolve_rp_id(request)
+        allow_credentials = None
+
+        if email:
+            user_row = await self.db.execute(select(User).where(User.email == email))
+            user = user_row.scalar_one_or_none()
+            if not user:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在")
+
+            credential_rows = await self.db.execute(
+                select(PasskeyCredential.id, PasskeyCredential.transports).where(
+                    PasskeyCredential.user_id == user.id
+                )
+            )
+            credentials = credential_rows.all()
+            if not credentials:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="当前账号未绑定通行密钥",
+                )
+
+            allow_credentials = [
+                PublicKeyCredentialDescriptor(
+                    id=_b64url_to_bytes(cred_id),
+                    transports=_to_authenticator_transports(transports),
+                )
+                for cred_id, transports in credentials
+            ]
+
         options = generate_authentication_options(
             rp_id=rp_id,
             user_verification=UserVerificationRequirement.REQUIRED,
+            allow_credentials=allow_credentials or None,
         )
         options_json = json.loads(options_to_json(options))
 
@@ -396,4 +434,3 @@ def _default_passkey_name(transports: list[str] | None) -> str:
     if "hybrid" in transports:
         return "手机通行密钥"
     return "通行密钥"
-

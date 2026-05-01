@@ -2,12 +2,14 @@
 认证服务 - 处理用户注册、登录、密码重置等认证相关业务逻辑
 """
 
+import anyio
 from arq.connections import ArqRedis
 from fastapi import HTTPException, status
-import anyio
 from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.passkey_credential import PasskeyCredential
 from app.models.user import User
 from app.schemas.auth import AuthResponse, UserResponse
 from app.services.email_verification_service import EmailVerificationService
@@ -32,16 +34,25 @@ class AuthService:
     async def get_user_auth_info(self, email: str) -> dict[str, bool]:
         """
         获取用户认证信息
-        
+
         Returns:
-            dict: {"exists": bool, "has_password": bool}
+            dict: {"exists": bool, "has_password": bool, "has_passkey": bool}
         """
         user = await self.user_service.get_by_email(email)
         if not user:
-            return {"exists": False, "has_password": False}
+            return {"exists": False, "has_password": False, "has_passkey": False}
+
+        has_passkey = bool(
+            (
+                await self.db.execute(
+                    select(PasskeyCredential.id).where(PasskeyCredential.user_id == user.id).limit(1)
+                )
+            ).scalar_one_or_none()
+        )
         return {
             "exists": True,
-            "has_password": bool(user.hashed_password)
+            "has_password": bool(user.hashed_password),
+            "has_passkey": has_passkey,
         }
 
     async def signup_with_code(

@@ -4,6 +4,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.core.deps import get_auth_service, get_current_user
 from app.models.user import User
 from app.schemas.auth import (
     AuthResponse,
@@ -26,9 +27,6 @@ from app.services.auth_service import AuthService
 from app.services.password_service import PasswordService
 from app.services.token_service import TokenService
 
-# 依赖注入将在后面实现
-from app.core.deps import get_auth_service, get_current_user
-
 router = APIRouter(prefix="/auth", tags=["认证"])
 
 
@@ -41,7 +39,8 @@ async def check_email(
     return EmailCheckResponse(
         exists=auth_info["exists"],
         registered=auth_info["exists"],
-        has_password=auth_info["has_password"] if auth_info["exists"] else None
+        has_password=auth_info["has_password"] if auth_info["exists"] else None,
+        has_passkey=auth_info["has_passkey"] if auth_info["exists"] else None,
     )
 
 
@@ -50,12 +49,11 @@ async def send_code(
     request: SendCodeRequest, auth_service: AuthService = Depends(get_auth_service)
 ) -> MessageResponse:
     """发送验证码"""
-    if request.purpose == "change_email":
-        if await auth_service.check_email_exists(request.email):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="该邮箱已被使用",
-            )
+    if request.purpose == "change_email" and await auth_service.check_email_exists(request.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="该邮箱已被使用",
+        )
 
     # 检查频率限制
     allowed, wait_time = await auth_service.email_service.check_rate_limit(request.email)
@@ -158,7 +156,7 @@ async def reset_password(
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)) -> dict[str, str]:
+async def logout(_: User = Depends(get_current_user)) -> dict[str, str]:
     """登出"""
     # TODO: 将 token 加入黑名单
     return {"message": "登出成功"}
@@ -188,10 +186,10 @@ async def refresh_token(
             refresh_token=refresh_token_new,
             user=UserResponse.model_validate(user),
         )
-    except ValueError:
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的刷新令牌"
-        )
+        ) from exc
 
 
 @router.get("/me", response_model=UserResponse)

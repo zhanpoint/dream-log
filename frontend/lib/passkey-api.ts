@@ -27,9 +27,11 @@ function normalizeAuthResponse(data: any): AuthResponse {
 }
 
 class PasskeyAPIService {
-  async getAuthenticationOptions(): Promise<PasskeyOptions> {
+  async getAuthenticationOptions(email?: string): Promise<PasskeyOptions> {
     try {
-      const res = await api.post<PasskeyOptions>("/auth/passkey/authentication/options");
+      const res = await api.post<PasskeyOptions>("/auth/passkey/authentication/options", {
+        email: email || null,
+      });
       return res.data;
     } catch (e) {
       throw handleAuthError(e);
@@ -105,4 +107,3 @@ class PasskeyAPIService {
 }
 
 export const passkeyAPI = new PasskeyAPIService();
-

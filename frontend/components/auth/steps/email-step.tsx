@@ -3,7 +3,7 @@
 import { useForm, type ControllerRenderProps, type FieldValues } from "@/lib/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { KeyRound, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -13,14 +13,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { GoogleOAuthButton } from "@/components/auth";
+import { GoogleOAuthButton, WeChatOAuthButton } from "@/components/auth";
 import { emailSchema, type EmailFormData } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 interface EmailStepProps {
   onSubmit: (email: string, name?: string) => Promise<void>;
   onGoogleLogin: () => Promise<void>;
-  onPasskeyLogin?: () => Promise<void>;
+  onWeChatLogin?: () => Promise<void>;
   isLoading?: boolean;
   defaultEmail?: string;
 }
@@ -28,7 +28,7 @@ interface EmailStepProps {
 export function EmailStep({
   onSubmit,
   onGoogleLogin,
-  onPasskeyLogin,
+  onWeChatLogin,
   isLoading = false,
   defaultEmail = "",
 }: EmailStepProps) {
@@ -50,8 +50,11 @@ export function EmailStep({
     await onSubmit(data.email);
   };
 
+  const hasWeChatLogin = Boolean(onWeChatLogin);
+  const thirdPartyLoginCount = 1 + (hasWeChatLogin ? 1 : 0);
+
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full max-w-xl space-y-8">
       {/* 标题 */}
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -59,26 +62,27 @@ export function EmailStep({
         </h1>
       </div>
 
-      {/* Google / Passkey 登录并排 */}
-      <div className={cn("grid gap-3", onPasskeyLogin ? "grid-cols-2" : "grid-cols-1")}>
+      {/* 第三方登录 */}
+      <div
+        className={cn(
+          "grid gap-3",
+          thirdPartyLoginCount === 2
+            ? "grid-cols-1 sm:grid-cols-2"
+            : "grid-cols-1"
+        )}
+      >
         <GoogleOAuthButton
           onLogin={onGoogleLogin}
           disabled={isLoading}
           className={thirdPartyButtonClass}
         />
 
-        {onPasskeyLogin && (
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
+        {hasWeChatLogin && (
+          <WeChatOAuthButton
+            onLogin={onWeChatLogin!}
             disabled={isLoading}
-            onClick={onPasskeyLogin}
             className={thirdPartyButtonClass}
-          >
-            <KeyRound className="mr-2 h-6 w-6 shrink-0" />
-            {t("auth.passkeyLogin")}
-          </Button>
+          />
         )}
       </div>
 
@@ -148,5 +152,3 @@ export function EmailStep({
     </div>
   );
 }
-
-

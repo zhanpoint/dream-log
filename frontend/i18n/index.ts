@@ -162,9 +162,11 @@ const resources = {
         
         // OAuth
         continueWithGoogle: "使用 Google 继续",
+        continueWithWeChat: "使用微信继续",
         orContinueWith: "或继续使用",
         orContinueWithEmail: "或继续使用邮箱",
         googleLoginProcessing: "正在完成 Google 登录...",
+        wechatLoginProcessing: "正在完成微信登录...",
         
         // 方法选择
         chooseMethod: "选择登录方式",
@@ -221,8 +223,13 @@ const resources = {
         unknownError: "发生未知错误，请稍后重试",
         oauthFailed: "授权失败，请重试",
         oauthCancelled: "用户取消了授权",
+        oauthNotConfigured: "第三方登录尚未配置完成，请先填写对应环境变量",
         oauthMissingCode: "未获取到授权码",
-        oauthMissingCodeHint: "请返回并重新选择 Google 登录",
+        oauthMissingState: "登录状态已失效，请重新发起授权",
+        oauthRetryHint: "请返回并重新选择登录方式",
+        passkeyNotSupported: "当前浏览器或设备不支持通行密钥登录",
+        passkeyUnavailable: "当前设备上没有可用于 Dream Log 的通行密钥",
+        passkeyLoginCancelled: "已取消通行密钥登录",
         
         // 成功提示
         loginSuccess: "登录成功",
@@ -261,16 +268,87 @@ const resources = {
       },
       marketing: {
         hero: {
-          tag: "✨ 探索你的梦境世界",
-          titleLine1: "捕捉每一个梦想",
-          titleLine2: "揭开潜意识的面纱",
-          subtitleLine1: "使用 AI 技术分析你的梦境，发现隐藏的模式和意义",
-          subtitleLine2: "让 Dream Log 成为自我探索的起点",
-          cta: "立即开始记录",
+          eyebrow: "重新定义梦境记录",
+          titleLine1: "昨夜的梦境，值得被认真记下",
+          titleLine2: "再读懂它留下的线索",
+          subtitleLine1: "用语音或文字记下梦境，补充图片、情绪与睡眠信息，再把零散体验整理成可回看、可解读的个人档案。",
+          subtitleLine2: "Dream Log 会继续生成 AI 洞察、周月年报告与社区反馈，让你从一次记录走到长期理解。",
+          pills: {
+            capture: "记录梦境",
+            voice: "语音速记",
+            images: "图片附件",
+            analyze: "AI 解读",
+            reports: "周月年报告",
+            explore: "梦符号探索",
+            resonate: "社区共鸣",
+          },
+          cta: "开始记录昨夜的梦",
+          secondaryCta: "先逛梦境社区",
+          preview: {
+            kicker: "Dream Log workspace",
+            headline: "Dream Log 把记录、洞察、探索和交流放进同一块工作台",
+            description: "从一次梦境记录出发，继续追踪情绪与睡眠模式，阅读主题报告，查梦符号，也把值得分享的部分带进社区。",
+            moduleLabel: "本周活跃",
+            record: {
+              title: "梦境记录",
+              meta: "语音速记、图片附件与隐私设置已就绪",
+              keywordsLabel: "关键词:",
+              keywordsValue: "海面、灯塔、失而复得的钥匙",
+              note: "醒来时先快速留住内容，之后再补情绪、睡眠质量、公开范围和更完整的细节。",
+              badges: {
+                voice: "语音转写",
+                images: "图片附件",
+                privacy: "公开范围可控",
+                title: "AI 生成标题",
+              },
+              action: "生成解析",
+            },
+            insight: {
+              title: "AI 洞察报告",
+              meta: "结构化解读、情绪识别与长期追踪",
+              summary: "系统会把意象、情绪走向、现实触发点和高频主题串起来，再延展成周报、月报和年度回顾。",
+              badges: {
+                emotion: "情绪识别",
+                sleep: "睡眠关联",
+                reports: "周月年报告",
+              },
+            },
+            modules: {
+              emotion: {
+                title: "情绪趋势",
+                description: "连续波动与触发点",
+              },
+              sleep: {
+                title: "睡眠质量",
+                description: "时长、质量与清醒梦",
+              },
+              reports: {
+                title: "主题报告",
+                description: "周报、月报、年报",
+              },
+              symbols: {
+                title: "梦符号探索",
+                description: "词典与专题文章",
+              },
+              community: {
+                title: "社区频道",
+                description: "广场、圆桌、温室",
+              },
+              messages: {
+                title: "私信对话",
+                description: "持续交流与追问",
+              },
+            },
+            community: {
+              title: "共享与交流",
+              subtitle: "公开、好友或私密都能切换",
+              description: "你可以把梦境带去广场、圆桌、温室或私信，让解读、共鸣与后续讨论自然发生。",
+            },
+          },
         },
         features: {
-          heading: "强大的功能",
-          subheading: "让梦境记录变得简单而有意义",
+          heading: "不只是记梦，更是一套完整的梦境系统",
+          subheading: "从捕捉、整理、解读到长期洞察与社区交流，Dream Log 把梦境这件事真正做成连续体验",
           items: {
             ai: {
               title: "AI 梦境分析",
@@ -310,6 +388,46 @@ const resources = {
               title: "私信与聊天室",
               description:
                 "通过私信与梦境聊天室建立连接，与同频梦友持续交流",
+            },
+          },
+        },
+        mystery: {
+          eyebrow: "夜幕之后",
+          title: "梦从来不只是睡着以后的一段噪音",
+          intro:
+            "梦像一条隐秘的河流，缓慢穿过白天的理性、记忆与欲望，把那些没来得及说出口的情绪、尚未看清的牵挂，以及被现实压低了声音的部分，重新带回我们面前。它不一定给出答案，却常常先替我们保存线索。",
+          blocks: {
+            origin: {
+              label: "一切开始于黑暗降临之后",
+              heading: "白天结束了，另一个世界才刚刚亮起",
+              body1:
+                "我们总以为梦只是偶然的、模糊的、醒来后很快就会散掉的碎片。可也正因为它不受控制、不讲逻辑，也不服从清醒时的秩序，它才显得格外神秘。梦会把彼此无关的场景重新拼接，让一段旧关系、一种没说清的情绪、一个被忽略的细节，在夜里换一种方式回来找你。",
+              body2:
+                "研究通常把梦看作记忆、情绪与近期经验在睡眠中的重新加工，而不是毫无意义的随机噪声。我更愿意把它理解成一种更诚实的回响: 白天没有被说清的东西，常常会在夜里先被梦记住。",
+            },
+            meaning: {
+              label: "梦的意义",
+              heading: "那些白天来不及理解的事，常常在梦里换了语言",
+              body1:
+                "梦借助象征说话。它不总会直接给出答案，却会把情绪、关系、恐惧、渴望和记忆压缩进某个具体场景里。反复出现的房间、海面、坠落、追逐、错过，往往都不是随机发生，它们更像一种持续发出的信号，提醒你留意自己真正被什么触动，又在回避什么。",
+              body2:
+                "所以，记梦并不是迷信地寻找唯一解释，也不是急着替每个意象下定义。更重要的是承认: 梦的意义，很多时候不在于“它预示了什么”，而在于“它照见了什么”。它让人看见自己正在失去什么、渴望什么，又被什么悄悄改变。",
+            },
+            value: {
+              label: "梦的价值",
+              heading: "当梦被认真记录，它会从瞬间的感受变成长期的线索",
+              body1:
+                "单独的一场梦，也许只是醒来时的一阵恍惚；可当许多梦放在一起看，模式就会慢慢出现。你会看到情绪如何在一周里起伏，睡眠质量如何影响梦境的浓度，哪些主题反复回到你身边，哪些关系在夜里留下的痕迹比白天更深。",
+              body2:
+                "梦的价值，就在这种逐渐显形的过程中。它能帮助人回看自己、整理感受、追踪变化，也能在最难描述的时候，为内心找到一种更诚实的表达方式。很多人真正留恋的，不是一个漂亮的解释，而是终于能把那些模糊却重要的感受慢慢看清。",
+            },
+            trace: {
+              label: "留下痕迹",
+              heading: "Dream Log 想做的，只是替这些稍纵即逝的东西留一盏灯",
+              body1:
+                "我们并不想把梦变成生硬的报告，也不想把一切神秘都解释到失去余味。更重要的是，让那些原本会在清晨迅速消散的片段，有一个可以停留、被整理、被回看、被分享的位置。你可以先快速记下它，再慢慢补充情绪、睡眠、象征、洞察与后来的理解。",
+              body2:
+                "也许很多梦最终都不会得到一个确定答案。但它们仍然值得被保存，因为它们记录的不是抽象的理论，而是某一刻真实存在过的你。把梦留下来，真正重要的地方也许正在这里: 在不断向前的生活里，我们至少还能偶尔回头，认出自己曾经怎样爱过、害怕过、迟疑过，又怎样一点点成为今天的样子。",
             },
           },
         },
@@ -2009,9 +2127,11 @@ const resources = {
         
         // OAuth
         continueWithGoogle: "Continue with Google",
+        continueWithWeChat: "Continue with WeChat",
         orContinueWith: "Or continue with",
         orContinueWithEmail: "Or continue with email",
         googleLoginProcessing: "Finishing Google sign in...",
+        wechatLoginProcessing: "Finishing WeChat sign in...",
         
         // Method selection
         chooseMethod: "Choose login method",
@@ -2068,8 +2188,13 @@ const resources = {
         unknownError: "An unknown error occurred, please try again later",
         oauthFailed: "Authorization failed. Please try again.",
         oauthCancelled: "You canceled the authorization.",
+        oauthNotConfigured: "Third-party sign-in is not configured yet. Please fill in the required environment variables first.",
         oauthMissingCode: "No authorization code received.",
-        oauthMissingCodeHint: "Please go back and choose Google sign in again.",
+        oauthMissingState: "Authorization state expired. Please try again.",
+        oauthRetryHint: "Please go back and choose a sign-in method again.",
+        passkeyNotSupported: "Passkey sign-in is not supported on this browser or device.",
+        passkeyUnavailable: "No passkey for Dream Log is available on this device.",
+        passkeyLoginCancelled: "Passkey sign-in was canceled.",
         
         // Success messages
         loginSuccess: "Login successful",
@@ -2484,17 +2609,92 @@ const resources = {
       },
       marketing: {
         hero: {
-          tag: "✨ Explore Your Dream World",
-          titleLine1: "Capture Every Dream",
-          titleLine2: "Unveil the Subconscious",
+          eyebrow: "Dream journaling, reframed",
+          titleLine1: "Save last night's dream",
+          titleLine2: "then read the pattern it left behind",
           subtitleLine1:
-            "Analyze your dreams with AI to discover hidden patterns and meanings",
-          subtitleLine2: "Let Dream Log be the start of self-discovery",
-          cta: "Start Journaling",
+            "Capture dreams by voice or text, add images, emotion, and sleep context, then turn fragile recall into something you can revisit and understand.",
+          subtitleLine2:
+            "Dream Log keeps going with AI insight, weekly to annual reports, and community feedback so one entry becomes long-term understanding.",
+          pills: {
+            capture: "Dream journal",
+            voice: "Voice capture",
+            images: "Image attachments",
+            analyze: "AI insight",
+            reports: "Weekly to annual reports",
+            explore: "Symbol exploration",
+            resonate: "Community resonance",
+          },
+          cta: "Capture last night's dream",
+          secondaryCta: "Explore the community",
+          preview: {
+            kicker: "Dream Log workspace",
+            headline: "Dream Log puts capture, insight, exploration, and conversation into one workspace",
+            description:
+              "Start with one dream entry, then follow emotion and sleep patterns, read theme reports, explore symbols, and share what matters with the community.",
+            moduleLabel: "Active this week",
+            record: {
+              title: "Dream entry",
+              meta: "Voice capture, images, and privacy controls ready",
+              keywordsLabel: "Keywords:",
+              keywordsValue: "open sea, lighthouse, a recovered key",
+              note: "Save the dream fast when you wake up, then add emotion, sleep quality, sharing level, and the fuller version later.",
+              badges: {
+                voice: "Voice transcription",
+                images: "Image attachments",
+                privacy: "Flexible privacy",
+                title: "AI title generation",
+              },
+              action: "Generate insight",
+            },
+            insight: {
+              title: "AI insight report",
+              meta: "Structured reading, emotion analysis, and long-range tracking",
+              summary:
+                "Recurring imagery, emotional movement, waking-life triggers, and major themes are connected into weekly, monthly, and annual reviews.",
+              badges: {
+                emotion: "Emotion analysis",
+                sleep: "Sleep correlation",
+                reports: "Weekly to annual reports",
+              },
+            },
+            modules: {
+              emotion: {
+                title: "Emotion trends",
+                description: "Recurring shifts and triggers",
+              },
+              sleep: {
+                title: "Sleep quality",
+                description: "Duration, quality, lucid signals",
+              },
+              reports: {
+                title: "Theme reports",
+                description: "Weekly, monthly, annual",
+              },
+              symbols: {
+                title: "Symbol exploration",
+                description: "Dictionary and deep reads",
+              },
+              community: {
+                title: "Community channels",
+                description: "Plaza, roundtable, greenhouse",
+              },
+              messages: {
+                title: "Direct messages",
+                description: "Ongoing interpretation threads",
+              },
+            },
+            community: {
+              title: "Sharing and conversation",
+              subtitle: "Public, friends-only, or fully private",
+              description:
+                "Move a dream into the plaza, roundtable, greenhouse, or private messages when you want interpretation, resonance, and follow-up conversation.",
+            },
+          },
         },
         features: {
-          heading: "Powerful Features",
-          subheading: "Make dream journaling simple and meaningful",
+          heading: "More than a journal, a complete dream system",
+          subheading: "Capture, organize, interpret, review over time, and talk about dreams in one continuous experience",
           items: {
             ai: {
               title: "AI Dream Analysis",
@@ -2535,6 +2735,46 @@ const resources = {
               title: "DMs & Chat",
               description:
                 "Connect through private messages and real-time dream chatrooms",
+            },
+          },
+        },
+        mystery: {
+          eyebrow: "After Nightfall",
+          title: "A dream is never just noise that happens after sleep",
+          intro:
+            "It feels more like a hidden river moving beneath the surface of memory, desire, and reason, carrying back the emotions you never named, the worries you never finished thinking through, and the parts of you that daylight keeps quiet.",
+          blocks: {
+            origin: {
+              label: "It begins when the visible day is over",
+              heading: "One world falls asleep, and another quietly turns on",
+              body1:
+                "We tend to treat dreams as accidents: blurred images, unstable fragments, something that fades within minutes of waking. Yet that is exactly what makes them mysterious. They ignore logic, rearrange places and people, and return old relationships, unfinished feelings, and forgotten details in forms we would never choose while fully awake.",
+              body2:
+                "Sometimes a dream feels like a warning, sometimes like an echo, and sometimes it leaves behind only one image that stays with you all day. At some point it becomes clear that a dream is not leftover reality. It is proof that something within you is still working, still speaking, still trying to be seen.",
+            },
+            meaning: {
+              label: "What a dream means",
+              heading: "What you could not understand by daylight often returns in another language",
+              body1:
+                "Dreams speak through symbols. They rarely hand you a final answer, but they compress feeling, fear, desire, memory, and relationship into one vivid scene. A repeated room, a wave, a fall, a chase, a missed train; these are not always random events, but signals that keep pointing back to what moved you most, what you fear losing, or what you have not faced yet.",
+              body2:
+                "That is why recording dreams is not about forcing a mystical conclusion. It is about learning to read the unfinished parts of yourself. Their meaning often lies less in what they predict and more in what they reveal.",
+            },
+            value: {
+              label: "Why it matters",
+              heading: "When a dream is recorded, a passing feeling can become a long-term pattern",
+              body1:
+                "One dream may feel like a passing disturbance. Many dreams, viewed together, begin to form a map. You start to notice how your emotions move across a week, how sleep quality changes the texture of what you see at night, which themes keep returning, and which people leave deeper marks in dreams than they do in ordinary conversation.",
+              body2:
+                "That is the real value of dream work. It helps you revisit yourself, sort through emotion, follow change over time, and find a more honest language for the things that are hardest to explain directly.",
+            },
+            trace: {
+              label: "Keeping the trace",
+              heading: "Dream Log is simply a place where fleeting things are allowed to stay a little longer",
+              body1:
+                "We are not trying to flatten dreams into cold reports, nor to explain away every mystery until nothing living remains. The point is gentler than that: to give what would otherwise disappear with the morning a place to pause, to be organized, revisited, and maybe shared. You can capture it quickly, then return later with emotion, sleep context, symbols, insight, and better language.",
+              body2:
+                "Perhaps many dreams will never resolve into a single answer. They are still worth keeping, because what they hold is not theory but a real version of you that existed at a particular moment. That may be their deepest value: they let us look back, in the middle of forward-moving lives, and see how the inner self once trembled, glowed, asked for help, or quietly changed.",
             },
           },
         },
@@ -3891,9 +4131,11 @@ const resources = {
         
         // OAuth
         continueWithGoogle: "Google で続ける",
+        continueWithWeChat: "WeChat で続ける",
         orContinueWith: "または次の方法で続ける",
         orContinueWithEmail: "またはメールで続ける",
         googleLoginProcessing: "Google ログインを完了しています...",
+        wechatLoginProcessing: "WeChat ログインを完了しています...",
         
         // 方法選択
         chooseMethod: "ログイン方法を選択",
@@ -3950,8 +4192,13 @@ const resources = {
         unknownError: "不明なエラーが発生しました。後でもう一度お試しください",
         oauthFailed: "認可に失敗しました。もう一度お試しください。",
         oauthCancelled: "認可がキャンセルされました。",
+        oauthNotConfigured: "外部ログインはまだ設定されていません。必要な環境変数を先に設定してください。",
         oauthMissingCode: "認可コードを取得できませんでした。",
-        oauthMissingCodeHint: "戻って Google ログインを選択してください。",
+        oauthMissingState: "認可状態の有効期限が切れました。再度お試しください。",
+        oauthRetryHint: "戻ってログイン方法をもう一度選択してください。",
+        passkeyNotSupported: "このブラウザまたは端末ではパスキーログインを利用できません。",
+        passkeyUnavailable: "この端末には Dream Log 用のパスキーがありません。",
+        passkeyLoginCancelled: "パスキーログインはキャンセルされました。",
         
         // 成功メッセージ
         loginSuccess: "ログインに成功しました",
@@ -4349,17 +4596,92 @@ const resources = {
       },
       marketing: {
         hero: {
-          tag: "✨ 夢の世界を探索しよう",
-          titleLine1: "すべての夢を記録",
-          titleLine2: "無意識の秘密を解き明かす",
+          eyebrow: "夢の記録を、あらためて設計する",
+          titleLine1: "昨夜の夢を残し、",
+          titleLine2: "そこに残った手がかりを読み解く",
           subtitleLine1:
-            "AIで夢を分析し、隠れたパターンや意味を発見します",
-          subtitleLine2: "Dream Logを自己探求の出発点に",
-          cta: "今すぐ始める",
+            "音声やテキストで夢をすばやく残し、画像、感情、睡眠情報を加えながら、あとで読み返して理解できる記録に変えます。",
+          subtitleLine2:
+            "Dream Log はAIの洞察、週次から年次のレポート、コミュニティの反応までつなぎ、一度の記録を長期的な理解へ育てます。",
+          pills: {
+            capture: "夢を記録",
+            voice: "音声メモ",
+            images: "画像添付",
+            analyze: "AI解釈",
+            reports: "週次-年次レポート",
+            explore: "夢シンボル探索",
+            resonate: "共鳴コミュニティ",
+          },
+          cta: "昨夜の夢を記録する",
+          secondaryCta: "コミュニティを見る",
+          preview: {
+            kicker: "Dream Log workspace",
+            headline: "Dream Log は記録、洞察、探索、対話をひとつの作業面にまとめます",
+            description:
+              "ひとつの夢の記録から始めて、感情と睡眠の流れを追い、テーマ別レポートを読み、シンボルを調べ、共有したい内容だけを外に開けます。",
+            moduleLabel: "今週の動き",
+            record: {
+              title: "夢の記録",
+              meta: "音声メモ、画像添付、公開範囲の設定に対応",
+              keywordsLabel: "キーワード:",
+              keywordsValue: "海、灯台、戻ってきた鍵",
+              note: "目覚めた直後はまず内容を逃さず残し、その後で感情、睡眠状態、共有範囲、詳しい文脈を補えます。",
+              badges: {
+                voice: "音声文字起こし",
+                images: "画像添付",
+                privacy: "公開範囲を調整",
+                title: "AIタイトル生成",
+              },
+              action: "解釈を生成",
+            },
+            insight: {
+              title: "AI洞察レポート",
+              meta: "構造化解釈、感情分析、長期トラッキング",
+              summary:
+                "繰り返し現れるイメージ、感情の変化、現実の引き金、主要テーマを週次、月次、年次レビューへつなげます。",
+              badges: {
+                emotion: "感情分析",
+                sleep: "睡眠との関連",
+                reports: "週次-年次レポート",
+              },
+            },
+            modules: {
+              emotion: {
+                title: "感情トレンド",
+                description: "揺れと引き金を把握",
+              },
+              sleep: {
+                title: "睡眠の質",
+                description: "時間、質、明晰夢の兆候",
+              },
+              reports: {
+                title: "テーマレポート",
+                description: "週次、月次、年次",
+              },
+              symbols: {
+                title: "夢シンボル探索",
+                description: "辞典と特集記事",
+              },
+              community: {
+                title: "コミュニティチャンネル",
+                description: "広場、円卓、温室",
+              },
+              messages: {
+                title: "DM対話",
+                description: "解釈を継続して深める",
+              },
+            },
+            community: {
+              title: "共有と対話",
+              subtitle: "公開、友だち限定、完全非公開を切り替え",
+              description:
+                "解釈や共感、対話がほしい時だけ、夢を広場、円卓、温室、DMへ持ち出せます。",
+            },
+          },
         },
         features: {
-          heading: "強力な機能",
-          subheading: "夢の記録をシンプルで意味のある体験に",
+          heading: "ただの記録ではない、夢のための統合システム",
+          subheading: "記録、整理、解釈、長期レビュー、そして会話までをひと続きの体験としてまとめます",
           items: {
             ai: {
               title: "AI夢解析",
@@ -4400,6 +4722,46 @@ const resources = {
               title: "DM・チャット",
               description:
                 "プライベートメッセージやチャットルームで夢友と交流できます",
+            },
+          },
+        },
+        mystery: {
+          eyebrow: "夜のあとに",
+          title: "夢は、眠ったあとに流れるただのノイズではありません",
+          intro:
+            "夢は、記憶や欲望や理性の下を静かに流れるもうひとつの川のようです。言葉にしきれなかった感情、考えきれなかった不安、昼のあいだ押し黙っていた自分の一部を、夜のうちにもう一度こちらへ連れ戻してきます。",
+          blocks: {
+            origin: {
+              label: "すべては夜が深まったあとに始まる",
+              heading: "昼が終わると、もうひとつの世界がそっと灯る",
+              body1:
+                "私たちは夢を、偶然の断片や、目覚めれば消えてしまう曖昧な映像として片づけがちです。けれど論理に従わず、場面も人物も勝手に組み替えながら、昔の関係や言い残した感情、見過ごした細部を別の姿で差し戻してくるところに、夢の神秘があります。",
+              body2:
+                "ときに夢は予兆のようであり、ときに反響のようでもあります。たったひとつのイメージしか残さなくても、その日一日ずっと心に残ることがある。夢は現実の残りかすではなく、内側でまだ何かが動き続けている証なのだと気づかされます。",
+            },
+            meaning: {
+              label: "夢が持つ意味",
+              heading: "昼には理解できなかったことが、夜には別の言葉で戻ってくる",
+              body1:
+                "夢は象徴で語ります。答えを直接渡してはくれませんが、感情、恐れ、欲望、記憶、関係をひとつの場面に圧縮して見せます。繰り返し現れる部屋、海、落下、追跡、すれ違いは、単なる偶然ではなく、自分が何に揺さぶられ、何を失うことを恐れ、何から目をそらしているのかを示す合図かもしれません。",
+              body2:
+                "だから夢を記録することは、神秘的な正解を無理に探すことではありません。まだ形になっていない自分の内面を読み取る練習です。夢の意味は、何を予言したかよりも、何を照らしたかに宿ることが多いのです。",
+            },
+            value: {
+              label: "夢を残す価値",
+              heading: "ひとつの夢も、積み重ねれば長い流れの手がかりになる",
+              body1:
+                "一度の夢は、目覚めたあとの余韻で終わるかもしれません。でも複数の夢を並べて見れば、そこにパターンが現れます。感情が一週間の中でどう揺れたのか、睡眠の質が夜の景色をどう変えたのか、何が繰り返し戻ってくるのか、どの関係が夢の中でより深い痕跡を残しているのかが、少しずつ見えてきます。",
+              body2:
+                "夢を扱う価値は、まさにその連なりにあります。自分を振り返り、感情を整理し、変化を追い、言葉にしづらいものに正直な形を与える。そのための静かな入口になってくれます。",
+            },
+            trace: {
+              label: "痕跡を残すために",
+              heading: "Dream Log がしたいのは、朝には消えるものに少し長くとどまる場所を渡すこと",
+              body1:
+                "夢を無機質なレポートに変えたいわけではありませんし、すべての神秘を説明し尽くして余白を失わせたいわけでもありません。大切なのは、朝になればこぼれてしまうものに、いったん立ち止まれる場所を与えることです。まずは素早く記録して、あとから感情、睡眠、象徴、洞察、そして自分なりの理解を重ねていけます。",
+              body2:
+                "多くの夢は、最後までひとつの答えに収束しないかもしれません。それでも残す価値があります。そこにあるのは理論ではなく、ある瞬間に確かに存在していた自分だからです。夢の意味とは、前に進み続ける日々の途中で、ときどき立ち止まり、内側の自分がどう震え、光り、助けを求め、静かに変わっていったかを見返せることなのかもしれません。",
             },
           },
         },

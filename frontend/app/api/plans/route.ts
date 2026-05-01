@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
+import { resolveApiOrigin } from "@/lib/api-origin";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "";
-
-export async function GET() {
-  if (!API_URL) {
+export async function GET(request: Request) {
+  const apiOrigin = resolveApiOrigin(new URL(request.url));
+  if (!apiOrigin) {
     return NextResponse.json({ pricing: {} }, { status: 200 });
   }
   try {
-    const response = await fetch(`${API_URL}/api/billing/plans`, {
+    const response = await fetch(`${apiOrigin}/api/billing/plans`, {
       cache: "no-store",
     });
     if (!response.ok) {

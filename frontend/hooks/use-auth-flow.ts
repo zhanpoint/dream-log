@@ -21,7 +21,7 @@ export type AuthMode = "login" | "signup" | "unknown";
 /**
  * 认证方法
  */
-export type AuthMethod = "password" | "code" | "oauth";
+export type AuthMethod = "password" | "code" | "oauth" | "passkey";
 
 /**
  * 认证流程状态
@@ -39,6 +39,8 @@ export interface AuthFlowState {
   name: string;
   // 用户是否设置过密码
   hasPassword: boolean;
+  // 用户是否已绑定通行密钥
+  hasPasskey: boolean;
   // 加载状态
   isLoading: boolean;
   // 错误信息
@@ -54,10 +56,11 @@ export function useAuthFlow() {
   const [state, setState] = useState<AuthFlowState>({
     step: "email",
     mode: "unknown",
-    method: null,
-    email: "",
-    name: "",
-    hasPassword: false,
+      method: null,
+      email: "",
+      name: "",
+      hasPassword: false,
+      hasPasskey: false,
     isLoading: false,
     error: null,
     history: [],
@@ -128,6 +131,7 @@ export function useAuthFlow() {
       email: "",
       name: "",
       hasPassword: false,
+      hasPasskey: false,
       isLoading: false,
       error: null,
       history: [],
@@ -150,6 +154,7 @@ export function useAuthFlow() {
         name: name || prev.name,
         mode: response.exists ? "login" : "signup",
         hasPassword: response.has_password || false,
+        hasPasskey: response.has_passkey || false,
         isLoading: false,
       }));
 
@@ -329,8 +334,31 @@ export function useAuthFlow() {
       if (typeof window !== "undefined") {
         window.location.href = authUrl;
       }
+      return null;
     } catch (error: any) {
-      setError(error.translationKey || "auth.unknownError");
+      const translationKey = error.translationKey || "auth.unknownError";
+      setError(translationKey);
+      return translationKey;
+    }
+  }, [setLoading, clearError, setError]);
+
+  /**
+   * 微信扫码登录
+   */
+  const loginWithWeChat = useCallback(async () => {
+    setLoading(true);
+    clearError();
+
+    try {
+      const authUrl = await authAPI.initiateWeChatOAuth();
+      if (typeof window !== "undefined") {
+        window.location.href = authUrl;
+      }
+      return null;
+    } catch (error: any) {
+      const translationKey = error.translationKey || "auth.unknownError";
+      setError(translationKey);
+      return translationKey;
     }
   }, [setLoading, clearError, setError]);
 
@@ -360,6 +388,7 @@ export function useAuthFlow() {
     sendVerificationCode,
     forgotPassword,
     loginWithGoogle,
+    loginWithWeChat,
 
     // 工具函数
     setError,

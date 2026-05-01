@@ -14,7 +14,7 @@ export interface User {
   avatar?: string | null;
   createdAt: string;
   // 注册方式（用于判断是否设置过密码等）
-  registration_method?: "email" | "code" | "google" | string;
+  registration_method?: "email" | "google" | "wechat" | string;
 }
 
 /**
@@ -41,6 +41,7 @@ export interface EmailCheckResponse {
   exists: boolean;
   registered: boolean;
   has_password?: boolean; // 是否设置过密码(仅当exists=true时有值)
+  has_passkey?: boolean; // 是否已绑定通行密钥(仅当exists=true时有值)
 }
 
 /**
@@ -244,6 +245,20 @@ class AuthAPIService {
   }
 
   /**
+   * 获取微信扫码登录授权 URL
+   */
+  async initiateWeChatOAuth(): Promise<string> {
+    try {
+      const response = await api.get<{ authUrl: string }>(
+        "/auth/oauth/wechat/init"
+      );
+      return response.data.authUrl;
+    } catch (error) {
+      throw handleAuthError(error);
+    }
+  }
+
+  /**
    * 处理 Google OAuth 回调
    */
   async handleGoogleOAuthCallback(code: string): Promise<AuthResponse> {
@@ -252,6 +267,24 @@ class AuthAPIService {
         "/auth/oauth/google/callback",
         {
           code,
+        }
+      );
+      return normalizeAuthResponse(response.data);
+    } catch (error) {
+      throw handleAuthError(error);
+    }
+  }
+
+  /**
+   * 处理微信 OAuth 回调
+   */
+  async handleWeChatOAuthCallback(code: string, state: string): Promise<AuthResponse> {
+    try {
+      const response = await api.post<AuthResponse>(
+        "/auth/oauth/wechat/callback",
+        {
+          code,
+          state,
         }
       );
       return normalizeAuthResponse(response.data);
@@ -406,12 +439,43 @@ export const AuthUser = {
  * 认证辅助函数
  */
 export const AuthHelpers = {
+  normalizePostLoginRedirect(redirectUrl: string | null | undefined): string | null {
+    if (!redirectUrl || typeof window === "undefined") {
+      return null;
+    }
+
+    const trimmed = redirectUrl.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (trimmed.startsWith("/")) {
+      return trimmed;
+    }
+
+    try {
+      const parsed = new URL(trimmed, window.location.origin);
+      if (parsed.origin !== window.location.origin) {
+        return null;
+      }
+
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+      return null;
+    }
+  },
+
   /**
    * 记录登录后跳转地址
    */
   setPostLoginRedirect(redirectUrl: string): void {
     if (typeof window !== "undefined") {
-      localStorage.setItem("post_login_redirect", redirectUrl);
+      const normalized = this.normalizePostLoginRedirect(redirectUrl);
+      if (normalized) {
+        localStorage.setItem("post_login_redirect", normalized);
+      } else {
+        localStorage.removeItem("post_login_redirect");
+      }
     }
   },
 
@@ -424,7 +488,7 @@ export const AuthHelpers = {
       if (redirectUrl) {
         localStorage.removeItem("post_login_redirect");
       }
-      return redirectUrl;
+      return this.normalizePostLoginRedirect(redirectUrl);
     }
     return null;
   },
@@ -442,7 +506,8 @@ export const AuthHelpers = {
     // 跳转
     if (typeof window !== "undefined") {
       const storedRedirect = this.consumePostLoginRedirect();
-      const target = redirectUrl || storedRedirect || "/";
+      const target =
+        this.normalizePostLoginRedirect(redirectUrl) || storedRedirect || "/";
       window.location.href = target;
     }
   },

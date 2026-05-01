@@ -8,6 +8,21 @@ from urllib.parse import urlparse
 from pydantic import Field, PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEV_FRONTEND_ORIGINS = [
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+]
+
+
+def _split_origins(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
+def _unique_preserving_order(origins: list[str]) -> list[str]:
+    return list(dict.fromkeys(origins))
+
 
 class Settings(BaseSettings):
     """应用配置"""
@@ -49,11 +64,14 @@ class Settings(BaseSettings):
         default="http://localhost:3000",
         alias="ALLOWED_ORIGINS",
     )
-    
+
     @property
     def cors_origins(self) -> list[str]:
         """解析 CORS 允许的源（支持逗号分隔）"""
-        return [origin.strip() for origin in self.allowed_origins.split(",")]
+        origins = _split_origins(self.allowed_origins)
+        if self.is_development:
+            origins.extend(DEV_FRONTEND_ORIGINS)
+        return _unique_preserving_order(origins)
 
     # Passkey / WebAuthn 配置
     passkey_rp_name: str = Field(default="Dream Log", alias="PASSKEY_RP_NAME")
@@ -65,8 +83,10 @@ class Settings(BaseSettings):
     @property
     def passkey_origins(self) -> list[str]:
         """用于 WebAuthn 校验的允许 Origin 列表（默认取 CORS origins）。"""
-        raw = self.passkey_expected_origins or self.allowed_origins
-        return [o.strip() for o in raw.split(",") if o.strip()]
+        origins = _split_origins(self.passkey_expected_origins or self.allowed_origins)
+        if self.is_development:
+            origins.extend(DEV_FRONTEND_ORIGINS)
+        return _unique_preserving_order(origins)
 
     @property
     def passkey_effective_rp_id(self) -> str:
@@ -144,6 +164,9 @@ class Settings(BaseSettings):
     google_client_id: str | None = Field(default=None, alias="GOOGLE_CLIENT_ID")
     google_client_secret: str | None = Field(default=None, alias="GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str | None = Field(default=None, alias="GOOGLE_REDIRECT_URI")
+    wechat_open_app_id: str | None = Field(default=None, alias="WECHAT_OPEN_APP_ID")
+    wechat_open_app_secret: str | None = Field(default=None, alias="WECHAT_OPEN_APP_SECRET")
+    wechat_open_redirect_uri: str | None = Field(default=None, alias="WECHAT_OPEN_REDIRECT_URI")
 
     # AI 服务配置 (统一使用 OpenRouter)
     openrouter_api_key: str | None = Field(default=None, alias="OPENROUTER_API_KEY")
@@ -191,10 +214,10 @@ class Settings(BaseSettings):
     aliyun_oss_access_key_secret: str | None = Field(default=None, alias="ALIYUN_OSS_ACCESS_KEY_SECRET")
     aliyun_oss_endpoint: str | None = Field(default=None, alias="ALIYUN_OSS_ENDPOINT")
     aliyun_oss_role_arn: str | None = Field(default=None, alias="ALIYUN_OSS_ROLE_ARN")
-    
+
     # 公开 Bucket（头像、公开图片等）- 设置为公共读
     aliyun_oss_public_bucket: str | None = Field(default=None, alias="ALIYUN_OSS_PUBLIC_BUCKET")
-    
+
     # 私密 Bucket（用户文档、私密文件等）- 设置为私有
     aliyun_oss_private_bucket: str | None = Field(default=None, alias="ALIYUN_OSS_PRIVATE_BUCKET")
 

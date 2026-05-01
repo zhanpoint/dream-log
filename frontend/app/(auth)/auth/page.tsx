@@ -6,6 +6,7 @@ import { useAuthFlow, useVerificationTimer, useFormError, type AuthMethod } from
 import { AuthHelpers, AuthToken } from "@/lib/auth-api";
 import { passkeyAPI } from "@/lib/passkey-api";
 import {
+  getPasskeyErrorTranslationKey,
   isPasskeyAutofillAvailable,
   isPasskeyUserCancelError,
   passkeyAuthenticate,
@@ -26,7 +27,7 @@ export default function AuthPage() {
   const { t } = useTranslation();
   const authFlow = useAuthFlow();
   const timer = useVerificationTimer({ duration: 60 });
-  const { showError, showSuccess } = useFormError();
+  const { showError, showInfo, showSuccess } = useFormError();
 
   // 存储密码(用于密码注册流程)
   const [tempPassword, setTempPassword] = useState<string>("");
@@ -46,6 +47,11 @@ export default function AuthPage() {
    * 步骤 2: 选择认证方法
    */
   const handleMethodSelect = async (method: AuthMethod) => {
+    if (method === "passkey") {
+      await handlePasskeyLogin();
+      return;
+    }
+
     authFlow.selectMethod(method);
 
     // 如果选择验证码,自动发送
@@ -139,15 +145,27 @@ export default function AuthPage() {
    * Google OAuth 登录
    */
   const handleGoogleLogin = async () => {
-    await authFlow.loginWithGoogle();
-    if (authFlow.error) {
-      showError(authFlow.error);
+    const errorKey = await authFlow.loginWithGoogle();
+    if (errorKey) {
+      showError(errorKey);
+    }
+  };
+
+  /**
+   * 微信扫码登录
+   */
+  const handleWeChatLogin = async () => {
+    const errorKey = await authFlow.loginWithWeChat();
+    if (errorKey) {
+      showError(errorKey);
     }
   };
 
   const handlePasskeyLogin = async (opts?: { useAutofill?: boolean; signal?: AbortSignal }) => {
     try {
-      const { ceremony_id, publicKey } = await passkeyAPI.getAuthenticationOptions();
+      const { ceremony_id, publicKey } = await passkeyAPI.getAuthenticationOptions(
+        opts?.useAutofill ? undefined : authFlow.email || undefined
+      );
       const credential = await passkeyAuthenticate(publicKey, {
         useAutofill: opts?.useAutofill ?? false,
         signal: opts?.signal,
@@ -155,9 +173,15 @@ export default function AuthPage() {
       const resp = await passkeyAPI.verifyAuthentication(ceremony_id, credential);
       AuthHelpers.handleLoginSuccess(resp);
     } catch (e: any) {
-      // 用户取消 passkey 是正常行为，不展示错误提示
-      if (isPasskeyUserCancelError(e)) return;
-      showError(e?.message ?? t("auth.loginFailed"));
+      if (isPasskeyUserCancelError(e) && opts?.useAutofill) return;
+
+      const translationKey = getPasskeyErrorTranslationKey(e);
+      if (translationKey === "auth.passkeyLoginCancelled") {
+        showInfo(translationKey);
+        return;
+      }
+
+      showError(translationKey);
     }
   };
 
@@ -200,7 +224,7 @@ export default function AuthPage() {
   }, []);
 
   return (
-    <div className="w-full max-w-md relative">
+    <div className="relative w-full max-w-xl">
       {/* 返回按钮 */}
       {authFlow.canGoBack && (
         <button
@@ -229,7 +253,7 @@ export default function AuthPage() {
             <EmailStep
               onSubmit={handleEmailSubmit}
               onGoogleLogin={handleGoogleLogin}
-              onPasskeyLogin={() => handlePasskeyLogin({ useAutofill: false })}
+              onWeChatLogin={handleWeChatLogin}
               isLoading={authFlow.isLoading}
               defaultEmail={authFlow.email}
             />
@@ -241,6 +265,7 @@ export default function AuthPage() {
               email={authFlow.email}
               mode={authFlow.mode}
               hasPassword={authFlow.hasPassword}
+              hasPasskey={authFlow.hasPasskey}
               onSelectMethod={handleMethodSelect}
               isLoading={authFlow.isLoading}
             />

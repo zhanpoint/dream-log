@@ -20,6 +20,7 @@ interface MethodSelectionStepProps {
   email: string;
   mode: AuthMode;
   hasPassword: boolean;
+  hasPasskey?: boolean;
   onSelectMethod: (method: AuthMethod) => void;
   isLoading?: boolean;
 }
@@ -28,6 +29,7 @@ export function MethodSelectionStep({
   email,
   mode,
   hasPassword,
+  hasPasskey = false,
   onSelectMethod,
   isLoading = false,
 }: MethodSelectionStepProps) {
@@ -68,7 +70,7 @@ export function MethodSelectionStep({
 
   return (
     <>
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full max-w-xl space-y-8">
       {/* 标题 */}
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -79,6 +81,21 @@ export function MethodSelectionStep({
 
       {/* 方法选择 */}
       <div className="space-y-3">
+        {isLogin && hasPasskey && (
+          <button
+            onClick={() => onSelectMethod("passkey")}
+            disabled={isLoading}
+            className="w-full group relative overflow-hidden rounded-lg border-2 auth-card p-5 text-left transition-all duration-300 hover:border-primary/50 hover:auth-card-hover hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
+                <KeyRound className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-foreground">{t("auth.passkeyLogin")}</span>
+            </div>
+          </button>
+        )}
+
         {/* 验证码方式 */}
         <button
           onClick={() => onSelectMethod("code")}

@@ -25,8 +25,8 @@ export default function FeaturesSection() {
       gradientFrom: "#9E7AFF",
       gradientTo: "#FE8BBB",
       gradientColor: "#9E7AFF",
-      iconColor: "text-purple-400",
-      iconBgColor: "bg-purple-950/50",
+      iconColor: "text-purple-500 dark:text-purple-400",
+      iconBgColor: "bg-purple-500/12 dark:bg-purple-950/50",
     },
     {
       icon: Calendar,
@@ -35,8 +35,8 @@ export default function FeaturesSection() {
       gradientFrom: "#06B6D4",
       gradientTo: "#3B82F6",
       gradientColor: "#06B6D4",
-      iconColor: "text-cyan-400",
-      iconBgColor: "bg-cyan-950/50",
+      iconColor: "text-cyan-500 dark:text-cyan-400",
+      iconBgColor: "bg-cyan-500/12 dark:bg-cyan-950/50",
     },
     {
       icon: LineChart,
@@ -45,8 +45,8 @@ export default function FeaturesSection() {
       gradientFrom: "#8B5CF6",
       gradientTo: "#EC4899",
       gradientColor: "#8B5CF6",
-      iconColor: "text-pink-400",
-      iconBgColor: "bg-pink-950/50",
+      iconColor: "text-pink-500 dark:text-pink-400",
+      iconBgColor: "bg-pink-500/12 dark:bg-pink-950/50",
     },
     {
       icon: Sparkles,
@@ -55,8 +55,8 @@ export default function FeaturesSection() {
       gradientFrom: "#14B8A6",
       gradientTo: "#22C55E",
       gradientColor: "#14B8A6",
-      iconColor: "text-emerald-400",
-      iconBgColor: "bg-emerald-950/50",
+      iconColor: "text-emerald-500 dark:text-emerald-400",
+      iconBgColor: "bg-emerald-500/12 dark:bg-emerald-950/50",
     },
     {
       icon: BookOpen,
@@ -65,8 +65,8 @@ export default function FeaturesSection() {
       gradientFrom: "#F97316",
       gradientTo: "#F43F5E",
       gradientColor: "#F97316",
-      iconColor: "text-orange-400",
-      iconBgColor: "bg-orange-950/50",
+      iconColor: "text-orange-500 dark:text-orange-400",
+      iconBgColor: "bg-orange-500/12 dark:bg-orange-950/50",
     },
     {
       icon: MoonStar,
@@ -75,8 +75,8 @@ export default function FeaturesSection() {
       gradientFrom: "#6366F1",
       gradientTo: "#A855F7",
       gradientColor: "#6366F1",
-      iconColor: "text-indigo-400",
-      iconBgColor: "bg-indigo-950/50",
+      iconColor: "text-indigo-500 dark:text-indigo-400",
+      iconBgColor: "bg-indigo-500/12 dark:bg-indigo-950/50",
     },
     {
       icon: Users,
@@ -85,8 +85,8 @@ export default function FeaturesSection() {
       gradientFrom: "#FACC15",
       gradientTo: "#FB7185",
       gradientColor: "#FACC15",
-      iconColor: "text-amber-400",
-      iconBgColor: "bg-amber-950/50",
+      iconColor: "text-amber-500 dark:text-amber-400",
+      iconBgColor: "bg-amber-500/12 dark:bg-amber-950/50",
     },
     {
       icon: MessageCircle,
@@ -95,8 +95,8 @@ export default function FeaturesSection() {
       gradientFrom: "#38BDF8",
       gradientTo: "#818CF8",
       gradientColor: "#38BDF8",
-      iconColor: "text-sky-400",
-      iconBgColor: "bg-sky-950/50",
+      iconColor: "text-sky-500 dark:text-sky-400",
+      iconBgColor: "bg-sky-500/12 dark:bg-sky-950/50",
     },
   ];
 
@@ -125,7 +125,7 @@ export default function FeaturesSection() {
             return (
               <MagicCard
                 key={idx}
-                className="group relative flex h-full flex-col rounded-2xl border border-border p-5 text-left transition-all duration-300 sm:p-6 lg:p-8"
+                className="group relative flex h-full flex-col rounded-2xl border border-border/80 bg-card/95 p-5 text-left shadow-[0_18px_50px_-32px_rgba(15,23,42,0.18)] transition-all duration-300 motion-safe:hover:-translate-y-1 sm:p-6 lg:p-8 dark:bg-card"
                 gradientSize={200}
                 gradientFrom={feature.gradientFrom}
                 gradientTo={feature.gradientTo}
@@ -134,7 +134,7 @@ export default function FeaturesSection() {
               >
                 <div className="relative flex-shrink-0 mb-5">
                   <div
-                    className={`flex size-12 items-center justify-center rounded-lg border border-border transition-all duration-300 group-hover:scale-105 sm:size-14 ${feature.iconBgColor}`}
+                    className={`flex size-12 items-center justify-center rounded-lg border border-border/70 transition-all duration-300 group-hover:scale-105 sm:size-14 ${feature.iconBgColor}`}
                   >
                     <Icon
                       className={`h-7 w-7 transition-transform duration-300 group-hover:scale-110 sm:h-8 sm:w-8 ${feature.iconColor}`}

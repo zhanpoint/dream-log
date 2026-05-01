@@ -9,12 +9,12 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User, RegistrationMethod
+from app.core.redis import get_arq_redis, get_redis
+from app.models.user import RegistrationMethod, User
 from app.schemas.user import UpdateProfileRequest
 from app.services.oss_service import get_oss_service
 from app.services.password_service import PasswordService
 from app.services.username_service import check_username_available, generate_username
-from app.core.redis import get_redis, get_arq_redis
 
 
 class UserService:
@@ -33,6 +33,16 @@ class UserService:
         result = await self.db.execute(select(User).where(User.google_id == google_id))
         return result.scalar_one_or_none()
 
+    async def get_by_wechat_open_id(self, wechat_open_id: str) -> User | None:
+        """通过微信 OpenID 获取用户"""
+        result = await self.db.execute(select(User).where(User.wechat_open_id == wechat_open_id))
+        return result.scalar_one_or_none()
+
+    async def get_by_wechat_union_id(self, wechat_union_id: str) -> User | None:
+        """通过微信 UnionID 获取用户"""
+        result = await self.db.execute(select(User).where(User.wechat_union_id == wechat_union_id))
+        return result.scalar_one_or_none()
+
     async def get_by_id(self, user_id: uuid.UUID | str) -> User | None:
         """通过 ID 获取用户"""
         if isinstance(user_id, str):
@@ -46,21 +56,31 @@ class UserService:
         password: str | None = None,
         name: str | None = None,
         google_id: str | None = None,
+        wechat_open_id: str | None = None,
+        wechat_union_id: str | None = None,
         avatar: str | None = None,
         registration_method: RegistrationMethod | None = None,
     ) -> User:
         """创建用户"""
         # 先生成 UUID
         user_id = uuid.uuid4()
-        
+
         user = User(
             id=user_id,
             email=email,
             username=name,
             google_id=google_id,
+            wechat_open_id=wechat_open_id,
+            wechat_union_id=wechat_union_id,
             avatar=avatar,
             registration_method=registration_method
-            or (RegistrationMethod.GOOGLE if google_id else RegistrationMethod.EMAIL),
+            or (
+                RegistrationMethod.GOOGLE
+                if google_id
+                else RegistrationMethod.WECHAT
+                if wechat_open_id
+                else RegistrationMethod.EMAIL
+            ),
         )
 
         if password:
@@ -86,26 +106,26 @@ class UserService:
 async def get_user_by_id(user_id: uuid.UUID, db: AsyncSession) -> User:
     """
     通过ID获取用户
-    
+
     Args:
         user_id: 用户ID
         db: 数据库会话
-        
+
     Returns:
         用户对象
-        
+
     Raises:
         HTTPException: 用户不存在
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="用户不存在",
         )
-    
+
     return user
 
 
@@ -116,20 +136,20 @@ async def update_profile(
 ) -> User:
     """
     更新用户个人资料
-    
+
     Args:
         user_id: 用户ID
         profile_data: 资料数据
         db: 数据库会话
-        
+
     Returns:
         更新后的用户对象
-        
+
     Raises:
         HTTPException: 用户名已被占用
     """
     user = await get_user_by_id(user_id, db)
-    
+
     # 检查用户名唯一性
     if profile_data.username is not None:
         is_available = await check_username_available(
@@ -143,11 +163,11 @@ async def update_profile(
                 detail="用户名已被占用",
             )
         user.username = profile_data.username
-    
+
     # 更新其他字段
     if profile_data.bio is not None:
         user.bio = profile_data.bio
-    
+
     if profile_data.birthday is not None:
         user.birthday = profile_data.birthday
 
@@ -162,10 +182,10 @@ async def update_profile(
 
     if profile_data.preferred_locale is not None:
         user.preferred_locale = profile_data.preferred_locale
-    
+
     await db.commit()
     await db.refresh(user)
-    
+
     return user
 
 
@@ -176,27 +196,27 @@ async def update_avatar(
 ) -> User:
     """
     更新用户头像，并删除旧头像文件
-    
+
     Args:
         user_id: 用户ID
         avatar_url: 新头像URL
         db: 数据库会话
-        
+
     Returns:
         更新后的用户对象
     """
     user = await get_user_by_id(user_id, db)
-    
+
     # 如果有旧头像且是 OSS 上的文件，异步删除（头像在 public bucket）
     if user.avatar:
         oss_service = get_oss_service()
         await oss_service.delete_object_by_url(user.avatar, bucket_type="public")
-    
+
     user.avatar = avatar_url
-    
+
     await db.commit()
     await db.refresh(user)
-    
+
     return user
 
 
@@ -216,12 +236,12 @@ async def change_password(
             new_password: 新密码
         verification_code: 验证码（可选）
         db: 数据库会话
-        
+
     Raises:
         HTTPException: 验证失败或密码错误
     """
     user = await get_user_by_id(user_id, db)
-    
+
     # 验证身份：需要旧密码或验证码
     if old_password:
         # 使用旧密码验证
@@ -255,12 +275,12 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="请提供旧密码或验证码",
         )
-    
+
     # 更新密码
     user.hashed_password = await anyio.to_thread.run_sync(
         PasswordService.hash_password, new_password
     )
-    
+
     await db.commit()
 
 
@@ -272,7 +292,7 @@ async def change_email(
 ) -> User:
     """
     修改用户邮箱
-    
+
     Args:
         user_id: 用户ID
         new_email: 新邮箱
@@ -281,12 +301,12 @@ async def change_email(
 
         Returns:
         更新后的用户对象
-        
+
     Raises:
         HTTPException: 验证失败或邮箱已被占用
         """
     user = await get_user_by_id(user_id, db)
-    
+
     # 验证新邮箱的验证码
     from app.services.email_verification_service import EmailVerificationService
     redis = get_redis()
@@ -298,7 +318,7 @@ async def change_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="验证码无效或已过期",
         )
-    
+
     # 检查新邮箱是否已被占用
     result = await db.execute(select(User).where(User.email == new_email))
     if result.scalar_one_or_none():
@@ -306,10 +326,10 @@ async def change_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="该邮箱已被使用",
         )
-    
+
     user.email = new_email
-    
+
     await db.commit()
     await db.refresh(user)
-    
+
     return user

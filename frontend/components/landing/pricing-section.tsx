@@ -222,11 +222,11 @@ export default function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-6 mt-auto">
+                <div className="mt-8">
                   {currentPlan === plan.id ? (
                     <Button
                       variant="outline"
-                      className="h-10 w-fit rounded-full px-6 transition-all duration-300"
+                      className="h-9 w-fit rounded-full px-4 text-sm transition-all duration-300"
                       disabled
                     >
                       {t("billing.action.currentPlan")}
@@ -235,13 +235,13 @@ export default function PricingSection() {
                     <Button
                       disabled
                       variant="outline"
-                      className="h-10 w-fit rounded-full px-6 transition-all duration-300"
+                      className="h-9 w-fit rounded-full px-4 text-sm transition-all duration-300"
                     >
                       {t(planCopy.free.cta)}
                     </Button>
                   ) : (
                     <Button
-                      className="h-10 w-fit rounded-full px-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)] focus-visible:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)]"
+                      className="h-9 w-fit rounded-full px-4 text-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)] focus-visible:shadow-[0_16px_36px_-18px_rgba(99,102,241,0.9)]"
                       onClick={() => handleUpgrade(plan.id)}
                       disabled={loadingPlan !== null}
                     >

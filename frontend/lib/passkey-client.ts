@@ -44,3 +44,31 @@ export function isPasskeyUserCancelError(error: unknown): boolean {
   );
 }
 
+export function getPasskeyErrorTranslationKey(error: unknown): string {
+  const e = error as { name?: string; message?: string };
+  const name = e?.name ?? "";
+  const message = (e?.message ?? "").toLowerCase();
+
+  if (isPasskeyUserCancelError(error)) {
+    return "auth.passkeyLoginCancelled";
+  }
+
+  if (
+    name === "NotSupportedError" ||
+    message.includes("not supported") ||
+    message.includes("webauthn is not supported")
+  ) {
+    return "auth.passkeyNotSupported";
+  }
+
+  if (
+    name === "InvalidStateError" ||
+    message.includes("no passkey") ||
+    message.includes("no credentials") ||
+    message.includes("not registered")
+  ) {
+    return "auth.passkeyUnavailable";
+  }
+
+  return "auth.loginFailed";
+}

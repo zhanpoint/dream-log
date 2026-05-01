@@ -4,3 +4,4 @@ export {
   validatePasswordStrength,
 } from "./password-strength-indicator";
 export { GoogleOAuthButton } from "./google-oauth-button";
+export { WeChatOAuthButton } from "./wechat-oauth-button";

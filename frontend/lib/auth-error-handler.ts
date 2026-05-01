@@ -25,6 +25,8 @@ export enum AuthErrorCode {
   UNAUTHORIZED = "UNAUTHORIZED",
   TOKEN_EXPIRED = "TOKEN_EXPIRED",
   ACCOUNT_BLOCKED = "ACCOUNT_BLOCKED",
+  OAUTH_NOT_CONFIGURED = "OAUTH_NOT_CONFIGURED",
+  PASSKEY_UNAVAILABLE = "PASSKEY_UNAVAILABLE",
 
   // 限流
   TOO_MANY_ATTEMPTS = "TOO_MANY_ATTEMPTS",
@@ -57,6 +59,8 @@ const errorCodeToTranslationKey: Record<string, string> = {
   [AuthErrorCode.UNAUTHORIZED]: "auth.invalidCredentials",
   [AuthErrorCode.TOKEN_EXPIRED]: "auth.invalidCredentials",
   [AuthErrorCode.ACCOUNT_BLOCKED]: "auth.accountBlocked",
+  [AuthErrorCode.OAUTH_NOT_CONFIGURED]: "auth.oauthNotConfigured",
+  [AuthErrorCode.PASSKEY_UNAVAILABLE]: "auth.passkeyUnavailable",
 
   [AuthErrorCode.TOO_MANY_ATTEMPTS]: "auth.tooManyAttempts",
   [AuthErrorCode.RATE_LIMIT_EXCEEDED]: "auth.tooManyAttempts",
@@ -93,39 +97,55 @@ export class AuthError extends Error {
 function parseErrorCode(error: AxiosError): AuthErrorCode {
   const status = error.response?.status;
   const errorCode = (error.response?.data as any)?.code;
-  const errorMessage = (error.response?.data as any)?.message || "";
+  const errorMessage = String(
+    (error.response?.data as any)?.detail ??
+      (error.response?.data as any)?.message ??
+      ""
+  );
+  const normalizedMessage = errorMessage.toLowerCase();
 
   // 优先使用后端返回的错误代码
   if (errorCode && Object.values(AuthErrorCode).includes(errorCode)) {
     return errorCode as AuthErrorCode;
   }
 
+  if (
+    (normalizedMessage.includes("oauth") && errorMessage.includes("未配置")) ||
+    normalizedMessage.includes("oauth not configured")
+  ) {
+    return AuthErrorCode.OAUTH_NOT_CONFIGURED;
+  }
+
+  if (errorMessage.includes("通行密钥")) {
+    return AuthErrorCode.PASSKEY_UNAVAILABLE;
+  }
+
   // 根据 HTTP 状态码判断
   switch (status) {
     case 400:
       // 根据错误消息判断具体错误
-      if (errorMessage.toLowerCase().includes("email")) {
-        if (errorMessage.toLowerCase().includes("exists")) {
+      if (normalizedMessage.includes("email")) {
+        if (normalizedMessage.includes("exists")) {
           return AuthErrorCode.EMAIL_ALREADY_EXISTS;
         }
-        if (errorMessage.toLowerCase().includes("invalid")) {
+        if (normalizedMessage.includes("invalid")) {
           return AuthErrorCode.EMAIL_INVALID;
         }
-        if (errorMessage.toLowerCase().includes("not found")) {
+        if (normalizedMessage.includes("not found")) {
           return AuthErrorCode.EMAIL_NOT_FOUND;
         }
       }
-      if (errorMessage.toLowerCase().includes("password")) {
-        if (errorMessage.toLowerCase().includes("weak")) {
+      if (normalizedMessage.includes("password")) {
+        if (normalizedMessage.includes("weak")) {
           return AuthErrorCode.PASSWORD_TOO_WEAK;
         }
         return AuthErrorCode.PASSWORD_INVALID;
       }
-      if (errorMessage.toLowerCase().includes("code") || errorMessage.toLowerCase().includes("verification")) {
-        if (errorMessage.toLowerCase().includes("expired")) {
+      if (normalizedMessage.includes("code") || normalizedMessage.includes("verification")) {
+        if (normalizedMessage.includes("expired")) {
           return AuthErrorCode.CODE_EXPIRED;
         }
-        if (errorMessage.toLowerCase().includes("invalid")) {
+        if (normalizedMessage.includes("invalid")) {
           return AuthErrorCode.CODE_INVALID;
         }
       }
@@ -138,6 +158,9 @@ function parseErrorCode(error: AxiosError): AuthErrorCode {
       return AuthErrorCode.ACCOUNT_BLOCKED;
 
     case 404:
+      if (errorMessage.includes("通行密钥")) {
+        return AuthErrorCode.PASSKEY_UNAVAILABLE;
+      }
       return AuthErrorCode.EMAIL_NOT_FOUND;
 
     case 429:

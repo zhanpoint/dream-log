@@ -1,23 +1,11 @@
 import axios from "axios";
+import { getBrowserApiOrigin } from "./api-origin";
 
 /**
  * API 基础配置
  */
 function getApiOrigin(): string {
-  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-  if (configured) return configured;
-
-  // 服务器侧/构建期：避免把生产环境默认指到 localhost
-  if (typeof window === "undefined") {
-    return process.env.NODE_ENV === "development" ? "http://localhost:8000" : "";
-  }
-
-  // 浏览器侧：避免生产站点误连到开发机 localhost
-  const hostname = window.location.hostname;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "http://localhost:8000";
-  }
-  return window.location.origin;
+  return getBrowserApiOrigin();
 }
 
 export const API_ORIGIN = getApiOrigin();

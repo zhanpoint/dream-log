@@ -14,6 +14,10 @@ class PasskeyOptionsResponse(BaseModel):
     publicKey: dict
 
 
+class PasskeyAuthenticationOptionsRequest(BaseModel):
+    email: str | None = None
+
+
 class PasskeyVerifyRequest(BaseModel):
     ceremony_id: str
     credential: dict = Field(..., description="浏览器返回的 PublicKeyCredential（JSON 化）")

@@ -1,5 +1,6 @@
 "use client";
 
+import { getBrowserApiOrigin, getWebSocketOrigin } from "@/lib/api-origin";
 import { cn } from "@/lib/utils";
 import { Mic, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -135,9 +136,9 @@ export function VoiceRecorder({ onTranscription, className }: VoiceRecorderProps
       streamRef.current = stream;
 
       // 2. WebSocket 连接
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = process.env.NEXT_PUBLIC_API_HOST ?? `${window.location.hostname}:8000`;
-      const ws = new WebSocket(`${protocol}//${host}/api/ws/voice/transcribe`);
+      const ws = new WebSocket(
+        `${getWebSocketOrigin(getBrowserApiOrigin())}/api/ws/voice/transcribe`
+      );
       wsRef.current = ws;
 
       ws.binaryType = "arraybuffer";
